@@ -1,0 +1,55 @@
+.komadai {
+    background-color: #d4a04b;
+    padding: var(--spacing-sm);
+    border-radius: 4px;
+    min-width: 120px;
+    min-height: 100px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stand {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    justify-content: center;
+}
+
+.pieceGroup {
+    position: relative;
+    width: 40px;
+    height: 44px;
+}
+
+.pieceContainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background-color: var(--color-text);
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 10px;
+    z-index: 10;
+}
+
+.gote {
+    margin-bottom: var(--spacing-md);
+    transform: rotate(180deg);
+}
+
+.gote .count {
+    transform: rotate(180deg);
+}
+
+.sente {
+    margin-top: var(--spacing-md);
+}

@@ -1,0 +1,133 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg);
+}
+
+.gameContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  max-width: 1000px;
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text);
+  letter-spacing: 0.2em;
+}
+
+.turnIndicator {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--color-primary);
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.boardArea {
+  display: flex;
+  flex-direction: column;
+  /* Mobile first: vertical stack */
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .boardArea {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+  }
+}
+
+.goteSide,
+.senteSide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.playerLabel {
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.5em;
+  font-size: 1.2rem;
+  color: var(--color-text);
+  opacity: 0.7;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background-color: white;
+  padding: var(--spacing-xl);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal p {
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.modalButtons {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.primaryBtn {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.secondaryBtn {
+  background-color: #ccc;
+  color: var(--color-text);
+}
+
+.primaryBtn:hover,
+.secondaryBtn:hover {
+  opacity: 0.8;
+}
