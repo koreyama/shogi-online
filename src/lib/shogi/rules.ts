@@ -270,7 +270,107 @@ const getInterpositions = (kingPos: Coordinates, checkerPos: Coordinates): Coord
 };
 
 export const isCheckmate = (board: BoardState, player: Player, hands: { [key in Player]: Piece[] }): boolean => {
-    return false; // Temporarily disabled to prevent freezing
+    // 1. Not in check? Not checkmate.
+    if (!isCheck(board, player)) return false;
+
+    const kingPos = findKing(board, player);
+    if (!kingPos) return true;
+
+    // 2. Can King move?
+    const kingMoves = getValidMoves(board, { type: 'king', owner: player, isPromoted: false, id: 'temp-king' }, kingPos);
+    for (const move of kingMoves) {
+        const originalTarget = board[move.y][move.x];
+        board[move.y][move.x] = board[kingPos.y][kingPos.x];
+        board[kingPos.y][kingPos.x] = null;
+
+        const stillCheck = isCheck(board, player);
+
+        board[kingPos.y][kingPos.x] = board[move.y][move.x];
+        board[move.y][move.x] = originalTarget;
+
+        if (!stillCheck) return false;
+    }
+
+    // 3. Get Checkers
+    const checkers = getCheckers(board, player);
+    if (checkers.length > 1) return true; // Double check, king must move but cannot
+
+    const checker = checkers[0];
+
+    // 4. Can capture checker?
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            const cell = board[y][x];
+            if (cell && cell.owner === player && cell.type !== 'king') {
+                const moves = getValidMoves(board, cell, { x, y });
+                if (moves.some(m => m.x === checker.pos.x && m.y === checker.pos.y)) {
+                    // Try capture
+                    const originalSource = board[y][x];
+                    const originalTarget = board[checker.pos.y][checker.pos.x];
+
+                    board[checker.pos.y][checker.pos.x] = cell;
+                    board[y][x] = null;
+
+                    const stillCheck = isCheck(board, player);
+
+                    board[y][x] = originalSource;
+                    board[checker.pos.y][checker.pos.x] = originalTarget;
+
+                    if (!stillCheck) return false;
+                }
+            }
+        }
+    }
+
+    // 5. Can block? (Interposition)
+    const interpositions = getInterpositions(kingPos, checker.pos);
+    if (interpositions.length > 0) {
+        // Move to block
+        for (let y = 0; y < 9; y++) {
+            for (let x = 0; x < 9; x++) {
+                const cell = board[y][x];
+                if (cell && cell.owner === player && cell.type !== 'king') {
+                    const moves = getValidMoves(board, cell, { x, y });
+                    for (const target of interpositions) {
+                        if (moves.some(m => m.x === target.x && m.y === target.y)) {
+                            // Try block
+                            const originalSource = board[y][x];
+                            const originalTarget = board[target.y][target.x];
+
+                            board[target.y][target.x] = cell;
+                            board[y][x] = null;
+
+                            const stillCheck = isCheck(board, player);
+
+                            board[y][x] = originalSource;
+                            board[target.y][target.x] = originalTarget;
+
+                            if (!stillCheck) return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Drop to block
+        const hand = hands[player];
+        const uniqueHandPieces = Array.from(new Set(hand.map(p => p.type)))
+            .map(type => hand.find(p => p.type === type)!);
+
+        for (const piece of uniqueHandPieces) {
+            for (const target of interpositions) {
+                if (piece.type === 'pawn' && hasPawnInColumn(board, target.x, player)) continue;
+
+                board[target.y][target.x] = piece;
+                const stillCheck = isCheck(board, player);
+                board[target.y][target.x] = null;
+
+                if (!stillCheck) return false;
+            }
+        }
+    }
+
+    return true;
 };
 
 export const isUchifuzume = (

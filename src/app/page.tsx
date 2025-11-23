@@ -99,6 +99,13 @@ export default function Home() {
       if (data.winner) {
         setGameState(prev => prev ? ({ ...prev, winner: data.winner }) : null);
         setStatus('finished');
+      } else {
+        // If winner is removed (rematch), and we were finished, reset.
+        if (status === 'finished') {
+          setStatus('playing');
+          setGameState(createInitialState());
+          setMessages([]); // Clear chat locally too
+        }
       }
     });
 
@@ -174,7 +181,34 @@ export default function Home() {
       }
     });
 
-    // Listen for undo request
+    // Listen for rematch requests
+    const rematchRef = ref(db, `rooms/${roomId}/rematch`);
+    const unsubscribeRematch = onValue(rematchRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.sente && data.gote) {
+        // Both requested rematch
+        if (myRole === 'sente') {
+          // Reset game (Sente acts as host)
+          set(ref(db, `rooms/${roomId}/moves`), null);
+          set(ref(db, `rooms/${roomId}/chat`), null);
+          set(ref(db, `rooms/${roomId}/winner`), null);
+          set(ref(db, `rooms/${roomId}/rematch`), null);
+          // We don't need to reset players
+        }
+        // Local state reset is handled by moves listener (moves cleared -> initial state)
+        // But moves listener might not fire for "null"?
+        // onChildAdded doesn't fire for removal.
+        // We need to detect "moves cleared".
+        // Actually, onValue for moves might be better if we want to detect clear.
+        // Or, we can listen to "winner" removal?
+        // Let's listen to "winner" removal in the room listener.
+      }
+    });
+
+    // Listen for room status (including winner removal)
+    // We already have onValue(roomRef)
+    // Let's update it to handle reset.
+
     const undoReqRef = ref(db, `rooms/${roomId}/undoRequest`);
     const unsubscribeUndoReq = onChildAdded(undoReqRef, (snapshot) => {
       const req = snapshot.val();
@@ -218,6 +252,7 @@ export default function Home() {
       off(roomRef);
       off(undoReqRef);
       off(undoResRef);
+      off(rematchRef);
       // Cancel disconnect handler if component unmounts (e.g. back to top)
       // Actually onDisconnect persists until connection is lost or canceled.
       // We should probably cancel it if we manually leave.
@@ -581,6 +616,20 @@ export default function Home() {
     }
   };
 
+  const handleRematch = () => {
+    if (roomId === 'ai-match') {
+      setGameState(createInitialState());
+      setStatus('playing');
+      setMessages([]);
+    } else if (roomId && myRole) {
+      update(ref(db, `rooms/${roomId}/rematch`), { [myRole]: true });
+    }
+  };
+
+  const handleExit = () => {
+    window.location.reload();
+  };
+
   // Setup Screen - Player Name Input
   if (!mounted) {
     return (
@@ -905,7 +954,8 @@ export default function Home() {
             <p className={styles.winnerRole}>
               {gameState.winner === 'sente' ? '先手 (Sente)' : '後手 (Gote)'}
             </p>
-            <button onClick={() => window.location.reload()} className={styles.primaryBtn}>もう一度遊ぶ (Play Again)</button>
+            <button onClick={handleRematch} className={styles.primaryBtn}>再戦する (Rematch)</button>
+            <button onClick={handleExit} className={styles.secondaryBtn}>退出する (Exit)</button>
           </div>
         </div>
       )}
