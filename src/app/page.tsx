@@ -63,7 +63,7 @@ export default function Home() {
 
   // Firebase Room Listener
   useEffect(() => {
-    if (!roomId || roomId === 'ai-match') return;
+    if (!roomId || !myRole || roomId === 'ai-match') return;
 
     const roomRef = ref(db, `rooms/${roomId}`);
 
@@ -95,31 +95,23 @@ export default function Home() {
       if (!moveData) return;
 
       setGameState(prev => {
-        if (!prev) return createInitialState(); // Should not happen usually
+        try {
+          if (!prev) return createInitialState();
 
-        // Prevent re-applying the same move if we already have it in history (simple check)
-        // But since we are rebuilding state from moves or applying sequentially, 
-        // we need to be careful. 
-        // For simplicity in this migration: We apply the move if it's new.
-        // Actually, with onChildAdded, we get called for every existing move on load.
-        // So we should probably just apply it.
-        // However, we need to distinguish "Move" vs "Drop".
+          let newState = prev;
+          if (moveData.type === 'move') {
+            newState = executeMove(prev, moveData.from, moveData.to, moveData.promote || false);
+          } else if (moveData.type === 'drop') {
+            newState = executeDrop(prev, moveData.pieceType, moveData.to, moveData.owner);
+          }
 
-        let newState = prev;
-        if (moveData.type === 'move') {
-          // Check if this move is already the last one (to avoid duplication if re-loading)
-          // But onChildAdded iterates all. 
-          // We can check history length.
-          // Or just trust the order.
-          // Let's just execute.
-          newState = executeMove(prev, moveData.from, moveData.to, moveData.promote);
-        } else if (moveData.type === 'drop') {
-          newState = executeDrop(prev, moveData.pieceType, moveData.to, moveData.owner);
+          soundManager.playMoveSound();
+          if (newState.winner) soundManager.playWinSound();
+          return newState;
+        } catch (e) {
+          console.error("Error applying move:", e, moveData);
+          return prev;
         }
-
-        soundManager.playMoveSound();
-        if (newState.winner) soundManager.playWinSound();
-        return newState;
       });
     });
 
@@ -206,11 +198,17 @@ export default function Home() {
         // Find a room with only sente
         // Also clean up invalid rooms (no sente)
         for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-          if (!room.sente) {
-            // Invalid room, maybe clean it up?
-            // set(ref(db, `rooms/${id}`), null);
+          // Clean up empty or invalid rooms
+          if (!room.sente && !room.gote) {
+            set(ref(db, `rooms/${id}`), null);
             continue;
           }
+          // If sente is missing but gote is there, it's broken.
+          if (!room.sente && room.gote) {
+            set(ref(db, `rooms/${id}`), null);
+            continue;
+          }
+
           if (room.sente && !room.gote) {
             foundRoomId = id;
             break;
