@@ -46,7 +46,11 @@ export default function Home() {
 
   // Reset GameState when roomId changes
   useEffect(() => {
-    if (roomId) {
+    if (roomId === 'ai-match') {
+      setGameState(createInitialState());
+      setStatus('playing');
+      setMessages([]);
+    } else if (roomId) {
       setGameState(null);
       setMessages([]);
     }
@@ -372,11 +376,9 @@ export default function Home() {
   const confirmAIGame = (level: 1 | 2 | 3) => {
     setAiLevel(level);
     setShowAILevelDialog(false);
-    setRoomId('ai-match');
     setMyRole('sente'); // プレイヤーは先手
     setOpponentName(`AI (Lv.${level})`);
-    setStatus('playing');
-    setGameState(createInitialState());
+    setRoomId('ai-match');
   };
 
   // AI Turn Logic

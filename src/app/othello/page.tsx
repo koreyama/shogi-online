@@ -46,7 +46,11 @@ export default function OthelloPage() {
     }, []);
 
     useEffect(() => {
-        if (roomId) {
+        if (roomId === 'ai-match') {
+            setGameState(createInitialState());
+            setStatus('playing');
+            setMessages([]);
+        } else if (roomId) {
             setGameState(null);
             setMessages([]);
         }
@@ -217,11 +221,9 @@ export default function OthelloPage() {
     };
 
     const startAIGame = () => {
-        setRoomId('ai-match');
         setMyRole('black');
         setOpponentName('AI');
-        setStatus('playing');
-        setGameState(createInitialState());
+        setRoomId('ai-match');
     };
 
     // AI Logic
