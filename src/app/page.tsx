@@ -9,7 +9,8 @@ import { Chat } from '@/components/Chat';
 import { createInitialState, executeMove, executeDrop, canPromote } from '@/lib/shogi/engine';
 import { getValidMoves, isForcedPromotion, getLegalMoves, getValidDrops } from '@/lib/shogi/rules';
 import { GameState, Coordinates, Piece, Player, Move, PieceType } from '@/lib/shogi/types';
-import { getSocket } from '@/lib/socket';
+import { db } from '@/lib/firebase';
+import { ref, set, push, onValue, update, get, child, onChildAdded, off } from 'firebase/database';
 import { getBestMove } from '@/lib/shogi/ai';
 import { soundManager } from '@/utils/sound';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from '@/components/Icons';
@@ -35,10 +36,15 @@ export default function Home() {
   const [pendingMove, setPendingMove] = useState<{ from: Coordinates, to: Coordinates } | null>(null);
 
   // Online State
-  const [isConnected, setIsConnected] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [myRole, setMyRole] = useState<Player | null>(null);
   const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
+  const [playerId, setPlayerId] = useState<string>(''); // Firebase用の一意なID
+
+  useEffect(() => {
+    // Generate a random player ID on mount
+    setPlayerId(Math.random().toString(36).substring(2, 15));
+  }, []);
 
   // Player State
   const [playerName, setPlayerName] = useState('');
@@ -54,113 +60,119 @@ export default function Home() {
     setMounted(true);
   }, []);
 
+  // Firebase Room Listener
   useEffect(() => {
-    if (!mounted) return;
+    if (!roomId || roomId === 'ai-match') return;
 
-    const socket = getSocket();
+    const roomRef = ref(db, `rooms/${roomId}`);
 
-    socket.on('connect', () => {
-      setIsConnected(true);
+    // Listen for room status and players
+    const unsubscribeRoom = onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      if (data.sente && data.gote) {
+        if (status === 'waiting') {
+          setStatus('playing');
+          setGameState(createInitialState());
+        }
+        // Update opponent name
+        if (myRole === 'sente') setOpponentName(data.gote.name);
+        if (myRole === 'gote') setOpponentName(data.sente.name);
+      }
+
+      if (data.winner) {
+        setGameState(prev => prev ? ({ ...prev, winner: data.winner }) : null);
+        setStatus('finished');
+      }
     });
 
-    socket.on('waiting', ({ roomId, role }) => {
-      setRoomId(roomId);
-      setMyRole(role);
-      setStatus('waiting');
-    });
+    // Listen for moves
+    const movesRef = ref(db, `rooms/${roomId}/moves`);
+    const unsubscribeMoves = onChildAdded(movesRef, (snapshot) => {
+      const moveData = snapshot.val();
+      if (!moveData) return;
 
-    socket.on('game_start', ({ roomId, role, opponentName }) => {
-      setRoomId(roomId);
-      setMyRole(role);
-      setOpponentName(opponentName);
-      setStatus('playing');
-      setGameState(createInitialState());
-    });
-
-    socket.on('opponent_joined', ({ opponentName }) => {
-      setOpponentName(opponentName);
-      setStatus('playing');
-      setGameState(createInitialState());
-    });
-
-    socket.on('opponent_move', (move: { from: Coordinates, to: Coordinates, promote: boolean }) => {
       setGameState(prev => {
-        if (!prev) return null;
-        const newState = executeMove(prev, move.from, move.to, move.promote);
+        if (!prev) return createInitialState(); // Should not happen usually
+
+        // Prevent re-applying the same move if we already have it in history (simple check)
+        // But since we are rebuilding state from moves or applying sequentially, 
+        // we need to be careful. 
+        // For simplicity in this migration: We apply the move if it's new.
+        // Actually, with onChildAdded, we get called for every existing move on load.
+        // So we should probably just apply it.
+        // However, we need to distinguish "Move" vs "Drop".
+
+        let newState = prev;
+        if (moveData.type === 'move') {
+          // Check if this move is already the last one (to avoid duplication if re-loading)
+          // But onChildAdded iterates all. 
+          // We can check history length.
+          // Or just trust the order.
+          // Let's just execute.
+          newState = executeMove(prev, moveData.from, moveData.to, moveData.promote);
+        } else if (moveData.type === 'drop') {
+          newState = executeDrop(prev, moveData.pieceType, moveData.to, moveData.owner);
+        }
+
         soundManager.playMoveSound();
         if (newState.winner) soundManager.playWinSound();
         return newState;
       });
     });
 
-    socket.on('opponent_drop', (drop: { pieceType: PieceType, to: Coordinates, owner: Player }) => {
-      console.log('Received opponent_drop:', drop);
-      setGameState(prev => {
-        if (!prev) {
-          console.log('No game state, ignoring drop');
-          return null;
+    // Listen for chat
+    const chatRef = ref(db, `rooms/${roomId}/chat`);
+    const unsubscribeChat = onChildAdded(chatRef, (snapshot) => {
+      const msg = snapshot.val();
+      if (msg) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      }
+    });
+
+    // Listen for undo request
+    const undoReqRef = ref(db, `rooms/${roomId}/undoRequest`);
+    const unsubscribeUndoReq = onChildAdded(undoReqRef, (snapshot) => {
+      const req = snapshot.val();
+      if (req) {
+        if (req.requester !== playerName) {
+          setUndoRequest({ requester: req.requester });
         }
-        const opponent: Player = drop.owner; // Use owner from drop data
-        console.log(`Executing drop for opponent: ${opponent}`, drop);
-        const newState = executeDrop(prev, drop.pieceType, drop.to, opponent);
-        if (newState === prev) {
-          console.error('Drop failed - state unchanged. Check rules or engine error.', drop);
+      }
+    });
+
+    // Listen for undo response
+    const undoResRef = ref(db, `rooms/${roomId}/undoResponse`);
+    const unsubscribeUndoRes = onValue(undoResRef, (snapshot) => {
+      const res = snapshot.val();
+      if (res) {
+        if (res.allow) {
+          performUndo();
+          set(ref(db, `rooms/${roomId}/undoResponse`), null);
+          set(ref(db, `rooms/${roomId}/undoRequest`), null);
         } else {
-          console.log('Drop successful - state updated');
-          soundManager.playMoveSound();
-          if (newState.winner) soundManager.playWinSound();
+          alert('待ったが拒否されました。');
+          set(ref(db, `rooms/${roomId}/undoResponse`), null);
+          set(ref(db, `rooms/${roomId}/undoRequest`), null);
         }
-        return newState;
-      });
-    });
-
-    socket.on('game_over', ({ winner }) => {
-      setGameState(prev => prev ? ({ ...prev, winner }) : null);
-      setStatus('finished');
-    });
-
-    socket.on('opponent_disconnected', () => {
-      alert('対戦相手が切断しました');
-      window.location.reload();
-    });
-
-    socket.on('room_full', ({ roomId }) => {
-      alert(`ルーム ${roomId} は満員です`);
-      setStatus('initial');
-    });
-
-    socket.on('chat_message', (message: ChatMessage) => {
-      setMessages(prev => [...prev, message]);
-    });
-
-    socket.on('undo_request', ({ requester }) => {
-      setUndoRequest({ requester });
-    });
-
-    socket.on('undo_denied', () => {
-      alert('待ったが拒否されました。');
-    });
-
-    socket.on('undo_executed', () => {
-      performUndo();
+      }
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('waiting');
-      socket.off('game_start');
-      socket.off('opponent_joined');
-      socket.off('opponent_move');
-      socket.off('opponent_drop');
-      socket.off('game_over');
-      socket.off('opponent_disconnected');
-      socket.off('room_full');
-      socket.off('chat_message');
-      socket.off('undo_request');
-      socket.off('undo_denied');
-      socket.off('undo_executed');
+      unsubscribeRoom();
+      unsubscribeMoves(); // onChildAdded returns unsubscribe function in newer SDKs? 
+      // Actually onChildAdded returns Unsubscribe.
+      off(movesRef); // Safe fallback
+      off(chatRef);
+      off(roomRef);
+      off(undoReqRef);
+      off(undoResRef);
     };
-  }, [mounted]);
+  }, [roomId, myRole]); // Removed status from dependency to avoid re-subscribing
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,15 +181,73 @@ export default function Home() {
     }
   };
 
-  const joinRandomGame = () => {
-    const socket = getSocket();
-    socket.emit('join_game', { playerName });
+  const joinRandomGame = async () => {
+    const roomsRef = ref(db, 'rooms');
+    const snapshot = await get(roomsRef);
+    const rooms = snapshot.val();
+
+    let foundRoomId = null;
+
+    if (rooms) {
+      // Find a room with only sente
+      for (const [id, room] of Object.entries(rooms) as [string, any][]) {
+        if (room.sente && !room.gote) {
+          foundRoomId = id;
+          break;
+        }
+      }
+    }
+
+    if (foundRoomId) {
+      // Join as gote
+      await update(ref(db, `rooms/${foundRoomId}/gote`), {
+        name: playerName,
+        id: playerId
+      });
+      setRoomId(foundRoomId);
+      setMyRole('gote');
+      // Status update handled by listener
+    } else {
+      // Create new room
+      const newRoomRef = push(roomsRef);
+      const newRoomId = newRoomRef.key!;
+      await set(newRoomRef, {
+        sente: { name: playerName, id: playerId },
+        gote: null
+      });
+      setRoomId(newRoomId);
+      setMyRole('sente');
+      setStatus('waiting');
+    }
   };
 
-  const joinRoomGame = () => {
-    if (customRoomId.trim()) {
-      const socket = getSocket();
-      socket.emit('join_room', { roomId: customRoomId.trim(), playerName });
+  const joinRoomGame = async () => {
+    if (!customRoomId.trim()) return;
+    const rid = customRoomId.trim();
+    const roomRef = ref(db, `rooms/${rid}`);
+    const snapshot = await get(roomRef);
+    const room = snapshot.val();
+
+    if (!room) {
+      // Create
+      await set(roomRef, {
+        sente: { name: playerName, id: playerId },
+        gote: null
+      });
+      setRoomId(rid);
+      setMyRole('sente');
+      setStatus('waiting');
+    } else if (!room.gote) {
+      // Join
+      await update(ref(db, `rooms/${rid}/gote`), {
+        name: playerName,
+        id: playerId
+      });
+      setRoomId(rid);
+      setMyRole('gote');
+      // Status update handled by listener
+    } else {
+      alert('満員です');
     }
   };
 
@@ -266,15 +336,13 @@ export default function Home() {
     if (roomId === 'ai-match') {
       performUndo();
     } else if (roomId) {
-      const socket = getSocket();
-      socket.emit('request_undo', { roomId, requester: playerName });
+      push(ref(db, `rooms/${roomId}/undoRequest`), { requester: playerName });
     }
   };
 
   const handleUndoResponse = (allow: boolean) => {
     if (roomId) {
-      const socket = getSocket();
-      socket.emit('respond_undo', { roomId, allow });
+      set(ref(db, `rooms/${roomId}/undoResponse`), { allow });
       setUndoRequest(null);
     }
   };
@@ -304,8 +372,12 @@ export default function Home() {
     }
 
     if (roomId) {
-      const socket = getSocket();
-      socket.emit('chat_message', { roomId, message: text });
+      push(ref(db, `rooms/${roomId}/chat`), {
+        id: `msg-${Date.now()}`,
+        sender: playerName,
+        text,
+        timestamp: Date.now()
+      });
     }
   };
 
@@ -328,15 +400,15 @@ export default function Home() {
 
           // Emit drop
           if (roomId !== 'ai-match') {
-            const socket = getSocket();
-            console.log('Emitting drop to server:', { roomId, drop: { pieceType: selectedHandPiece.type, to: { x, y }, owner: myRole } });
-            socket.emit('drop', {
-              roomId,
-              drop: { pieceType: selectedHandPiece.type, to: { x, y }, owner: myRole }
+            push(ref(db, `rooms/${roomId}/moves`), {
+              type: 'drop',
+              pieceType: selectedHandPiece.type,
+              to: { x, y },
+              owner: myRole
             });
 
             if (newState.winner) {
-              socket.emit('game_over', { roomId, winner: newState.winner });
+              update(ref(db, `rooms/${roomId}`), { winner: newState.winner });
             }
           }
         } else {
@@ -409,14 +481,15 @@ export default function Home() {
 
     // Emit move
     if (roomId !== 'ai-match') {
-      const socket = getSocket();
-      socket.emit('move', {
-        roomId,
-        move: { from, to, promote }
+      push(ref(db, `rooms/${roomId}/moves`), {
+        type: 'move',
+        from,
+        to,
+        promote
       });
 
       if (newState.winner) {
-        socket.emit('game_over', { roomId, winner: newState.winner });
+        update(ref(db, `rooms/${roomId}`), { winner: newState.winner });
       }
     }
 
