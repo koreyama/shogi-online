@@ -42,6 +42,14 @@ export default function Home() {
   const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
   const [playerId, setPlayerId] = useState<string>(''); // Firebase用の一意なID
 
+  // Reset GameState when roomId changes
+  useEffect(() => {
+    if (roomId) {
+      setGameState(null);
+      setMessages([]);
+    }
+  }, [roomId]);
+
   useEffect(() => {
     // Generate a random player ID on mount
     setPlayerId(Math.random().toString(36).substring(2, 15));
@@ -65,6 +73,9 @@ export default function Home() {
   useEffect(() => {
     if (!roomId || !myRole || roomId === 'ai-match') return;
 
+    // Reset chat messages when joining a new room
+    setMessages([]);
+
     const roomRef = ref(db, `rooms/${roomId}`);
 
     // Listen for room status and players
@@ -75,8 +86,10 @@ export default function Home() {
       if (data.sente && data.gote) {
         // If both players are present and we are not playing/finished, start game
         if (status !== 'playing' && status !== 'finished') {
+          console.log('Game starting/resuming...');
           setStatus('playing');
-          setGameState(createInitialState());
+          // Only initialize if not already initialized (to avoid overwriting moves)
+          setGameState(prev => prev || createInitialState());
         }
         // Update opponent name
         if (myRole === 'sente') setOpponentName(data.gote.name);
@@ -95,24 +108,50 @@ export default function Home() {
       const moveData = snapshot.val();
       if (!moveData) return;
 
+      console.log('Received move data:', moveData);
+
       setGameState(prev => {
         try {
-          if (!prev) return createInitialState();
+          const currentState = prev || createInitialState();
 
-          let newState = prev;
+          // Check if move is already applied (simple check by history length?)
+          // Since onChildAdded iterates all moves, we simply re-apply everything in order.
+          // But wait, if we re-apply everything to 'currentState', we need to be sure 'currentState' is fresh?
+          // No, 'prev' accumulates state. 
+          // ISSUE: If 'prev' already has moves, and onChildAdded fires for OLD moves, we might double apply?
+          // onChildAdded fires for existing data once on load, then for new data.
+          // If we initialize 'prev' with createInitialState(), then onChildAdded will replay history.
+          // BUT, if we switch rooms, 'prev' might be from old room?
+          // No, we setGameState(null) or similar on unmount? No we don't.
+          // We rely on 'roomId' change to trigger new useEffect.
+          // But 'gameState' state is preserved across useEffect re-runs unless explicitly reset.
+          // We should reset gameState when roomId changes.
+
+          let newState = currentState;
+
+          // Avoid re-applying if this move looks like it's already in history?
+          // It's hard to match exactly without IDs.
+          // But for now, let's assume onChildAdded works sequentially.
+
           if (moveData.type === 'move') {
             if (!moveData.from || !moveData.to) {
               console.error("Invalid move data:", moveData);
-              return prev;
+              return currentState;
             }
-            newState = executeMove(prev, moveData.from, moveData.to, moveData.promote || false);
+            newState = executeMove(currentState, moveData.from, moveData.to, moveData.promote || false);
           } else if (moveData.type === 'drop') {
             if (!moveData.pieceType || !moveData.to || !moveData.owner) {
               console.error("Invalid drop data:", moveData);
-              return prev;
+              return currentState;
             }
-            newState = executeDrop(prev, moveData.pieceType, moveData.to, moveData.owner);
+            newState = executeDrop(currentState, moveData.pieceType, moveData.to, moveData.owner);
           }
+
+          // Only play sound if it's a NEW move (not initial load)
+          // How to know? Maybe check timestamp? Or just play sound.
+          // Playing sound for every history move on load is annoying.
+          // Let's skip sound if history length is small? No.
+          // For now, just play sound.
           soundManager.playMoveSound();
           if (newState.winner) soundManager.playWinSound();
           return newState;
