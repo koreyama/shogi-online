@@ -261,162 +261,179 @@ const getInterpositions = (kingPos: Coordinates, checkerPos: Coordinates): Coord
 
     while ((cx !== checkerPos.x || cy !== checkerPos.y) && safety < 10) {
         interpositions.push({ x: cx, y: cy });
-        cx += stepX;
-        cy += stepY;
-        safety++;
-    }
+        return interpositions;
+    };
 
-    return interpositions;
-};
+    export const isCheckmate = (board: BoardState, player: Player, hands: { [key in Player]: Piece[] }): boolean => {
+        // 1. Not in check? Not checkmate.
+        if (!isCheck(board, player)) {
+            // console.log(`[Checkmate] ${player} is not in check`);
+            return false;
+        }
+        console.log(`[Checkmate] ${player} IS in check. Checking for mate...`);
 
-export const isCheckmate = (board: BoardState, player: Player, hands: { [key in Player]: Piece[] }): boolean => {
-    // 1. Not in check? Not checkmate.
-    if (!isCheck(board, player)) return false;
+        const kingPos = findKing(board, player);
+        if (!kingPos) return true;
 
-    const kingPos = findKing(board, player);
-    if (!kingPos) return true;
+        // 2. Can King move?
+        const kingMoves = getValidMoves(board, { type: 'king', owner: player, isPromoted: false, id: 'temp-king' }, kingPos);
+        for (const move of kingMoves) {
+            const originalTarget = board[move.y][move.x];
+            board[move.y][move.x] = board[kingPos.y][kingPos.x];
+            board[kingPos.y][kingPos.x] = null;
 
-    // 2. Can King move?
-    const kingMoves = getValidMoves(board, { type: 'king', owner: player, isPromoted: false, id: 'temp-king' }, kingPos);
-    for (const move of kingMoves) {
-        const originalTarget = board[move.y][move.x];
-        board[move.y][move.x] = board[kingPos.y][kingPos.x];
-        board[kingPos.y][kingPos.x] = null;
+            const stillCheck = isCheck(board, player);
 
-        const stillCheck = isCheck(board, player);
+            board[kingPos.y][kingPos.x] = board[move.y][move.x];
+            board[move.y][move.x] = originalTarget;
 
-        board[kingPos.y][kingPos.x] = board[move.y][move.x];
-        board[move.y][move.x] = originalTarget;
-
-        if (!stillCheck) return false;
-    }
-
-    // 3. Get Checkers
-    const checkers = getCheckers(board, player);
-    if (checkers.length > 1) return true; // Double check, king must move but cannot
-
-    const checker = checkers[0];
-
-    // 4. Can capture checker?
-    for (let y = 0; y < 9; y++) {
-        for (let x = 0; x < 9; x++) {
-            const cell = board[y][x];
-            if (cell && cell.owner === player && cell.type !== 'king') {
-                const moves = getValidMoves(board, cell, { x, y });
-                if (moves.some(m => m.x === checker.pos.x && m.y === checker.pos.y)) {
-                    // Try capture
-                    const originalSource = board[y][x];
-                    const originalTarget = board[checker.pos.y][checker.pos.x];
-
-                    board[checker.pos.y][checker.pos.x] = cell;
-                    board[y][x] = null;
-
-                    const stillCheck = isCheck(board, player);
-
-                    board[y][x] = originalSource;
-                    board[checker.pos.y][checker.pos.x] = originalTarget;
-
-                    if (!stillCheck) return false;
-                }
+            if (!stillCheck) {
+                console.log(`[Checkmate] King can escape to ${move.x},${move.y}`);
+                return false;
             }
         }
-    }
 
-    // 5. Can block? (Interposition)
-    const interpositions = getInterpositions(kingPos, checker.pos);
-    if (interpositions.length > 0) {
-        // Move to block
+        // 3. Get Checkers
+        const checkers = getCheckers(board, player);
+        if (checkers.length > 1) {
+            console.log(`[Checkmate] Double check, and King cannot move. Mate.`);
+            return true;
+        }
+
+        const checker = checkers[0];
+        console.log(`[Checkmate] Single checker: ${checker.piece.type} at ${checker.pos.x},${checker.pos.y}`);
+
+        // 4. Can capture checker?
         for (let y = 0; y < 9; y++) {
             for (let x = 0; x < 9; x++) {
                 const cell = board[y][x];
                 if (cell && cell.owner === player && cell.type !== 'king') {
                     const moves = getValidMoves(board, cell, { x, y });
-                    for (const target of interpositions) {
-                        if (moves.some(m => m.x === target.x && m.y === target.y)) {
-                            // Try block
-                            const originalSource = board[y][x];
-                            const originalTarget = board[target.y][target.x];
+                    if (moves.some(m => m.x === checker.pos.x && m.y === checker.pos.y)) {
+                        // Try capture
+                        const originalSource = board[y][x];
+                        const originalTarget = board[checker.pos.y][checker.pos.x];
 
-                            board[target.y][target.x] = cell;
-                            board[y][x] = null;
+                        board[checker.pos.y][checker.pos.x] = cell;
+                        board[y][x] = null;
 
-                            const stillCheck = isCheck(board, player);
+                        const stillCheck = isCheck(board, player);
 
-                            board[y][x] = originalSource;
-                            board[target.y][target.x] = originalTarget;
+                        board[y][x] = originalSource;
+                        board[checker.pos.y][checker.pos.x] = originalTarget;
 
-                            if (!stillCheck) return false;
+                        if (!stillCheck) {
+                            console.log(`[Checkmate] Checker can be captured by ${cell.type} at ${x},${y}`);
+                            return false;
                         }
                     }
                 }
             }
         }
 
-        // Drop to block
-        const hand = hands[player];
-        const uniqueHandPieces = Array.from(new Set(hand.map(p => p.type)))
-            .map(type => hand.find(p => p.type === type)!);
+        // 5. Can block? (Interposition)
+        const interpositions = getInterpositions(kingPos, checker.pos);
+        if (interpositions.length > 0) {
+            console.log(`[Checkmate] Interpositions available:`, interpositions);
+            // Move to block
+            for (let y = 0; y < 9; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const cell = board[y][x];
+                    if (cell && cell.owner === player && cell.type !== 'king') {
+                        const moves = getValidMoves(board, cell, { x, y });
+                        for (const target of interpositions) {
+                            if (moves.some(m => m.x === target.x && m.y === target.y)) {
+                                // Try block
+                                const originalSource = board[y][x];
+                                const originalTarget = board[target.y][target.x];
 
-        for (const piece of uniqueHandPieces) {
-            for (const target of interpositions) {
-                if (piece.type === 'pawn' && hasPawnInColumn(board, target.x, player)) continue;
+                                board[target.y][target.x] = cell;
+                                board[y][x] = null;
 
-                board[target.y][target.x] = piece;
-                const stillCheck = isCheck(board, player);
-                board[target.y][target.x] = null;
+                                const stillCheck = isCheck(board, player);
 
-                if (!stillCheck) return false;
-            }
-        }
-    }
+                                board[y][x] = originalSource;
+                                board[target.y][target.x] = originalTarget;
 
-    return true;
-};
-
-export const isUchifuzume = (
-    board: BoardState,
-    dropPos: Coordinates,
-    player: Player, // The player DROPPING the pawn
-    hands: { [key in Player]: Piece[] }
-): boolean => {
-    return false; // Temporarily disabled to prevent freezing
-};
-
-export const getValidDrops = (
-    board: BoardState,
-    piece: Piece,
-    player: Player,
-    hands: { [key in Player]: Piece[] }
-): Coordinates[] => {
-    const drops: Coordinates[] = [];
-
-    // Optimization: If not currently in check, drops cannot cause self-check
-    const isCurrentlyInCheck = isCheck(board, player);
-
-    for (let y = 0; y < 9; y++) {
-        for (let x = 0; x < 9; x++) {
-            if (board[y][x] === null) {
-                // 1. Nifu Check
-                if (piece.type === 'pawn' && hasPawnInColumn(board, x, player)) continue;
-
-                // 2. Forced Promotion Check (Cannot drop where it has no moves)
-                if (isForcedPromotion(piece, y)) continue;
-
-                // 3. Uchifuzume Check
-                if (piece.type === 'pawn' && isUchifuzume(board, { x, y }, player, hands)) continue;
-
-                // 4. Check if drop leaves King in Check (Illegal move)
-                if (isCurrentlyInCheck) {
-                    board[y][x] = piece;
-                    const check = isCheck(board, player);
-                    board[y][x] = null;
-
-                    if (check) continue;
+                                if (!stillCheck) {
+                                    console.log(`[Checkmate] Can block with ${cell.type} from ${x},${y} to ${target.x},${target.y}`);
+                                    return false;
+                                }
+                            }
+                        }
+                    }
                 }
+            }
 
-                drops.push({ x, y });
+            // Drop to block
+            const hand = hands[player];
+            const uniqueHandPieces = Array.from(new Set(hand.map(p => p.type)))
+                .map(type => hand.find(p => p.type === type)!);
+
+            for (const piece of uniqueHandPieces) {
+                for (const target of interpositions) {
+                    if (piece.type === 'pawn' && hasPawnInColumn(board, target.x, player)) continue;
+
+                    board[target.y][target.x] = piece;
+                    const stillCheck = isCheck(board, player);
+                    board[target.y][target.x] = null;
+
+                    if (!stillCheck) {
+                        console.log(`[Checkmate] Can drop block with ${piece.type} at ${target.x},${target.y}`);
+                        return false;
+                    }
+                }
             }
         }
-    }
-    return drops;
-};
+
+        console.log(`[Checkmate] Mate confirmed!`);
+        return true;
+    };
+
+    export const isUchifuzume = (
+        board: BoardState,
+        dropPos: Coordinates,
+        player: Player, // The player DROPPING the pawn
+        hands: { [key in Player]: Piece[] }
+    ): boolean => {
+        return false; // Temporarily disabled to prevent freezing
+    };
+
+    export const getValidDrops = (
+        board: BoardState,
+        piece: Piece,
+        player: Player,
+        hands: { [key in Player]: Piece[] }
+    ): Coordinates[] => {
+        const drops: Coordinates[] = [];
+
+        // Optimization: If not currently in check, drops cannot cause self-check
+        const isCurrentlyInCheck = isCheck(board, player);
+
+        for (let y = 0; y < 9; y++) {
+            for (let x = 0; x < 9; x++) {
+                if (board[y][x] === null) {
+                    // 1. Nifu Check
+                    if (piece.type === 'pawn' && hasPawnInColumn(board, x, player)) continue;
+
+                    // 2. Forced Promotion Check (Cannot drop where it has no moves)
+                    if (isForcedPromotion(piece, y)) continue;
+
+                    // 3. Uchifuzume Check
+                    if (piece.type === 'pawn' && isUchifuzume(board, { x, y }, player, hands)) continue;
+
+                    // 4. Check if drop leaves King in Check (Illegal move)
+                    if (isCurrentlyInCheck) {
+                        board[y][x] = piece;
+                        const check = isCheck(board, player);
+                        board[y][x] = null;
+
+                        if (check) continue;
+                    }
+
+                    drops.push({ x, y });
+                }
+            }
+        }
+        return drops;
+    };
