@@ -73,7 +73,8 @@ export default function Home() {
       if (!data) return;
 
       if (data.sente && data.gote) {
-        if (status === 'waiting') {
+        // If both players are present and we are not playing/finished, start game
+        if (status !== 'playing' && status !== 'finished') {
           setStatus('playing');
           setGameState(createInitialState());
         }
@@ -100,11 +101,18 @@ export default function Home() {
 
           let newState = prev;
           if (moveData.type === 'move') {
+            if (!moveData.from || !moveData.to) {
+              console.error("Invalid move data:", moveData);
+              return prev;
+            }
             newState = executeMove(prev, moveData.from, moveData.to, moveData.promote || false);
           } else if (moveData.type === 'drop') {
+            if (!moveData.pieceType || !moveData.to || !moveData.owner) {
+              console.error("Invalid drop data:", moveData);
+              return prev;
+            }
             newState = executeDrop(prev, moveData.pieceType, moveData.to, moveData.owner);
           }
-
           soundManager.playMoveSound();
           if (newState.winner) soundManager.playWinSound();
           return newState;
@@ -420,30 +428,18 @@ export default function Home() {
     // 1. Handle Drop
     if (selectedHandPiece) {
       if (!clickedCell) {
-        const newState = executeDrop(gameState, selectedHandPiece.type, { x, y });
-        if (newState !== gameState) {
-          console.log('Executing drop locally:', { pieceType: selectedHandPiece.type, to: { x, y } });
-          setGameState(newState);
-          setSelectedHandPiece(null);
-          setValidMoves([]);
-          soundManager.playMoveSound();
+        // For both AI and online matches, push the move.
+        // The onChildAdded listener will handle the state update.
+        push(ref(db, `rooms/${roomId}/moves`), {
+          type: 'drop',
+          pieceType: selectedHandPiece.type,
+          to: { x, y },
+          owner: myRole
+        });
 
-          // Emit drop
-          if (roomId !== 'ai-match') {
-            push(ref(db, `rooms/${roomId}/moves`), {
-              type: 'drop',
-              pieceType: selectedHandPiece.type,
-              to: { x, y },
-              owner: myRole
-            });
-
-            if (newState.winner) {
-              update(ref(db, `rooms/${roomId}`), { winner: newState.winner });
-            }
-          }
-        } else {
-          console.log('Drop failed - state unchanged');
-        }
+        // Clear selection immediately for better UX
+        setSelectedHandPiece(null);
+        setValidMoves([]);
       } else {
         if (isOwnPiece) {
           setGameState({ ...gameState, selectedPosition: { x, y } });
@@ -505,22 +501,23 @@ export default function Home() {
     if (!moveData || !gameState) return;
 
     const { from, to } = moveData;
-    const newState = executeMove(gameState, from, to, promote);
-    setGameState(newState);
-    soundManager.playMoveSound();
 
-    // Emit move
-    if (roomId !== 'ai-match') {
+    // AI Match: Execute locally
+    if (roomId === 'ai-match') {
+      const newState = executeMove(gameState, from, to, promote);
+      setGameState(newState);
+      soundManager.playMoveSound();
+      if (newState.winner) {
+        setStatus('finished');
+      }
+    } else {
+      // Online Match: Push to Firebase
       push(ref(db, `rooms/${roomId}/moves`), {
         type: 'move',
         from,
         to,
         promote
       });
-
-      if (newState.winner) {
-        update(ref(db, `rooms/${roomId}`), { winner: newState.winner });
-      }
     }
 
     setShowPromotionDialog(false);
