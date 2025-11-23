@@ -10,7 +10,7 @@ import { createInitialState, executeMove, executeDrop, canPromote } from '@/lib/
 import { getValidMoves, isForcedPromotion, getLegalMoves, getValidDrops } from '@/lib/shogi/rules';
 import { GameState, Coordinates, Piece, Player, Move, PieceType } from '@/lib/shogi/types';
 import { db } from '@/lib/firebase';
-import { ref, set, push, onValue, update, get, child, onChildAdded, off } from 'firebase/database';
+import { ref, set, push, onValue, update, get, child, onChildAdded, off, onDisconnect } from 'firebase/database';
 import { getBestMove } from '@/lib/shogi/ai';
 import { soundManager } from '@/utils/sound';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from '@/components/Icons';
@@ -34,6 +34,7 @@ export default function Home() {
   const [showCheckEffect, setShowCheckEffect] = useState(false);
   const [undoRequest, setUndoRequest] = useState<{ requester: string } | null>(null);
   const [pendingMove, setPendingMove] = useState<{ from: Coordinates, to: Coordinates } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Online State
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -162,15 +163,26 @@ export default function Home() {
       }
     });
 
+    // Setup disconnect handler
+    const myPlayerRef = ref(db, `rooms/${roomId}/${myRole}`);
+    onDisconnect(myPlayerRef).remove();
+
+    // Also remove room if I am sente and opponent is not there? 
+    // Or just remove myself. If both remove themselves, room becomes empty.
+    // We can clean up empty rooms during matchmaking.
+
     return () => {
       unsubscribeRoom();
-      unsubscribeMoves(); // onChildAdded returns unsubscribe function in newer SDKs? 
-      // Actually onChildAdded returns Unsubscribe.
-      off(movesRef); // Safe fallback
+      unsubscribeMoves();
+      off(movesRef);
       off(chatRef);
       off(roomRef);
       off(undoReqRef);
       off(undoResRef);
+      // Cancel disconnect handler if component unmounts (e.g. back to top)
+      // Actually onDisconnect persists until connection is lost or canceled.
+      // We should probably cancel it if we manually leave.
+      onDisconnect(myPlayerRef).cancel();
     };
   }, [roomId, myRole]); // Removed status from dependency to avoid re-subscribing
 
@@ -182,72 +194,92 @@ export default function Home() {
   };
 
   const joinRandomGame = async () => {
-    const roomsRef = ref(db, 'rooms');
-    const snapshot = await get(roomsRef);
-    const rooms = snapshot.val();
+    setIsLoading(true);
+    try {
+      const roomsRef = ref(db, 'rooms');
+      const snapshot = await get(roomsRef);
+      const rooms = snapshot.val();
 
-    let foundRoomId = null;
+      let foundRoomId = null;
 
-    if (rooms) {
-      // Find a room with only sente
-      for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-        if (room.sente && !room.gote) {
-          foundRoomId = id;
-          break;
+      if (rooms) {
+        // Find a room with only sente
+        // Also clean up invalid rooms (no sente)
+        for (const [id, room] of Object.entries(rooms) as [string, any][]) {
+          if (!room.sente) {
+            // Invalid room, maybe clean it up?
+            // set(ref(db, `rooms/${id}`), null);
+            continue;
+          }
+          if (room.sente && !room.gote) {
+            foundRoomId = id;
+            break;
+          }
         }
       }
-    }
 
-    if (foundRoomId) {
-      // Join as gote
-      await update(ref(db, `rooms/${foundRoomId}/gote`), {
-        name: playerName,
-        id: playerId
-      });
-      setRoomId(foundRoomId);
-      setMyRole('gote');
-      // Status update handled by listener
-    } else {
-      // Create new room
-      const newRoomRef = push(roomsRef);
-      const newRoomId = newRoomRef.key!;
-      await set(newRoomRef, {
-        sente: { name: playerName, id: playerId },
-        gote: null
-      });
-      setRoomId(newRoomId);
-      setMyRole('sente');
-      setStatus('waiting');
+      if (foundRoomId) {
+        // Join as gote
+        await update(ref(db, `rooms/${foundRoomId}/gote`), {
+          name: playerName,
+          id: playerId
+        });
+        setRoomId(foundRoomId);
+        setMyRole('gote');
+      } else {
+        // Create new room
+        const newRoomRef = push(roomsRef);
+        const newRoomId = newRoomRef.key!;
+        await set(newRoomRef, {
+          sente: { name: playerName, id: playerId },
+          gote: null
+        });
+        setRoomId(newRoomId);
+        setMyRole('sente');
+        setStatus('waiting');
+      }
+    } catch (error) {
+      console.error("Join failed:", error);
+      alert("エラーが発生しました。もう一度お試しください。");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const joinRoomGame = async () => {
     if (!customRoomId.trim()) return;
-    const rid = customRoomId.trim();
-    const roomRef = ref(db, `rooms/${rid}`);
-    const snapshot = await get(roomRef);
-    const room = snapshot.val();
+    setIsLoading(true);
+    try {
+      const rid = customRoomId.trim();
+      const roomRef = ref(db, `rooms/${rid}`);
+      const snapshot = await get(roomRef);
+      const room = snapshot.val();
 
-    if (!room) {
-      // Create
-      await set(roomRef, {
-        sente: { name: playerName, id: playerId },
-        gote: null
-      });
-      setRoomId(rid);
-      setMyRole('sente');
-      setStatus('waiting');
-    } else if (!room.gote) {
-      // Join
-      await update(ref(db, `rooms/${rid}/gote`), {
-        name: playerName,
-        id: playerId
-      });
-      setRoomId(rid);
-      setMyRole('gote');
-      // Status update handled by listener
-    } else {
-      alert('満員です');
+      if (!room) {
+        // Create
+        await set(roomRef, {
+          sente: { name: playerName, id: playerId },
+          gote: null
+        });
+        setRoomId(rid);
+        setMyRole('sente');
+        setStatus('waiting');
+      } else if (!room.gote) {
+        // Join
+        await update(ref(db, `rooms/${rid}/gote`), {
+          name: playerName,
+          id: playerId
+        });
+        setRoomId(rid);
+        setMyRole('gote');
+      } else {
+        alert('満員です');
+      }
+    } catch (error) {
+      console.error("Join room failed:", error);
+      alert("エラーが発生しました。");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -499,6 +531,13 @@ export default function Home() {
   };
 
   const handleBackToTop = () => {
+    if (roomId && myRole) {
+      // Remove myself from room immediately
+      const myPlayerRef = ref(db, `rooms/${roomId}/${myRole}`);
+      set(myPlayerRef, null);
+      onDisconnect(myPlayerRef).cancel();
+    }
+
     if (status === 'playing') {
       setShowExitDialog(true);
     } else {
