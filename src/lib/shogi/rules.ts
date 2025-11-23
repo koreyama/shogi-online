@@ -11,6 +11,39 @@ const isOwnPiece = (board: BoardState, x: number, y: number, player: Player): bo
     return cell !== null && cell.owner === player;
 };
 
+export const hasPawnInColumn = (board: BoardState, x: number, player: Player): boolean => {
+    for (let y = 0; y < 9; y++) {
+        const cell = board[y][x];
+        if (cell && cell.type === 'pawn' && cell.owner === player && !cell.isPromoted) {
+            return true;
+        }
+    }
+    return false;
+};
+
+export const isForcedPromotion = (piece: Piece, y: number): boolean => {
+    if (piece.isPromoted) return false;
+
+    if (piece.owner === 'sente') {
+        // Sente moves UP (y decreases). Top is 0.
+        if (piece.type === 'pawn' || piece.type === 'lance') {
+            return y === 0;
+        }
+        if (piece.type === 'knight') {
+            return y <= 1;
+        }
+    } else {
+        // Gote moves DOWN (y increases). Bottom is 8.
+        if (piece.type === 'pawn' || piece.type === 'lance') {
+            return y === 8;
+        }
+        if (piece.type === 'knight') {
+            return y >= 7;
+        }
+    }
+    return false;
+};
+
 export const getValidMoves = (
     board: BoardState,
     piece: Piece,
@@ -121,4 +154,169 @@ export const getValidMoves = (
     }
 
     return moves;
+};
+
+export const findKing = (board: BoardState, player: Player): Coordinates | null => {
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            const cell = board[y][x];
+            if (cell && cell.type === 'king' && cell.owner === player) {
+                return { x, y };
+            }
+        }
+    }
+    return null;
+};
+
+export const isCheck = (board: BoardState, player: Player): boolean => {
+    const kingPos = findKing(board, player);
+    if (!kingPos) return false; // Should not happen in normal game
+
+    const opponent = player === 'sente' ? 'gote' : 'sente';
+
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            const cell = board[y][x];
+            if (cell && cell.owner === opponent) {
+                const moves = getValidMoves(board, cell, { x, y });
+                if (moves.some(m => m.x === kingPos.x && m.y === kingPos.y)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+};
+
+export const getLegalMoves = (
+    board: BoardState,
+    piece: Piece,
+    pos: Coordinates
+): Coordinates[] => {
+    const validMoves = getValidMoves(board, piece, pos);
+    const legalMoves: Coordinates[] = [];
+
+    // Temporarily modify board to check for check
+    const originalSource = board[pos.y][pos.x];
+    board[pos.y][pos.x] = null;
+
+    for (const move of validMoves) {
+        const originalTarget = board[move.y][move.x];
+
+        // Move piece
+        board[move.y][move.x] = piece; // Use same piece object for check
+
+        if (!isCheck(board, piece.owner)) {
+            legalMoves.push(move);
+        }
+
+        // Restore target
+        board[move.y][move.x] = originalTarget;
+    }
+
+    // Restore source
+    board[pos.y][pos.x] = originalSource;
+
+    return legalMoves;
+};
+
+const getCheckers = (board: BoardState, player: Player): { piece: Piece, pos: Coordinates }[] => {
+    const kingPos = findKing(board, player);
+    if (!kingPos) return [];
+
+    const checkers: { piece: Piece, pos: Coordinates }[] = [];
+    const opponent = player === 'sente' ? 'gote' : 'sente';
+
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            const cell = board[y][x];
+            if (cell && cell.owner === opponent) {
+                const moves = getValidMoves(board, cell, { x, y });
+                if (moves.some(m => m.x === kingPos.x && m.y === kingPos.y)) {
+                    checkers.push({ piece: cell, pos: { x, y } });
+                }
+            }
+        }
+    }
+    return checkers;
+};
+
+const getInterpositions = (kingPos: Coordinates, checkerPos: Coordinates): Coordinates[] => {
+    const dx = checkerPos.x - kingPos.x;
+    const dy = checkerPos.y - kingPos.y;
+    const steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+    // Not a sliding move (knight, pawn, etc) or adjacent
+    if (steps <= 1 || (Math.abs(dx) !== Math.abs(dy) && dx !== 0 && dy !== 0)) {
+        return [];
+    }
+
+    const stepX = dx === 0 ? 0 : dx / Math.abs(dx);
+    const stepY = dy === 0 ? 0 : dy / Math.abs(dy);
+
+    const interpositions: Coordinates[] = [];
+    let cx = kingPos.x + stepX;
+    let cy = kingPos.y + stepY;
+    let safety = 0;
+
+    while ((cx !== checkerPos.x || cy !== checkerPos.y) && safety < 10) {
+        interpositions.push({ x: cx, y: cy });
+        cx += stepX;
+        cy += stepY;
+        safety++;
+    }
+
+    return interpositions;
+};
+
+export const isCheckmate = (board: BoardState, player: Player, hands: { [key in Player]: Piece[] }): boolean => {
+    return false; // Temporarily disabled to prevent freezing
+};
+
+export const isUchifuzume = (
+    board: BoardState,
+    dropPos: Coordinates,
+    player: Player, // The player DROPPING the pawn
+    hands: { [key in Player]: Piece[] }
+): boolean => {
+    return false; // Temporarily disabled to prevent freezing
+};
+
+export const getValidDrops = (
+    board: BoardState,
+    piece: Piece,
+    player: Player,
+    hands: { [key in Player]: Piece[] }
+): Coordinates[] => {
+    const drops: Coordinates[] = [];
+
+    // Optimization: If not currently in check, drops cannot cause self-check
+    const isCurrentlyInCheck = isCheck(board, player);
+
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            if (board[y][x] === null) {
+                // 1. Nifu Check
+                if (piece.type === 'pawn' && hasPawnInColumn(board, x, player)) continue;
+
+                // 2. Forced Promotion Check (Cannot drop where it has no moves)
+                if (isForcedPromotion(piece, y)) continue;
+
+                // 3. Uchifuzume Check
+                if (piece.type === 'pawn' && isUchifuzume(board, { x, y }, player, hands)) continue;
+
+                // 4. Check if drop leaves King in Check (Illegal move)
+                if (isCurrentlyInCheck) {
+                    board[y][x] = piece;
+                    const check = isCheck(board, player);
+                    board[y][x] = null;
+
+                    if (check) continue;
+                }
+
+                drops.push({ x, y });
+            }
+        }
+    }
+    return drops;
 };

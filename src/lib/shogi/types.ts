@@ -1,6 +1,6 @@
 export type Player = 'sente' | 'gote';
 
-export type PieceType = 
+export type PieceType =
   | 'pawn'   // Fu
   | 'lance'  // Kyou
   | 'knight' // Kei
@@ -34,6 +34,14 @@ export type Cell = Piece | null;
 
 export type BoardState = Cell[][]; // 9x9 grid
 
+export type Move = {
+  from: Coordinates | 'hand';
+  to: Coordinates;
+  piece: Piece;
+  isPromotion?: boolean;
+  capturedPiece?: Piece;
+};
+
 export type GameState = {
   board: BoardState;
   turn: Player;
@@ -43,12 +51,6 @@ export type GameState = {
   };
   selectedPosition: Coordinates | null;
   history: Move[];
-};
-
-export type Move = {
-  from: Coordinates | 'hand';
-  to: Coordinates;
-  piece: Piece;
-  isPromotion?: boolean;
-  capturedPiece?: Piece;
+  winner: Player | null;
+  isCheck: boolean;
 };

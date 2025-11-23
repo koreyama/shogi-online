@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Board.module.css';
-import { BoardState, Coordinates, Piece as PieceType } from '@/lib/shogi/types';
+import { BoardState, Coordinates, Piece as PieceType, Player } from '@/lib/shogi/types';
 import { Piece } from './Piece';
 
 type BoardProps = {
@@ -9,6 +9,7 @@ type BoardProps = {
     validMoves: Coordinates[];
     onCellClick: (x: number, y: number) => void;
     lastMove?: { from: Coordinates | 'hand'; to: Coordinates };
+    perspective?: Player; // 'sente' or 'gote' - determines board orientation
 };
 
 export const Board: React.FC<BoardProps> = ({
@@ -16,7 +17,8 @@ export const Board: React.FC<BoardProps> = ({
     selectedPos,
     validMoves,
     onCellClick,
-    lastMove
+    lastMove,
+    perspective = 'sente'
 }) => {
     // Helper to check if a cell is a valid move target
     const isValidMove = (x: number, y: number) => {
@@ -29,7 +31,12 @@ export const Board: React.FC<BoardProps> = ({
 
     return (
         <div className={styles.boardContainer}>
-            <div className={styles.board}>
+            <div
+                className={styles.board}
+                style={{
+                    transform: perspective === 'gote' ? 'rotate(180deg)' : 'none'
+                }}
+            >
                 {board.map((row, y) => (
                     <div key={y} className={styles.row}>
                         {row.map((cell, x) => {
@@ -42,13 +49,11 @@ export const Board: React.FC<BoardProps> = ({
                                     className={`
                     ${styles.cell} 
                     ${isTarget ? styles.validMove : ''}
+                    ${isLastMoveTo(x, y) ? styles.lastMove : ''}
                   `}
                                     onClick={() => onCellClick(x, y)}
                                 >
-                                    {/* Grid dots (Hoshi) */}
-                                    {(x === 2 || x === 5) && (y === 2 || y === 5) && (
-                                        <div className={styles.hoshi} />
-                                    )}
+
 
                                     {cell && (
                                         <Piece

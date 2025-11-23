@@ -1,0 +1,168 @@
+.chatContainer {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    max-height: 500px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+.chatHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.2rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+}
+
+.chatIcon {
+    font-size: 1.2rem;
+}
+
+.chatHeader h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.messagesContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    background: #fafafa;
+}
+
+.messagesContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messagesContainer::-webkit-scrollbar-track {
+    background: #eee;
+    border-radius: 3px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+.emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-style: italic;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.myMessage {
+    align-self: flex-end;
+}
+
+.theirMessage {
+    align-self: flex-start;
+}
+
+.messageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+    gap: 0.5rem;
+}
+
+.messageSender {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.messageTime {
+    font-size: 0.7rem;
+    color: #999;
+}
+
+.messageText {
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.myMessage .messageText {
+    background: var(--color-primary);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.theirMessage .messageText {
+    background: #e8e8e8;
+    color: var(--color-text);
+    border-bottom-left-radius: 4px;
+}
+
+.inputForm {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid #ddd;
+    border-radius: 0 0 8px 8px;
+}
+
+.input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+}
+
+.sendButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.sendButton:active:not(:disabled) {
+    transform: translateY(0);
+}

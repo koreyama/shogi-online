@@ -1,4 +1,5 @@
-import { BoardState, GameState, Piece, Player, Position, Coordinates, Move } from './types';
+import { BoardState, GameState, Piece, Player, Position, Coordinates, Move, PieceType } from './types';
+import { hasPawnInColumn, isUchifuzume, isCheckmate, isCheck } from './rules';
 
 export const INITIAL_BOARD_SETUP = [
     ['lance', 'knight', 'silver', 'gold', 'king', 'gold', 'silver', 'knight', 'lance'],
@@ -47,7 +48,9 @@ export const createInitialState = (): GameState => {
         turn: 'sente',
         hands: { sente: [], gote: [] },
         selectedPosition: null,
-        history: []
+        history: [],
+        winner: null,
+        isCheck: false
     };
 };
 
@@ -97,10 +100,13 @@ export const executeMove = (
         isPromoted: piece.isPromoted || promote
     };
 
+    const nextTurn = state.turn === 'sente' ? 'gote' : 'sente';
+    const isMate = isCheckmate(newBoard, nextTurn, newHands);
+
     return {
         ...state,
         board: newBoard,
-        turn: state.turn === 'sente' ? 'gote' : 'sente',
+        turn: nextTurn,
         hands: newHands,
         selectedPosition: null,
         history: [...state.history, {
@@ -109,39 +115,66 @@ export const executeMove = (
             piece,
             isPromotion: promote,
             capturedPiece: targetCell || undefined
-        }]
+        }],
+        winner: isMate ? state.turn : null,
+        isCheck: isCheck(newBoard, nextTurn)
     };
 };
 
 export const executeDrop = (
     state: GameState,
-    pieceId: string,
-    to: Coordinates
+    pieceType: PieceType, // Changed from pieceId
+    to: Coordinates,
+    owner?: Player // オプショナルパラメータとして追加
 ): GameState => {
-    const newBoard = cloneBoard(state.board);
-    const newHands = { ...state.hands };
+    try {
+        const newBoard = cloneBoard(state.board);
+        const newHands = { ...state.hands };
 
-    const handIndex = newHands[state.turn].findIndex(p => p.id === pieceId);
-    if (handIndex === -1) return state; // Should not happen
+        // ownerが指定されていない場合はstate.turnを使用
+        const player = owner || state.turn;
 
-    const piece = newHands[state.turn][handIndex];
-    newHands[state.turn] = [
-        ...newHands[state.turn].slice(0, handIndex),
-        ...newHands[state.turn].slice(handIndex + 1)
-    ];
+        const handIndex = newHands[player].findIndex(p => p.type === pieceType);
+        if (handIndex === -1) return state; // Should not happen
 
-    newBoard[to.y][to.x] = piece;
+        const piece = newHands[player][handIndex];
 
-    return {
-        ...state,
-        board: newBoard,
-        turn: state.turn === 'sente' ? 'gote' : 'sente',
-        hands: newHands,
-        selectedPosition: null,
-        history: [...state.history, {
-            from: 'hand',
-            to,
-            piece,
-        }]
-    };
+        // Nifu Check
+        if (piece.type === 'pawn' && hasPawnInColumn(state.board, to.x, player)) {
+            return state;
+        }
+
+        // Uchifuzume Check
+        if (piece.type === 'pawn' && isUchifuzume(state.board, to, player, state.hands)) {
+            return state;
+        }
+
+        newHands[player] = [
+            ...newHands[player].slice(0, handIndex),
+            ...newHands[player].slice(handIndex + 1)
+        ];
+
+        newBoard[to.y][to.x] = piece;
+
+        const nextTurn = player === 'sente' ? 'gote' : 'sente';
+        const isMate = isCheckmate(newBoard, nextTurn, newHands);
+
+        return {
+            ...state,
+            board: newBoard,
+            turn: nextTurn,
+            hands: newHands,
+            selectedPosition: null,
+            history: [...state.history, {
+                from: 'hand',
+                to,
+                piece,
+            }],
+            winner: isMate ? player : null,
+            isCheck: isCheck(newBoard, nextTurn)
+        };
+    } catch (e) {
+        console.error('Error in executeDrop:', e);
+        return state;
+    }
 };
