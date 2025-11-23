@@ -683,7 +683,7 @@ export default function Home() {
           </button>
         </div>
         <div className={styles.gameContainer}>
-          <h1 className={styles.title}>将棋 Online</h1>
+          <h1 className={styles.title}>Asobi Lounge</h1>
           <p className={styles.welcomeText}>ようこそ、{playerName}さん!</p>
 
           {!joinMode ? (

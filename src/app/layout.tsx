@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "将棋 Online",
-  description: "オンラインで遊べる将棋アプリ",
+  title: "Asobi Lounge",
+  description: "オンラインで遊べるゲームサイト",
 };
 
 export default function RootLayout({
