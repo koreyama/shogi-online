@@ -29,6 +29,16 @@ export default function Lobby() {
             <p>シンプルで奥深い戦略ゲーム</p>
           </div>
         </Link>
+
+        <Link href="/gomoku" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <span className={styles.gomokuIcon}>五</span>
+            </div>
+            <h2>五目並べ</h2>
+            <p>5つ並べたら勝ちのシンプルゲーム</p>
+          </div>
+        </Link>
       </div>
     </main>
   );
