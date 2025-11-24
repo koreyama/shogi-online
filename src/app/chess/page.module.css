@@ -1,0 +1,301 @@
+.main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-bg);
+}
+
+.gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    max-width: 1000px;
+    width: 100%;
+}
+
+/* Setup Screen */
+.setupContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xl);
+    max-width: 500px;
+    width: 100%;
+    margin-top: 10vh;
+    padding: var(--spacing-xl);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.setupForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+.input {
+    padding: 0.8rem 1.2rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: var(--color-text);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+}
+
+/* Mode Selection */
+.modeSelection {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.modeBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 2rem 2.5rem;
+    background: white;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.modeBtn:hover {
+    transform: translateY(-2px);
+    background: #f8f8f8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modeBtnTitle {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.joinSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Waiting Screen */
+.waitingAnimation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.waitingAnimation svg {
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.roomId {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+}
+
+/* Game Layout */
+.gameLayout {
+    display: flex;
+    gap: var(--spacing-xl);
+    max-width: 1600px;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.leftPanel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    min-width: 300px;
+    max-width: 350px;
+    flex: 0 0 auto;
+}
+
+.centerPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.playersSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.chatSection {
+    flex: 1;
+    min-height: 300px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.backButton {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #ddd;
+    color: var(--color-text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:hover {
+    background: #f5f5f5;
+    border-color: var(--color-text);
+}
+
+.title {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text);
+    letter-spacing: 0.2em;
+}
+
+.turnIndicator {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    background-color: #333;
+    padding: 0.5rem 2rem;
+    border-radius: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 300px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border: 2px solid #555;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.modal {
+    background: white;
+    padding: var(--spacing-xl);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    border: 2px solid var(--color-primary);
+    min-width: 300px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.primaryBtn {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.2);
+}
+
+.secondaryBtn {
+    background: white;
+    color: var(--color-text);
+    border: 2px solid #ddd;
+}
+
+.playerInfo {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: bold;
+    color: var(--color-text);
+}
+
+@media (max-width: 767px) {
+    .main {
+        padding: var(--spacing-sm);
+    }
+
+    .gameLayout {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .leftPanel {
+        width: 100%;
+        order: 2;
+    }
+
+    .centerPanel {
+        order: 1;
+    }
+}

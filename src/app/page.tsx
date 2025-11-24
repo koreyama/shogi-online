@@ -39,6 +39,26 @@ export default function Lobby() {
             <p>5つ並べたら勝ちのシンプルゲーム</p>
           </div>
         </Link>
+
+        <Link href="/mancala" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <span className={styles.mancalaIcon}>マ</span>
+            </div>
+            <h2>マンカラ</h2>
+            <p>世界最古の知育ボードゲーム</p>
+          </div>
+        </Link>
+
+        <Link href="/chess" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <span className={styles.chessIcon}>♔</span>
+            </div>
+            <h2>チェス</h2>
+            <p>世界で最も遊ばれているボードゲーム</p>
+          </div>
+        </Link>
       </div>
     </main>
   );

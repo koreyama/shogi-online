@@ -1,0 +1,65 @@
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
+    border: 5px solid #5d4037;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.whiteCell {
+    background-color: #f0d9b5;
+}
+
+.blackCell {
+    background-color: #b58863;
+}
+
+.selected {
+    background-color: rgba(255, 255, 0, 0.5) !important;
+}
+
+.validMove::after {
+    content: '';
+    position: absolute;
+    width: 20%;
+    height: 20%;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+}
+
+.piece {
+    transition: transform 0.2s;
+}
+
+.piece:hover {
+    transform: scale(1.1);
+}
+
+.whitePiece {
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.blackPiece {
+    color: #000;
+    text-shadow: 0px 0px 1px #fff;
+    /* 視認性向上のため */
+}
+
+@media (max-width: 600px) {
+    .cell {
+        font-size: 2rem;
+    }
+}

@@ -83,3 +83,13 @@ export const IconGrid: React.FC<IconProps> = ({ size = 24, color = 'currentColor
         <line x1="15" y1="3" x2="15" y2="21" />
     </svg>
 );
+
+export const IconMancala: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="6" width="20" height="12" rx="6" />
+        <circle cx="6" cy="12" r="1.5" fill={color} stroke="none" />
+        <circle cx="10" cy="12" r="1.5" fill={color} stroke="none" />
+        <circle cx="14" cy="12" r="1.5" fill={color} stroke="none" />
+        <circle cx="18" cy="12" r="1.5" fill={color} stroke="none" />
+    </svg>
+);

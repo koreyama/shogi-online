@@ -1,0 +1,140 @@
+.boardContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #8d6e63;
+    /* 木製ボードの色 */
+    padding: 20px;
+    border-radius: 50px;
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.3),
+        inset 0 -5px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 3 / 1;
+    position: relative;
+}
+
+.board {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 15px;
+}
+
+.store {
+    flex: 0 0 15%;
+    background-color: #5d4037;
+    border-radius: 40px;
+    box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.storeLabel {
+    position: absolute;
+    top: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.pitsContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-around;
+    height: 45%;
+}
+
+.pit {
+    width: 14%;
+    background-color: #5d4037;
+    border-radius: 50%;
+    box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.pit:hover {
+    transform: scale(1.05);
+}
+
+.pit.active {
+    box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.5);
+    cursor: pointer;
+}
+
+.pit.disabled {
+    cursor: default;
+    opacity: 0.8;
+}
+
+.pit:hover.active {
+    background-color: #6d4c41;
+}
+
+.seedCount {
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+    z-index: 2;
+    text-shadow: 1px 1px 2px black;
+}
+
+.seeds {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* 簡易的な種の表現（CSSでランダム配置は難しいので、背景画像などで代用するか、JSで配置する） */
+/* ここでは数値をメインにする */
+
+.playerLabel {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.topLabel {
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.bottomLabel {
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+    .boardContainer {
+        padding: 10px;
+        border-radius: 30px;
+    }
+
+    .seedCount {
+        font-size: 1rem;
+    }
+}
