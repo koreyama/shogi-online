@@ -10,6 +10,7 @@ import { GameState, Player, Coordinates } from '@/lib/othello/types';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 
 interface ChatMessage {
     id: string;
@@ -20,6 +21,7 @@ interface ChatMessage {
 
 export default function OthelloPage() {
     const router = useRouter();
+    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [validMoves, setValidMoves] = useState<Coordinates[]>([]);
@@ -44,6 +46,13 @@ export default function OthelloPage() {
         setMounted(true);
         setPlayerId(Math.random().toString(36).substring(2, 15));
     }, []);
+
+    useEffect(() => {
+        if (isLoaded && savedName) {
+            setPlayerName(savedName);
+            setStatus('initial');
+        }
+    }, [isLoaded, savedName]);
 
     useEffect(() => {
         if (roomId === 'ai-match') {
@@ -147,7 +156,10 @@ export default function OthelloPage() {
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (playerName.trim()) setStatus('initial');
+        if (playerName.trim()) {
+            savePlayerName(playerName.trim());
+            setStatus('initial');
+        }
     };
 
     const joinRandomGame = async () => {
@@ -239,22 +251,10 @@ export default function OthelloPage() {
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
             } else {
-                // Pass (executeMove handles pass logic internally if we call it? No, engine handles it)
-                // Actually executeMove checks valid moves. If no valid moves, it might return same state?
-                // engine.ts logic: if !canNextMove, it passes.
-                // But here we need to trigger the state update.
-                // If AI cannot move, it should pass.
-                // But executeMove takes x, y.
-                // We need a way to pass.
-                // Let's check engine.ts again.
-                // engine.ts: executeMove returns state with nextTurn updated.
-                // If we are here, it means it IS white's turn.
-                // If white has no moves, engine should have skipped white turn?
-                // No, executeMove updates turn.
-                // If black moves, and white has no moves, turn becomes black again.
-                // So AI useEffect wouldn't trigger if turn is black.
-                // So if we are here, white MUST have moves.
-                // Unless engine logic is wrong.
+                // Pass logic if needed, but engine handles turn switching if no moves?
+                // engine.ts logic check: executeMove returns next state.
+                // If white has no moves, engine should handle it or we need to detect pass.
+                // For now assuming engine handles or AI just waits.
             }
         }, 1000);
         return () => clearTimeout(timer);

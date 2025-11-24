@@ -15,6 +15,7 @@ import { ref, set, push, onValue, update, get, child, onChildAdded, off, onDisco
 import { getBestMove } from '@/lib/shogi/ai';
 import { soundManager } from '@/utils/sound';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 
 interface ChatMessage {
   id: string;
@@ -23,8 +24,9 @@ interface ChatMessage {
   timestamp: number;
 }
 
-export default function Home() {
+export default function ShogiPage() {
   const router = useRouter();
+  const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
   const [mounted, setMounted] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedHandPiece, setSelectedHandPiece] = useState<Piece | null>(null);
@@ -269,6 +271,7 @@ export default function Home() {
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (playerName.trim()) {
+      savePlayerName(playerName.trim());
       setStatus('initial');
     }
   };

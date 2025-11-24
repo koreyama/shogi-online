@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import GomokuBoard from '@/components/GomokuBoard';
 import { Chat } from '@/components/Chat';
-import { createInitialState, executeMove, isValidMove } from '@/lib/gomoku/engine';
+import { createInitialState, executeMove, checkWinner } from '@/lib/gomoku/engine';
 import { GameState, Player } from '@/lib/gomoku/types';
 import { getBestMove } from '@/lib/gomoku/ai';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 
 interface ChatMessage {
     id: string;
@@ -21,6 +22,7 @@ interface ChatMessage {
 
 export default function GomokuPage() {
     const router = useRouter();
+    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +46,13 @@ export default function GomokuPage() {
         setMounted(true);
         setPlayerId(Math.random().toString(36).substring(2, 15));
     }, []);
+
+    useEffect(() => {
+        if (isLoaded && savedName) {
+            setPlayerName(savedName);
+            setStatus('initial');
+        }
+    }, [isLoaded, savedName]);
 
     useEffect(() => {
         if (roomId === 'ai-match') {
@@ -138,7 +147,10 @@ export default function GomokuPage() {
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (playerName.trim()) setStatus('initial');
+        if (playerName.trim()) {
+            savePlayerName(playerName.trim());
+            setStatus('initial');
+        }
     };
 
     const joinRandomGame = async () => {
@@ -222,20 +234,18 @@ export default function GomokuPage() {
         if (roomId !== 'ai-match' || !gameState || gameState.turn !== 'white' || status !== 'playing') return;
 
         const timer = setTimeout(() => {
-            const bestMove = getBestMove(gameState.board, 'white');
+            const bestMove = getBestMove(gameState, 'white');
             if (bestMove) {
                 const newState = executeMove(gameState, bestMove.x, bestMove.y);
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
             }
-        }, 500);
+        }, 1000);
         return () => clearTimeout(timer);
     }, [gameState, roomId, status]);
 
     const handleCellClick = (x: number, y: number) => {
         if (!gameState || !myRole || gameState.turn !== myRole || status !== 'playing') return;
-
-        if (!isValidMove(gameState.board, x, y)) return;
 
         if (roomId === 'ai-match') {
             const newState = executeMove(gameState, x, y);
@@ -338,11 +348,11 @@ export default function GomokuPage() {
                     <div className={styles.playersSection}>
                         <div className={styles.playerInfo}>
                             <p>{opponentName || '相手'}</p>
-                            <p>{myRole === 'black' ? '白 (後手)' : '黒 (先手)'}</p>
+                            <p>白 (後手)</p>
                         </div>
                         <div className={styles.playerInfo}>
                             <p>{playerName} (自分)</p>
-                            <p>{myRole === 'black' ? '黒 (先手)' : '白 (後手)'}</p>
+                            <p>黒 (先手)</p>
                         </div>
                     </div>
                     <div className={styles.chatSection}>
@@ -357,10 +367,7 @@ export default function GomokuPage() {
                     <GomokuBoard
                         board={gameState!.board}
                         onCellClick={handleCellClick}
-                        lastMove={gameState!.history[gameState!.history.length - 1]}
-                        turn={gameState!.turn}
-                        isMyTurn={gameState!.turn === myRole}
-                        winner={gameState!.winner}
+                        lastMove={gameState!.lastMove}
                     />
                 </div>
             </div>

@@ -11,6 +11,7 @@ import { getBestMove } from '@/lib/mancala/ai';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 
 interface ChatMessage {
     id: string;
@@ -21,6 +22,7 @@ interface ChatMessage {
 
 export default function MancalaPage() {
     const router = useRouter();
+    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +46,13 @@ export default function MancalaPage() {
         setMounted(true);
         setPlayerId(Math.random().toString(36).substring(2, 15));
     }, []);
+
+    useEffect(() => {
+        if (isLoaded && savedName) {
+            setPlayerName(savedName);
+            setStatus('initial');
+        }
+    }, [isLoaded, savedName]);
 
     useEffect(() => {
         if (roomId === 'ai-match') {
@@ -94,7 +103,7 @@ export default function MancalaPage() {
 
             setGameState(prev => {
                 const currentState = prev || createInitialState();
-                return executeMove(currentState, moveData.index);
+                return executeMove(currentState, moveData.pitIndex);
             });
         });
 
@@ -138,7 +147,10 @@ export default function MancalaPage() {
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (playerName.trim()) setStatus('initial');
+        if (playerName.trim()) {
+            savePlayerName(playerName.trim());
+            setStatus('initial');
+        }
     };
 
     const joinRandomGame = async () => {
@@ -223,7 +235,7 @@ export default function MancalaPage() {
 
         const timer = setTimeout(() => {
             const bestMove = getBestMove(gameState, 'second');
-            if (bestMove !== null) {
+            if (bestMove !== -1) {
                 const newState = executeMove(gameState, bestMove);
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
@@ -232,17 +244,22 @@ export default function MancalaPage() {
         return () => clearTimeout(timer);
     }, [gameState, roomId, status]);
 
-    const handlePitClick = (index: number) => {
+    const handlePitClick = (pitIndex: number) => {
         if (!gameState || !myRole || gameState.turn !== myRole || status !== 'playing') return;
 
-        if (!isValidMove(gameState, index)) return;
+        // 自分の側のピットか確認
+        // first: 0-5, second: 7-12
+        if (myRole === 'first' && (pitIndex < 0 || pitIndex > 5)) return;
+        if (myRole === 'second' && (pitIndex < 7 || pitIndex > 12)) return;
+
+        if (!isValidMove(gameState, pitIndex)) return;
 
         if (roomId === 'ai-match') {
-            const newState = executeMove(gameState, index);
+            const newState = executeMove(gameState, pitIndex);
             setGameState(newState);
             if (newState.winner) setStatus('finished');
         } else {
-            push(ref(db, `mancala_rooms/${roomId}/moves`), { index, player: myRole });
+            push(ref(db, `mancala_rooms/${roomId}/moves`), { pitIndex, player: myRole });
         }
     };
 
@@ -338,11 +355,11 @@ export default function MancalaPage() {
                     <div className={styles.playersSection}>
                         <div className={styles.playerInfo}>
                             <p>{opponentName || '相手'}</p>
-                            <p>{myRole === 'first' ? '後攻' : '先攻'}</p>
+                            <p>Second (上)</p>
                         </div>
                         <div className={styles.playerInfo}>
                             <p>{playerName} (自分)</p>
-                            <p>{myRole === 'first' ? '先攻' : '後攻'}</p>
+                            <p>First (下)</p>
                         </div>
                     </div>
                     <div className={styles.chatSection}>
@@ -351,7 +368,7 @@ export default function MancalaPage() {
                 </div>
                 <div className={styles.centerPanel}>
                     <div className={styles.turnIndicator}>
-                        {gameState?.turn === 'first' ? '先攻の番' : '後攻の番'}
+                        {gameState?.turn === 'first' ? 'Firstの番 (下)' : 'Secondの番 (上)'}
                         {gameState?.turn === myRole && ' (あなた)'}
                     </div>
                     <MancalaBoard
@@ -359,8 +376,6 @@ export default function MancalaPage() {
                         onPitClick={handlePitClick}
                         turn={gameState!.turn}
                         isMyTurn={gameState!.turn === myRole}
-                        winner={gameState!.winner}
-                        myRole={myRole}
                     />
                 </div>
             </div>
@@ -368,7 +383,7 @@ export default function MancalaPage() {
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <h2>勝負あり！</h2>
-                        <p>勝者: {gameState.winner === 'first' ? '先攻' : gameState.winner === 'second' ? '後攻' : '引き分け'}</p>
+                        <p>勝者: {gameState.winner === 'first' ? 'First' : gameState.winner === 'second' ? 'Second' : '引き分け'}</p>
                         <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
                         <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
                     </div>

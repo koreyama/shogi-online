@@ -84,6 +84,37 @@ export const IconGrid: React.FC<IconProps> = ({ size = 24, color = 'currentColor
     </svg>
 );
 
+export const IconShogi: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 2L4 7v10l8 5 8-5V7l-8-5z" />
+        <path d="M12 6v4" />
+        <path d="M10 10h4" />
+        <path d="M9 14l3 3 3-3" />
+    </svg>
+);
+
+export const IconOthello: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" fill={color} />
+    </svg>
+);
+
+export const IconGomoku: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="3" y1="15" x2="21" y2="15" />
+        <line x1="9" y1="3" x2="9" y2="21" />
+        <line x1="15" y1="3" x2="15" y2="21" />
+        <circle cx="9" cy="9" r="2" fill={color} stroke="none" />
+        <circle cx="15" cy="15" r="2" fill={color} stroke="none" />
+        <circle cx="15" cy="9" r="2" fill={color} stroke="none" />
+        <circle cx="9" cy="15" r="2" fill={color} stroke="none" />
+        <circle cx="12" cy="12" r="2" fill={color} stroke="none" />
+    </svg>
+);
+
 export const IconMancala: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <rect x="2" y="6" width="20" height="12" rx="6" />
@@ -91,5 +122,16 @@ export const IconMancala: React.FC<IconProps> = ({ size = 24, color = 'currentCo
         <circle cx="10" cy="12" r="1.5" fill={color} stroke="none" />
         <circle cx="14" cy="12" r="1.5" fill={color} stroke="none" />
         <circle cx="18" cy="12" r="1.5" fill={color} stroke="none" />
+    </svg>
+);
+
+export const IconChess: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 2L12 22" />
+        <path d="M7 22L17 22" />
+        <path d="M7 18L17 18" />
+        <path d="M8 10L16 10" />
+        <path d="M9 6L15 6" />
+        <path d="M10 2L14 2" />
     </svg>
 );

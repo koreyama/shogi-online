@@ -11,6 +11,7 @@ import { getBestMove } from '@/lib/chess/ai';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 
 interface ChatMessage {
     id: string;
@@ -21,6 +22,7 @@ interface ChatMessage {
 
 export default function ChessPage() {
     const router = useRouter();
+    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +48,13 @@ export default function ChessPage() {
         setMounted(true);
         setPlayerId(Math.random().toString(36).substring(2, 15));
     }, []);
+
+    useEffect(() => {
+        if (isLoaded && savedName) {
+            setPlayerName(savedName);
+            setStatus('initial');
+        }
+    }, [isLoaded, savedName]);
 
     useEffect(() => {
         if (roomId === 'ai-match') {
@@ -140,7 +149,10 @@ export default function ChessPage() {
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (playerName.trim()) setStatus('initial');
+        if (playerName.trim()) {
+            savePlayerName(playerName.trim());
+            setStatus('initial');
+        }
     };
 
     const joinRandomGame = async () => {
