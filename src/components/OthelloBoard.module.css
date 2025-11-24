@@ -1,12 +1,23 @@
 .board {
     display: flex;
     flex-direction: column;
-    background-color: #2e7d32;
-    /* Green */
-    padding: 10px;
+    background-color: #006400;
+    /* Deep Green */
+    /* Felt texture effect */
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 4px 4px, 8px 8px;
+    background-position: 0 0, 2px 2px;
+
+    padding: 16px;
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 8px solid #1b5e20;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(0, 0, 0, 0.3);
+    border: 12px solid #5d4037;
+    /* Wood color */
+    position: relative;
 }
 
 .row {
@@ -14,18 +25,19 @@
 }
 
 .cell {
-    width: 50px;
-    height: 50px;
-    border: 1px solid #1b5e20;
+    width: 60px;
+    height: 60px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     position: relative;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .cell:hover {
-    background-color: #388e3c;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .valid {
@@ -33,30 +45,62 @@
 }
 
 .hint {
-    width: 12px;
-    height: 12px;
-    background-color: rgba(0, 0, 0, 0.2);
+    width: 16px;
+    height: 16px;
+    background-color: rgba(0, 0, 0, 0.3);
     border-radius: 50%;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .stone {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease;
+    box-shadow:
+        2px 4px 8px rgba(0, 0, 0, 0.5),
+        inset -2px -2px 6px rgba(0, 0, 0, 0.6),
+        inset 2px 2px 6px rgba(255, 255, 255, 0.4);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+}
+
+.stone::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 15%;
+    width: 20%;
+    height: 10%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: rotate(-45deg);
+    filter: blur(1px);
 }
 
 .black {
-    background: radial-gradient(circle at 30% 30%, #444, #000);
+    background: radial-gradient(circle at 30% 30%, #333, #000);
 }
 
 .white {
-    background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+    background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
 }
 
 .lastMove {
-    background-color: rgba(255, 255, 0, 0.2);
+    position: relative;
+}
+
+.lastMove::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #ffeb3b;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 600px) {
@@ -66,7 +110,12 @@
     }
 
     .stone {
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
+    }
+
+    .board {
+        padding: 8px;
+        border-width: 8px;
     }
 }
