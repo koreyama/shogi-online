@@ -850,14 +850,16 @@ export default function Home() {
               <div className={styles.playerLabel}>{myRole === 'gote' ? '先手' : '後手'}</div>
             </div>
 
-            <Board
-              board={gameState.board}
-              selectedPos={gameState.selectedPosition}
-              validMoves={validMoves}
-              onCellClick={handleCellClick}
-              lastMove={gameState.history[gameState.history.length - 1]}
-              perspective={myRole!}
-            />
+            <div className={styles.boardWrapper}>
+              <Board
+                board={gameState.board}
+                selectedPos={gameState.selectedPosition}
+                validMoves={validMoves}
+                onCellClick={handleCellClick}
+                lastMove={gameState.history[gameState.history.length - 1]}
+                perspective={myRole!}
+              />
+            </div>
 
             <div className={styles.senteSide}>
               <Komadai

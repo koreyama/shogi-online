@@ -195,7 +195,6 @@
   max-width: 1600px;
   width: 100%;
   flex-wrap: wrap;
-  flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
 }
@@ -213,7 +212,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
-  min-width: 600px;
+  width: 100%;
 }
 
 .compactTitle {
@@ -291,16 +290,7 @@
   letter-spacing: 0.2em;
 }
 
-.turnIndicator {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--color-primary);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border: 1px solid var(--color-primary);
-  border-radius: 20px;
-  display: inline-block;
-}
-
+/* Board Area Layout */
 .boardArea {
   display: flex;
   flex-direction: column;
@@ -308,28 +298,28 @@
   gap: var(--spacing-md);
 }
 
-@media (min-width: 768px) {
-  .boardArea {
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
-  }
-}
-
 .goteSide {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: var(--spacing-sm);
-  align-self: flex-start;
+  gap: var(--spacing-md);
+  width: 100%;
+  justify-content: center;
+  order: 1;
+}
+
+.boardWrapper {
+  order: 2;
 }
 
 .senteSide {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: var(--spacing-sm);
-  align-self: flex-end;
+  gap: var(--spacing-md);
+  width: 100%;
+  justify-content: center;
+  order: 3;
 }
 
 .playerLabel {
@@ -340,6 +330,68 @@
   font-size: 1.2rem;
   color: var(--color-text);
   opacity: 0.7;
+}
+
+/* PC向けレイアウト */
+@media (min-width: 768px) {
+  .boardArea {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .goteSide {
+    flex-direction: column;
+    width: auto;
+    order: unset;
+    align-self: flex-start;
+  }
+
+  .boardWrapper {
+    order: unset;
+  }
+
+  .senteSide {
+    flex-direction: column;
+    width: auto;
+    order: unset;
+    align-self: flex-end;
+  }
+}
+
+/* スマホ向け調整 */
+@media (max-width: 767px) {
+  .main {
+    padding: var(--spacing-sm);
+  }
+
+  .gameLayout {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .leftPanel {
+    width: 100%;
+    max-width: 100%;
+    min-width: auto;
+    order: 2;
+    /* 盤の下に配置 */
+  }
+
+  .centerPanel {
+    order: 1;
+    /* 盤を上に配置 */
+  }
+
+  .chatSection {
+    min-height: 200px;
+  }
+
+  .playerLabel {
+    writing-mode: horizontal-tb;
+    letter-spacing: 0.1em;
+  }
 }
 
 /* Modal */

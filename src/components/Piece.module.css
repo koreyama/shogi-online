@@ -11,24 +11,26 @@
 }
 
 .pieceInner {
-    width: 85%;
-    height: 92%;
-    background-color: #fffee0;
-    /* 明るい白木色 */
-    clip-path: polygon(50% 0%, 100% 20%, 82% 100%, 18% 100%, 0% 20%);
+    width: 80%;
+    height: 90%;
+    /* 本黄楊（ほんつげ）のような色 */
+    background-color: #f0c420;
+    /* よりリアルな将棋の駒の形 */
+    clip-path: polygon(50% 0%, 88% 22%, 82% 100%, 18% 100%, 12% 22%);
     display: flex;
     justify-content: center;
     align-items: center;
 
-    /* 立体感と木目 */
+    /* 木目と立体感 */
     background-image:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(0, 0, 0, 0.05) 100%),
-        repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(160, 82, 45, 0.03) 3px, transparent 4px);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(0, 0, 0, 0.1) 100%),
+        repeating-linear-gradient(90deg, rgba(139, 69, 19, 0.05) 0px, rgba(139, 69, 19, 0.05) 1px, transparent 1px, transparent 3px);
 
-    /* 影で浮き上がらせる (clip-pathを使っているためfilter: drop-shadowを使用) */
-    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.3));
+    /* 影で浮き上がらせる */
+    filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.4));
 
-    /* 厚みの表現はborderでは難しいので、グラデーションやdrop-shadowで代用 */
+    /* 駒の厚みを感じさせる下部のハイライト */
+    box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.2);
 }
 
 .gote {
@@ -37,24 +39,24 @@
 
 .kanji {
     font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
-    font-weight: 600;
-    font-size: clamp(14px, 2.8vw, 26px);
-    color: #1a1a1a;
-    /* 墨色 */
+    font-weight: 700;
+    font-size: clamp(14px, 2.8vw, 24px);
+    color: #000;
+    /* 漆黒 */
     line-height: 1;
-    padding-top: 12%;
+    padding-top: 10%;
 
-    /* 墨文字の滲み表現 */
-    text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+    /* 盛り上げ駒のような立体感 */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .promoted .kanji {
     color: #d32f2f;
-    /* 鮮やかな朱色 */
+    /* 朱色 */
 }
 
 .selected .pieceInner {
-    background-color: #fff8dc;
+    background-color: #ffe082;
     filter: drop-shadow(0 0 5px var(--color-primary));
     transform: scale(1.05);
 }
@@ -67,9 +69,8 @@
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 215, 0, 0.15);
-    /* 薄い金色 */
+    background-color: rgba(255, 215, 0, 0.2);
     border-radius: 50%;
     z-index: -1;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
