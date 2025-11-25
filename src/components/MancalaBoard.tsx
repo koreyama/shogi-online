@@ -30,13 +30,43 @@ const MancalaBoard: React.FC<MancalaBoardProps> = ({
         const isMyPit = (turn === 'first' && index < FIRST_STORE) || (turn === 'second' && index > FIRST_STORE && index < SECOND_STORE);
         const isActive = !isStore && !winner && isMyTurn && isMyPit && seeds > 0;
 
+        // Generate seeds for visualization
+        const seedElements = [];
+        for (let i = 0; i < seeds; i++) {
+            // Deterministic random based on index and seed index to keep positions stable
+            const seedId = index * 100 + i;
+            const randomX = ((seedId * 9301 + 49297) % 233280) / 233280 * 60 + 20; // 20% - 80%
+            const randomY = ((seedId * 49297 + 9301) % 233280) / 233280 * 60 + 20; // 20% - 80%
+            const hue = ((seedId * 12345) % 360); // Random color
+
+            seedElements.push(
+                <div
+                    key={i}
+                    className={styles.seed}
+                    style={{
+                        left: `${randomX}%`,
+                        top: `${randomY}%`,
+                        backgroundColor: `hsl(${hue}, 70%, 60%)`,
+                        transform: `translate(-50%, -50%)`
+                    }}
+                />
+            );
+        }
+
         return (
             <div
                 key={index}
                 className={`${isStore ? styles.store : styles.pit} ${isActive ? styles.active : styles.disabled}`}
                 onClick={() => isActive ? onPitClick(index) : undefined}
             >
-                <span className={styles.seedCount}>{seeds}</span>
+                {seeds > 0 && (
+                    <div className={styles.seedCount}>
+                        {seeds}
+                    </div>
+                )}
+                <div className={styles.seedsContainer}>
+                    {seedElements}
+                </div>
                 {isStore && <span className={styles.storeLabel}>STORE</span>}
             </div>
         );

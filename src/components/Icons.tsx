@@ -135,3 +135,9 @@ export const IconChess: React.FC<IconProps> = ({ size = 24, color = 'currentColo
         <path d="M10 2L14 2" />
     </svg>
 );
+export const IconCards: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="6" y="2" width="12" height="16" rx="2" transform="rotate(-10 12 10)" />
+        <rect x="6" y="6" width="12" height="16" rx="2" transform="rotate(10 12 14)" fill={color} fillOpacity="0.1" />
+    </svg>
+);

@@ -37,40 +37,39 @@ export const Board: React.FC<BoardProps> = ({
                     transform: perspective === 'gote' ? 'rotate(180deg)' : 'none'
                 }}
             >
-                {board.map((row, y) => (
-                    <div key={y} className={styles.row}>
-                        {row.map((cell, x) => {
-                            const isSelected = selectedPos?.x === x && selectedPos?.y === y;
-                            const isTarget = isValidMove(x, y);
 
-                            return (
-                                <div
-                                    key={`${x}-${y}`}
-                                    className={`
+                {board.map((row, y) =>
+                    row.map((cell, x) => {
+                        const isSelected = selectedPos?.x === x && selectedPos?.y === y;
+                        const isTarget = isValidMove(x, y);
+
+                        return (
+                            <div
+                                key={`${x}-${y}`}
+                                className={`
                     ${styles.cell} 
                     ${isTarget ? styles.validMove : ''}
                     ${isLastMoveTo(x, y) ? styles.lastMove : ''}
                   `}
-                                    onClick={() => onCellClick(x, y)}
-                                >
+                                onClick={() => onCellClick(x, y)}
+                            >
 
 
-                                    {cell && (
-                                        <Piece
-                                            piece={cell}
-                                            isSelected={isSelected}
-                                            isLastMove={isLastMoveTo(x, y)}
-                                        />
-                                    )}
+                                {cell && (
+                                    <Piece
+                                        piece={cell}
+                                        isSelected={isSelected}
+                                        isLastMove={isLastMoveTo(x, y)}
+                                    />
+                                )}
 
-                                    {isTarget && !cell && (
-                                        <div className={styles.moveIndicator} />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                ))}
+                                {isTarget && !cell && (
+                                    <div className={styles.moveIndicator} />
+                                )}
+                            </div>
+                        );
+                    })
+                )}
             </div>
         </div>
     );

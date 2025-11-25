@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
-import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser } from '@/components/Icons';
+import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 
 export default function Home() {
@@ -123,6 +123,16 @@ export default function Home() {
             </div>
             <h2 className={styles.cardTitle}>チェス</h2>
             <p className={styles.cardDesc}>世界中で愛されるボードゲームの王様。チェックメイトを目指せ。</p>
+          </div>
+        </Link>
+
+        <Link href="/trump" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconCards size={50} color="#e53e3e" />
+            </div>
+            <h2 className={styles.cardTitle}>トランプ</h2>
+            <p className={styles.cardDesc}>大富豪、ポーカー、ブラックジャック。最大4人で遊べるカードゲーム集。</p>
           </div>
         </Link>
       </div>

@@ -1,0 +1,98 @@
+.card {
+    width: 100px;
+    height: 140px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    font-family: 'Times New Roman', serif;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.selected {
+    transform: translateY(-20px) !important;
+    box-shadow: 0 0 0 3px #FFA500, 0 10px 20px rgba(0, 0, 0, 0.3) !important;
+    z-index: 100;
+}
+
+.back {
+    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+    border: 2px solid white;
+    background-image: repeating-linear-gradient(45deg,
+            rgba(255, 255, 255, 0.1) 0px,
+            rgba(255, 255, 255, 0.1) 10px,
+            transparent 10px,
+            transparent 20px);
+}
+
+.top,
+.bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    position: absolute;
+}
+
+.top {
+    top: 5px;
+    left: 5px;
+    align-items: flex-start;
+}
+
+.bottom {
+    bottom: 5px;
+    right: 5px;
+    transform: rotate(180deg);
+    align-items: flex-start;
+}
+
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+}
+
+.joker {
+    font-size: 1.2rem;
+    font-weight: bold;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.2rem;
+}
+
+@media (max-width: 768px) {
+    .card {
+        width: 60px;
+        height: 84px;
+        padding: 0.25rem;
+        border-radius: 6px;
+    }
+
+    .top,
+    .bottom {
+        font-size: 0.8rem;
+    }
+
+    .center {
+        font-size: 1.5rem;
+    }
+
+    .joker {
+        font-size: 0.8rem;
+    }
+}
