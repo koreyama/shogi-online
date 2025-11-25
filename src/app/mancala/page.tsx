@@ -235,7 +235,7 @@ export default function MancalaPage() {
 
         const timer = setTimeout(() => {
             const bestMove = getBestMove(gameState, 'second');
-            if (bestMove !== -1) {
+            if (bestMove !== null) {
                 const newState = executeMove(gameState, bestMove);
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
@@ -376,6 +376,8 @@ export default function MancalaPage() {
                         onPitClick={handlePitClick}
                         turn={gameState!.turn}
                         isMyTurn={gameState!.turn === myRole}
+                        winner={gameState!.winner}
+                        myRole={myRole}
                     />
                 </div>
             </div>

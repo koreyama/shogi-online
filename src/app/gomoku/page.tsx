@@ -234,7 +234,7 @@ export default function GomokuPage() {
         if (roomId !== 'ai-match' || !gameState || gameState.turn !== 'white' || status !== 'playing') return;
 
         const timer = setTimeout(() => {
-            const bestMove = getBestMove(gameState, 'white');
+            const bestMove = getBestMove(gameState.board, 'white');
             if (bestMove) {
                 const newState = executeMove(gameState, bestMove.x, bestMove.y);
                 setGameState(newState);
@@ -367,7 +367,10 @@ export default function GomokuPage() {
                     <GomokuBoard
                         board={gameState!.board}
                         onCellClick={handleCellClick}
-                        lastMove={gameState!.lastMove}
+                        lastMove={gameState!.history[gameState!.history.length - 1]}
+                        turn={gameState!.turn}
+                        isMyTurn={gameState!.turn === myRole}
+                        winner={gameState!.winner}
                     />
                 </div>
             </div>

@@ -46,7 +46,7 @@ export const executeMove = (currentState: GameState, x: number, y: number): Game
     };
 };
 
-const checkWinner = (board: BoardState, lastX: number, lastY: number, player: Player): Player | null => {
+export const checkWinner = (board: BoardState, lastX: number, lastY: number, player: Player): Player | null => {
     const directions = [
         { dx: 1, dy: 0 },  // Horizontal
         { dx: 0, dy: 1 },  // Vertical
