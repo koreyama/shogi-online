@@ -181,9 +181,16 @@ export default function GomokuPage() {
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;
-                await set(newRoomRef, { black: { name: playerName, id: playerId }, white: null });
+                const isBlack = Math.random() < 0.5;
+
+                if (isBlack) {
+                    await set(newRoomRef, { black: { name: playerName, id: playerId }, white: null });
+                    setMyRole('black');
+                } else {
+                    await set(newRoomRef, { black: null, white: { name: playerName, id: playerId } });
+                    setMyRole('white');
+                }
                 setRoomId(newRoomId);
-                setMyRole('black');
                 setStatus('waiting');
             }
         } catch (error) {
@@ -204,14 +211,24 @@ export default function GomokuPage() {
             const room = snapshot.val();
 
             if (!room) {
-                await set(roomRef, { black: { name: playerName, id: playerId }, white: null });
+                const isBlack = Math.random() < 0.5;
+                if (isBlack) {
+                    await set(roomRef, { black: { name: playerName, id: playerId }, white: null });
+                    setMyRole('black');
+                } else {
+                    await set(roomRef, { black: null, white: { name: playerName, id: playerId } });
+                    setMyRole('white');
+                }
                 setRoomId(rid);
-                setMyRole('black');
                 setStatus('waiting');
             } else if (!room.white) {
                 await update(ref(db, `gomoku_rooms/${rid}/white`), { name: playerName, id: playerId });
                 setRoomId(rid);
                 setMyRole('white');
+            } else if (!room.black) {
+                await update(ref(db, `gomoku_rooms/${rid}/black`), { name: playerName, id: playerId });
+                setRoomId(rid);
+                setMyRole('black');
             } else {
                 alert('満員です');
             }

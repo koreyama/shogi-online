@@ -183,9 +183,16 @@ export default function ChessPage() {
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;
-                await set(newRoomRef, { white: { name: playerName, id: playerId }, black: null });
+                const isWhite = Math.random() < 0.5;
+
+                if (isWhite) {
+                    await set(newRoomRef, { white: { name: playerName, id: playerId }, black: null });
+                    setMyRole('white');
+                } else {
+                    await set(newRoomRef, { white: null, black: { name: playerName, id: playerId } });
+                    setMyRole('black');
+                }
                 setRoomId(newRoomId);
-                setMyRole('white');
                 setStatus('waiting');
             }
         } catch (error) {
@@ -206,14 +213,24 @@ export default function ChessPage() {
             const room = snapshot.val();
 
             if (!room) {
-                await set(roomRef, { white: { name: playerName, id: playerId }, black: null });
+                const isWhite = Math.random() < 0.5;
+                if (isWhite) {
+                    await set(roomRef, { white: { name: playerName, id: playerId }, black: null });
+                    setMyRole('white');
+                } else {
+                    await set(roomRef, { white: null, black: { name: playerName, id: playerId } });
+                    setMyRole('black');
+                }
                 setRoomId(rid);
-                setMyRole('white');
                 setStatus('waiting');
             } else if (!room.black) {
                 await update(ref(db, `chess_rooms/${rid}/black`), { name: playerName, id: playerId });
                 setRoomId(rid);
                 setMyRole('black');
+            } else if (!room.white) {
+                await update(ref(db, `chess_rooms/${rid}/white`), { name: playerName, id: playerId });
+                setRoomId(rid);
+                setMyRole('white');
             } else {
                 alert('満員です');
             }

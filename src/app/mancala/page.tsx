@@ -181,9 +181,16 @@ export default function MancalaPage() {
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;
-                await set(newRoomRef, { first: { name: playerName, id: playerId }, second: null });
+                const isFirst = Math.random() < 0.5;
+
+                if (isFirst) {
+                    await set(newRoomRef, { first: { name: playerName, id: playerId }, second: null });
+                    setMyRole('first');
+                } else {
+                    await set(newRoomRef, { first: null, second: { name: playerName, id: playerId } });
+                    setMyRole('second');
+                }
                 setRoomId(newRoomId);
-                setMyRole('first');
                 setStatus('waiting');
             }
         } catch (error) {
@@ -204,14 +211,24 @@ export default function MancalaPage() {
             const room = snapshot.val();
 
             if (!room) {
-                await set(roomRef, { first: { name: playerName, id: playerId }, second: null });
+                const isFirst = Math.random() < 0.5;
+                if (isFirst) {
+                    await set(roomRef, { first: { name: playerName, id: playerId }, second: null });
+                    setMyRole('first');
+                } else {
+                    await set(roomRef, { first: null, second: { name: playerName, id: playerId } });
+                    setMyRole('second');
+                }
                 setRoomId(rid);
-                setMyRole('first');
                 setStatus('waiting');
             } else if (!room.second) {
                 await update(ref(db, `mancala_rooms/${rid}/second`), { name: playerName, id: playerId });
                 setRoomId(rid);
                 setMyRole('second');
+            } else if (!room.first) {
+                await update(ref(db, `mancala_rooms/${rid}/first`), { name: playerName, id: playerId });
+                setRoomId(rid);
+                setMyRole('first');
             } else {
                 alert('満員です');
             }

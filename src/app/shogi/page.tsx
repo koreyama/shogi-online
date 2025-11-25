@@ -268,13 +268,12 @@ export default function ShogiPage() {
     };
   }, [roomId, myRole]); // Removed status from dependency to avoid re-subscribing
 
-  const handleNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (playerName.trim()) {
-      savePlayerName(playerName.trim());
+  useEffect(() => {
+    if (isLoaded && savedName) {
+      setPlayerName(savedName);
       setStatus('initial');
     }
-  };
+  }, [isLoaded, savedName]);
 
   const joinRandomGame = async () => {
     setIsLoading(true);
@@ -316,15 +315,25 @@ export default function ShogiPage() {
         setRoomId(foundRoomId);
         setMyRole('gote');
       } else {
-        // Create new room
+        // Create new room with random role
         const newRoomRef = push(roomsRef);
         const newRoomId = newRoomRef.key!;
-        await set(newRoomRef, {
-          sente: { name: playerName, id: playerId },
-          gote: null
-        });
+        const isSente = Math.random() < 0.5;
+
+        if (isSente) {
+          await set(newRoomRef, {
+            sente: { name: playerName, id: playerId },
+            gote: null
+          });
+          setMyRole('sente');
+        } else {
+          await set(newRoomRef, {
+            sente: null,
+            gote: { name: playerName, id: playerId }
+          });
+          setMyRole('gote');
+        }
         setRoomId(newRoomId);
-        setMyRole('sente');
         setStatus('waiting');
       }
     } catch (error) {
@@ -345,22 +354,39 @@ export default function ShogiPage() {
       const room = snapshot.val();
 
       if (!room) {
-        // Create
-        await set(roomRef, {
-          sente: { name: playerName, id: playerId },
-          gote: null
-        });
+        // Create with random role
+        const isSente = Math.random() < 0.5;
+        if (isSente) {
+          await set(roomRef, {
+            sente: { name: playerName, id: playerId },
+            gote: null
+          });
+          setMyRole('sente');
+        } else {
+          await set(roomRef, {
+            sente: null,
+            gote: { name: playerName, id: playerId }
+          });
+          setMyRole('gote');
+        }
         setRoomId(rid);
-        setMyRole('sente');
         setStatus('waiting');
       } else if (!room.gote) {
-        // Join
+        // Join as gote
         await update(ref(db, `rooms/${rid}/gote`), {
           name: playerName,
           id: playerId
         });
         setRoomId(rid);
         setMyRole('gote');
+      } else if (!room.sente) {
+        // Join as sente (if created by gote)
+        await update(ref(db, `rooms/${rid}/sente`), {
+          name: playerName,
+          id: playerId
+        });
+        setRoomId(rid);
+        setMyRole('sente');
       } else {
         alert('満員です');
       }
@@ -637,37 +663,6 @@ export default function ShogiPage() {
         <div className={styles.setupContainer}>
           <h1 className={styles.title}>将棋 Online</h1>
           <p className={styles.subtitle}>読み込み中...</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (status === 'setup') {
-    return (
-      <main className={styles.main}>
-        <div className={styles.setupContainer}>
-          <h1 className={styles.title}>将棋 Online</h1>
-          <p className={styles.subtitle}>オンライン対戦将棋</p>
-
-          <form onSubmit={handleNameSubmit} className={styles.setupForm}>
-            <label className={styles.label}>プレイヤー名を入力してください</label>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="プレイヤー名"
-              className={styles.input}
-              maxLength={20}
-              autoFocus
-            />
-            <button
-              type="submit"
-              className={styles.primaryBtn}
-              disabled={!playerName.trim()}
-            >
-              次へ
-            </button>
-          </form>
         </div>
       </main>
     );
