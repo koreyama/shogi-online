@@ -3,8 +3,6 @@ import { Resend } from 'resend';
 
 export const runtime = 'edge';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
     try {
         const { name, email, subject, message } = await request.json();
@@ -25,6 +23,9 @@ export async function POST(request: Request) {
                 { status: 500 }
             );
         }
+
+        // Initialize Resend inside the handler to ensure env vars are available
+        const resend = new Resend(resendApiKey);
 
         // Use environment variable for the recipient email, or fallback to a default if needed.
         // For Resend 'onboarding@resend.dev', this MUST match the registered Resend account email.
