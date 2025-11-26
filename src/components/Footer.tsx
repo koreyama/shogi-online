@@ -20,6 +20,7 @@ const Footer = () => {
             }}>
                 <Link href="/terms" style={{ textDecoration: 'none', color: 'inherit' }}>利用規約</Link>
                 <Link href="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>プライバシーポリシー</Link>
+                <Link href="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>お問い合わせ</Link>
             </div>
             <div style={{ fontSize: '0.8rem' }}>
                 &copy; {new Date().getFullYear()} Asobi Lounge. All rights reserved.
