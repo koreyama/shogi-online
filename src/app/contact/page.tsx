@@ -12,10 +12,12 @@ export default function ContactPage() {
     });
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('loading');
+        setErrorMessage('');
 
         try {
             const response = await fetch('/api/contact', {
@@ -26,15 +28,19 @@ export default function ContactPage() {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json();
+
             if (response.ok) {
                 setStatus('success');
                 setFormData({ name: '', email: '', subject: '', message: '' });
             } else {
                 setStatus('error');
+                setErrorMessage(data.error || '送信に失敗しました。');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
             setStatus('error');
+            setErrorMessage('ネットワークエラーが発生しました。');
         }
     };
 
@@ -59,7 +65,7 @@ export default function ContactPage() {
 
             {status === 'error' && (
                 <div style={{ padding: '1rem', backgroundColor: '#fed7d7', color: '#c53030', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                    送信に失敗しました。時間をおいて再度お試しください。
+                    {errorMessage || '送信に失敗しました。時間をおいて再度お試しください。'}
                 </div>
             )}
 
