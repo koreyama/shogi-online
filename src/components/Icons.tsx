@@ -158,10 +158,10 @@ export const IconPen: React.FC<IconProps> = ({ size = 24, color = 'currentColor'
 
 export const IconPalette: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <circle cx="13.5" cy="6.5" r=".5" fill={color} stroke="none" />
-        <circle cx="17.5" cy="10.5" r=".5" fill={color} stroke="none" />
-        <circle cx="8.5" cy="7.5" r=".5" fill={color} stroke="none" />
-        <circle cx="6.5" cy="12.5" r=".5" fill={color} stroke="none" />
+        <circle cx="13.5" cy="6.5" r="1.5" fill={color} stroke="none" />
+        <circle cx="17.5" cy="10.5" r="1.5" fill={color} stroke="none" />
+        <circle cx="8.5" cy="7.5" r="1.5" fill={color} stroke="none" />
+        <circle cx="6.5" cy="12.5" r="1.5" fill={color} stroke="none" />
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c2.25 0 5.5-2 5.5-4 0-1-1-2-2-2h-1c-1.1 0-2-.9-2-2 0-.37.1-.7.29-1C13.2 13.15 14.08 13 15 13c3.31 0 6-2.69 6-6 0-2.76-2.24-5-5-5z" />
     </svg>
 );
