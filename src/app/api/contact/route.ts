@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-// import nodemailer from 'nodemailer'; // Nodemailer is not compatible with Edge Runtime
+import { Resend } from 'resend';
 
 export const runtime = 'edge';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
     try {
@@ -15,43 +17,22 @@ export async function POST(request: Request) {
             );
         }
 
-        /*
-        // TODO: Migrate to an HTTP-based email service (e.g., Resend, SendGrid)
-        // Nodemailer relies on Node.js APIs (fs, net, etc.) that are not available in Cloudflare Workers/Pages Edge Runtime.
-        
-        const gmailUser = process.env.GMAIL_USER;
-        const gmailPass = process.env.GMAIL_PASS;
-
-        if (!gmailUser || !gmailPass) {
-            console.error('Missing GMAIL_USER or GMAIL_PASS environment variables');
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            console.error('Missing RESEND_API_KEY environment variable');
             return NextResponse.json(
                 { error: 'Server configuration error: Missing email credentials' },
                 { status: 500 }
             );
         }
 
-        // Create transporter
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: gmailUser,
-                pass: gmailPass,
-            },
-        });
-
-        // Email content
-        const mailOptions = {
-            from: gmailUser,
+        // Send email using Resend
+        // Note: 'onboarding@resend.dev' is for testing. 
+        // For production, you need to verify a domain in Resend dashboard.
+        const { data, error } = await resend.emails.send({
+            from: 'onboarding@resend.dev',
             to: 'zangecreate@gmail.com', // Target email
             subject: `[Asobi Lounge Contact] ${subject}`,
-            text: `
-Name: ${name}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message}
-            `,
             html: `
 <h3>New Contact Message</h3>
 <p><strong>Name:</strong> ${name}</p>
@@ -59,18 +40,20 @@ ${message}
 <p><strong>Subject:</strong> ${subject}</p>
 <hr />
 <p><strong>Message:</strong></p>
-<p><strong>Message:</strong></p>
 <p style="white-space: pre-wrap;">${message}</p>
             `,
-        };
+            replyTo: email,
+        });
 
-        // Send email
-        await transporter.sendMail(mailOptions);
-        */
+        if (error) {
+            console.error('Resend error:', error);
+            return NextResponse.json(
+                { error: 'Failed to send email via Resend' },
+                { status: 500 }
+            );
+        }
 
-        console.log('Contact form submitted (Email sending disabled on Edge):', { name, email, subject });
-
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, data });
     } catch (error) {
         console.error('Email sending error:', error);
         return NextResponse.json(
