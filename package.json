@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "pages:build": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
     "@types/canvas-confetti": "^1.9.0",
@@ -19,6 +20,7 @@
     "react-dom": "19.2.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",

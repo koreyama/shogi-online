@@ -1,0 +1,202 @@
+.boardContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(5px);
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    background-color: #2b6cb0;
+    /* Blue rack */
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.3),
+        inset 0 2px 5px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+    position: relative;
+    user-select: none;
+    /* Realistic plastic look */
+    border: 2px solid #2c5282;
+}
+
+/* Leg stands (decorative) */
+.board::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    right: 20px;
+    height: 20px;
+    background: #2b6cb0;
+    border-radius: 0 0 10px 10px;
+    z-index: -1;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+}
+
+/* Hover indicator */
+.column::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.column:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(5px);
+}
+
+.column.hoverRed:hover::before {
+    background: radial-gradient(circle at 30% 30%, #fc8181, #c53030);
+}
+
+.column.hoverYellow:hover::before {
+    background: radial-gradient(circle at 30% 30%, #fefcbf, #d69e2e);
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    position: relative;
+    /* The hole effect */
+    background: radial-gradient(circle at center, transparent 65%, #2b6cb0 66%);
+    pointer-events: none;
+    /* Let clicks pass through to column */
+}
+
+/* Shadow inside the hole */
+.cell::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.piece {
+    width: 46px;
+    /* Slightly smaller than cell */
+    height: 46px;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    z-index: -1;
+    /* Behind the board face */
+    animation: dropBounce 0.6s cubic-bezier(0.5, 0, 0.5, 1);
+    box-shadow:
+        inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+        2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.red {
+    background: radial-gradient(circle at 30% 30%, #fc8181, #c53030);
+    border: 1px solid #9b2c2c;
+}
+
+.yellow {
+    background: radial-gradient(circle at 30% 30%, #fefcbf, #d69e2e);
+    border: 1px solid #b7791f;
+}
+
+.winningPiece {
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.8), inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+    animation: pulse 1.5s infinite;
+    z-index: 1;
+    /* Bring forward slightly */
+}
+
+@keyframes dropBounce {
+    0% {
+        transform: translateY(-500px);
+    }
+
+    70% {
+        transform: translateY(0);
+    }
+
+    80% {
+        transform: translateY(-20px);
+    }
+
+    90% {
+        transform: translateY(0);
+    }
+
+    95% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+@media (max-width: 600px) {
+    .cell {
+        width: 40px;
+        height: 40px;
+    }
+
+    .piece {
+        width: 36px;
+        height: 36px;
+    }
+
+    .board {
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .column {
+        gap: 4px;
+    }
+}

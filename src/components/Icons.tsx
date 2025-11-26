@@ -172,6 +172,13 @@ export const IconCheck: React.FC<IconProps> = ({ size = 24, color = 'currentColo
     </svg>
 );
 
+export const IconCheckers: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" fill={color} stroke="none" />
+    </svg>
+);
+
 export const IconX: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <line x1="18" y1="6" x2="6" y2="18" />
@@ -190,5 +197,15 @@ export const IconEraser: React.FC<IconProps> = ({ size = 24, color = 'currentCol
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z" />
         <path d="M17 17L7 7" />
+    </svg>
+);
+
+export const IconConnect4: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="3" y="3" width="18" height="18" rx="2" fill={color} fillOpacity="0.2" stroke={color} />
+        <circle cx="8" cy="8" r="2" fill={color} />
+        <circle cx="16" cy="8" r="2" fill={color} />
+        <circle cx="8" cy="16" r="2" fill={color} />
+        <circle cx="16" cy="16" r="2" fill={color} />
     </svg>
 );

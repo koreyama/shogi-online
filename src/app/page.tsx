@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Added useRouter import
 import styles from './page.module.css';
-import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette } from '@/components/Icons';
+import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette, IconCheckers, IconConnect4 } from '@/components/Icons';
+import { IconKing } from '@/components/SimpleShogiIcons';
 import { usePlayer } from '@/hooks/usePlayer';
 
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
@@ -98,6 +99,16 @@ export default function Home() {
           </div>
         </Link>
 
+        <Link href="/chess" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconChess size={50} color="#2b6cb0" />
+            </div>
+            <h2 className={styles.cardTitle}>チェス</h2>
+            <p className={styles.cardDesc}>世界中で愛されるボードゲームの王様。チェックメイトを目指せ。</p>
+          </div>
+        </Link>
+
         <Link href="/othello" className={styles.gameCard}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
@@ -105,6 +116,16 @@ export default function Home() {
             </div>
             <h2 className={styles.cardTitle}>オセロ</h2>
             <p className={styles.cardDesc}>覚えるのは一分、極めるのは一生。石を挟んでひっくり返す。</p>
+          </div>
+        </Link>
+
+        <Link href="/connect4" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconConnect4 size={50} color="#c53030" />
+            </div>
+            <h2 className={styles.cardTitle}>四目並べ</h2>
+            <p className={styles.cardDesc}>コインを落として4つ並べる戦略パズル。シンプルで熱い！</p>
           </div>
         </Link>
 
@@ -118,6 +139,16 @@ export default function Home() {
           </div>
         </Link>
 
+        <Link href="/checkers" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconCheckers size={50} color="#e53e3e" />
+            </div>
+            <h2 className={styles.cardTitle}>チェッカー</h2>
+            <p className={styles.cardDesc}>斜めに進んで相手を飛び越える。連続ジャンプで逆転を狙え！</p>
+          </div>
+        </Link>
+
         <Link href="/mancala" className={styles.gameCard}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
@@ -128,23 +159,13 @@ export default function Home() {
           </div>
         </Link>
 
-        <Link href="/chess" className={styles.gameCard}>
+        <Link href="/simple-shogi" className={styles.gameCard}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
-              <IconChess size={50} color="#2b6cb0" />
+              <IconKing size={48} color="#4a5568" />
             </div>
-            <h2 className={styles.cardTitle}>チェス</h2>
-            <p className={styles.cardDesc}>世界中で愛されるボードゲームの王様。チェックメイトを目指せ。</p>
-          </div>
-        </Link>
-
-        <Link href="/trump" className={styles.gameCard}>
-          <div className={styles.cardContent}>
-            <div className={styles.iconWrapper}>
-              <IconCards size={50} color="#e53e3e" />
-            </div>
-            <h2 className={styles.cardTitle}>トランプ</h2>
-            <p className={styles.cardDesc}>大富豪、ポーカー、ブラックジャック。最大4人で遊べるカードゲーム集。</p>
+            <h2 className={styles.cardTitle}>ファンタジー将棋</h2>
+            <p className={styles.cardDesc}>3x4マスの小さな将棋。スライムを進化させてドラゴンにしよう！</p>
           </div>
         </Link>
 
@@ -157,6 +178,18 @@ export default function Home() {
             <p className={styles.cardDesc}>描いて当てて盛り上がろう！リアルタイムお絵かき伝言ゲーム。</p>
           </div>
         </Link>
+
+        <div className={`${styles.gameCard} ${styles.disabledCard}`}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconCards size={50} color="#a0aec0" />
+            </div>
+            <h2 className={styles.cardTitle}>
+              トランプ <span className={styles.comingSoonBadge}>開発中</span>
+            </h2>
+            <p className={styles.cardDesc}>大富豪、ポーカー、ブラックジャック。最大4人で遊べるカードゲーム集。</p>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -1,0 +1,119 @@
+.boardContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #2d3748;
+    border-radius: 16px;
+    color: white;
+    user-select: none;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    background-color: #4a5568;
+    padding: 8px;
+    border-radius: 8px;
+    border: 4px solid #718096;
+}
+
+.cell {
+    width: 80px;
+    height: 80px;
+    background-color: #edf2f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    border-radius: 4px;
+    transition: background 0.2s;
+    color: #2d3748;
+}
+
+.cell:hover {
+    background-color: #e2e8f0;
+}
+
+.validMove {
+    background-color: rgba(255, 255, 0, 0.3) !important;
+    box-shadow: inset 0 0 10px rgba(255, 255, 0, 0.5);
+}
+
+.lastMove {
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+.piece {
+    transition: transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gotePiece {
+    transform: rotate(180deg);
+}
+
+.hand {
+    display: flex;
+    gap: 0.5rem;
+    min-height: 60px;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.handPiece {
+    width: 50px;
+    height: 50px;
+    background: #edf2f7;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid transparent;
+    color: #2d3748;
+}
+
+.handPiece.selected {
+    border-color: #ecc94b;
+    box-shadow: 0 0 10px #ecc94b;
+}
+
+.count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #c53030;
+    color: white;
+    font-size: 0.8rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.playerArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.playerName {
+    font-weight: bold;
+    font-size: 1.1rem;
+}

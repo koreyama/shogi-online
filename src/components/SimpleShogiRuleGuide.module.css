@@ -1,0 +1,75 @@
+.guideContainer {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 300px;
+}
+
+.guideTitle {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #2d3748;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 0.5rem;
+}
+
+.pieceList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.pieceItem {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.iconWrapper {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #edf2f7;
+    border-radius: 4px;
+    color: #2d3748;
+}
+
+.pieceName {
+    flex: 1;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.guideGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 10px);
+    gap: 2px;
+}
+
+.guideCell {
+    width: 10px;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+
+.center {
+    background: #4a5568;
+}
+
+.move {
+    background: #48bb78;
+}
+
+.note {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #718096;
+    border-top: 1px solid #edf2f7;
+    padding-top: 0.5rem;
+}
