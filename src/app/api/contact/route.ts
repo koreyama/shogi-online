@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         if (!resendApiKey) {
             console.error('Missing RESEND_API_KEY environment variable');
             return NextResponse.json(
-                { error: 'Server configuration error: Missing email credentials' },
+                { error: 'Configuration Error: RESEND_API_KEY is missing.' },
                 { status: 500 }
             );
         }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         if (!contactEmail) {
             console.error('Missing CONTACT_EMAIL environment variable');
             return NextResponse.json(
-                { error: 'Server configuration error: Missing contact email' },
+                { error: 'Configuration Error: CONTACT_EMAIL is missing.' },
                 { status: 500 }
             );
         }
@@ -57,16 +57,16 @@ export async function POST(request: Request) {
         if (error) {
             console.error('Resend error:', error);
             return NextResponse.json(
-                { error: 'Failed to send email via Resend' },
+                { error: `Resend Error: ${error.message}` },
                 { status: 500 }
             );
         }
 
         return NextResponse.json({ success: true, data });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Email sending error:', error);
         return NextResponse.json(
-            { error: 'Failed to send email' },
+            { error: `Internal Server Error: ${error.message || 'Unknown error'}` },
             { status: 500 }
         );
     }
