@@ -26,12 +26,21 @@ export async function POST(request: Request) {
             );
         }
 
+        // Use environment variable for the recipient email, or fallback to a default if needed.
+        // For Resend 'onboarding@resend.dev', this MUST match the registered Resend account email.
+        const contactEmail = process.env.CONTACT_EMAIL;
+        if (!contactEmail) {
+            console.error('Missing CONTACT_EMAIL environment variable');
+            return NextResponse.json(
+                { error: 'Server configuration error: Missing contact email' },
+                { status: 500 }
+            );
+        }
+
         // Send email using Resend
-        // Note: 'onboarding@resend.dev' is for testing. 
-        // For production, you need to verify a domain in Resend dashboard.
         const { data, error } = await resend.emails.send({
             from: 'onboarding@resend.dev',
-            to: 'zangecreate@gmail.com', // Target email
+            to: contactEmail,
             subject: `[Asobi Lounge Contact] ${subject}`,
             html: `
 <h3>New Contact Message</h3>
