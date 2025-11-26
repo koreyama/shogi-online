@@ -8,6 +8,7 @@ import { ref, push, set, onValue } from 'firebase/database';
 import { usePlayer } from '@/hooks/usePlayer';
 import { TrumpRoom } from '@/lib/trump/types';
 import { IconBack, IconCards, IconUser } from '@/components/Icons';
+import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 
 export default function TrumpLobbyPage() {
     const router = useRouter();
@@ -27,10 +28,20 @@ export default function TrumpLobbyPage() {
         isSpade3: false
     });
 
+    // Clean up empty trump rooms
+    useRoomJanitor(['trump']);
+
+    console.log('TrumpLobbyPage rendering', { selectedGame });
+
     useEffect(() => {
-        const roomsRef = ref(db, 'trump_rooms');
+        const path = selectedGame === 'poker' ? 'poker_rooms' :
+            selectedGame === 'blackjack' ? 'blackjack_rooms' : 'trump_rooms';
+
+        console.log('TrumpLobbyPage: Fetching rooms from', path);
+        const roomsRef = ref(db, path);
         const unsubscribe = onValue(roomsRef, (snapshot) => {
             const data = snapshot.val();
+            console.log('TrumpLobbyPage: Data received', data);
             const roomList: TrumpRoom[] = [];
             if (data) {
                 Object.keys(data).forEach((key) => {
@@ -44,14 +55,16 @@ export default function TrumpLobbyPage() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [selectedGame]);
 
     const handleCreateRoom = async () => {
         if (!newRoomName.trim() || !playerId || !playerName) return;
         setIsCreating(true);
 
         try {
-            const roomsRef = ref(db, 'trump_rooms');
+            const path = selectedGame === 'poker' ? 'poker_rooms' :
+                selectedGame === 'blackjack' ? 'blackjack_rooms' : 'trump_rooms';
+            const roomsRef = ref(db, path);
             const newRoomRef = push(roomsRef);
             const roomId = newRoomRef.key;
 
@@ -76,7 +89,13 @@ export default function TrumpLobbyPage() {
                 };
 
                 await set(newRoomRef, newRoom);
-                router.push(`/trump/${roomId}`);
+                if (selectedGame === 'poker') {
+                    router.push(`/poker/${roomId}`);
+                } else if (selectedGame === 'blackjack') {
+                    router.push(`/blackjack/${roomId}`);
+                } else {
+                    router.push(`/trump/${roomId}`);
+                }
             }
         } catch (error) {
             console.error('Error creating room:', error);
@@ -90,7 +109,9 @@ export default function TrumpLobbyPage() {
         setIsCreating(true);
 
         try {
-            const roomsRef = ref(db, 'trump_rooms');
+            const path = selectedGame === 'poker' ? 'poker_rooms' :
+                selectedGame === 'blackjack' ? 'blackjack_rooms' : 'trump_rooms';
+            const roomsRef = ref(db, path);
             const newRoomRef = push(roomsRef);
             const roomId = newRoomRef.key;
 
@@ -129,7 +150,13 @@ export default function TrumpLobbyPage() {
                 };
 
                 await set(newRoomRef, newRoom);
-                router.push(`/trump/${roomId}`);
+                if (selectedGame === 'poker') {
+                    router.push(`/poker/${roomId}`);
+                } else if (selectedGame === 'blackjack') {
+                    router.push(`/blackjack/${roomId}`);
+                } else {
+                    router.push(`/trump/${roomId}`);
+                }
             }
         } catch (error) {
             console.error('Error creating AI room:', error);
@@ -139,7 +166,13 @@ export default function TrumpLobbyPage() {
     };
 
     const handleJoinRoom = (roomId: string) => {
-        router.push(`/trump/${roomId}`);
+        if (selectedGame === 'poker') {
+            router.push(`/poker/${roomId}`);
+        } else if (selectedGame === 'blackjack') {
+            router.push(`/blackjack/${roomId}`);
+        } else {
+            router.push(`/trump/${roomId}`);
+        }
     };
 
     const toggleRule = (key: keyof typeof rules) => {
@@ -271,7 +304,7 @@ export default function TrumpLobbyPage() {
                                         <span className={styles.roomName}>{room.roomId}</span>
                                         <div className={styles.roomDetails}>
                                             <span>{room.gameType}</span>
-                                            <span><IconUser size={14} /> {Object.keys(room.players).length}/4</span>
+                                            <span><IconUser size={14} /> {room.players ? Object.keys(room.players).length : 0}/4</span>
                                         </div>
                                     </div>
                                     <button

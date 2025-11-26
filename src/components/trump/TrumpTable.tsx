@@ -12,6 +12,7 @@ interface TrumpTableProps {
     turnPlayerId: string;
     onCardClick?: (card: CardType) => void;
     selectedCards?: CardType[];
+    playableCards?: CardType[]; // Added
     isRevolution: boolean;
 }
 
@@ -23,6 +24,7 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
     turnPlayerId,
     onCardClick,
     selectedCards = [],
+    playableCards = [], // Added
     isRevolution
 }) => {
     // Determine positions relative to "me" (bottom)
@@ -114,6 +116,24 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                             <AnimatePresence mode='popLayout'>
                                 {hand.map((card, i) => {
                                     const isSelected = selectedCards.some(c => c.suit === card.suit && c.rank === card.rank);
+                                    // Check if playable (only for me)
+                                    // If playableCards is empty (e.g. not my turn), maybe show all as disabled? 
+                                    // Or if it's not my turn, playableCards might be empty.
+                                    // Let's assume if playableCards is passed, we use it.
+                                    // If it's not my turn, maybe we shouldn't dim them? Or dim all?
+                                    // User wants "only playable cards selectable".
+                                    // So if it's my turn, dim unplayable.
+                                    // If not my turn, maybe dim all or just disable interaction.
+                                    // Let's rely on the passed playableCards array.
+
+                                    const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
+
+                                    // Wait, if playableCards is empty, it means NO cards are playable? Or feature not used?
+                                    // If I pass [] when it's not my turn, then all cards become unplayable. That's correct.
+                                    // But if I pass [] when it IS my turn (e.g. no valid moves), then all unplayable. Correct.
+                                    // But what if I haven't implemented logic yet?
+                                    // I should make sure I pass a valid list in page.tsx.
+
                                     return (
                                         <motion.div
                                             key={isMe ? `${card.suit}-${card.rank}` : `opponent-card-${i}`}
@@ -127,7 +147,8 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                                             <Card
                                                 card={isMe ? card : null}
                                                 isSelected={isSelected}
-                                                onClick={() => isMe && onCardClick && onCardClick(card)}
+                                                isPlayable={isPlayable}
+                                                onClick={() => isMe && isPlayable && onCardClick && onCardClick(card)}
                                             />
                                         </motion.div>
                                     );

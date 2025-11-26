@@ -165,3 +165,74 @@
     border: 2px solid #ff3333;
     box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
 }
+
+@media (max-width: 768px) {
+    .centerArea {
+        width: 90%;
+        height: 200px;
+    }
+
+    .fieldCards {
+        transform: scale(0.8);
+    }
+
+    .cardWrapper {
+        margin-left: -35px;
+    }
+
+    .bottom {
+        width: 100%;
+        bottom: 0.5rem;
+    }
+
+    .bottom .hand {
+        margin-top: 0.2rem;
+        min-height: 100px;
+    }
+
+    .bottom .cardWrapper {
+        margin-left: -40px;
+        /* Tighter overlap for mobile */
+    }
+
+    .top {
+        top: 0.5rem;
+    }
+
+    .top .hand {
+        transform: scale(0.6);
+        min-height: 80px;
+    }
+
+    .left {
+        left: 0.5rem;
+        /* On mobile, maybe don't rotate fully or adjust position */
+        transform: translateY(-50%) scale(0.8);
+        transform-origin: left center;
+    }
+
+    .left .playerName {
+        transform: none;
+        /* Keep name horizontal if possible, or keep rotated but smaller */
+        font-size: 0.8rem;
+    }
+
+    .right {
+        right: 0.5rem;
+        transform: translateY(-50%) scale(0.8);
+        transform-origin: right center;
+    }
+
+    .right .playerName {
+        transform: none;
+        font-size: 0.8rem;
+    }
+
+    .revolutionIndicator {
+        font-size: 2rem;
+        padding: 0.5rem 1.5rem;
+        letter-spacing: 0.2rem;
+        width: 80%;
+        text-align: center;
+    }
+}

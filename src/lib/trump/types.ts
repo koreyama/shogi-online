@@ -35,6 +35,7 @@ export interface GameState {
     } | null;
     isRevolution: boolean;
     is11Back: boolean;
+    isShibari: boolean; // Suit binding active
     isSpade3Returned: boolean; // For special rule
     finishedPlayers?: string[];
     ranks?: Record<string, number>;

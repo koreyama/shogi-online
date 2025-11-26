@@ -14,10 +14,6 @@ import { DaifugoAI } from '@/lib/trump/daifugo/ai';
 import confetti from 'canvas-confetti';
 import { IconBack, IconUser } from '@/components/Icons';
 
-// ... (inside component)
-
-
-
 export default function TrumpGamePage() {
     const params = useParams();
     const router = useRouter();
@@ -30,6 +26,56 @@ export default function TrumpGamePage() {
     const [engine] = useState(() => new DaifugoEngine());
     const [ai] = useState(() => new DaifugoAI());
     const lastProcessedStateRef = useRef<string>("");
+
+    const [sortOrder, setSortOrder] = useState<'strength' | 'suit'>('strength');
+
+    // Calculate playable cards
+    const playableCards = React.useMemo(() => {
+        if (!room || !room.gameState || !playerId) return [];
+        if (room.gameState.turn !== playerId) return []; // Not my turn
+
+        const currentHand = myHand;
+        const isRevolution = room.gameState.isRevolution || false;
+        const lastMove = room.gameState.lastMove;
+        const rules = room.rules || {
+            isShibari: false,
+            isSpade3: false,
+            isStaircase: false,
+            is11Back: false
+        };
+        const is11Back = room.gameState.is11Back || false;
+        const isShibariActive = room.gameState.isShibari || false;
+
+        return currentHand.filter(card =>
+            engine.isCardPlayable(card, currentHand, isRevolution, is11Back, lastMove || null, rules, isShibariActive)
+        );
+    }, [room, myHand, playerId, engine]);
+
+    const sortedHands = React.useMemo(() => {
+        if (!room?.gameState?.hands) return {};
+        const hands = { ...room.gameState.hands };
+        if (playerId && hands[playerId]) {
+            const myCards = [...hands[playerId]];
+            const isRevolution = room.gameState?.isRevolution || false;
+            const is11Back = room.gameState?.is11Back || false;
+
+            if (sortOrder === 'strength') {
+                myCards.sort((a, b) => engine.getStrength(a, isRevolution, is11Back) - engine.getStrength(b, isRevolution, is11Back));
+            } else {
+                // Sort by suit then rank
+                myCards.sort((a, b) => {
+                    if (a.suit !== b.suit) return a.suit.localeCompare(b.suit);
+                    return engine.getStrength(a, isRevolution, is11Back) - engine.getStrength(b, isRevolution, is11Back);
+                });
+            }
+            hands[playerId] = myCards;
+        }
+        return hands;
+    }, [room?.gameState?.hands, playerId, sortOrder, engine, room?.gameState?.isRevolution, room?.gameState?.is11Back]);
+
+    const toggleSort = () => {
+        setSortOrder(prev => prev === 'strength' ? 'suit' : 'strength');
+    };
 
     useEffect(() => {
         if (room?.status === 'finished') {
@@ -136,6 +182,7 @@ export default function TrumpGamePage() {
                         is11Back: rules.is11Back || false
                     };
                     const is11Back = room.gameState?.is11Back || false;
+                    const isShibariActive = room.gameState?.isShibari || false;
                     const move = ai.computeMove(aiHand, room.gameState?.field || [], isRevolution, is11Back, lastMove || null, aiRules);
 
                     if (move.length > 0) {
@@ -184,6 +231,20 @@ export default function TrumpGamePage() {
                 gameState.is11Back = true;
             }
 
+            // Check Shibari
+            if (rules.isShibari) {
+                // Check if this move establishes Shibari (engine logic should return this, but we can also infer)
+                // Actually, we should use the result from validateMove if possible, but executeMove re-validates implicitly or assumes validity.
+                // Let's check if suits match last move
+                if (gameState.lastMove) {
+                    const lastSuits = gameState.lastMove.cards.filter((c: CardType) => c.suit !== 'joker').map((c: CardType) => c.suit).sort().join(',');
+                    const currentSuits = cards.filter(c => c.suit !== 'joker').map(c => c.suit).sort().join(',');
+                    if (lastSuits === currentSuits && lastSuits !== '') {
+                        gameState.isShibari = true;
+                    }
+                }
+            }
+
             // Check Win (Agari)
             if (newHand.length === 0) {
                 gameState.finishedPlayers = gameState.finishedPlayers || [];
@@ -200,6 +261,7 @@ export default function TrumpGamePage() {
                 gameState.field = [];
                 gameState.lastMove = null;
                 gameState.is11Back = false;
+                gameState.isShibari = false;
 
                 if (newHand.length === 0) {
                     // If finished with 8-cut, next player starts fresh
@@ -251,6 +313,7 @@ export default function TrumpGamePage() {
                 gameState.lastMove = null;
                 gameState.passCount = 0;
                 gameState.is11Back = false;
+                gameState.isShibari = false;
                 gameState.turn = nextId; // They start fresh
             } else if (gameState.lastMove && finishedIds.includes(gameState.lastMove.playerId)) {
                 if (gameState.passCount >= activeCount) {
@@ -259,6 +322,7 @@ export default function TrumpGamePage() {
                     gameState.lastMove = null;
                     gameState.passCount = 0;
                     gameState.is11Back = false;
+                    gameState.isShibari = false;
                     gameState.turn = nextId; // The person who would have been next starts fresh
                 } else {
                     gameState.turn = nextId;
@@ -306,6 +370,7 @@ export default function TrumpGamePage() {
             field: [],
             isRevolution: false,
             is11Back: false,
+            isShibari: false,
             scores: {}
         };
 
@@ -347,7 +412,8 @@ export default function TrumpGamePage() {
         };
 
         const is11Back = room.gameState.is11Back || false;
-        const result = engine.validateMove(selectedCards, currentHand, isRevolution, is11Back, lastMove || null, aiRules);
+        const isShibariActive = room.gameState.isShibari || false;
+        const result = engine.validateMove(selectedCards, currentHand, isRevolution, is11Back, lastMove || null, aiRules, isShibariActive);
         if (!result.isValid) {
             alert(result.errorMessage || 'そのカードは出せません');
             return;
@@ -388,6 +454,23 @@ export default function TrumpGamePage() {
     const playersList = Object.values(room.players || {});
     const isMyTurn = room.gameState?.turn === playerId;
 
+    const handleAddAi = async () => {
+        if (!room || !playerId) return;
+        if (room.hostId !== playerId) return;
+        if (Object.keys(room.players).length >= 4) return;
+
+        const aiId = `ai-${Date.now()}`;
+        const aiName = `CPU ${Object.keys(room.players).length}`;
+
+        await update(ref(db, `trump_rooms/${roomId}/players/${aiId}`), {
+            id: aiId,
+            name: aiName,
+            role: 'guest',
+            isReady: true,
+            isAi: true
+        });
+    };
+
     if (room.status === 'waiting') {
         return (
             <main className={styles.main}>
@@ -401,6 +484,11 @@ export default function TrumpGamePage() {
                         ))}
                     </div>
                     <div className={styles.controls}>
+                        {room.hostId === playerId && Object.keys(room.players).length < 4 && (
+                            <button onClick={handleAddAi} className={styles.actionBtn} style={{ background: '#4a5568' }}>
+                                CPU追加
+                            </button>
+                        )}
                         {room.hostId === playerId && playersList.length >= 2 && (
                             <button onClick={handleStartGame} className={styles.startBtn}>
                                 ゲーム開始
@@ -427,32 +515,49 @@ export default function TrumpGamePage() {
             </div>
 
             <div className={styles.tableContainer}>
+                <div className={styles.rulesOverlay}>
+                    <div className={styles.ruleItem}>革命: {room.rules?.revolution ? 'ON' : 'OFF'}</div>
+                    <div className={styles.ruleItem}>8切り: {room.rules?.is8Cut ? 'ON' : 'OFF'}</div>
+                    <div className={styles.ruleItem}>縛り: {room.rules?.isShibari ? 'ON' : 'OFF'}</div>
+                    <div className={styles.ruleItem}>スペ3: {room.rules?.isSpade3 ? 'ON' : 'OFF'}</div>
+                    <div className={styles.ruleItem}>11バック: {room.rules?.is11Back ? 'ON' : 'OFF'}</div>
+                    <div className={styles.ruleItem}>階段: {room.rules?.isStaircase ? 'ON' : 'OFF'}</div>
+                </div>
+                {room.gameState?.isShibari && <div className={styles.shibariIndicator}>縛り中!</div>}
+
                 <TrumpTable
                     players={playersList}
                     myId={playerId || ''}
-                    hands={room.gameState?.hands || {}}
+                    hands={sortedHands}
                     fieldCards={room.gameState?.field || []}
                     turnPlayerId={room.gameState?.turn || ''}
                     onCardClick={handleCardClick}
                     selectedCards={selectedCards}
+                    playableCards={playableCards}
                     isRevolution={room.gameState?.isRevolution || false}
                 />
             </div>
 
-            {isMyTurn && (
-                <div className={styles.actionControls}>
-                    <button
-                        onClick={handlePlayCards}
-                        className={styles.actionBtn}
-                        disabled={selectedCards.length === 0}
-                    >
-                        出す
-                    </button>
-                    <button onClick={handlePass} className={`${styles.actionBtn} ${styles.passBtn}`}>
-                        パス
-                    </button>
-                </div>
-            )}
+            <div className={styles.actionControls}>
+                <button onClick={toggleSort} className={styles.actionBtn} style={{ background: '#4a5568', marginRight: 'auto' }}>
+                    並び替え: {sortOrder === 'strength' ? '強さ' : 'マーク'}
+                </button>
+
+                {isMyTurn && (
+                    <>
+                        <button
+                            onClick={handlePlayCards}
+                            className={styles.actionBtn}
+                            disabled={selectedCards.length === 0}
+                        >
+                            出す
+                        </button>
+                        <button onClick={handlePass} className={`${styles.actionBtn} ${styles.passBtn}`}>
+                            パス
+                        </button>
+                    </>
+                )}
+            </div>
         </main>
     );
 }

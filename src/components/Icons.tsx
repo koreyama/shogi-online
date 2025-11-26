@@ -135,9 +135,60 @@ export const IconChess: React.FC<IconProps> = ({ size = 24, color = 'currentColo
         <path d="M10 2L14 2" />
     </svg>
 );
+
 export const IconCards: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <rect x="6" y="2" width="12" height="16" rx="2" transform="rotate(-10 12 10)" />
         <rect x="6" y="6" width="12" height="16" rx="2" transform="rotate(10 12 14)" fill={color} fillOpacity="0.1" />
+    </svg>
+);
+
+export const IconPlus: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+);
+
+export const IconPen: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+);
+
+export const IconPalette: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="13.5" cy="6.5" r=".5" fill={color} stroke="none" />
+        <circle cx="17.5" cy="10.5" r=".5" fill={color} stroke="none" />
+        <circle cx="8.5" cy="7.5" r=".5" fill={color} stroke="none" />
+        <circle cx="6.5" cy="12.5" r=".5" fill={color} stroke="none" />
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c2.25 0 5.5-2 5.5-4 0-1-1-2-2-2h-1c-1.1 0-2-.9-2-2 0-.37.1-.7.29-1C13.2 13.15 14.08 13 15 13c3.31 0 6-2.69 6-6 0-2.76-2.24-5-5-5z" />
+    </svg>
+);
+
+export const IconCheck: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="20 6 9 17 4 12" />
+    </svg>
+);
+
+export const IconX: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+);
+
+export const IconTrash: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+);
+
+export const IconEraser: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z" />
+        <path d="M17 17L7 7" />
     </svg>
 );

@@ -7,17 +7,25 @@ import { getSuitSymbol, getRankSymbol, getCardColor } from '@/lib/trump/deck';
 interface CardProps {
     card: CardType | null; // null means face down (back)
     isSelected?: boolean;
+    isPlayable?: boolean;
+    isBack?: boolean; // Force back face
+    width?: number; // Custom width
     onClick?: () => void;
     style?: React.CSSProperties;
 }
 
-export const Card: React.FC<CardProps> = ({ card, isSelected, onClick, style }) => {
-    if (!card) {
+export const Card: React.FC<CardProps> = ({ card, isSelected, isPlayable = true, isBack = false, width, onClick, style }) => {
+    const cardStyle = {
+        ...style,
+        ...(width ? { width: `${width}px`, height: `${width * 1.4}px` } : {})
+    };
+
+    if (!card || isBack) {
         return (
             <motion.div
                 className={`${styles.card} ${styles.back} ${isSelected ? styles.selected : ''}`}
                 onClick={onClick}
-                style={style}
+                style={cardStyle}
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -31,27 +39,37 @@ export const Card: React.FC<CardProps> = ({ card, isSelected, onClick, style }) 
     const suitSymbol = getSuitSymbol(card.suit);
     const rankSymbol = getRankSymbol(card.rank);
 
+    // Adjust font sizes for smaller cards
+    const fontSizeStyle = width ? { fontSize: `${width * 0.3}px` } : {};
+    const centerFontSizeStyle = width ? { fontSize: `${width * 0.8}px` } : {};
+
     return (
         <motion.div
-            className={`${styles.card} ${isSelected ? styles.selected : ''}`}
-            onClick={onClick}
-            style={{ ...style, color }}
-            whileHover={{ scale: 1.05, y: -10, boxShadow: "0 10px 20px rgba(0,0,0,0.2)" }}
-            whileTap={{ scale: 0.95 }}
+            className={`${styles.card} ${isSelected ? styles.selected : ''} ${!isPlayable ? styles.unplayable : ''}`}
+            onClick={isPlayable ? onClick : undefined}
+            style={{
+                ...cardStyle,
+                color,
+                opacity: isPlayable ? 1 : 0.5,
+                filter: isPlayable ? 'none' : 'grayscale(100%)',
+                cursor: isPlayable ? 'pointer' : 'not-allowed'
+            }}
+            whileHover={isPlayable ? { scale: 1.05, y: -10, boxShadow: "0 10px 20px rgba(0,0,0,0.2)" } : {}}
+            whileTap={isPlayable ? { scale: 0.95 } : {}}
             initial={{ opacity: 0, y: 20 }}
             animate={{
-                opacity: 1,
+                opacity: isPlayable ? 1 : 0.5,
                 y: isSelected ? -20 : 0,
                 scale: isSelected ? 1.05 : 1
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-            <div className={styles.top}>
+            <div className={styles.top} style={fontSizeStyle}>
                 <span>{rankSymbol}</span>
                 <span>{suitSymbol}</span>
             </div>
 
-            <div className={styles.center}>
+            <div className={styles.center} style={centerFontSizeStyle}>
                 {card.suit === 'joker' ? (
                     <span className={styles.joker}>JOKER</span>
                 ) : (
@@ -59,7 +77,7 @@ export const Card: React.FC<CardProps> = ({ card, isSelected, onClick, style }) 
                 )}
             </div>
 
-            <div className={styles.bottom}>
+            <div className={styles.bottom} style={fontSizeStyle}>
                 <span>{rankSymbol}</span>
                 <span>{suitSymbol}</span>
             </div>

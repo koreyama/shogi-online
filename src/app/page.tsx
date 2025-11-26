@@ -2,14 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Added useRouter import
 import styles from './page.module.css';
-import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards } from '@/components/Icons';
+import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 
+import { useRoomJanitor } from '@/hooks/useRoomJanitor';
+
 export default function Home() {
+  const router = useRouter();
   const { playerName, savePlayerName, isLoaded } = usePlayer();
   const [showNameModal, setShowNameModal] = useState(false);
   const [inputName, setInputName] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  // Clean up empty rooms for all games
+  useRoomJanitor();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !playerName) {
@@ -69,8 +81,8 @@ export default function Home() {
         )}
         <h1 className={styles.title}>Asobi Lounge</h1>
         <p className={styles.subtitle}>
-          シンプルで美しい、オンラインボードゲームプラットフォーム。<br />
-          友達と、AIと、今すぐ遊ぼう。
+          シンプルで美しい、オンラインゲームプラットフォーム。<br />
+          一人でも友達とでも今すぐ遊ぼう
         </p>
       </header>
 
@@ -133,6 +145,16 @@ export default function Home() {
             </div>
             <h2 className={styles.cardTitle}>トランプ</h2>
             <p className={styles.cardDesc}>大富豪、ポーカー、ブラックジャック。最大4人で遊べるカードゲーム集。</p>
+          </div>
+        </Link>
+
+        <Link href="/drawing" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconPalette size={50} color="#d53f8c" />
+            </div>
+            <h2 className={styles.cardTitle}>お絵かきクイズ</h2>
+            <p className={styles.cardDesc}>描いて当てて盛り上がろう！リアルタイムお絵かき伝言ゲーム。</p>
           </div>
         </Link>
       </div>

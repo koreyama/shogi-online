@@ -51,6 +51,10 @@ export class Deck {
         return hands;
     }
 
+    public getCards(): Card[] {
+        return [...this.cards];
+    }
+
     public get remaining(): number {
         return this.cards.length;
     }
@@ -63,6 +67,7 @@ export const getSuitSymbol = (suit: Suit): string => {
         case 'diamond': return '♦';
         case 'club': return '♣';
         case 'joker': return 'JOKER';
+        default: return '';
     }
 };
 
