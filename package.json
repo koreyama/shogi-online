@@ -6,27 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "pages:build": "npx @cloudflare/next-on-pages"
+    "lint": "eslint"
   },
   "dependencies": {
     "@types/canvas-confetti": "^1.9.0",
-    "canvas-confetti": "^1.9.4",
-    "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",
-    "next": "14.2.15",
+    "next": "15.0.3",
     "nodemailer": "^7.0.11",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.4",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.15",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.0.3",
     "typescript": "^5"
   }
 }
