@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 
 export const runtime = 'edge';
 
@@ -24,11 +23,6 @@ export async function POST(request: Request) {
             );
         }
 
-        // Initialize Resend inside the handler to ensure env vars are available
-        const resend = new Resend(resendApiKey);
-
-        // Use environment variable for the recipient email, or fallback to a default if needed.
-        // For Resend 'onboarding@resend.dev', this MUST match the registered Resend account email.
         const contactEmail = process.env.CONTACT_EMAIL;
         if (!contactEmail) {
             console.error('Missing CONTACT_EMAIL environment variable');
@@ -38,12 +32,18 @@ export async function POST(request: Request) {
             );
         }
 
-        // Send email using Resend
-        const { data, error } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
-            to: contactEmail,
-            subject: `[Asobi Lounge Contact] ${subject}`,
-            html: `
+        // Direct fetch to Resend API to avoid SDK issues in Edge Runtime
+        const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${resendApiKey}`,
+            },
+            body: JSON.stringify({
+                from: 'onboarding@resend.dev',
+                to: contactEmail,
+                subject: `[Asobi Lounge Contact] ${subject}`,
+                html: `
 <h3>New Contact Message</h3>
 <p><strong>Name:</strong> ${name}</p>
 <p><strong>Email:</strong> ${email}</p>
@@ -51,19 +51,23 @@ export async function POST(request: Request) {
 <hr />
 <p><strong>Message:</strong></p>
 <p style="white-space: pre-wrap;">${message}</p>
-            `,
-            replyTo: email,
+                `,
+                reply_to: email,
+            }),
         });
 
-        if (error) {
-            console.error('Resend error:', error);
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error('Resend API error:', errorData);
             return NextResponse.json(
-                { error: `Resend Error: ${error.message}` },
-                { status: 500 }
+                { error: `Resend API Error: ${errorData.message || res.statusText}` },
+                { status: res.status }
             );
         }
 
+        const data = await res.json();
         return NextResponse.json({ success: true, data });
+
     } catch (error: any) {
         console.error('Email sending error:', error);
         return NextResponse.json(
