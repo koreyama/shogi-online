@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/canvas-confetti": "^1.9.0",
+    "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",
     "next": "14.2.15",
     "nodemailer": "^7.0.11",
