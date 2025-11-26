@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
 
@@ -15,26 +14,23 @@ export async function POST(request: Request) {
             );
         }
 
-        // Use getRequestContext to access runtime environment variables
-        const { env } = getRequestContext();
-
-        // Note: In local development with 'next dev', env might be empty, so we fallback to process.env
-        const resendApiKey = (env as any).RESEND_API_KEY || process.env.RESEND_API_KEY;
-
+        const resendApiKey = process.env.RESEND_API_KEY;
         if (!resendApiKey) {
             console.error('Missing RESEND_API_KEY environment variable');
+            // Debug: List available env keys (security: do not log values)
+            const availableEnvKeys = Object.keys(process.env).join(', ');
             return NextResponse.json(
-                { error: 'Configuration Error: RESEND_API_KEY is missing.' },
+                { error: `Configuration Error: RESEND_API_KEY is missing. Available keys: [${availableEnvKeys}]` },
                 { status: 500 }
             );
         }
 
-        const contactEmail = (env as any).CONTACT_EMAIL || process.env.CONTACT_EMAIL;
-
+        const contactEmail = process.env.CONTACT_EMAIL;
         if (!contactEmail) {
             console.error('Missing CONTACT_EMAIL environment variable');
+            const availableEnvKeys = Object.keys(process.env).join(', ');
             return NextResponse.json(
-                { error: 'Configuration Error: CONTACT_EMAIL is missing.' },
+                { error: `Configuration Error: CONTACT_EMAIL is missing. Available keys: [${availableEnvKeys}]` },
                 { status: 500 }
             );
         }
