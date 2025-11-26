@@ -176,7 +176,7 @@ export default function OthelloPage() {
                         set(ref(db, `othello_rooms/${id}`), null);
                         continue;
                     }
-                    if (room.black && !room.white) {
+                    if ((room.black && !room.white) || (!room.black && room.white)) {
                         foundRoomId = id;
                         break;
                     }
@@ -184,9 +184,16 @@ export default function OthelloPage() {
             }
 
             if (foundRoomId) {
-                await update(ref(db, `othello_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
-                setRoomId(foundRoomId);
-                setMyRole('white');
+                const room = rooms[foundRoomId];
+                if (!room.white) {
+                    await update(ref(db, `othello_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('white');
+                } else {
+                    await update(ref(db, `othello_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('black');
+                }
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;

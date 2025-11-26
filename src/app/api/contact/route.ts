@@ -13,21 +13,29 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log('Debug: GMAIL_USER is set:', !!process.env.GMAIL_USER);
-        console.log('Debug: GMAIL_PASS is set:', !!process.env.GMAIL_PASS);
+        const gmailUser = process.env.GMAIL_USER;
+        const gmailPass = process.env.GMAIL_PASS;
+
+        if (!gmailUser || !gmailPass) {
+            console.error('Missing GMAIL_USER or GMAIL_PASS environment variables');
+            return NextResponse.json(
+                { error: 'Server configuration error: Missing email credentials' },
+                { status: 500 }
+            );
+        }
 
         // Create transporter
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_PASS,
+                user: gmailUser,
+                pass: gmailPass,
             },
         });
 
         // Email content
         const mailOptions = {
-            from: process.env.GMAIL_USER,
+            from: gmailUser,
             to: 'zangecreate@gmail.com', // Target email
             subject: `[Asobi Lounge Contact] ${subject}`,
             text: `

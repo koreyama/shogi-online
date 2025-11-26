@@ -167,7 +167,7 @@ export default function MancalaPage() {
                         set(ref(db, `mancala_rooms/${id}`), null);
                         continue;
                     }
-                    if (room.first && !room.second) {
+                    if ((room.first && !room.second) || (!room.first && room.second)) {
                         foundRoomId = id;
                         break;
                     }
@@ -175,9 +175,16 @@ export default function MancalaPage() {
             }
 
             if (foundRoomId) {
-                await update(ref(db, `mancala_rooms/${foundRoomId}/second`), { name: playerName, id: playerId });
-                setRoomId(foundRoomId);
-                setMyRole('second');
+                const room = rooms[foundRoomId];
+                if (!room.second) {
+                    await update(ref(db, `mancala_rooms/${foundRoomId}/second`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('second');
+                } else {
+                    await update(ref(db, `mancala_rooms/${foundRoomId}/first`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('first');
+                }
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;

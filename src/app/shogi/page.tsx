@@ -299,7 +299,7 @@ export default function ShogiPage() {
             continue;
           }
 
-          if (room.sente && !room.gote) {
+          if ((room.sente && !room.gote) || (!room.sente && room.gote)) {
             foundRoomId = id;
             break;
           }
@@ -307,13 +307,24 @@ export default function ShogiPage() {
       }
 
       if (foundRoomId) {
-        // Join as gote
-        await update(ref(db, `rooms/${foundRoomId}/gote`), {
-          name: playerName,
-          id: playerId
-        });
-        setRoomId(foundRoomId);
-        setMyRole('gote');
+        const room = rooms[foundRoomId];
+        if (!room.gote) {
+          // Join as gote
+          await update(ref(db, `rooms/${foundRoomId}/gote`), {
+            name: playerName,
+            id: playerId
+          });
+          setRoomId(foundRoomId);
+          setMyRole('gote');
+        } else {
+          // Join as sente
+          await update(ref(db, `rooms/${foundRoomId}/sente`), {
+            name: playerName,
+            id: playerId
+          });
+          setRoomId(foundRoomId);
+          setMyRole('sente');
+        }
       } else {
         // Create new room with random role
         const newRoomRef = push(roomsRef);

@@ -169,7 +169,7 @@ export default function ChessPage() {
                         set(ref(db, `chess_rooms/${id}`), null);
                         continue;
                     }
-                    if (room.white && !room.black) {
+                    if ((room.white && !room.black) || (!room.white && room.black)) {
                         foundRoomId = id;
                         break;
                     }
@@ -177,9 +177,16 @@ export default function ChessPage() {
             }
 
             if (foundRoomId) {
-                await update(ref(db, `chess_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
-                setRoomId(foundRoomId);
-                setMyRole('black');
+                const room = rooms[foundRoomId];
+                if (!room.black) {
+                    await update(ref(db, `chess_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('black');
+                } else {
+                    await update(ref(db, `chess_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
+                    setRoomId(foundRoomId);
+                    setMyRole('white');
+                }
             } else {
                 const newRoomRef = push(roomsRef);
                 const newRoomId = newRoomRef.key!;
