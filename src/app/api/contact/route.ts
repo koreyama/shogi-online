@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+// import nodemailer from 'nodemailer'; // Nodemailer is not compatible with Edge Runtime
 
 export const runtime = 'edge';
 
@@ -15,6 +15,10 @@ export async function POST(request: Request) {
             );
         }
 
+        /*
+        // TODO: Migrate to an HTTP-based email service (e.g., Resend, SendGrid)
+        // Nodemailer relies on Node.js APIs (fs, net, etc.) that are not available in Cloudflare Workers/Pages Edge Runtime.
+        
         const gmailUser = process.env.GMAIL_USER;
         const gmailPass = process.env.GMAIL_PASS;
 
@@ -55,12 +59,16 @@ ${message}
 <p><strong>Subject:</strong> ${subject}</p>
 <hr />
 <p><strong>Message:</strong></p>
+<p><strong>Message:</strong></p>
 <p style="white-space: pre-wrap;">${message}</p>
             `,
         };
 
         // Send email
         await transporter.sendMail(mailOptions);
+        */
+
+        console.log('Contact form submitted (Email sending disabled on Edge):', { name, email, subject });
 
         return NextResponse.json({ success: true });
     } catch (error) {
