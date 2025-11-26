@@ -13,6 +13,9 @@ export async function POST(request: Request) {
             );
         }
 
+        console.log('Debug: GMAIL_USER is set:', !!process.env.GMAIL_USER);
+        console.log('Debug: GMAIL_PASS is set:', !!process.env.GMAIL_PASS);
+
         // Create transporter
         const transporter = nodemailer.createTransport({
             service: 'gmail',
