@@ -2,3 +2,7 @@ name = "shogi-online"
 compatibility_date = "2024-04-05"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+CONTACT_EMAIL = "placeholder_email"
+RESEND_API_KEY = "placeholder_key"
