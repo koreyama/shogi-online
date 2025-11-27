@@ -6,13 +6,18 @@ import styles from './DeckBuilder.module.css';
 import { CardDisplay } from './CardDisplay';
 
 interface DeckBuilderProps {
-    onSave: (deckId: string, cardIds: string[]) => void;
+    onSave: (deckId: string, cardIds: string[], deckName: string) => void;
     onCancel: () => void;
+    initialDeck?: {
+        id: string;
+        name: string;
+        cards: string[];
+    };
 }
 
-export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) => {
-    const [deckName, setDeckName] = useState('My Deck');
-    const [selectedCards, setSelectedCards] = useState<string[]>([]);
+export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, initialDeck }) => {
+    const [deckName, setDeckName] = useState(initialDeck?.name || 'My Deck');
+    const [selectedCards, setSelectedCards] = useState<string[]>(initialDeck?.cards || []);
     const [filterType, setFilterType] = useState<string>('all');
 
     const [previewCardId, setPreviewCardId] = useState<string | null>(null);
@@ -44,9 +49,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
             alert(`デッキは必ず${DECK_SIZE_LIMIT}枚にしてください。`);
             return;
         }
-        const deckId = `deck-${Date.now()}`;
+        const deckId = initialDeck?.id || `deck-${Date.now()}`;
         localStorage.setItem(deckId, JSON.stringify({ name: deckName, cards: selectedCards }));
-        onSave(deckId, selectedCards);
+        onSave(deckId, selectedCards, deckName);
     };
 
     const filteredCards = CARD_LIST.filter(card => filterType === 'all' || card.type === filterType);

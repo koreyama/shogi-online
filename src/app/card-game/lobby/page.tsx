@@ -22,6 +22,7 @@ export default function LobbyPage() {
     const [viewingDeck, setViewingDeck] = useState<string | null>(null);
     const [joinRoomId, setJoinRoomId] = useState('');
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+    const [editingDeck, setEditingDeck] = useState<{ id: string, name: string, cards: string[] } | undefined>(undefined);
 
     useEffect(() => {
         // Load saved decks
@@ -45,13 +46,25 @@ export default function LobbyPage() {
         }
     }, []);
 
-    const handleSaveDeck = (deckId: string, cardIds: string[]) => {
+    const handleSaveDeck = (deckId: string, cardIds: string[], deckName: string) => {
         // Reload decks
         const deck = JSON.parse(localStorage.getItem(deckId)!);
-        setMyDecks(prev => [...prev.filter(d => d.id !== deckId), { id: deckId, ...deck }]);
+        setMyDecks(prev => {
+            const filtered = prev.filter(d => d.id !== deckId);
+            return [...filtered, { id: deckId, ...deck }];
+        });
         setSelectedDeckId(deckId);
         setShowDeckBuilder(false);
+        setEditingDeck(undefined);
         setDeckType('custom');
+    };
+
+    const handleEditDeck = (deckId: string) => {
+        const deck = myDecks.find(d => d.id === deckId);
+        if (deck) {
+            setEditingDeck(deck);
+            setShowDeckBuilder(true);
+        }
     };
 
     const handleDeleteDeck = (deckId: string) => {
@@ -146,7 +159,7 @@ export default function LobbyPage() {
     };
 
     if (showDeckBuilder) {
-        return <DeckBuilder onSave={handleSaveDeck} onCancel={() => setShowDeckBuilder(false)} />;
+        return <DeckBuilder onSave={handleSaveDeck} onCancel={() => { setShowDeckBuilder(false); setEditingDeck(undefined); }} initialDeck={editingDeck} />;
     }
 
     return (
@@ -255,12 +268,20 @@ export default function LobbyPage() {
                                         内容確認
                                     </button>
                                     {deckType === 'custom' && myDecks.some(d => d.id === selectedDeckId) && (
-                                        <button
-                                            onClick={() => handleDeleteDeck(selectedDeckId)}
-                                            className={styles.deleteDeckBtn}
-                                        >
-                                            削除
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() => handleEditDeck(selectedDeckId)}
+                                                className={styles.editDeckBtn}
+                                            >
+                                                編集
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteDeck(selectedDeckId)}
+                                                className={styles.deleteDeckBtn}
+                                            >
+                                                削除
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             )}
