@@ -12,6 +12,15 @@ export interface Card {
     description: string;
     rarity: Rarity;
     effectId?: string; // For special effects
+    durability?: number; // For armor
+}
+
+export interface StatusEffect {
+    id: string; // Unique ID for the effect instance
+    type: 'poison' | 'burn' | 'freeze' | 'regen' | 'atk_up' | 'def_up';
+    name: string;
+    value: number;
+    duration: number; // Turns remaining
 }
 
 export interface Avatar {
@@ -46,8 +55,10 @@ export interface PlayerState {
     equipment: {
         weapon?: string; // Card ID
         armor?: string; // Card ID
+        armorDurability?: number; // Current durability of equipped armor
         enchantment?: string; // Card ID
     };
+    statusEffects: StatusEffect[];
     status: 'alive' | 'dead';
     money: number; // Future use
 }

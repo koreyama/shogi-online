@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/lib/card-game/types';
-import { IconSwords, IconShield, IconStaff, IconPotion, IconStar } from '@/components/Icons';
+import { IconSwords, IconShield, IconStaff, IconPotion, IconStar, IconBow, IconAxe, IconHammer, IconSpear, IconDagger, IconFire, IconWater, IconWind, IconEarth, IconHoly, IconDark, IconScroll, IconRing, IconBoot } from '@/components/Icons';
 import styles from './CardDisplay.module.css';
 
 interface CardDisplayProps {
@@ -13,14 +13,56 @@ interface CardDisplayProps {
 
 export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 'medium', className = '', disabled = false }) => {
     const getIcon = () => {
-        switch (card.type) {
-            case 'weapon': return <IconSwords size={size === 'small' ? 24 : 48} />;
-            case 'armor': return <IconShield size={size === 'small' ? 24 : 48} />;
-            case 'magic': return <IconStaff size={size === 'small' ? 24 : 48} />;
-            case 'item': return <IconPotion size={size === 'small' ? 24 : 48} />;
-            case 'enchantment': return <IconStar size={size === 'small' ? 24 : 48} />;
-            default: return <IconStar size={size === 'small' ? 24 : 48} />;
+        const iconSize = size === 'small' ? 24 : 48;
+        const name = card.name;
+
+        // Weapon Specifics
+        if (card.type === 'weapon') {
+            if (name.includes('弓') || name.includes('ボウ')) return <IconBow size={iconSize} />;
+            if (name.includes('斧') || name.includes('アックス')) return <IconAxe size={iconSize} />;
+            if (name.includes('ハンマー') || name.includes('メイス')) return <IconHammer size={iconSize} />;
+            if (name.includes('槍') || name.includes('スピア') || name.includes('ランス')) return <IconSpear size={iconSize} />;
+            if (name.includes('短剣') || name.includes('ダガー') || name.includes('ナイフ') || name.includes('刃')) return <IconDagger size={iconSize} />;
+            if (name.includes('鎌') || name.includes('サイズ')) return <IconDagger size={iconSize} />; // Scythe as dagger for now or add scythe
+            return <IconSwords size={iconSize} />; // Default Sword
         }
+
+        // Armor Specifics
+        if (card.type === 'armor') {
+            if (name.includes('ローブ') || name.includes('衣')) return <IconScroll size={iconSize} />; // Robe looks like cloth/scroll? Or maybe just shield for now.
+            // Let's stick to Shield for all armors for consistency unless we have a specific armor icon.
+            return <IconShield size={iconSize} />;
+        }
+
+        // Magic Specifics (Element based)
+        if (card.type === 'magic') {
+            if (card.element === 'fire') return <IconFire size={iconSize} />;
+            if (card.element === 'water') return <IconWater size={iconSize} />;
+            if (card.element === 'wind') return <IconWind size={iconSize} />;
+            if (card.element === 'earth') return <IconEarth size={iconSize} />;
+            if (card.element === 'holy') return <IconHoly size={iconSize} />;
+            if (card.element === 'dark') return <IconDark size={iconSize} />;
+            if (name.includes('シールド')) return <IconShield size={iconSize} />;
+            if (name.includes('バーサク')) return <IconAxe size={iconSize} />;
+            return <IconStaff size={iconSize} />;
+        }
+
+        // Item Specifics
+        if (card.type === 'item') {
+            if (name.includes('砥石')) return <IconSwords size={iconSize} />;
+            if (name.includes('煙玉')) return <IconWind size={iconSize} />;
+            return <IconPotion size={iconSize} />;
+        }
+
+        // Enchantment Specifics
+        if (card.type === 'enchantment') {
+            if (name.includes('指輪') || name.includes('リング')) return <IconRing size={iconSize} />;
+            if (name.includes('ブーツ') || name.includes('靴')) return <IconBoot size={iconSize} />;
+            if (name.includes('強化')) return <IconStar size={iconSize} />;
+            return <IconStar size={iconSize} />;
+        }
+
+        return <IconStar size={iconSize} />;
     };
 
     const getTypeLabel = () => {
@@ -34,22 +76,13 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 
         }
     };
 
-    const getGradient = () => {
-        switch (card.type) {
-            case 'weapon': return 'linear-gradient(135deg, #fecaca 0%, #ef4444 100%)'; // Red
-            case 'armor': return 'linear-gradient(135deg, #bfdbfe 0%, #3b82f6 100%)'; // Blue
-            case 'magic': return 'linear-gradient(135deg, #e9d5ff 0%, #a855f7 100%)'; // Purple
-            case 'item': return 'linear-gradient(135deg, #bbf7d0 0%, #22c55e 100%)'; // Green
-            case 'enchantment': return 'linear-gradient(135deg, #fef08a 0%, #eab308 100%)'; // Yellow
-            default: return 'linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%)'; // Gray
-        }
-    };
+    const elementClass = styles[card.element] || styles.none;
+    const rarityClass = styles[card.rarity] || styles.common;
 
     return (
         <div
-            className={`${styles.card} ${styles[size]} ${disabled ? styles.disabled : ''} ${className}`}
+            className={`${styles.card} ${styles[size]} ${elementClass} ${rarityClass} ${disabled ? styles.disabled : ''} ${className}`}
             onClick={!disabled ? onClick : undefined}
-            style={{ '--card-gradient': getGradient() } as React.CSSProperties}
         >
             <div className={styles.header}>
                 <span className={styles.cost}>{card.cost} MP</span>
@@ -61,14 +94,19 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 
             </div>
 
             <div className={styles.body}>
-                <div className={styles.type}>{getTypeLabel()}</div>
+                <div className={styles.type}>{getTypeLabel()} - {card.element !== 'none' ? card.element.toUpperCase() : '無属性'}</div>
                 <div className={styles.description}>{card.description}</div>
             </div>
 
             <div className={styles.footer}>
                 {card.value > 0 && (
                     <span className={styles.value}>
-                        威力: {card.value}
+                        {card.type === 'armor' ? '防御' : card.type === 'item' ? '効果' : '威力'}: {card.value}
+                    </span>
+                )}
+                {card.durability !== undefined && (
+                    <span className={styles.value}>
+                        耐久: {card.durability}
                     </span>
                 )}
             </div>

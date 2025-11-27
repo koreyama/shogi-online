@@ -21,6 +21,7 @@ export function createPlayerState(
         deck: [...deck].sort(() => Math.random() - 0.5), // Shuffle
         discardPile: [],
         equipment: {},
+        statusEffects: [],
         status: 'alive',
         money: 0
     };
@@ -137,19 +138,68 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 damage += 1;
             }
 
-            // Check opponent armor
+            // Enchantment: Attack Up
+            if (player.equipment?.enchantment && CARDS[player.equipment.enchantment].effectId === 'buff_atk_2') {
+                damage += 2;
+            }
+
+            // Check opponent armor & Elemental Advantage
             if (!opponent.equipment) opponent.equipment = {};
+            let multiplier = 1.0;
+
             if (opponent.equipment.armor) {
                 const armor = CARDS[opponent.equipment.armor];
-                const reduction = armor.value;
+
+                // Calculate Elemental Multiplier
+                multiplier = getElementalMultiplier(card.element, armor.element);
+                if (multiplier > 1.0) addLog(state, `効果抜群！ (${card.element} -> ${armor.element})`);
+                if (multiplier < 1.0) addLog(state, `効果はいまひとつのようだ... (${card.element} -> ${armor.element})`);
+
+                damage = Math.floor(damage * multiplier);
+
+                let reduction = armor.value;
+                // Enchantment: Defense Up (Opponent)
+                if (opponent.equipment?.enchantment && CARDS[opponent.equipment.enchantment].effectId === 'buff_def_2') {
+                    reduction += 2;
+                }
+
                 damage = Math.max(0, damage - reduction);
                 addLog(state, `${opponent.name}の「${armor.name}」がダメージを${reduction}軽減した！`);
+
+                // Reduce Durability
+                if (opponent.equipment.armorDurability !== undefined) {
+                    opponent.equipment.armorDurability -= 1;
+                    if (opponent.equipment.armorDurability <= 0) {
+                        addLog(state, `${opponent.name}の「${armor.name}」は壊れてしまった！`);
+                        if (!opponent.discardPile) opponent.discardPile = [];
+                        opponent.discardPile.push(opponent.equipment.armor);
+                        opponent.equipment.armor = undefined;
+                        opponent.equipment.armorDurability = undefined;
+                    }
+                }
+            } else {
+                // No armor
+                // Enchantment: Defense Up (Opponent) even without armor?
+                // Usually defense up implies better resilience. Let's apply it even without armor if we want,
+                // but usually it boosts armor. Let's say it adds flat reduction.
+                if (opponent.equipment?.enchantment && CARDS[opponent.equipment.enchantment].effectId === 'buff_def_2') {
+                    const reduction = 2;
+                    damage = Math.max(0, damage - reduction);
+                    addLog(state, `${opponent.name}の防御強化がダメージを${reduction}軽減した！`);
+                }
             }
 
             // Vampiric Aura
             if (player.equipment?.enchantment && CARDS[player.equipment.enchantment].effectId === 'drain_1') {
                 player.hp = Math.min(player.maxHp, player.hp + 1);
                 addLog(state, `${player.name}はHPを1回復した。`);
+            }
+
+            // Apply Status Effects from Weapons
+            if (card.id === 'w006') { // Poison Blade
+                if (!opponent.statusEffects) opponent.statusEffects = [];
+                opponent.statusEffects.push({ id: `poison-${Date.now()}`, type: 'poison', name: '毒', value: 1, duration: 3 });
+                addLog(state, `${opponent.name}に毒を与えた！`);
             }
 
             opponent.hp = Math.max(0, opponent.hp - damage);
@@ -159,18 +209,18 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
         case 'magic':
             if (card.effectId === 'def_dmg') {
                 // Shield Bash
-                const armorVal = player.equipment?.armor ? CARDS[player.equipment.armor].value : 0;
+                let armorVal = player.equipment?.armor ? CARDS[player.equipment.armor].value : 0;
+                // Enchantment: Defense Up (Player) - Shield Bash scales with defense
+                if (player.equipment?.enchantment && CARDS[player.equipment.enchantment].effectId === 'buff_def_2') {
+                    armorVal += 2;
+                }
+
                 let bashDmg = armorVal;
                 opponent.hp = Math.max(0, opponent.hp - bashDmg);
                 addLog(state, `${opponent.name}に${bashDmg}のダメージ（防御力依存）！`);
 
             } else if (card.effectId === 'buff_atk_3') {
-                // Berserk (Implemented as permanent buff for now, ideally should be status effect)
-                // For MVP, we'll just add a log since we don't have a generic buff system yet.
-                // To make it work without a complex system, let's change it to a high damage attack for now or skip.
-                // Actually, let's make it a "Next Turn" buff if possible, but for simplicity, let's make it a direct damage + self damage.
-                // Re-reading plan: "Grant +3 ATK buff card".
-                // Since we don't have mutable card stats, let's change Berserk to: Deal 5 damage to self, deal 10 to opponent.
+                // Berserk
                 const recoil = 5;
                 const berserkDmg = 10;
                 player.hp = Math.max(0, player.hp - recoil);
@@ -188,9 +238,40 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 opponent.hp = Math.max(0, opponent.hp - drain);
                 player.hp = Math.min(player.maxHp, player.hp + drain);
                 addLog(state, `${opponent.name}からHPを${drain}吸収した！`);
+            } else if (card.id === 'm008') { // Poison
+                if (!opponent.statusEffects) opponent.statusEffects = [];
+                opponent.statusEffects.push({ id: `poison-${Date.now()}`, type: 'poison', name: '毒', value: 2, duration: 3 });
+                addLog(state, `${opponent.name}に毒を与えた！`);
             } else {
                 // Attack Magic
                 let magicDamage = card.value;
+
+                // Enchantment: Magic Up
+                if (player.equipment?.enchantment && CARDS[player.equipment.enchantment].effectId === 'buff_magic_2') {
+                    magicDamage += 2;
+                }
+
+                // Elemental Multiplier for Magic
+                if (opponent.equipment?.armor) {
+                    const armor = CARDS[opponent.equipment.armor];
+                    const multiplier = getElementalMultiplier(card.element, armor.element);
+                    if (multiplier > 1.0) addLog(state, `効果抜群！ (${card.element} -> ${armor.element})`);
+                    if (multiplier < 1.0) addLog(state, `効果はいまひとつのようだ... (${card.element} -> ${armor.element})`);
+                    magicDamage = Math.floor(magicDamage * multiplier);
+                }
+
+                // Status Effects for Magic
+                if (card.element === 'fire' && Math.random() < 0.3) { // 30% chance to burn
+                    if (!opponent.statusEffects) opponent.statusEffects = [];
+                    opponent.statusEffects.push({ id: `burn-${Date.now()}`, type: 'burn', name: '火傷', value: 2, duration: 2 });
+                    addLog(state, `${opponent.name}は火傷を負った！`);
+                }
+                if (card.element === 'water' && card.id === 'm002' && Math.random() < 0.3) { // Blizzard 30% freeze
+                    if (!opponent.statusEffects) opponent.statusEffects = [];
+                    opponent.statusEffects.push({ id: `freeze-${Date.now()}`, type: 'freeze', name: '凍結', value: 0, duration: 1 });
+                    addLog(state, `${opponent.name}は凍りついた！`);
+                }
+
                 opponent.hp = Math.max(0, opponent.hp - magicDamage);
                 addLog(state, `${opponent.name}に${magicDamage}の魔法ダメージ！`);
             }
@@ -209,6 +290,10 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 const mpHeal = card.value;
                 player.mp = Math.min(player.maxMp, player.mp + mpHeal);
                 addLog(state, `${player.name}のMPが${mpHeal}回復した。`);
+            } else if (card.effectId === 'buff_next_2') {
+                // Whetstone: Draw 1 card (Effect says "Sharpen weapon (Draw 1)")
+                drawCards(state, playerId, 1);
+                addLog(state, `${player.name}は武器を研いだ（1枚ドロー）。`);
             }
             break;
 
@@ -220,8 +305,9 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 player.discardPile.push(player.equipment.armor); // Discard old
             }
             player.equipment.armor = cardId;
+            player.equipment.armorDurability = card.durability !== undefined ? card.durability : 3; // Default 3
             player.discardPile.pop(); // Remove from discard pile because it's now equipped
-            addLog(state, `${player.name}は「${card.name}」を装備した。`);
+            addLog(state, `${player.name}は「${card.name}」を装備した。(耐久:${player.equipment.armorDurability})`);
             break;
 
         case 'enchantment':
@@ -252,15 +338,93 @@ export function endTurn(state: GameState): GameState {
     // Start of turn effects
     const currentPlayer = state.players[nextPlayerId];
 
+    // Handle Status Effects
+    if (!currentPlayer.statusEffects) currentPlayer.statusEffects = [];
+    const activeEffects: typeof currentPlayer.statusEffects = [];
+
+    currentPlayer.statusEffects.forEach(effect => {
+        if (effect.duration > 0) {
+            switch (effect.type) {
+                case 'poison':
+                    currentPlayer.hp = Math.max(0, currentPlayer.hp - effect.value);
+                    addLog(state, `${currentPlayer.name}は毒で${effect.value}のダメージ！`);
+                    break;
+                case 'burn':
+                    currentPlayer.hp = Math.max(0, currentPlayer.hp - effect.value);
+                    addLog(state, `${currentPlayer.name}は火傷で${effect.value}のダメージ！`);
+                    break;
+                case 'regen':
+                    currentPlayer.hp = Math.min(currentPlayer.maxHp, currentPlayer.hp + effect.value);
+                    addLog(state, `${currentPlayer.name}はリジェネでHPが${effect.value}回復した。`);
+                    break;
+            }
+            effect.duration--;
+            if (effect.duration > 0) {
+                activeEffects.push(effect);
+            } else {
+                addLog(state, `${currentPlayer.name}の${effect.name}効果が切れた。`);
+            }
+        }
+    });
+    currentPlayer.statusEffects = activeEffects;
+
+    // Check for Freeze
+    const isFrozen = currentPlayer.statusEffects.some(e => e.type === 'freeze');
+    if (isFrozen) {
+        addLog(state, `${currentPlayer.name}は凍結していて動けない！`);
+        state.turnState.hasAttacked = true; // Prevent attack
+    }
+
     // Regen MP
     currentPlayer.mp = Math.min(currentPlayer.maxMp, currentPlayer.mp + 1);
 
     // Draw card
-    drawCards(state, nextPlayerId, 1);
+    let drawCount = 1;
+    // Enchantment: Speed Up (Draw +1)
+    if (currentPlayer.equipment?.enchantment && CARDS[currentPlayer.equipment.enchantment].effectId === 'draw_plus_1') {
+        drawCount += 1;
+        addLog(state, `${currentPlayer.name}は疾風のブーツの効果で追加ドロー！`);
+    }
+
+    // Avatar Passive: Trickster's Luck
+    if (AVATARS[currentPlayer.avatarId].passiveId === 'lucky_charm' && Math.random() < 0.2) {
+        drawCount += 1;
+        addLog(state, `${currentPlayer.name}の幸運が発動！追加ドロー！`);
+    }
+
+    drawCards(state, nextPlayerId, drawCount);
 
     addLog(state, `${currentPlayer.name}のターン (${state.turnCount}ターン目)`);
 
     return { ...state };
+}
+
+function getElementalMultiplier(attackElem: string, defenseElem: string): number {
+    const cycle = ['fire', 'wind', 'earth', 'water'];
+    if (attackElem === 'none' || defenseElem === 'none') return 1.0;
+
+    // Holy <-> Dark
+    if (attackElem === 'holy' && defenseElem === 'dark') return 1.5;
+    if (attackElem === 'dark' && defenseElem === 'holy') return 1.5;
+
+    // 4 Elements Cycle
+    const atkIdx = cycle.indexOf(attackElem);
+    const defIdx = cycle.indexOf(defenseElem);
+
+    if (atkIdx === -1 || defIdx === -1) return 1.0;
+
+    // Strong: Fire(0) > Wind(1) > Earth(2) > Water(3) > Fire(0)
+    // Wait, typical is Fire > Wind? Or Fire > Earth?
+    // User said: Fire > Wind > Earth > Water > Fire
+    // So 0 > 1 > 2 > 3 > 0
+
+    // Check Strong
+    if ((atkIdx + 1) % 4 === defIdx) return 1.5; // e.g. Fire(0) vs Wind(1) -> 0+1 = 1. Match.
+
+    // Check Weak (Reverse)
+    if ((defIdx + 1) % 4 === atkIdx) return 0.5; // e.g. Water(3) vs Fire(0) -> 3+1 = 4%4=0. Match.
+
+    return 1.0;
 }
 
 export function discardAndDraw(state: GameState, playerId: string, cardId: string): GameState {

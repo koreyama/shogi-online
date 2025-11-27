@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from './Card';
+import { CardDisplay } from './CardDisplay';
 import styles from './Hand.module.css';
 
 import { IconTrash } from '@/components/Icons';
@@ -23,10 +23,11 @@ export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMy
 
                 return (
                     <div key={`${cardId}-${index}`} className={styles.cardWrapper}>
-                        <Card
-                            cardId={cardId}
+                        <CardDisplay
+                            card={card}
                             onClick={() => canPlay && onPlayCard(cardId)}
                             disabled={!canPlay}
+                            size="small"
                         />
                         {isMyTurn && canDiscard && onDiscard && (
                             <button

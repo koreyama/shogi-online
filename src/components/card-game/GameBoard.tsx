@@ -21,9 +21,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
     const isMyTurn = gameState.turnPlayerId === myPlayerId;
     const logEndRef = useRef<HTMLDivElement>(null);
 
+    const [showLog, setShowLog] = React.useState(false);
+
     useEffect(() => {
         logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [gameState.log]);
+    }, [gameState.log, showLog]);
 
     return (
         <div className={styles.board}>
@@ -40,7 +42,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
 
             {/* Center Field / Info */}
             <div className={styles.centerField}>
-                <div className={styles.logArea}>
+                <button
+                    className={styles.logToggleBtn}
+                    onClick={() => setShowLog(!showLog)}
+                >
+                    {showLog ? 'ログを閉じる' : 'ログを表示'}
+                </button>
+
+                <div className={`${styles.logArea} ${showLog ? styles.showLog : ''}`}>
                     {(gameState.log || []).map(entry => (
                         <div key={entry.id} className={styles.logEntry}>
                             {entry.text}

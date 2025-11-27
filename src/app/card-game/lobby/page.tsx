@@ -197,13 +197,23 @@ export default function LobbyPage() {
                         <div className={styles.deckTabs}>
                             <button
                                 className={`${styles.tab} ${deckType === 'custom' ? styles.activeTab : ''}`}
-                                onClick={() => setDeckType('custom')}
+                                onClick={() => {
+                                    setDeckType('custom');
+                                    if (myDecks.length > 0) {
+                                        setSelectedDeckId(myDecks[0].id);
+                                    } else {
+                                        setSelectedDeckId('');
+                                    }
+                                }}
                             >
                                 自分のデッキ
                             </button>
                             <button
                                 className={`${styles.tab} ${deckType === 'starter' ? styles.activeTab : ''}`}
-                                onClick={() => setDeckType('starter')}
+                                onClick={() => {
+                                    setDeckType('starter');
+                                    setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
+                                }}
                             >
                                 スターターデッキ
                             </button>
@@ -244,7 +254,7 @@ export default function LobbyPage() {
                                     >
                                         内容確認
                                     </button>
-                                    {deckType === 'custom' && (
+                                    {deckType === 'custom' && myDecks.some(d => d.id === selectedDeckId) && (
                                         <button
                                             onClick={() => handleDeleteDeck(selectedDeckId)}
                                             className={styles.deleteDeckBtn}

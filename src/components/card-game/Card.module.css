@@ -111,3 +111,45 @@
     color: #64748b;
     line-height: 1.4;
 }
+
+@media (max-width: 768px) {
+    .card {
+        width: 100px;
+        height: 140px;
+        border-radius: 8px;
+    }
+
+    .header {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.6rem;
+    }
+
+    .cost {
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+    }
+
+    .imagePlaceholder {
+        height: 50px;
+        font-size: 0.7rem;
+    }
+
+    .body {
+        padding: 0.4rem;
+    }
+
+    .value {
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .description {
+        font-size: 0.55rem;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}

@@ -46,3 +46,22 @@
     background: #dc2626;
     transform: scale(1.1);
 }
+
+@media (max-width: 768px) {
+    .handContainer {
+        min-height: 160px;
+        justify-content: flex-start;
+        padding: 0.5rem;
+    }
+
+    .discardBtn {
+        width: 32px;
+        height: 32px;
+        opacity: 1;
+        /* Always visible on mobile if rendered */
+        top: -12px;
+        right: -12px;
+        background: #ef4444;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+}

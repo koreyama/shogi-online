@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CARD_LIST, CARDS } from '@/lib/card-game/data/cards';
 import styles from './DeckBuilder.module.css';
+import { CardDisplay } from './CardDisplay';
 
 interface DeckBuilderProps {
     onSave: (deckId: string, cardIds: string[]) => void;
@@ -14,7 +15,9 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
     const [filterType, setFilterType] = useState<string>('all');
 
-    const DECK_SIZE_LIMIT = 20;
+    const [previewCardId, setPreviewCardId] = useState<string | null>(null);
+
+    const DECK_SIZE_LIMIT = 30;
 
     const handleAddCard = (cardId: string) => {
         if (selectedCards.length >= DECK_SIZE_LIMIT) {
@@ -56,6 +59,21 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
 
     return (
         <div className={styles.container}>
+            {/* Card Detail Modal */}
+            {previewCardId && (
+                <div className={styles.modalOverlay} onClick={() => setPreviewCardId(null)}>
+                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                        <div style={{ transform: 'scale(1.5)', transformOrigin: 'center center', marginBottom: '40px' }}>
+                            <CardDisplay
+                                card={CARDS[previewCardId]}
+                                size="large"
+                            />
+                        </div>
+                        <button className={styles.modalCloseBtn} onClick={() => setPreviewCardId(null)}>閉じる</button>
+                    </div>
+                </div>
+            )}
+
             <div className={styles.header}>
                 <div className={styles.headerLeft}>
                     <input
@@ -87,6 +105,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
                         <button onClick={() => setFilterType('armor')} className={filterType === 'armor' ? styles.activeFilter : ''}>防具</button>
                         <button onClick={() => setFilterType('magic')} className={filterType === 'magic' ? styles.activeFilter : ''}>魔法</button>
                         <button onClick={() => setFilterType('item')} className={filterType === 'item' ? styles.activeFilter : ''}>雑貨</button>
+                        <button onClick={() => setFilterType('enchantment')} className={filterType === 'enchantment' ? styles.activeFilter : ''}>付与</button>
                     </div>
                     <div className={styles.cardGrid}>
                         {filteredCards.map(card => {
@@ -94,25 +113,20 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
                             return (
                                 <div
                                     key={card.id}
-                                    className={`${styles.cardItem} ${count >= 3 ? styles.maxCopies : ''}`}
+                                    className={`${styles.cardWrapper} ${count >= 3 ? styles.maxCopies : ''}`}
                                     onClick={() => handleAddCard(card.id)}
                                 >
-                                    <div className={styles.cardHeader}>
-                                        <span className={styles.cardName}>{card.name}</span>
-                                        <span className={styles.cardCost}>{card.cost}</span>
+                                    <div
+                                        className={styles.infoBtn}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPreviewCardId(card.id);
+                                        }}
+                                    >
+                                        i
                                     </div>
-                                    <div className={styles.cardImagePlaceholder} data-type={card.type}>
-                                        {card.type}
-                                    </div>
-                                    <div className={styles.cardBody}>
-                                        <div className={styles.cardValue}>
-                                            {card.type === 'weapon' && `ATK ${card.value}`}
-                                            {card.type === 'armor' && `DEF ${card.value}`}
-                                            {card.type === 'magic' && `PWR ${card.value}`}
-                                            {card.type === 'item' && `VAL ${card.value}`}
-                                        </div>
-                                        <div className={styles.cardCount}>所持: {count}/3</div>
-                                    </div>
+                                    <CardDisplay card={card} size="small" disabled={count >= 3} />
+                                    <div className={styles.cardCount}>所持: {count}/3</div>
                                 </div>
                             );
                         })}
@@ -137,16 +151,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel }) =>
                         })}
                     </div>
                     {/* Summary View */}
-                    <div className={styles.deckSummary}>
-                        <h4>内訳</h4>
-                        <div className={styles.summaryGrid}>
-                            {Object.entries(groupedDeck).map(([id, count]) => (
-                                <div key={id} className={styles.summaryItem}>
-                                    {CARDS[id].name} x{count}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
