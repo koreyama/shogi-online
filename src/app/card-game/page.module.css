@@ -1,0 +1,9 @@
+.main {
+    min-height: 100vh;
+    background-color: #2d3748;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}

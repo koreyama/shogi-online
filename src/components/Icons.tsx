@@ -209,3 +209,44 @@ export const IconConnect4: React.FC<IconProps> = ({ size = 24, color = 'currentC
         <circle cx="16" cy="16" r="2" fill={color} />
     </svg>
 );
+
+export const IconSwords: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M14.5 17.5L3 6V3h3l11.5 11.5" />
+        <path d="M13 19l6-6" />
+        <path d="M16 16l4 4" />
+        <path d="M19 21l2-2" />
+    </svg>
+);
+
+export const IconShield: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);
+
+export const IconStaff: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M14.5 4.5l3 3" />
+        <path d="M18.5 4.5l-3 3" />
+        <path d="M12 8l-6 12" />
+        <path d="M12 2l2 2" />
+        <circle cx="16.5" cy="7.5" r=".5" fill={color} stroke="none" />
+    </svg>
+);
+
+export const IconPotion: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M19 21H5a2 2 0 0 1-2-2V11l4-6h10l4 6v8a2 2 0 0 1-2 2z" />
+        <path d="M12 3v4" />
+        <path d="M12 13v.01" />
+        <path d="M9 16v.01" />
+        <path d="M15 16v.01" />
+    </svg>
+);
+
+export const IconStar: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+);

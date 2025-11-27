@@ -1,0 +1,113 @@
+.card {
+    width: 150px;
+    height: 220px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #334155;
+    overflow: hidden;
+    user-select: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
+    z-index: 10;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: #f1f5f9;
+    filter: grayscale(100%);
+}
+
+.header {
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    letter-spacing: 0.05em;
+}
+
+.cost {
+    color: white;
+    background-color: #3b82f6;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.imagePlaceholder {
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+}
+
+/* Card Type Colors */
+.card[data-type="weapon"] .imagePlaceholder {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+}
+
+.card[data-type="armor"] .imagePlaceholder {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.card[data-type="magic"] .imagePlaceholder {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.card[data-type="item"] .imagePlaceholder {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.card[data-type="enchantment"] .imagePlaceholder {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.body {
+    padding: 0.8rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+.value {
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    color: #1e293b;
+}
+
+.description {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.4;
+}
