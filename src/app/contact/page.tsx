@@ -1,53 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm, ValidationError } from '@formspree/react';
 import { IconSend } from '@/components/Icons';
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-    });
+    const [state, handleSubmit] = useForm("mzzlepoy");
 
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [errorMessage, setErrorMessage] = useState<string>('');
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setStatus('loading');
-        setErrorMessage('');
-
-        try {
-            const response = await fetch('/api/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setStatus('success');
-                setFormData({ name: '', email: '', subject: '', message: '' });
-            } else {
-                setStatus('error');
-                setErrorMessage(data.error || '送信に失敗しました。');
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            setStatus('error');
-            setErrorMessage('ネットワークエラーが発生しました。');
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    if (state.succeeded) {
+        return (
+            <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1rem', fontFamily: 'sans-serif', color: '#333' }}>
+                <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem', borderBottom: '2px solid #eee', paddingBottom: '0.5rem' }}>お問い合わせ</h1>
+                <div style={{ padding: '1rem', backgroundColor: '#c6f6d5', color: '#2f855a', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                    お問い合わせありがとうございます。送信が完了しました。
+                </div>
+                <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                        padding: '0.8rem 1.5rem',
+                        backgroundColor: '#3182ce',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    フォームに戻る
+                </button>
+            </main>
+        );
+    }
 
     return (
         <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1rem', fontFamily: 'sans-serif', color: '#333' }}>
@@ -57,62 +39,44 @@ export default function ContactPage() {
                 ご質問、ご要望、バグ報告などがございましたら、以下のフォームよりお気軽にお問い合わせください。
             </p>
 
-            {status === 'success' && (
-                <div style={{ padding: '1rem', backgroundColor: '#c6f6d5', color: '#2f855a', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                    お問い合わせありがとうございます。送信が完了しました。
-                </div>
-            )}
-
-            {status === 'error' && (
-                <div style={{ padding: '1rem', backgroundColor: '#fed7d7', color: '#c53030', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                    {errorMessage || '送信に失敗しました。時間をおいて再度お試しください。'}
-                </div>
-            )}
-
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <label htmlFor="name" style={{ fontWeight: 'bold' }}>お名前</label>
                     <input
-                        type="text"
                         id="name"
+                        type="text"
                         name="name"
-                        value={formData.name}
-                        onChange={handleChange}
                         required
-                        disabled={status === 'loading'}
                         style={{ padding: '0.8rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem' }}
                         placeholder="山田 太郎"
                     />
+                    <ValidationError prefix="Name" field="name" errors={state.errors} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <label htmlFor="email" style={{ fontWeight: 'bold' }}>メールアドレス</label>
                     <input
-                        type="email"
                         id="email"
+                        type="email"
                         name="email"
-                        value={formData.email}
-                        onChange={handleChange}
                         required
-                        disabled={status === 'loading'}
                         style={{ padding: '0.8rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem' }}
                         placeholder="your@email.com"
                     />
+                    <ValidationError prefix="Email" field="email" errors={state.errors} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <label htmlFor="subject" style={{ fontWeight: 'bold' }}>件名</label>
                     <input
-                        type="text"
                         id="subject"
+                        type="text"
                         name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
                         required
-                        disabled={status === 'loading'}
                         style={{ padding: '0.8rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem' }}
                         placeholder="お問い合わせの件名"
                     />
+                    <ValidationError prefix="Subject" field="subject" errors={state.errors} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -120,28 +84,26 @@ export default function ContactPage() {
                     <textarea
                         id="message"
                         name="message"
-                        value={formData.message}
-                        onChange={handleChange}
                         required
-                        disabled={status === 'loading'}
                         rows={6}
                         style={{ padding: '0.8rem', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem', resize: 'vertical' }}
                         placeholder="お問い合わせ内容をご記入ください"
                     />
+                    <ValidationError prefix="Message" field="message" errors={state.errors} />
                 </div>
 
                 <button
                     type="submit"
-                    disabled={status === 'loading'}
+                    disabled={state.submitting}
                     style={{
                         padding: '1rem 2rem',
-                        backgroundColor: status === 'loading' ? '#cbd5e0' : '#3182ce',
+                        backgroundColor: state.submitting ? '#cbd5e0' : '#3182ce',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
                         fontSize: '1.1rem',
                         fontWeight: 'bold',
-                        cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+                        cursor: state.submitting ? 'not-allowed' : 'pointer',
                         alignSelf: 'flex-start',
                         display: 'flex',
                         alignItems: 'center',
@@ -149,7 +111,7 @@ export default function ContactPage() {
                     }}
                 >
                     <IconSend size={20} />
-                    {status === 'loading' ? '送信中...' : '送信する'}
+                    {state.submitting ? '送信中...' : '送信する'}
                 </button>
             </form>
         </main>
