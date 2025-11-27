@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { GameState } from '@/lib/card-game/types';
@@ -9,7 +9,7 @@ import { STARTER_DECKS } from '@/lib/card-game/data/decks';
 import { CARDS } from '@/lib/card-game/data/cards';
 import { subscribeToRoom, syncGameState } from '@/lib/card-game/firebase-utils';
 
-export default function CardGamePage() {
+function CardGameContent() {
     const searchParams = useSearchParams();
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [playerId, setPlayerId] = useState<string>('');
@@ -185,5 +185,13 @@ export default function CardGamePage() {
             onDiscardCard={handleDiscard}
             onEndTurn={handleEndTurn}
         />
+    );
+}
+
+export default function CardGamePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CardGameContent />
+        </Suspense>
     );
 }
