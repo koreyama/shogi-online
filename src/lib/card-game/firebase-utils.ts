@@ -17,7 +17,7 @@ export const createRoom = async (hostPlayer: PlayerState): Promise<string> => {
         },
         turnCount: 1,
         log: [],
-        turnState: { hasAttacked: false }
+        turnState: { hasAttacked: false, hasDiscarded: false }
     };
 
     await set(roomRef, initialState);
