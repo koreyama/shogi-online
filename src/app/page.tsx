@@ -189,6 +189,16 @@ export default function Home() {
           </div>
         </Link>
 
+        <Link href="/honeycomb" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconGomoku size={50} color="#d69e2e" />
+            </div>
+            <h2 className={styles.cardTitle}>ハニカム戦略</h2>
+            <p className={styles.cardDesc}>4つ並べたら勝ち、3つ並べたら負け。六角形の戦略パズル。</p>
+          </div>
+        </Link>
+
         <div className={`${styles.gameCard} ${styles.disabledCard}`}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
