@@ -390,6 +390,20 @@
 }
 
 .roomInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Buttons */
+.primaryBtn,
+.secondaryBtn,
+.viewDeckBtn,
+.editDeckBtn,
+.deleteDeckBtn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
     font-size: 0.9rem;
     font-family: inherit;
     transition: all 0.2s ease;
@@ -419,6 +433,53 @@
 }
 
 .secondaryBtn {
+    background: white;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.secondaryBtn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+.viewDeckBtn {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.viewDeckBtn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.editDeckBtn {
+    background: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.editDeckBtn:hover {
+    background: #e0f2fe;
+    color: #0c4a6e;
+}
+
+.deleteDeckBtn {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.deleteDeckBtn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.rulesBtn {
+    position: absolute;
+    right: 0;
+    top: 50%;
     transform: translateY(-50%);
     background: white;
     border: 1px solid #e2e8f0;
