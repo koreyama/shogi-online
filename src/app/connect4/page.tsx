@@ -346,6 +346,72 @@ export default function Connect4Page() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>四目並べ（コネクトフォー）の遊び方</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🔴</span>
+                            <h3 className={styles.sectionTitle}>シンプルだけど奥深いパズル</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            四目並べ（Connect 4）は、重力を利用した立体的な五目並べのようなゲームです。
+                            上からコインを落とし、積み上げていくというシンプルなルールですが、先を読む力と空間認識能力が試されます。
+                            1974年にMilton Bradley社（現在はHasbro傘下）から発売され、世界中で愛されています。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>📏</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 勝利条件</span>
+                                <p className={styles.cardText}>自分の色のコインを縦・横・斜めのいずれかに4つ連続で並べたら勝ちです。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. コインを落とす</span>
+                                <p className={styles.cardText}>交互に7つの列のいずれかを選んでコインを落とします。コインは一番下の空いているマスまで落ちます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 引き分け</span>
+                                <p className={styles.cardText}>盤面（6行×7列）がすべて埋まっても勝負がつかない場合は引き分けになります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>💡</span>
+                            <h3 className={styles.sectionTitle}>必勝のコツ</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            四目並べは「先手必勝」と言われることもありますが、それは完璧にプレイした場合の話です。
+                            実際の対戦では、いくつかのポイントを押さえるだけで勝率が上がります。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>中央の列（センター）を取る</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                7列あるうちの真ん中の列は、最も多くの「4つ並び」に絡む重要な列です。
+                                ここを制する者がゲームを制すると言っても過言ではありません。初手は必ず真ん中に落としましょう。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>「7」の形を作る</strong><br />
+                                数字の「7」のように、3つのコインを配置すると、相手は2方向を同時に防ぐことが難しくなります。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>相手の「3連」を阻止する</strong><br />
+                                相手が3つ並べたら、すぐにその両端を塞ぎましょう。ただし、塞ぐことで相手の上の段を助けてしまわないか注意が必要です。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }
@@ -408,6 +474,8 @@ export default function Connect4Page() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

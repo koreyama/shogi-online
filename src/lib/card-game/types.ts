@@ -1,4 +1,4 @@
-export type CardType = 'weapon' | 'armor' | 'magic' | 'item' | 'enchantment';
+export type CardType = 'weapon' | 'armor' | 'magic' | 'item' | 'enchantment' | 'field' | 'trap';
 export type ElementType = 'none' | 'fire' | 'water' | 'wind' | 'earth' | 'holy' | 'dark';
 export type Rarity = 'common' | 'rare' | 'legendary';
 
@@ -17,7 +17,7 @@ export interface Card {
 
 export interface StatusEffect {
     id: string; // Unique ID for the effect instance
-    type: 'poison' | 'burn' | 'freeze' | 'regen' | 'atk_up' | 'def_up';
+    type: 'poison' | 'burn' | 'freeze' | 'regen' | 'atk_up' | 'def_up' | 'buff_armor';
     name: string;
     value: number;
     duration: number; // Turns remaining
@@ -33,6 +33,10 @@ export interface Avatar {
     passiveName: string;
     passiveDescription: string;
     defaultDeckId: string;
+    ultimateId: string;
+    ultimateName: string;
+    ultimateDescription: string;
+    ultimateCost: number;
 }
 
 export interface Deck {
@@ -60,7 +64,22 @@ export interface PlayerState {
     };
     statusEffects: StatusEffect[];
     status: 'alive' | 'dead';
-    money: number; // Future use
+    money: number;
+    ultimateUsed: boolean;
+}
+
+export interface Field {
+    cardId: string;
+    name: string;
+    effectId: string;
+    element?: ElementType;
+}
+export interface Trap {
+    id: string; // Unique ID
+    cardId: string;
+    name: string;
+    ownerId: string;
+    effectId: string;
 }
 
 export interface GameState {
@@ -71,9 +90,12 @@ export interface GameState {
     turnCount: number;
     log: GameLogEntry[];
     winner?: string;
+    field?: Field; // Active field effect
+    traps?: Trap[]; // Active traps
     turnState: {
         hasAttacked: boolean;
         hasDiscarded: boolean;
+        cardsPlayedCount: number;
     };
     lastPlayedCard?: {
         cardId: string;

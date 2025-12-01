@@ -391,7 +391,7 @@ export default function HoneycombPage() {
         return (
             <main className={styles.main}>
                 <div className={styles.setupContainer}>
-                    <h1 className={styles.title}>ハニカム戦略</h1>
+                    <h1 className={styles.title}>蜂の陣</h1>
                     <form onSubmit={handleNameSubmit} className={styles.setupForm}>
                         <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="プレイヤー名" className={styles.input} required />
                         <button type="submit" className={styles.primaryBtn}>次へ</button>
@@ -406,7 +406,7 @@ export default function HoneycombPage() {
             <main className={styles.main}>
                 <div className={styles.header}><button onClick={() => router.push('/')} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
                 <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>ハニカム戦略</h1>
+                    <h1 className={styles.title}>蜂の陣</h1>
                     {!joinMode ? (
                         <div className={styles.modeSelection}>
                             <button onClick={joinRandomGame} className={styles.modeBtn}><IconDice size={48} color="#d69e2e" /><span className={styles.modeBtnTitle}>ランダム</span></button>
@@ -422,6 +422,71 @@ export default function HoneycombPage() {
                             <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>戻る</button>
                         </div>
                     )}
+                </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>蜂の陣（Honeycomb）の遊び方</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🐝</span>
+                            <h3 className={styles.sectionTitle}>六角形の盤面で繰り広げる陣取り合戦</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            蜂の陣は、六角形（ヘキサゴン）のマス目で構成された盤面で行う、戦略的なボードゲームです。
+                            交互に自分の色を置いていき、特定の条件を満たすことを目指します。
+                            シンプルながらも奥深い、幾何学的な思考が試されるゲームです。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>📏</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 勝利条件</span>
+                                <p className={styles.cardText}>自分の色のマスを「一直線に4つ」並べると勝ちです。縦、斜めのどの方向でもOKです。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. 敗北条件</span>
+                                <p className={styles.cardText}>自分の色のマスを「一直線に3つ」並べてしまうと、その時点で負けになります（三目並べ禁止）。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 手番</span>
+                                <p className={styles.cardText}>青（先攻）と赤（後攻）が交互に、空いているマスに自分の色を置いていきます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🧠</span>
+                            <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            4つ並べることを目指しつつ、3つ並びそうになるのを避けなければなりません。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>相手を追い込む</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                相手に「次に置くと3つ並んでしまう」ような状況を作らせることができれば、勝利に近づきます。
+                                また、相手が4つ並べようとしているのを阻止するのも重要です。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>フォークを作る</strong><br />
+                                2つの方向で同時に4つ並びそうな形（フォーク）を作れば、相手は片方しか防げないので必勝となります。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>3並びの罠</strong><br />
+                                相手がうっかり3つ並べてしまうように、盤面をコントロールしましょう。
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </main>
         );
@@ -498,6 +563,8 @@ export default function HoneycombPage() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

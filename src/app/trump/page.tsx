@@ -319,6 +319,107 @@ export default function TrumpLobbyPage() {
                     </div>
                 </section>
             </div>
+
+            {/* AdSense Content Section */}
+            <div className={styles.contentSection}>
+                {selectedGame === 'daifugo' && (
+                    <>
+                        <h2 className={styles.contentTitle}>大富豪（大貧民）の遊び方</h2>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>👑</span>
+                                <h3 className={styles.sectionTitle}>日本で最も愛されるカードゲーム</h3>
+                            </div>
+                            <p className={styles.textBlock}>
+                                大富豪は、手札をいかに早く出し切るかを競うゲームです。
+                                階級制度（大富豪、富豪、平民、貧民、大貧民）があり、順位によって次回のゲームで有利不利が決まるのが特徴です。
+                                多くのローカルルールが存在し、戦略の幅が広いのも魅力です。
+                            </p>
+                        </div>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>📜</span>
+                                <h3 className={styles.sectionTitle}>主なローカルルール</h3>
+                            </div>
+                            <div className={styles.cardGrid}>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>革命</span>
+                                    <p className={styles.cardText}>同じ数字を4枚出すと、カードの強さが逆転します（3が最強、2が最弱）。</p>
+                                </div>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>8切り</span>
+                                    <p className={styles.cardText}>8を含むカードを出すと、その場で場が流れます（強制的に自分の番になる）。</p>
+                                </div>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>都落ち</span>
+                                    <p className={styles.cardText}>大富豪が1位になれなかった場合、即座に大貧民に転落します。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {selectedGame === 'poker' && (
+                    <>
+                        <h2 className={styles.contentTitle}>ポーカー（テキサスホールデム）の遊び方</h2>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>♠️</span>
+                                <h3 className={styles.sectionTitle}>世界標準の頭脳スポーツ</h3>
+                            </div>
+                            <p className={styles.textBlock}>
+                                ポーカーは、手札と共通カードを組み合わせて最強の役を作るゲームです。
+                                単なる運ゲーではなく、確率計算や心理戦（ブラフ）が重要な要素となります。
+                                ここでは世界で最も人気のある「テキサスホールデム」のルールを採用しています。
+                            </p>
+                        </div>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🏆</span>
+                                <h3 className={styles.sectionTitle}>役の強さ（強い順）</h3>
+                            </div>
+                            <ul className={styles.list}>
+                                <li className={styles.listItem}><strong>ロイヤルストレートフラッシュ</strong>：同じマークの10, J, Q, K, A</li>
+                                <li className={styles.listItem}><strong>ストレートフラッシュ</strong>：同じマークの連続した5枚</li>
+                                <li className={styles.listItem}><strong>フォーカード</strong>：同じ数字4枚</li>
+                                <li className={styles.listItem}><strong>フルハウス</strong>：スリーカード + ワンペア</li>
+                                <li className={styles.listItem}><strong>フラッシュ</strong>：同じマーク5枚</li>
+                            </ul>
+                        </div>
+                    </>
+                )}
+
+                {selectedGame === 'blackjack' && (
+                    <>
+                        <h2 className={styles.contentTitle}>ブラックジャックの遊び方</h2>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🃏</span>
+                                <h3 className={styles.sectionTitle}>ディーラーとの真剣勝負</h3>
+                            </div>
+                            <p className={styles.textBlock}>
+                                ブラックジャックは、カードの合計値を「21」に近づけるゲームです。
+                                21を超えてしまうと「バースト」で負けになります。
+                                プレイヤーはディーラー（親）と1対1で勝負します。
+                            </p>
+                        </div>
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🧠</span>
+                                <h3 className={styles.sectionTitle}>ベーシックストラテジー</h3>
+                            </div>
+                            <div className={styles.highlightBox}>
+                                <span className={styles.highlightTitle}>ヒットかスタンドか？</span>
+                                <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                    自分の手が「11以下」なら必ずヒット（カードを引く）。
+                                    「17以上」なら必ずスタンド（引かない）。
+                                    その中間は、ディーラーの見えているカード（アップカード）によって判断が変わります。
+                                </p>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
         </main>
     );
 }

@@ -366,6 +366,75 @@ export default function OthelloPage() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>オセロ（リバーシ）の奥深い世界</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>⚪⚫</span>
+                            <h3 className={styles.sectionTitle}>オセロの魅力と歴史</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            オセロ（Othello）は、1973年に日本の長谷川五郎氏によって考案されたボードゲームです。
+                            その名前はシェイクスピアの戯曲『オセロ』に由来し、黒人の将軍オセロと白人の妻デズデモーナの波乱に満ちた物語になぞらえて名付けられました。
+                            「覚えるのは1分、極めるのは一生」という有名なキャッチフレーズの通り、ルールは極めてシンプルですが、一手で形勢が逆転するダイナミックな展開が魅力です。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🎓</span>
+                            <h3 className={styles.sectionTitle}>基本ルールと勝利条件</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 初期配置</span>
+                                <p className={styles.cardText}>盤の中央に黒と白の石を2つずつ、互い違いに置いてスタートします。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. 石を打つ</span>
+                                <p className={styles.cardText}>黒が先手です。自分の石で相手の石を挟める場所にしか打てません。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 裏返す</span>
+                                <p className={styles.cardText}>挟んだ相手の石はすべて自分の色に変わります。縦・横・斜め、すべての方向で挟めます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>4. 勝敗</span>
+                                <p className={styles.cardText}>盤面が埋まるか、両者打てなくなったら終了。石の数が多い方が勝ちです。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🏆</span>
+                            <h3 className={styles.sectionTitle}>勝率を上げる3つの定石</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            オセロで勝つためには、単に石を多く取るだけではいけません。むしろ序盤は「少なく取る」ことが重要な場合もあります。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>1. 四隅（角）を取る</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                盤の四隅（角）に置かれた石は、絶対に裏返されることがありません。これを「確定石」と呼びます。
+                                角を取ることで、そこを拠点に自分の石を安定して増やすことができます。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>X打ち・C打ちに注意</strong><br />
+                                角の隣のマス（XやCと呼ばれる場所）に不用意に打つと、相手に角を取られるチャンスを与えてしまいます。初心者はここを避けるだけで勝率が上がります。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>中割り（なかわり）</strong><br />
+                                序盤は外側の石を取らず、内側の石だけを裏返すように打つと、相手に打てる場所を与えず、自分は打てる場所を確保しやすくなります。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }

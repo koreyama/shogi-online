@@ -768,6 +768,83 @@ export default function ShogiPage() {
             </div>
           </div>
         )}
+
+        {/* AdSense Content Section */}
+        <div className={styles.contentSection}>
+          <h2 className={styles.contentTitle}>将棋の奥深い世界へようこそ</h2>
+
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionIcon}>🏯</span>
+              <h3 className={styles.sectionTitle}>将棋の歴史と起源</h3>
+            </div>
+            <p className={styles.textBlock}>
+              将棋の起源は、古代インドの「チャトランガ」にあると言われています。これが西に伝わってチェスになり、東に伝わって中国のシャンチー、そして朝鮮半島のチャンギとなりました。
+              日本に伝わったのは平安時代頃とされていますが、当時の将棋は現在とは少し異なっていました。
+            </p>
+            <div className={styles.highlightBox}>
+              <span className={styles.highlightTitle}>日本独自の進化「持ち駒」</span>
+              <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                日本の将棋における最大の特徴は、<strong>「取った相手の駒を自分の駒として再利用できる（持ち駒）」</strong>というルールです。
+                このルールは世界中の将棋系ゲームの中でも日本将棋にしか存在しません。
+                一説には、戦国時代の「捕虜を殺さずに味方に引き入れる」という傭兵の考え方が反映されたとも言われています。
+                このルールのおかげで、将棋は終盤になっても駒が減らず、むしろ盤上が激しく複雑化していくため、引き分けが極端に少ないスリリングなゲームとなりました。
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionIcon}>📖</span>
+              <h3 className={styles.sectionTitle}>基本的な遊び方</h3>
+            </div>
+            <p className={styles.textBlock}>
+              将棋は9×9の盤上で、8種類の駒を使って戦います。相手の「王将（玉将）」を捕まえる（詰ます）ことが最終目的です。
+            </p>
+            <div className={styles.cardGrid}>
+              <div className={styles.infoCard}>
+                <span className={styles.cardTitle}>1. 勝利条件</span>
+                <p className={styles.cardText}>相手の王将を逃げられない状態（詰み）にするか、相手が投了（負けを認める）すると勝ちになります。</p>
+              </div>
+              <div className={styles.infoCard}>
+                <span className={styles.cardTitle}>2. 手番</span>
+                <p className={styles.cardText}>先手（せんて）と後手（ごて）が交互に1手ずつ指します。パスはできません。</p>
+              </div>
+              <div className={styles.infoCard}>
+                <span className={styles.cardTitle}>3. 成り（なり）</span>
+                <p className={styles.cardText}>相手の陣地（3段目以内）に駒が進むと、裏返ってパワーアップできます（金将と王将以外）。</p>
+              </div>
+              <div className={styles.infoCard}>
+                <span className={styles.cardTitle}>4. 打ち（うち）</span>
+                <p className={styles.cardText}>持ち駒は、盤上の空いている好きなマスに打つことができます（二歩などの禁じ手を除く）。</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.sectionBlock}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionIcon}>💡</span>
+              <h3 className={styles.sectionTitle}>知っておきたい将棋の格言</h3>
+            </div>
+            <p className={styles.textBlock}>
+              将棋には、先人たちが経験から導き出した「格言」がたくさんあります。これらを覚えるだけで、棋力がぐっと上がります。
+            </p>
+            <ul className={styles.list}>
+              <li className={styles.listItem}>
+                <strong>「居玉（いぎょく）は避けよ」</strong><br />
+                王様が初期配置のままだと攻められやすいので、早めに「囲い」を作って守りましょう。
+              </li>
+              <li className={styles.listItem}>
+                <strong>「歩のない将棋は負け将棋」</strong><br />
+                一番弱い駒である「歩」ですが、攻めにも守りにも欠かせない重要な駒です。無駄に捨てないようにしましょう。
+              </li>
+              <li className={styles.listItem}>
+                <strong>「王手は追う手」</strong><br />
+                むやみに王手をかけると、かえって王様を安全な場所に逃がしてしまうことがあります。王手はここぞという時まで温存しましょう。
+              </li>
+            </ul>
+          </div>
+        </div>
       </main>
     );
   }

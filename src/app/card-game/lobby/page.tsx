@@ -344,38 +344,75 @@ export default function LobbyPage() {
                         <span className={styles.modeBtnDesc}>CPUと練習</span>
                     </button>
                 </div>
+
+
             </div>
 
             {/* Rules Modal */}
             {showRules && (
                 <div className={styles.modalOverlay} onClick={() => setShowRules(false)}>
                     <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <h2>ルール説明</h2>
+                        <h2 className={styles.contentTitle}>カードゲーム（Card Game）の遊び方</h2>
+
                         <div className={styles.rulesText}>
-                            <h3>勝利条件</h3>
-                            <p>相手のHPを0にすると勝利です。</p>
+                            <div className={styles.sectionBlock}>
+                                <div className={styles.sectionHeader}>
+                                    <span className={styles.sectionIcon}>⚔️</span>
+                                    <h3 className={styles.sectionTitle}>戦略と運が交差する対戦カードバトル</h3>
+                                </div>
+                                <p className={styles.textBlock}>
+                                    このゲームは、ユニットカードとスペルカードを駆使して相手プレイヤーと戦う、1対1の対戦型カードゲームです。
+                                    毎ターン増加するマナを管理し、最適なタイミングでカードをプレイして、相手のHPを0にすれば勝利となります。
+                                </p>
+                            </div>
 
-                            <h3>ターンの流れ</h3>
-                            <ol>
-                                <li>MPが1回復し、カードを1枚引きます。</li>
-                                <li>手札からカードを使用します（MPを消費）。</li>
-                                <li><strong>攻撃（武器・攻撃魔法）は1ターンに1回のみ</strong>可能です。</li>
-                                <li>ターン終了ボタンを押して相手に交代します。</li>
-                            </ol>
+                            <div className={styles.sectionBlock}>
+                                <div className={styles.sectionHeader}>
+                                    <span className={styles.sectionIcon}>📏</span>
+                                    <h3 className={styles.sectionTitle}>基本ルール</h3>
+                                </div>
+                                <div className={styles.cardGrid}>
+                                    <div className={styles.infoCard}>
+                                        <span className={styles.cardTitle}>1. マナシステム</span>
+                                        <p className={styles.cardText}>カードを使うにはマナが必要です。マナは毎ターン全回復し、最大値が1ずつ増えていきます（最大10）。</p>
+                                    </div>
+                                    <div className={styles.infoCard}>
+                                        <span className={styles.cardTitle}>2. ユニットカード</span>
+                                        <p className={styles.cardText}>場に出して戦うカードです。攻撃力と体力を持ち、相手プレイヤーや相手ユニットを攻撃できます。</p>
+                                    </div>
+                                    <div className={styles.infoCard}>
+                                        <span className={styles.cardTitle}>3. スペルカード</span>
+                                        <p className={styles.cardText}>使い切りの魔法カードです。ダメージを与えたり、ユニットを強化したり、様々な効果があります。</p>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <h3>デッキ編集</h3>
-                            <p>「自分のデッキ」タブから「新規作成」でオリジナルデッキを作成できます。</p>
-                            <p>作成したデッキは「編集」ボタンから内容を変更したり、「削除」ボタンで消去できます。</p>
-                            <p>デッキは最大20枚で構成されます。</p>
-
-                            <h3>カードの種類</h3>
-                            <ul>
-                                <li><strong>武器</strong>: 相手にダメージを与えます。</li>
-                                <li><strong>防具</strong>: 装備するとダメージを軽減します。</li>
-                                <li><strong>魔法</strong>: 攻撃や回復、状態異常など様々な効果があります。</li>
-                                <li><strong>道具</strong>: HPやMPを回復します。使い切りです。</li>
-                                <li><strong>装飾品</strong>: 装備すると永続的な効果を得られます。</li>
-                            </ul>
+                            <div className={styles.sectionBlock}>
+                                <div className={styles.sectionHeader}>
+                                    <span className={styles.sectionIcon}>🧠</span>
+                                    <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                                </div>
+                                <p className={styles.textBlock}>
+                                    ただ強いカードを出せば勝てるわけではありません。盤面の状況（ボードアドバンテージ）を意識しましょう。
+                                </p>
+                                <div className={styles.highlightBox}>
+                                    <span className={styles.highlightTitle}>マナカーブを意識する</span>
+                                    <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                        序盤は低コストのカードで盤面を支え、中盤以降に高コストの強力なカードで勝負を決めるのが理想的な流れです。
+                                        手札事故（高コストばかりで何も出せない）を防ぐため、バランスよくデッキを組みましょう。
+                                    </p>
+                                </div>
+                                <ul className={styles.list}>
+                                    <li className={styles.listItem}>
+                                        <strong>有利トレード</strong><br />
+                                        自分の弱いユニットで相手の強いユニットを倒したり、スペルで効率よく除去したりして、相手より多くのリソースを残すことを心がけましょう。
+                                    </li>
+                                    <li className={styles.listItem}>
+                                        <strong>アルティメットスキル</strong><br />
+                                        各アバターには強力な必殺技（アルティメット）があります。ここぞという場面で使って、戦況をひっくり返しましょう。
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         <button onClick={() => setShowRules(false)} className={styles.closeBtn}>閉じる</button>
                     </div>

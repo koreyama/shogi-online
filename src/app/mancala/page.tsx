@@ -354,6 +354,77 @@ export default function MancalaPage() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>マンカラ（カラハ）の遊び方と歴史</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🌍</span>
+                            <h3 className={styles.sectionTitle}>世界最古のゲーム「マンカラ」</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            マンカラ（Mancala）は、紀元前から遊ばれている世界最古のボードゲームの一つです。
+                            アフリカや中近東、東南アジアなど世界中で親しまれており、数百種類以上のルールが存在します。
+                            このサイトでは、最もポピュラーなルールの一つである「ベーシック（カラハ）」を採用しています。
+                            種を撒いて自分の陣地（ストア）に集めるだけのシンプルなルールですが、先を読む計算力が試される知育ゲームとしても人気です。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>💎</span>
+                            <h3 className={styles.sectionTitle}>基本ルール（カラハ）</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 種まき</span>
+                                <p className={styles.cardText}>自分のポケットから1つ選び、中の石をすべて取ります。反時計回りに隣の穴へ1つずつ入れていきます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. ゴール</span>
+                                <p className={styles.cardText}>右端の大きな穴が自分のゴール（ストア）です。ここにも石を入れますが、相手のストアは飛ばします。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. ぴったりゴール</span>
+                                <p className={styles.cardText}>最後の石が自分のストアに入ったら、もう一度自分の番になります（連続手番）。これが勝利の鍵です！</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>4. 横取り</span>
+                                <p className={styles.cardText}>最後の石が自分の空のポケットに入り、向かい側に相手の石があれば、それらをすべて獲得できます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🧠</span>
+                            <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            マンカラは運の要素がない完全情報ゲームです。勝つためには「先読み」が全てです。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>連続手番を狙う</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                常に「どのポケットを選べばストアで終わるか」を計算しましょう。
+                                連続手番ができれば、相手にターンを渡さずに自分の石をどんどんゴールに運ぶことができます。
+                                特に序盤は、一番右側のポケットからスタートすると必ず連続手番になります。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>相手の邪魔をする</strong><br />
+                                相手が次に連続手番を狙っていそうなポケットがあれば、そこに自分の石を送り込んで個数を変えてしまうのも有効な戦術です。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>横取りの罠を張る</strong><br />
+                                あえて自分のポケットを空にしておき、相手が石を入れてくるのを待つ、あるいは自分でタイミングを合わせて横取りを狙うなど、高度な駆け引きも楽しめます。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }

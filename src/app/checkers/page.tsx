@@ -245,6 +245,74 @@ export default function CheckersPage() {
                         </button>
                     </div>
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>チェッカー（ドラフツ）の遊び方</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🏁</span>
+                            <h3 className={styles.sectionTitle}>世界中で愛される伝統ゲーム</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            チェッカー（Checkers）、またはドラフツ（Draughts）は、古代エジプトに起源を持つとも言われる非常に古いボードゲームです。
+                            斜めに動いて相手を飛び越すというダイナミックな動きと、「強制ジャンプ」という独特のルールが、スリリングな展開を生み出します。
+                            欧米ではチェスと並んで非常に人気があります。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>📏</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 移動</span>
+                                <p className={styles.cardText}>駒は斜め前方に1マスずつ進めます。黒いマスの上だけを移動します。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. ジャンプ（捕獲）</span>
+                                <p className={styles.cardText}>隣に相手の駒があり、その奥が空いている場合、飛び越えて相手の駒を取ることができます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 強制ジャンプ</span>
+                                <p className={styles.cardText}>取れる駒がある場合は、必ず取らなければなりません（マスト・ジャンプ）。これがチェッカーの最大の特徴です。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>4. キング（成る）</span>
+                                <p className={styles.cardText}>一番奥の列まで進むと「キング」になり、斜め後ろにも進めるようになります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🧠</span>
+                            <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            チェッカーは「強制ジャンプ」をいかに利用するかが勝負の分かれ目です。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>相手にわざと取らせる</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                「強制ジャンプ」のルールを利用して、あえて自分の駒を相手に取らせ、その隙に自分が有利な位置に移動したり、逆に相手の駒をまとめて取ったりする「サクリファイス（捨て駒）」戦術が有効です。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>中央を支配する</strong><br />
+                                盤面の中央に駒を集めることで、左右どちらにも動きやすくなり、相手の動きを制限できます。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>キングを作る</strong><br />
+                                キングは後ろにも動けるため、非常に強力です。序盤から積極的にキング作りを目指しましょう。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }
@@ -309,6 +377,8 @@ export default function CheckersPage() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

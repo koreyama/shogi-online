@@ -10,7 +10,11 @@ export const AVATARS: Record<string, Avatar> = {
         passiveId: 'warrior_spirit',
         passiveName: '闘争心',
         passiveDescription: '物理攻撃カードのダメージ+1',
-        defaultDeckId: 'deck_warrior_starter'
+        defaultDeckId: 'deck_warrior_starter',
+        ultimateId: 'ultimate_divine_strike',
+        ultimateName: '軍神の猛撃',
+        ultimateDescription: '敵に15ダメージを与える。',
+        ultimateCost: 8
     },
     'mage_god': {
         id: 'mage_god',
@@ -21,7 +25,11 @@ export const AVATARS: Record<string, Avatar> = {
         passiveId: 'arcane_mastery',
         passiveName: '魔力節約',
         passiveDescription: '魔法カードの消費MP-1（最低1）',
-        defaultDeckId: 'deck_mage_starter'
+        defaultDeckId: 'deck_mage_starter',
+        ultimateId: 'ultimate_gungnir',
+        ultimateName: 'グングニル',
+        ultimateDescription: '敵に12の貫通ダメージを与える（防御無視）。',
+        ultimateCost: 10
     },
     'trickster_god': {
         id: 'trickster_god',
@@ -32,7 +40,11 @@ export const AVATARS: Record<string, Avatar> = {
         passiveId: 'lucky_charm',
         passiveName: '幸運',
         passiveDescription: 'ドロー時に低確率で追加カードを引く',
-        defaultDeckId: 'deck_trickster_starter'
+        defaultDeckId: 'deck_trickster_starter',
+        ultimateId: 'ultimate_trickster_gift',
+        ultimateName: 'トリックスターの贈り物',
+        ultimateDescription: 'カードを3枚引き、MPを5回復する。',
+        ultimateCost: 5
     }
 };
 

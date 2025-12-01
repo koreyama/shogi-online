@@ -379,6 +379,75 @@ export default function ChessPage() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>チェスの世界へようこそ</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>♔</span>
+                            <h3 className={styles.sectionTitle}>チェスの歴史と起源</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            チェスの起源は、紀元前6世紀頃のインドの「チャトランガ」にあると言われています。
+                            これがペルシャ、イスラム世界を経てヨーロッパに伝わり、ルネサンス期に現在のルールの原型が完成しました。
+                            「王様のゲーム」とも呼ばれ、世界中で最も普及しているボードゲームの一つであり、スポーツとしても認知されています。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>♟️</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 勝利条件</span>
+                                <p className={styles.cardText}>相手のキングを攻撃し、逃げ場のない状態（チェックメイト）にすれば勝ちです。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. 駒の動き</span>
+                                <p className={styles.cardText}>6種類の駒（キング、クイーン、ルーク、ビショップ、ナイト、ポーン）にはそれぞれ決まった動きがあります。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 特殊ルール</span>
+                                <p className={styles.cardText}>キャスリング（王の入城）、アンパッサン（ポーンの特殊な取り方）、プロモーション（昇格）などがあります。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>4. 引き分け</span>
+                                <p className={styles.cardText}>ステイルメイト（動ける駒がないがチェックされていない状態）などは引き分けになります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🧠</span>
+                            <h3 className={styles.sectionTitle}>勝つためのセオリー</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            チェスには長い歴史の中で培われた多くの「定跡（オープニング）」や戦術があります。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>中央を支配せよ</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                盤面の中央（d4, d5, e4, e5の4マス）は最も重要なエリアです。
+                                ここをポーンや駒で支配することで、駒の活動範囲が広がり、攻守に有利に働きます。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>駒を展開する</strong><br />
+                                序盤はナイトやビショップを前に出し、キャスリングをしてキングの安全を確保しましょう。同じ駒を何度も動かすのは手損になります。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>キングの安全</strong><br />
+                                キングが中央に居座り続けるのは危険です。早めにキャスリングを行い、ポーンの壁で守りましょう。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }
@@ -442,6 +511,8 @@ export default function ChessPage() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

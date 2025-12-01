@@ -391,6 +391,80 @@ export default function SimpleShogiPage() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>ファンタジー将棋（どうぶつしょうぎ風）の遊び方</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🦁</span>
+                            <h3 className={styles.sectionTitle}>小さな盤面で熱い頭脳戦</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            ファンタジー将棋は、3×4マスの小さな盤面で遊ぶ、将棋を簡略化したミニゲームです。
+                            「どうぶつしょうぎ」と同様のルールを採用しており、駒の動きがわかりやすく、短時間で決着がつくため、
+                            将棋の入門用としても、手軽な頭の体操としても最適です。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>📏</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 勝利条件</span>
+                                <p className={styles.cardText}>相手の「ライオン（王）」を取るか（キャッチ）、自分のライオンが相手の陣地（一番奥の段）に入れば（トライ）勝ちです。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. 駒の動き</span>
+                                <p className={styles.cardText}>
+                                    <strong>ライオン</strong>：全方向に1マス<br />
+                                    <strong>キリン</strong>：縦横に1マス<br />
+                                    <strong>ゾウ</strong>：斜めに1マス<br />
+                                    <strong>ヒヨコ</strong>：前に1マス
+                                </p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 持ち駒</span>
+                                <p className={styles.cardText}>取った駒を自分の駒として、空いているマスに打つことができます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>4. 成り</span>
+                                <p className={styles.cardText}>ヒヨコが相手の陣地に入ると「ニワトリ」になり、動きがパワーアップします（金将と同じ動き）。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>🧠</span>
+                            <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            盤面が狭いので、1つのミスが命取りになります。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>トライを狙え</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                相手のライオンを詰ますだけでなく、自分のライオンを安全に相手陣地に運ぶ「トライ」も立派な勝ち方です。
+                                隙があれば積極的に狙っていきましょう。ただし、トライした瞬間に取られてしまう場合は負けになります。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>持ち駒を活用する</strong><br />
+                                取った駒をどこに打つかが勝負の鍵を握ります。相手のライオンの逃げ道を塞ぐように打つのが基本です。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>ヒヨコの成長</strong><br />
+                                ヒヨコをニワトリに成らせると、攻撃力が大幅にアップします。ただし、取られると相手にニワトリとして使われるわけではなく、ヒヨコに戻るので注意。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }
@@ -459,6 +533,8 @@ export default function SimpleShogiPage() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

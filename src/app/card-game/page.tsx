@@ -4,8 +4,9 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { GameState } from '@/lib/card-game/types';
-import { createInitialState, playCard, endTurn, discardAndDraw } from '@/lib/card-game/engine';
+import { createInitialState, playCard, endTurn, discardAndDraw, useUltimate } from '@/lib/card-game/engine';
 import { STARTER_DECKS } from '@/lib/card-game/data/decks';
+import styles from './page.module.css';
 import { CARDS } from '@/lib/card-game/data/cards';
 import { subscribeToRoom, syncGameState } from '@/lib/card-game/firebase-utils';
 
@@ -147,6 +148,22 @@ function CardGameContent() {
         }
     };
 
+    const handleUseUltimate = () => {
+        if (!gameState) return;
+
+        if (isMultiplayer && gameState.turnPlayerId !== playerId) {
+            alert('相手のターンです');
+            return;
+        }
+
+        const newState = useUltimate(gameState, playerId);
+        setGameState(newState);
+
+        if (isMultiplayer) {
+            syncGameState(roomId, newState);
+        }
+    };
+
     if (!gameState) return <div>Loading...</div>;
 
     // Waiting for opponent
@@ -178,13 +195,18 @@ function CardGameContent() {
     }
 
     return (
-        <GameBoard
-            gameState={gameState}
-            myPlayerId={playerId}
-            onPlayCard={handlePlayCard}
-            onDiscardCard={handleDiscard}
-            onEndTurn={handleEndTurn}
-        />
+        <div className={styles.main}>
+            <GameBoard
+                gameState={gameState}
+                myPlayerId={playerId}
+                onPlayCard={handlePlayCard}
+                onDiscardCard={handleDiscard}
+                onEndTurn={handleEndTurn}
+                onUseUltimate={handleUseUltimate}
+            />
+
+
+        </div>
     );
 }
 

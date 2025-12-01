@@ -3,7 +3,8 @@
     background-color: #2d3748;
     color: white;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    overflow: hidden;
+    overflow-y: auto;
+    /* Allow scrolling */
 }

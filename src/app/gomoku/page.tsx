@@ -347,6 +347,71 @@ export default function GomokuPage() {
                         </div>
                     )}
                 </div>
+
+                {/* AdSense Content Section */}
+                <div className={styles.contentSection}>
+                    <h2 className={styles.contentTitle}>五目並べの遊び方とコツ</h2>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>⚫</span>
+                            <h3 className={styles.sectionTitle}>シンプルで奥深い伝統ゲーム</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            五目並べ（Gomoku）は、日本発祥のボードゲームで、囲碁の道具を使って遊ばれてきました。
+                            ルールは非常にシンプルで「5つ並べたら勝ち」ですが、先手必勝を防ぐための「禁じ手」などのルールが整備され、
+                            「連珠（れんじゅ）」として競技化もされています。このサイトでは、初心者でも遊びやすいシンプルなルールを採用しています。
+                        </p>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>📏</span>
+                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        </div>
+                        <div className={styles.cardGrid}>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>1. 勝利条件</span>
+                                <p className={styles.cardText}>自分の色の石を縦・横・斜めのいずれかに「5つ」連続で並べたら勝ちです。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>2. 手番</span>
+                                <p className={styles.cardText}>黒（先手）と白（後手）が交互に盤上の交点に石を置いていきます。</p>
+                            </div>
+                            <div className={styles.infoCard}>
+                                <span className={styles.cardTitle}>3. 禁じ手（本サイトではなし）</span>
+                                <p className={styles.cardText}>正式な競技ルールでは黒に「三三」「四四」「長連」などの禁じ手がありますが、ここでは自由に打てます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionBlock}>
+                        <div className={styles.sectionHeader}>
+                            <span className={styles.sectionIcon}>💡</span>
+                            <h3 className={styles.sectionTitle}>勝つための定石</h3>
+                        </div>
+                        <p className={styles.textBlock}>
+                            五目並べで勝つためには、「相手に防がれない形」を作ることが重要です。
+                        </p>
+                        <div className={styles.highlightBox}>
+                            <span className={styles.highlightTitle}>「四三（しさん）」を作る</span>
+                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                「4つ並び（四）」と「3つ並び（三）」を同時に作る手です。
+                                相手は「四」を止めなければなりませんが、その間に「三」を「四」に伸ばすことで、次に必ず5つ並ぶ形（四三勝ち）になります。
+                            </p>
+                        </div>
+                        <ul className={styles.list}>
+                            <li className={styles.listItem}>
+                                <strong>「三」の重要性</strong><br />
+                                両端が空いている3つ並び（活き三）を作ると、相手は防ぐのに手一杯になります。これを連続で作って攻め続けましょう。
+                            </li>
+                            <li className={styles.listItem}>
+                                <strong>相手の「四」を止める</strong><br />
+                                相手が4つ並べたら（または片側が空いている3つ並べたら）、すぐに止めないと負けてしまいます。守りも重要です。
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </main>
         );
     }
@@ -408,6 +473,8 @@ export default function GomokuPage() {
                     </div>
                 </div>
             )}
+
+
         </main>
     );
 }

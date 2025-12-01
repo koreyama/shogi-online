@@ -194,11 +194,12 @@ export default function Home() {
             <div className={styles.iconWrapper}>
               <IconGomoku size={50} color="#d69e2e" />
             </div>
-            <h2 className={styles.cardTitle}>ハニカム戦略</h2>
+            <h2 className={styles.cardTitle}>蜂の陣</h2>
             <p className={styles.cardDesc}>4つ並べたら勝ち、3つ並べたら負け。六角形の戦略パズル。</p>
           </div>
         </Link>
 
+        {/* Trump section hidden for AdSense approval
         <div className={`${styles.gameCard} ${styles.disabledCard}`}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
@@ -210,6 +211,7 @@ export default function Home() {
             <p className={styles.cardDesc}>大富豪、ポーカー、ブラックジャック。最大4人で遊べるカードゲーム集。</p>
           </div>
         </div>
+        */}
       </div>
     </main>
   );

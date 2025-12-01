@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from '../trump/page.module.css'; // Reuse trump styles for consistency
+import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue } from 'firebase/database';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -146,6 +146,72 @@ export default function DrawingLobbyPage() {
                     </div>
                 </div>
             </div>
+
+            {/* AdSense Content Section */}
+            <div className={styles.contentSection}>
+                <h2 className={styles.contentTitle}>お絵かきクイズ（Drawing Quiz）の遊び方</h2>
+
+                <div className={styles.sectionBlock}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🎨</span>
+                        <h3 className={styles.sectionTitle}>描いて、当てて、盛り上がろう！</h3>
+                    </div>
+                    <p className={styles.textBlock}>
+                        お絵かきクイズは、出題されたお題に沿って絵を描き、他のプレイヤーがそれが何かを当てるパーティーゲームです。
+                        絵心があってもなくても大丈夫！むしろ、予想外の絵が生まれることで場が盛り上がります。
+                        チャット機能を使って、リアルタイムに回答を入力しましょう。
+                    </p>
+                </div>
+
+                <div className={styles.sectionBlock}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>📏</span>
+                        <h3 className={styles.sectionTitle}>基本ルール</h3>
+                    </div>
+                    <div className={styles.cardGrid}>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>1. 描き手（Drawer）</span>
+                            <p className={styles.cardText}>ランダムに選ばれたプレイヤーがお題の絵を描きます。文字や数字を書くのは禁止です！</p>
+                        </div>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>2. 回答者（Guesser）</span>
+                            <p className={styles.cardText}>描き手が描いている絵を見て、チャットで答えを入力します。正解するとポイント獲得！</p>
+                        </div>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>3. スコア</span>
+                            <p className={styles.cardText}>早く正解するほど高得点。描き手も、誰かに正解してもらえるとポイントが入ります。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.sectionBlock}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>💡</span>
+                        <h3 className={styles.sectionTitle}>楽しむためのコツ</h3>
+                    </div>
+                    <p className={styles.textBlock}>
+                        上手な絵を描く必要はありません。「伝わる絵」を描くことが大切です。
+                    </p>
+                    <div className={styles.highlightBox}>
+                        <span className={styles.highlightTitle}>特徴を捉える</span>
+                        <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                            例えば「ライオン」なら「たてがみ」、「ウサギ」なら「長い耳」など、その対象の最も目立つ特徴を大きく描きましょう。
+                        </p>
+                    </div>
+                    <ul className={styles.list}>
+                        <li className={styles.listItem}>
+                            <strong>色を使う</strong><br />
+                            色は重要なヒントになります。「リンゴ」なら赤、「海」なら青を使うだけで、伝わりやすさが格段に上がります。
+                        </li>
+                        <li className={styles.listItem}>
+                            <strong>連想ゲーム</strong><br />
+                            回答者は、描かれているものから連想できる単語をどんどん入力しましょう。数打ちゃ当たる作戦も有効です！
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+
         </main>
     );
 }

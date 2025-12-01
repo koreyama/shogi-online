@@ -62,6 +62,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
         return acc;
     }, {} as Record<string, number>);
 
+    const [mobileTab, setMobileTab] = useState<'library' | 'deck'>('library');
+
     return (
         <div className={styles.container}>
             {/* Card Detail Modal */}
@@ -101,16 +103,49 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
                 </div>
             </div>
 
+            {/* Mobile Tabs */}
+            <div className={styles.mobileTabs}>
+                <button
+                    className={`${styles.tabButton} ${mobileTab === 'library' ? styles.activeTab : ''}`}
+                    onClick={() => setMobileTab('library')}
+                >
+                    カード一覧
+                </button>
+                <button
+                    className={`${styles.tabButton} ${mobileTab === 'deck' ? styles.activeTab : ''}`}
+                    onClick={() => setMobileTab('deck')}
+                >
+                    デッキ確認 ({selectedCards.length})
+                </button>
+            </div>
+
             <div className={styles.builderLayout}>
                 {/* Card Library */}
-                <div className={styles.library}>
+                <div className={`${styles.library} ${mobileTab === 'deck' ? styles.mobileHidden : ''}`}>
                     <div className={styles.filters}>
-                        <button onClick={() => setFilterType('all')} className={filterType === 'all' ? styles.activeFilter : ''}>全て</button>
-                        <button onClick={() => setFilterType('weapon')} className={filterType === 'weapon' ? styles.activeFilter : ''}>武器</button>
-                        <button onClick={() => setFilterType('armor')} className={filterType === 'armor' ? styles.activeFilter : ''}>防具</button>
-                        <button onClick={() => setFilterType('magic')} className={filterType === 'magic' ? styles.activeFilter : ''}>魔法</button>
-                        <button onClick={() => setFilterType('item')} className={filterType === 'item' ? styles.activeFilter : ''}>雑貨</button>
-                        <button onClick={() => setFilterType('enchantment')} className={filterType === 'enchantment' ? styles.activeFilter : ''}>付与</button>
+                        {/* Mobile Filter Dropdown */}
+                        <select
+                            className={styles.mobileFilterSelect}
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                        >
+                            <option value="all">全て表示</option>
+                            <option value="weapon">武器</option>
+                            <option value="armor">防具</option>
+                            <option value="magic">魔法</option>
+                            <option value="item">雑貨</option>
+                            <option value="enchantment">付与</option>
+                        </select>
+
+                        {/* Desktop Filter Buttons */}
+                        <div className={styles.desktopFilterButtons}>
+                            <button onClick={() => setFilterType('all')} className={filterType === 'all' ? styles.activeFilter : ''}>全て</button>
+                            <button onClick={() => setFilterType('weapon')} className={filterType === 'weapon' ? styles.activeFilter : ''}>武器</button>
+                            <button onClick={() => setFilterType('armor')} className={filterType === 'armor' ? styles.activeFilter : ''}>防具</button>
+                            <button onClick={() => setFilterType('magic')} className={filterType === 'magic' ? styles.activeFilter : ''}>魔法</button>
+                            <button onClick={() => setFilterType('item')} className={filterType === 'item' ? styles.activeFilter : ''}>雑貨</button>
+                            <button onClick={() => setFilterType('enchantment')} className={filterType === 'enchantment' ? styles.activeFilter : ''}>付与</button>
+                        </div>
                     </div>
                     <div className={styles.cardGrid}>
                         {filteredCards.map(card => {
@@ -139,7 +174,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
                 </div>
 
                 {/* Current Deck */}
-                <div className={styles.currentDeck}>
+                <div className={`${styles.currentDeck} ${mobileTab === 'library' ? styles.mobileHidden : ''}`}>
                     <h3>デッキ内容 ({selectedCards.length})</h3>
                     <div className={styles.deckList}>
                         {selectedCards.map((cardId, index) => {
