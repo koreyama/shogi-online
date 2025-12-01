@@ -13,6 +13,8 @@ import styles from '../../page.module.css'; // Use shared styles or create new o
 
 import { IconBack, IconCards } from '@/components/Icons';
 
+export const runtime = 'edge';
+
 export default function BlackjackPage() {
     const router = useRouter();
 
