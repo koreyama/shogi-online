@@ -12,48 +12,6 @@
     box-sizing: border-box;
 }
 
-.card:hover:not(.disabled) {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-}
-
-.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    filter: grayscale(0.5);
-}
-
-/* Sizes */
-.small {
-    width: 120px;
-    height: 180px;
-    font-size: 0.7rem;
-}
-
-.medium {
-    width: 160px;
-    height: 240px;
-    font-size: 0.9rem;
-}
-
-.large {
-    width: 200px;
-    height: 300px;
-    font-size: 1rem;
-}
-
-/* Small Card Optimizations */
-.small .header,
-.small .body,
-.small .footer {
-    padding: 0.25rem;
-}
-
-.small .imageArea {
-    padding: 0.25rem;
-    min-height: 0;
-}
 
 .small .description {
     -webkit-line-clamp: 2;

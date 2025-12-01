@@ -286,229 +286,263 @@
 }
 
 .fieldCard.dark {
-    background: linear-gradient(45deg, #220022, #440044);
-    color: #ecccee;
-    border: 1px solid #ff44ff;
-}
-
-.fieldDesc {
-    font-size: 0.8rem;
-    color: #ddd;
-}
-
-@media (max-width: 768px) {
-    .board {
-        padding: 0.5rem;
-        gap: 0.5rem;
-    }
-
-    .centerField {
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 0.5rem;
-    }
-
-    .logToggleBtn {
-        display: block;
-    }
-
-    .logArea {
-        position: absolute;
-        top: 50px;
-        left: 10px;
-        width: 200px;
-        height: 200px;
-        z-index: 30;
-        display: none;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .logArea.showLog {
-        display: flex;
-    }
-
-    .fieldArea {
-        width: 100%;
-        height: 100%;
-    }
-
-    .turnInfo {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        width: auto;
-        gap: 0.5rem;
-    }
-
-    .turnInfo h2 {
-        font-size: 1rem;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-    }
-
-    .endTurnBtn {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-    }
-
-    .opponentArea {
-        padding: 0.2rem;
-    }
-
-    .opponentHand {
-        height: 40px;
-    }
-
-    .cardBack {
-        width: 28px;
-        height: 40px;
-    }
-
-    /* Resize played card on mobile */
-    .playedCard {
-        width: 100px !important;
-        height: 150px !important;
-        font-size: 0.7rem !important;
-    }
-
-    /* Adjust CardDisplay internals for the forced small size */
-    .playedCard :global(.header) {
-        padding: 0.2rem;
-    }
-
-    .playerArea {
-        flex-direction: column;
-        align-items: center;
+    .fieldCard.dark {
+        background: linear-gradient(45deg, #220022, #440044);
+        color: #ecccee;
+        border: 1px solid #ff44ff;
     }
 
     .playerControls {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        width: 250px;
+        flex-shrink: 0;
     }
 
     .actionButtons {
-        width: auto;
-    }
-}
-
-.playerControls {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-    width: 250px;
-    flex-shrink: 0;
-}
-
-.actionButtons {
-    display: flex;
-    gap: 0.5rem;
-    flex-direction: column;
-    width: 100%;
-}
-
-.ultimateBtn {
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: linear-gradient(135deg, #ffd700, #ffaa00);
-    color: #331100;
-    border: 2px solid #ffcc00;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1.2;
-    position: relative;
-    overflow: hidden;
-}
-
-.ultimateBtn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
-    filter: brightness(1.1);
-}
-
-.ultimateBtn:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.ultimateBtn:disabled {
-    background: #334155;
-    color: #64748b;
-    border-color: #475569;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-.ultimateUsed {
-    opacity: 0.5;
-    filter: grayscale(1);
-}
-
-.ultimateCost {
-    font-size: 0.7rem;
-    opacity: 0.9;
-}
-
-/* Add shine effect for ultimate button */
-.ultimateBtn:not(:disabled)::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(to bottom right,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0) 40%,
-            rgba(255, 255, 255, 0.4) 50%,
-            rgba(255, 255, 255, 0) 60%,
-            rgba(255, 255, 255, 0) 100%);
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
-}
-
-@keyframes shine {
-    0% {
-        transform: translateX(-100%) rotate(45deg);
+        display: flex;
+        gap: 0.5rem;
+        flex-direction: column;
+        width: 100%;
     }
 
-    100% {
-        transform: translateX(100%) rotate(45deg);
+    .ultimateBtn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: linear-gradient(135deg, #ffd700, #ffaa00);
+        color: #331100;
+        border: 2px solid #ffcc00;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.2;
+        position: relative;
+        overflow: hidden;
     }
-}
 
-.discardBtn {
-    background: #1e293b;
-    color: white;
-    border: 1px solid #475569;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-}
+    .ultimateBtn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
+        filter: brightness(1.1);
+    }
 
-.discardBtn:hover {
-    background: #334155;
-    transform: translateY(-2px);
-}
+    .ultimateBtn:active:not(:disabled) {
+        transform: translateY(0);
+    }
 
-.discardIcon {
-    font-size: 1.2rem;
-}
+    .ultimateBtn:disabled {
+        background: #334155;
+        color: #64748b;
+        border-color: #475569;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
 
-.discardCount {
-    font-weight: bold;
-    font-size: 0.9rem;
-}
+    .ultimateUsed {
+        opacity: 0.5;
+        filter: grayscale(1);
+    }
+
+    .ultimateCost {
+        font-size: 0.7rem;
+        opacity: 0.9;
+    }
+
+    /* Add shine effect for ultimate button */
+    .ultimateBtn:not(:disabled)::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 40%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%);
+        transform: rotate(45deg);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+        0% {
+            transform: translateX(-100%) rotate(45deg);
+        }
+
+        100% {
+            transform: translateX(100%) rotate(45deg);
+        }
+    }
+
+    .discardBtn {
+        background: #1e293b;
+        color: white;
+        border: 1px solid #475569;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .discardBtn:hover {
+        background: #334155;
+        transform: translateY(-2px);
+    }
+
+    .discardIcon {
+        font-size: 1.2rem;
+    }
+
+    .discardCount {
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .board {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 0.5rem;
+            gap: 0.5rem;
+            overflow-y: auto;
+            /* Allow vertical scroll if needed */
+        }
+
+        .opponentArea {
+            padding: 0.2rem;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .opponentHand {
+            height: 40px;
+        }
+
+        .cardBack {
+            width: 28px;
+            height: 40px;
+        }
+
+        .centerField {
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            min-height: 300px;
+            /* Ensure enough space for field */
+        }
+
+        .logToggleBtn {
+            display: block;
+        }
+
+        .logArea {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            width: 200px;
+            height: 200px;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .logArea.showLog {
+            display: flex;
+        }
+
+        .fieldArea {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .turnInfo {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: auto;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .turnInfo h2 {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .endTurnBtn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Resize played card on mobile */
+        .playedCard {
+            width: 100px !important;
+            height: 150px !important;
+            font-size: 0.7rem !important;
+        }
+
+        /* Adjust CardDisplay internals for the forced small size */
+        .playedCard :global(.header) {
+            padding: 0.2rem;
+        }
+
+        .playerArea {
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            max-height: none;
+            /* Allow expansion */
+            gap: 0.5rem;
+        }
+
+        .playerControls {
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .actionButtons {
+            width: auto;
+            flex-direction: row;
+            gap: 0.5rem;
+        }
+
+        .ultimateBtn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .discardBtn {
+            width: auto;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .discardBtn span:last-child {
+            display: none;
+            /* Hide count text if space is tight, or keep it */
+        }
+    }
