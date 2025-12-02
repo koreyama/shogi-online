@@ -132,6 +132,19 @@ export const CARDS: Record<string, Card> = {
     w025: { id: 'w025', name: 'コンボダガー', type: 'weapon', cost: 2, value: 2, element: 'wind', description: 'このターン2枚目以降にプレイすると、ダメージ+2。', effectId: 'combo_dagger', rarity: 'common' },
     m035: { id: 'm035', name: 'チェインライトニング', type: 'magic', cost: 3, value: 3, element: 'wind', description: 'このターン2枚目以降にプレイすると、ダメージが2倍になる。', effectId: 'combo_lightning', rarity: 'rare' },
     m036: { id: 'm036', name: 'フィニッシングムーブ', type: 'magic', cost: 5, value: 5, element: 'fire', description: 'このターン3枚目以降にプレイすると、ダメージが3倍になる。', effectId: 'combo_finisher', rarity: 'legendary' },
+
+    // Graveyard Strategy Cards
+    m037: { id: 'm037', name: 'ダークエコー', type: 'magic', cost: 2, value: 2, element: 'dark', description: '墓地にある間、あなたの闇属性魔法のダメージ+1。', effectId: 'passive_dark_boost', rarity: 'rare' },
+    m038: { id: 'm038', name: '再生するスライム', type: 'magic', cost: 2, value: 3, element: 'water', description: 'HPを3回復。墓地にある間、ターン開始時にHP1回復。', effectId: 'passive_regen_slime', rarity: 'rare' },
+    w026: { id: 'w026', name: 'ボーンブレイド', type: 'weapon', cost: 3, value: 2, element: 'dark', description: '墓地のカード3枚につき攻撃力+1。', effectId: 'scale_grave_3', rarity: 'rare' },
+    m039: { id: 'm039', name: '死者への手向け', type: 'magic', cost: 1, value: 0, element: 'holy', description: '墓地のカードを全て山札に戻しシャッフルする。戻した数x1回復。', effectId: 'reshuffle_grave', rarity: 'rare' },
+
+    // Retrieval Cards
+    m040: { id: 'm040', name: 'ネクロサルベージ', type: 'magic', cost: 1, value: 0, element: 'dark', description: '墓地からカードを1枚選び、手札に戻す。', effectId: 'necro_salvage', rarity: 'rare' },
+    m041: { id: 'm041', name: 'マナリコール', type: 'magic', cost: 1, value: 0, element: 'none', description: 'マナゾーンからカードを1枚選び、手札に戻す。', effectId: 'mana_recall', rarity: 'rare' },
+
+    // Special Cards
+    special_stone: { id: 'special_stone', name: '石ころ', type: 'weapon', cost: 0, value: 1, element: 'none', description: 'ただの石ころ。山札が尽きた時に拾う。', rarity: 'common' },
 };
 
 export const CARD_LIST = Object.values(CARDS);

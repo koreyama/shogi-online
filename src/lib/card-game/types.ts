@@ -17,26 +17,10 @@ export interface Card {
 
 export interface StatusEffect {
     id: string; // Unique ID for the effect instance
-    type: 'poison' | 'burn' | 'freeze' | 'regen' | 'atk_up' | 'def_up' | 'buff_armor';
+    type: 'poison' | 'burn' | 'freeze' | 'regen' | 'atk_up' | 'def_up' | 'buff_armor' | 'auto_revive';
     name: string;
     value: number;
     duration: number; // Turns remaining
-}
-
-export interface Avatar {
-    id: string;
-    name: string;
-    description: string;
-    baseHp: number;
-    baseMp: number;
-    passiveId: string;
-    passiveName: string;
-    passiveDescription: string;
-    defaultDeckId: string;
-    ultimateId: string;
-    ultimateName: string;
-    ultimateDescription: string;
-    ultimateCost: number;
 }
 
 export interface Deck {
@@ -56,6 +40,7 @@ export interface PlayerState {
     hand: string[]; // Card IDs
     deck: string[]; // Card IDs
     discardPile: string[]; // Card IDs
+    manaZone?: string[]; // Card IDs in Mana Zone
     equipment: {
         weapon?: string; // Card ID
         armor?: string; // Card ID
@@ -96,6 +81,9 @@ export interface GameState {
         hasAttacked: boolean;
         hasDiscarded: boolean;
         cardsPlayedCount: number;
+        freeCardIds?: string[]; // For Loki's Ultimate (specific cards)
+        isComboChain?: boolean; // For Combo Cards
+        manaChargeCount?: number; // Track mana charges per turn
     };
     lastPlayedCard?: {
         cardId: string;
@@ -108,4 +96,21 @@ export interface GameLogEntry {
     id: string;
     text: string;
     timestamp: number;
+}
+
+export interface Avatar {
+    id: string;
+    name: string;
+    description: string;
+    baseHp: number;
+    baseMp: number;
+    passiveId: string;
+    passiveName: string;
+    passiveDescription: string;
+    defaultDeckId: string;
+    ultimateId: string;
+    ultimateName: string;
+    ultimateDescription: string;
+    ultimateCost: number;
+    imageUrl?: string;
 }

@@ -17,9 +17,10 @@ interface GameBoardProps {
     onDiscardCard?: (cardId: string) => void;
     onEndTurn: () => void;
     onUseUltimate?: () => void;
+    onManaCharge?: (cardIds: string[]) => void;
 }
 
-export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onPlayCard, onDiscardCard, onEndTurn, onUseUltimate }) => {
+export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onPlayCard, onDiscardCard, onEndTurn, onUseUltimate, onManaCharge }) => {
     const myPlayer = gameState.players[myPlayerId];
     const opponentId = Object.keys(gameState.players).find(id => id !== myPlayerId)!;
     const opponent = gameState.players[opponentId];
@@ -28,7 +29,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
 
     const [showLog, setShowLog] = React.useState(false);
     const [showDiscard, setShowDiscard] = React.useState(false);
-    const { playCardPlaySound, playEndTurnSound, playWinSound, playLoseSound } = useGameSound();
+    const [isManaChargeMode, setIsManaChargeMode] = React.useState(false);
+    const { playCardPlaySound, playEndTurnSound, playWinSound, playLoseSound, playManaChargeSound } = useGameSound();
 
     // Sound Effects for Game State Changes
     useEffect(() => {
@@ -45,6 +47,26 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
     const handlePlayCard = (cardId: string) => {
         playCardPlaySound();
         onPlayCard(cardId);
+    };
+
+    const [selectedManaChargeCards, setSelectedManaChargeCards] = React.useState<string[]>([]);
+
+    const handleManaChargeToggle = (cardId: string) => {
+        if (selectedManaChargeCards.includes(cardId)) {
+            setSelectedManaChargeCards(prev => prev.filter(id => id !== cardId));
+        } else {
+            if (selectedManaChargeCards.length < 3) {
+                setSelectedManaChargeCards(prev => [...prev, cardId]);
+            }
+        }
+    };
+
+    const executeManaCharge = () => {
+        if (onManaCharge && selectedManaChargeCards.length > 0) {
+            onManaCharge(selectedManaChargeCards);
+            setSelectedManaChargeCards([]);
+            setIsManaChargeMode(false);
+        }
     };
 
     const handleEndTurn = () => {
@@ -165,6 +187,32 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
                             ターン終了
                         </button>
 
+                        {/* Mana Charge Button */}
+                        <div className={styles.manaChargeContainer}>
+                            <button
+                                className={`${styles.manaChargeBtn} ${isManaChargeMode ? styles.active : ''}`}
+                                onClick={() => {
+                                    setIsManaChargeMode(!isManaChargeMode);
+                                    setSelectedManaChargeCards([]); // Reset selection on toggle
+                                }}
+                                disabled={!isMyTurn || (gameState.turnState.manaChargeCount || 0) >= 3}
+                                title="手札をマナゾーンに置いてMP+1 (ターン3回まで)"
+                            >
+                                {isManaChargeMode ? 'キャンセル' : 'マナチャージ'}
+                                <span className={styles.chargeCount}>
+                                    {(gameState.turnState.manaChargeCount || 0)}/3
+                                </span>
+                            </button>
+                            {isManaChargeMode && selectedManaChargeCards.length > 0 && (
+                                <button
+                                    className={styles.executeChargeBtn}
+                                    onClick={executeManaCharge}
+                                >
+                                    決定 ({selectedManaChargeCards.length})
+                                </button>
+                            )}
+                        </div>
+
                         {/* Discard Pile Button */}
                         <button
                             className={styles.discardBtn}
@@ -199,6 +247,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
                     currentMp={myPlayer.mp}
                     cardsData={CARDS}
                     canDiscard={!gameState.turnState.hasDiscarded}
+                    isManaChargeMode={isManaChargeMode}
+                    onManaCharge={handleManaChargeToggle}
+                    selectedCardIds={selectedManaChargeCards}
                 />
             </div>
 

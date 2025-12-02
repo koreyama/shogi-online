@@ -10,9 +10,13 @@ import { createRoom, joinRoom, findRandomRoom } from '@/lib/card-game/firebase-u
 import { createPlayerState } from '@/lib/card-game/engine';
 import styles from './page.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
+import { useAuth } from '@/hooks/useAuth';
+import { ref, get, set, remove, child } from 'firebase/database';
+import { db } from '@/lib/firebase';
 
 export default function LobbyPage() {
     const router = useRouter();
+    const { user, signInWithGoogle, signOut } = useAuth();
     const [selectedAvatarId, setSelectedAvatarId] = useState(AVATAR_LIST[0].id);
     const [showDeckBuilder, setShowDeckBuilder] = useState(false);
     const [myDecks, setMyDecks] = useState<{ id: string, name: string, cards: string[] }[]>([]);
@@ -25,33 +29,64 @@ export default function LobbyPage() {
     const [editingDeck, setEditingDeck] = useState<{ id: string, name: string, cards: string[] } | undefined>(undefined);
 
     useEffect(() => {
-        // Load saved decks
-        const decks = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('deck-')) {
-                const deck = JSON.parse(localStorage.getItem(key)!);
-                decks.push({ id: key, ...deck });
+        const loadDecks = async () => {
+            if (user) {
+                // Load from Firebase
+                const userDecksRef = ref(db, `users/${user.uid}/decks`);
+                const snapshot = await get(userDecksRef);
+                if (snapshot.exists()) {
+                    const decksData = snapshot.val();
+                    const decks = Object.values(decksData) as { id: string, name: string, cards: string[] }[];
+                    setMyDecks(decks);
+                    if (decks.length > 0) {
+                        setDeckType('custom');
+                        setSelectedDeckId(decks[0].id);
+                    }
+                } else {
+                    setMyDecks([]);
+                    setDeckType('starter');
+                    setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
+                }
+            } else {
+                // Load from LocalStorage
+                const decks = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('deck-')) {
+                        const deck = JSON.parse(localStorage.getItem(key)!);
+                        decks.push({ id: key, ...deck });
+                    }
+                }
+                setMyDecks(decks);
+
+                // Default selection logic
+                if (decks.length > 0) {
+                    setDeckType('custom');
+                    setSelectedDeckId(decks[0].id);
+                } else {
+                    setDeckType('starter');
+                    setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
+                }
             }
-        }
-        setMyDecks(decks);
+        };
+        loadDecks();
+    }, [user]);
 
-        // Default selection logic
-        if (decks.length > 0) {
-            setDeckType('custom');
-            setSelectedDeckId(decks[0].id);
+    const handleSaveDeck = async (deckId: string, cardIds: string[], deckName: string) => {
+        const newDeck = { id: deckId, name: deckName, cards: cardIds };
+
+        if (user) {
+            // Save to Firebase
+            await set(ref(db, `users/${user.uid}/decks/${deckId}`), newDeck);
         } else {
-            setDeckType('starter');
-            setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
+            // Save to LocalStorage
+            localStorage.setItem(deckId, JSON.stringify(newDeck));
         }
-    }, []);
 
-    const handleSaveDeck = (deckId: string, cardIds: string[], deckName: string) => {
-        // Reload decks
-        const deck = JSON.parse(localStorage.getItem(deckId)!);
+        // Reload decks (Optimistic update)
         setMyDecks(prev => {
             const filtered = prev.filter(d => d.id !== deckId);
-            return [...filtered, { id: deckId, ...deck }];
+            return [...filtered, newDeck];
         });
         setSelectedDeckId(deckId);
         setShowDeckBuilder(false);
@@ -67,9 +102,15 @@ export default function LobbyPage() {
         }
     };
 
-    const handleDeleteDeck = (deckId: string) => {
+    const handleDeleteDeck = async (deckId: string) => {
         if (!confirm('本当にこのデッキを削除しますか？')) return;
-        localStorage.removeItem(deckId);
+
+        if (user) {
+            await remove(ref(db, `users/${user.uid}/decks/${deckId}`));
+        } else {
+            localStorage.removeItem(deckId);
+        }
+
         const newDecks = myDecks.filter(d => d.id !== deckId);
         setMyDecks(newDecks);
         if (newDecks.length > 0) {
@@ -94,8 +135,8 @@ export default function LobbyPage() {
             return;
         }
         setIsCreatingRoom(true);
-        const playerName = localStorage.getItem('card_game_player_name') || 'Player';
-        const playerId = `p-${Date.now()}`;
+        const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
+        const playerId = user ? user.uid : `p-${Date.now()}`;
         const deckCards = getSelectedDeckCards();
 
         const playerState = createPlayerState(playerId, playerName, selectedAvatarId, deckCards);
@@ -114,8 +155,8 @@ export default function LobbyPage() {
             return;
         }
 
-        const playerName = localStorage.getItem('card_game_player_name') || 'Player';
-        const playerId = `p-${Date.now()}`;
+        const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
+        const playerId = user ? user.uid : `p-${Date.now()}`;
         const deckCards = getSelectedDeckCards();
 
         const playerState = createPlayerState(playerId, playerName, selectedAvatarId, deckCards);
@@ -135,9 +176,11 @@ export default function LobbyPage() {
         }
 
         // Default name
-        localStorage.setItem('card_game_player_name', 'Player');
-        const playerName = 'Player';
-        const playerId = `p-${Date.now()}`;
+        if (!user) {
+            localStorage.setItem('card_game_player_name', 'Player');
+        }
+        const playerName = user?.displayName || 'Player';
+        const playerId = user ? user.uid : `p-${Date.now()}`;
         const deckCards = getSelectedDeckCards();
 
         if (mode === 'random') {
@@ -185,10 +228,20 @@ export default function LobbyPage() {
                                     className={`${styles.avatarCard} ${selectedAvatarId === avatar.id ? styles.selected : ''}`}
                                     onClick={() => setSelectedAvatarId(avatar.id)}
                                 >
+                                    {avatar.imageUrl ? (
+                                        <div className={styles.avatarImageContainer}>
+                                            <img src={avatar.imageUrl} alt={avatar.name} className={styles.avatarImage} />
+                                        </div>
+                                    ) : null}
                                     <h3>{avatar.name}</h3>
                                     <p className={styles.desc}>{avatar.description}</p>
                                     <div className={styles.passive}>
-                                        <strong>{avatar.passiveName}</strong>: {avatar.passiveDescription}
+                                        <strong>特性: {avatar.passiveName}</strong><br />
+                                        {avatar.passiveDescription}
+                                    </div>
+                                    <div className={styles.ultimate}>
+                                        <strong>必殺技: {avatar.ultimateName}</strong> (MP:{avatar.ultimateCost})<br />
+                                        {avatar.ultimateDescription}
                                     </div>
                                     <div className={styles.stats}>
                                         HP: {avatar.baseHp} / MP: {avatar.baseMp}
@@ -346,113 +399,117 @@ export default function LobbyPage() {
                 </div>
 
 
-            </div>
+            </div >
 
             {/* Rules Modal */}
-            {showRules && (
-                <div className={styles.modalOverlay} onClick={() => setShowRules(false)}>
-                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <h2 className={styles.contentTitle}>カードゲーム（Card Game）の遊び方</h2>
+            {
+                showRules && (
+                    <div className={styles.modalOverlay} onClick={() => setShowRules(false)}>
+                        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                            <h2 className={styles.contentTitle}>カードゲーム（Card Game）の遊び方</h2>
 
-                        <div className={styles.rulesText}>
-                            <div className={styles.sectionBlock}>
-                                <div className={styles.sectionHeader}>
-                                    <span className={styles.sectionIcon}>⚔️</span>
-                                    <h3 className={styles.sectionTitle}>戦略と運が交差する対戦カードバトル</h3>
-                                </div>
-                                <p className={styles.textBlock}>
-                                    このゲームは、ユニットカードとスペルカードを駆使して相手プレイヤーと戦う、1対1の対戦型カードゲームです。
-                                    毎ターン増加するマナを管理し、最適なタイミングでカードをプレイして、相手のHPを0にすれば勝利となります。
-                                </p>
-                            </div>
-
-                            <div className={styles.sectionBlock}>
-                                <div className={styles.sectionHeader}>
-                                    <span className={styles.sectionIcon}>📏</span>
-                                    <h3 className={styles.sectionTitle}>基本ルール</h3>
-                                </div>
-                                <div className={styles.cardGrid}>
-                                    <div className={styles.infoCard}>
-                                        <span className={styles.cardTitle}>1. マナシステム</span>
-                                        <p className={styles.cardText}>カードを使うにはマナが必要です。マナは毎ターン全回復し、最大値が1ずつ増えていきます（最大10）。</p>
+                            <div className={styles.rulesText}>
+                                <div className={styles.sectionBlock}>
+                                    <div className={styles.sectionHeader}>
+                                        <span className={styles.sectionIcon}>⚔️</span>
+                                        <h3 className={styles.sectionTitle}>戦略と運が交差する対戦カードバトル</h3>
                                     </div>
-                                    <div className={styles.infoCard}>
-                                        <span className={styles.cardTitle}>2. ユニットカード</span>
-                                        <p className={styles.cardText}>場に出して戦うカードです。攻撃力と体力を持ち、相手プレイヤーや相手ユニットを攻撃できます。</p>
-                                    </div>
-                                    <div className={styles.infoCard}>
-                                        <span className={styles.cardTitle}>3. スペルカード</span>
-                                        <p className={styles.cardText}>使い切りの魔法カードです。ダメージを与えたり、ユニットを強化したり、様々な効果があります。</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className={styles.sectionBlock}>
-                                <div className={styles.sectionHeader}>
-                                    <span className={styles.sectionIcon}>🧠</span>
-                                    <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
-                                </div>
-                                <p className={styles.textBlock}>
-                                    ただ強いカードを出せば勝てるわけではありません。盤面の状況（ボードアドバンテージ）を意識しましょう。
-                                </p>
-                                <div className={styles.highlightBox}>
-                                    <span className={styles.highlightTitle}>マナカーブを意識する</span>
-                                    <p className={styles.textBlock} style={{ marginBottom: 0 }}>
-                                        序盤は低コストのカードで盤面を支え、中盤以降に高コストの強力なカードで勝負を決めるのが理想的な流れです。
-                                        手札事故（高コストばかりで何も出せない）を防ぐため、バランスよくデッキを組みましょう。
+                                    <p className={styles.textBlock}>
+                                        このゲームは、ユニットカードとスペルカードを駆使して相手プレイヤーと戦う、1対1の対戦型カードゲームです。
+                                        毎ターン増加するマナを管理し、最適なタイミングでカードをプレイして、相手のHPを0にすれば勝利となります。
                                     </p>
                                 </div>
-                                <ul className={styles.list}>
-                                    <li className={styles.listItem}>
-                                        <strong>有利トレード</strong><br />
-                                        自分の弱いユニットで相手の強いユニットを倒したり、スペルで効率よく除去したりして、相手より多くのリソースを残すことを心がけましょう。
-                                    </li>
-                                    <li className={styles.listItem}>
-                                        <strong>アルティメットスキル</strong><br />
-                                        各アバターには強力な必殺技（アルティメット）があります。ここぞという場面で使って、戦況をひっくり返しましょう。
-                                    </li>
-                                </ul>
+
+                                <div className={styles.sectionBlock}>
+                                    <div className={styles.sectionHeader}>
+                                        <span className={styles.sectionIcon}>📏</span>
+                                        <h3 className={styles.sectionTitle}>基本ルール</h3>
+                                    </div>
+                                    <div className={styles.cardGrid}>
+                                        <div className={styles.infoCard}>
+                                            <span className={styles.cardTitle}>1. マナシステム</span>
+                                            <p className={styles.cardText}>カードを使うにはマナが必要です。マナは毎ターン全回復し、最大値が1ずつ増えていきます（最大10）。</p>
+                                        </div>
+                                        <div className={styles.infoCard}>
+                                            <span className={styles.cardTitle}>2. ユニットカード</span>
+                                            <p className={styles.cardText}>場に出して戦うカードです。攻撃力と体力を持ち、相手プレイヤーや相手ユニットを攻撃できます。</p>
+                                        </div>
+                                        <div className={styles.infoCard}>
+                                            <span className={styles.cardTitle}>3. スペルカード</span>
+                                            <p className={styles.cardText}>使い切りの魔法カードです。ダメージを与えたり、ユニットを強化したり、様々な効果があります。</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={styles.sectionBlock}>
+                                    <div className={styles.sectionHeader}>
+                                        <span className={styles.sectionIcon}>🧠</span>
+                                        <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                                    </div>
+                                    <p className={styles.textBlock}>
+                                        ただ強いカードを出せば勝てるわけではありません。盤面の状況（ボードアドバンテージ）を意識しましょう。
+                                    </p>
+                                    <div className={styles.highlightBox}>
+                                        <span className={styles.highlightTitle}>マナカーブを意識する</span>
+                                        <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                                            序盤は低コストのカードで盤面を支え、中盤以降に高コストの強力なカードで勝負を決めるのが理想的な流れです。
+                                            手札事故（高コストばかりで何も出せない）を防ぐため、バランスよくデッキを組みましょう。
+                                        </p>
+                                    </div>
+                                    <ul className={styles.list}>
+                                        <li className={styles.listItem}>
+                                            <strong>有利トレード</strong><br />
+                                            自分の弱いユニットで相手の強いユニットを倒したり、スペルで効率よく除去したりして、相手より多くのリソースを残すことを心がけましょう。
+                                        </li>
+                                        <li className={styles.listItem}>
+                                            <strong>アルティメットスキル</strong><br />
+                                            各アバターには強力な必殺技（アルティメット）があります。ここぞという場面で使って、戦況をひっくり返しましょう。
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
+                            <button onClick={() => setShowRules(false)} className={styles.closeBtn}>閉じる</button>
                         </div>
-                        <button onClick={() => setShowRules(false)} className={styles.closeBtn}>閉じる</button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Deck Viewer Modal */}
-            {viewingDeck && (
-                <div className={styles.modalOverlay} onClick={() => setViewingDeck(null)}>
-                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <h2>デッキ内容</h2>
-                        <div className={styles.cardList}>
-                            {(() => {
-                                let cards: string[] = [];
-                                if (STARTER_DECKS[viewingDeck as keyof typeof STARTER_DECKS]) {
-                                    cards = STARTER_DECKS[viewingDeck as keyof typeof STARTER_DECKS].cards;
-                                } else {
-                                    const deck = myDecks.find(d => d.id === viewingDeck);
-                                    if (deck) cards = deck.cards;
-                                }
+            {
+                viewingDeck && (
+                    <div className={styles.modalOverlay} onClick={() => setViewingDeck(null)}>
+                        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                            <h2>デッキ内容</h2>
+                            <div className={styles.cardList}>
+                                {(() => {
+                                    let cards: string[] = [];
+                                    if (STARTER_DECKS[viewingDeck as keyof typeof STARTER_DECKS]) {
+                                        cards = STARTER_DECKS[viewingDeck as keyof typeof STARTER_DECKS].cards;
+                                    } else {
+                                        const deck = myDecks.find(d => d.id === viewingDeck);
+                                        if (deck) cards = deck.cards;
+                                    }
 
-                                // Count cards
-                                const counts: Record<string, number> = {};
-                                cards.forEach(id => counts[id] = (counts[id] || 0) + 1);
+                                    // Count cards
+                                    const counts: Record<string, number> = {};
+                                    cards.forEach(id => counts[id] = (counts[id] || 0) + 1);
 
-                                return (
-                                    <ul className={styles.deckListUl}>
-                                        {Object.entries(counts).map(([id, count]) => (
-                                            <li key={id} className={styles.deckListLi}>
-                                                {CARDS[id] ? CARDS[id].name : `Unknown Card (${id})`} x{count}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                );
-                            })()}
+                                    return (
+                                        <ul className={styles.deckListUl}>
+                                            {Object.entries(counts).map(([id, count]) => (
+                                                <li key={id} className={styles.deckListLi}>
+                                                    {CARDS[id] ? CARDS[id].name : `Unknown Card (${id})`} x{count}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })()}
+                            </div>
+                            <button onClick={() => setViewingDeck(null)} className={styles.closeBtn}>閉じる</button>
                         </div>
-                        <button onClick={() => setViewingDeck(null)} className={styles.closeBtn}>閉じる</button>
                     </div>
-                </div>
-            )}
-        </main>
+                )
+            }
+        </main >
     );
 }

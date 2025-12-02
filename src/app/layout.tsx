@@ -6,6 +6,9 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Asobi Lounge",
   description: "オンラインで遊べるゲームサイト",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({
@@ -14,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body suppressHydrationWarning={true} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <html lang="ja" translate="no">
+      <body className="notranslate" suppressHydrationWarning={true} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         {children}
         <Footer />
         {/* Google AdSense */}

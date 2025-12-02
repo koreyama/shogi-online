@@ -26,7 +26,16 @@ export const PlayerStatus: React.FC<PlayerStatusProps> = ({ player, isOpponent }
     return (
         <div className={`${styles.container} ${isOpponent ? styles.opponent : ''}`}>
             <div className={styles.avatar}>
-                <div className={styles.avatarImage}>{avatar.name[0]}</div>
+                {avatar.imageUrl ? (
+                    <img
+                        src={avatar.imageUrl}
+                        alt={avatar.name}
+                        className={styles.avatarImage}
+                        style={{ objectFit: 'cover', padding: 0, background: 'none' }}
+                    />
+                ) : (
+                    <div className={styles.avatarImage}>{avatar.name[0]}</div>
+                )}
                 <div className={styles.name}>{player.name}</div>
                 <div className={styles.avatarName}>{avatar.name}</div>
             </div>
@@ -44,6 +53,12 @@ export const PlayerStatus: React.FC<PlayerStatusProps> = ({ player, isOpponent }
                     <div className={styles.mpBar}>
                         <div className={styles.mpFill} style={{ width: `${mpPercent}%` }}></div>
                     </div>
+                </div>
+
+                {/* Mana Zone Count */}
+                <div className={styles.manaZoneInfo}>
+                    <span className={styles.manaLabel}>マナゾーン:</span>
+                    <span className={styles.manaValue}>{player.manaZone?.length || 0}</span>
                 </div>
 
                 <div className={styles.equipment}>

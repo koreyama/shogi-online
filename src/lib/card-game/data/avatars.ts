@@ -14,7 +14,8 @@ export const AVATARS: Record<string, Avatar> = {
         ultimateId: 'ultimate_divine_strike',
         ultimateName: '軍神の猛撃',
         ultimateDescription: '敵に15ダメージを与える。',
-        ultimateCost: 8
+        ultimateCost: 8,
+        imageUrl: '/images/avatar_ares.png'
     },
     'mage_god': {
         id: 'mage_god',
@@ -29,7 +30,8 @@ export const AVATARS: Record<string, Avatar> = {
         ultimateId: 'ultimate_gungnir',
         ultimateName: 'グングニル',
         ultimateDescription: '敵に12の貫通ダメージを与える（防御無視）。',
-        ultimateCost: 10
+        ultimateCost: 10,
+        imageUrl: '/images/avatar_odin.png'
     },
     'trickster_god': {
         id: 'trickster_god',
@@ -41,10 +43,11 @@ export const AVATARS: Record<string, Avatar> = {
         passiveName: '幸運',
         passiveDescription: 'ドロー時に低確率で追加カードを引く',
         defaultDeckId: 'deck_trickster_starter',
-        ultimateId: 'ultimate_trickster_gift',
-        ultimateName: 'トリックスターの贈り物',
-        ultimateDescription: 'カードを3枚引き、MPを5回復する。',
-        ultimateCost: 5
+        ultimateId: 'ultimate_trickster_showtime',
+        ultimateName: 'トリックスター・ショータイム',
+        ultimateDescription: 'カードを3枚引く。このターン、その引いたカードのコストは0になる。',
+        ultimateCost: 8,
+        imageUrl: '/images/avatar_loki.png'
     }
 };
 

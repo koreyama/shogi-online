@@ -66,10 +66,18 @@ export const useGameSound = () => {
         playTone(100, 'sawtooth', 0.8, now + 0.6, 0.1);
     }, [playTone]);
 
+    const playManaChargeSound = useCallback(() => {
+        // Magical "whoosh" / charge sound
+        playTone(300, 'sine', 0.1, 0, 0.1);
+        playTone(600, 'sine', 0.2, 0.1, 0.1);
+        playTone(900, 'sine', 0.4, 0.2, 0.05);
+    }, [playTone]);
+
     return {
         playCardPlaySound,
         playEndTurnSound,
         playWinSound,
-        playLoseSound
+        playLoseSound,
+        playManaChargeSound
     };
 };

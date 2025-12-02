@@ -12,9 +12,20 @@
     box-sizing: border-box;
 }
 
+.small {
+    width: 120px;
+    height: 180px;
+    font-size: 0.7rem;
+}
 
 .small .description {
-    -webkit-line-clamp: 2;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    height: 40px;
+    display: block;
+    font-size: 0.8em;
+    color: #334155;
+    line-height: 1.3;
 }
 
 .small .value {
@@ -32,6 +43,9 @@
     color: white;
     font-weight: bold;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 32px;
+    /* Fixed height */
+    box-sizing: border-box;
 }
 
 .cost {
@@ -39,6 +53,7 @@
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.8em;
+    flex-shrink: 0;
 }
 
 .name {
@@ -47,6 +62,7 @@
     text-overflow: ellipsis;
     max-width: 100%;
     display: block;
+    margin-left: 4px;
 }
 
 /* Image Area */
@@ -57,7 +73,7 @@
     align-items: center;
     background: #f8fafc;
     color: #475569;
-    padding: 1rem;
+    padding: 0.5rem;
     min-height: 40px;
     overflow: hidden;
 }
@@ -70,14 +86,20 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    height: 60px;
+    /* Fixed height */
 }
 
 .type {
     font-size: 0.7em;
-    text-transform: uppercase;
-    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
     font-weight: bold;
-    letter-spacing: 0.05em;
+    color: #475569;
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
 }
 
 .description {
@@ -103,6 +125,10 @@
     justify-content: center;
     gap: 0.25rem;
     flex-wrap: wrap;
+    height: 32px;
+    /* Fixed height */
+    box-sizing: border-box;
+    align-items: center;
 }
 
 .value {

@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { GameState } from '@/lib/card-game/types';
-import { createInitialState, playCard, endTurn, discardAndDraw, useUltimate } from '@/lib/card-game/engine';
+import { createInitialState, playCard, endTurn, discardAndDraw, useUltimate, manaCharge } from '@/lib/card-game/engine';
 import { STARTER_DECKS } from '@/lib/card-game/data/decks';
 import styles from './page.module.css';
 import { CARDS } from '@/lib/card-game/data/cards';
@@ -164,6 +164,22 @@ function CardGameContent() {
         }
     };
 
+    const handleManaCharge = (cardIds: string[]) => {
+        if (!gameState) return;
+
+        if (isMultiplayer && gameState.turnPlayerId !== playerId) {
+            alert('相手のターンです');
+            return;
+        }
+
+        const newState = manaCharge(gameState, playerId, cardIds);
+        setGameState(newState);
+
+        if (isMultiplayer) {
+            syncGameState(roomId, newState);
+        }
+    };
+
     if (!gameState) return <div>Loading...</div>;
 
     // Waiting for opponent
@@ -203,6 +219,7 @@ function CardGameContent() {
                 onDiscardCard={handleDiscard}
                 onEndTurn={handleEndTurn}
                 onUseUltimate={handleUseUltimate}
+                onManaCharge={handleManaCharge}
             />
 
 

@@ -16,6 +16,10 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 
         const iconSize = size === 'small' ? 24 : 48;
         const name = card.name;
 
+        if (card.id === 'special_stone') {
+            return <img src="/images/stone_card.png" alt="Stone" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />;
+        }
+
         // Weapon Specifics
         if (card.type === 'weapon') {
             if (name.includes('弓') || name.includes('ボウ')) return <IconBow size={iconSize} />;

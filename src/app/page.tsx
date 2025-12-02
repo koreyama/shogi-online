@@ -10,9 +10,12 @@ import { usePlayer } from '@/hooks/usePlayer';
 
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function Home() {
   const router = useRouter();
   const { playerName, savePlayerName, isLoaded } = usePlayer();
+  const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
   const [showNameModal, setShowNameModal] = useState(false);
   const [inputName, setInputName] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -25,10 +28,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (isLoaded && !playerName) {
+    if (isLoaded && !authLoading && !playerName && !user) {
       setShowNameModal(true);
     }
-  }, [isLoaded, playerName]);
+  }, [isLoaded, authLoading, playerName, user]);
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,13 +76,57 @@ export default function Home() {
 
       {/* Header / Hero */}
       <header className={styles.hero}>
-        {playerName && (
-          <div className={styles.playerBar}>
-            <IconUser size={20} color="#2d3748" />
-            <span className={styles.playerName}>{playerName}</span>
-            <button onClick={openNameEdit} className={styles.editButton}>変更</button>
+        <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', zIndex: 20 }}>
+          {/* Login/User Section */}
+          <div>
+            {user ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.8)', padding: '0.5rem', borderRadius: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                {user.photoURL && <img src={user.photoURL} alt="User" style={{ width: 32, height: 32, borderRadius: '50%' }} />}
+                <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#2d3748' }}>{user.displayName}</span>
+                <button
+                  onClick={signOut}
+                  style={{
+                    padding: '0.3rem 0.8rem',
+                    fontSize: '0.8rem',
+                    background: '#e53e3e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '15px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ログアウト
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={signInWithGoogle}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                  background: '#4285F4',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
+              >
+                Googleログイン
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Player Name Section (Local) */}
+          {playerName && !user && (
+            <div className={styles.playerBar} style={{ position: 'static', transform: 'none', margin: 0 }}>
+              <IconUser size={20} color="#2d3748" />
+              <span className={styles.playerName}>{playerName}</span>
+              <button onClick={openNameEdit} className={styles.editButton}>変更</button>
+            </div>
+          )}
+        </div>
         <h1 className={styles.title}>Asobi Lounge</h1>
         <p className={styles.subtitle}>
           シンプルで美しい、オンラインゲームプラットフォーム。<br />
