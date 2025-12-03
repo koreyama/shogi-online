@@ -129,11 +129,13 @@ export default function MinesweeperPage() {
                     </button>
                 </div>
 
-                <MinesweeperBoard
-                    board={gameState.board}
-                    onCellClick={handleCellClick}
-                    onCellRightClick={handleCellRightClick}
-                />
+                <div className={styles.boardWrapper}>
+                    <MinesweeperBoard
+                        board={gameState.board}
+                        onCellClick={handleCellClick}
+                        onCellRightClick={handleCellRightClick}
+                    />
+                </div>
 
                 {/* Ranking Section */}
                 <div className={styles.rankingSection}>
