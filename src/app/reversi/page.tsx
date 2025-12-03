@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
-import { OthelloBoard } from '@/components/OthelloBoard';
+import { ReversiBoard } from '@/components/ReversiBoard';
 import { Chat } from '@/components/Chat';
-import { createInitialState, executeMove, getValidMoves } from '@/lib/othello/engine';
-import { GameState, Player, Coordinates } from '@/lib/othello/types';
+import { createInitialState, executeMove, getValidMoves } from '@/lib/reversi/engine';
+import { GameState, Player, Coordinates } from '@/lib/reversi/types';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
@@ -19,7 +19,7 @@ interface ChatMessage {
     timestamp: number;
 }
 
-export default function OthelloPage() {
+export default function ReversiPage() {
     const router = useRouter();
     const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
@@ -78,7 +78,7 @@ export default function OthelloPage() {
     useEffect(() => {
         if (!roomId || !myRole || roomId === 'ai-match') return;
 
-        const roomRef = ref(db, `othello_rooms/${roomId}`);
+        const roomRef = ref(db, `reversi_rooms/${roomId}`);
 
         const unsubscribeRoom = onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
@@ -105,7 +105,7 @@ export default function OthelloPage() {
             }
         });
 
-        const movesRef = ref(db, `othello_rooms/${roomId}/moves`);
+        const movesRef = ref(db, `reversi_rooms/${roomId}/moves`);
         const unsubscribeMoves = onChildAdded(movesRef, (snapshot) => {
             const moveData = snapshot.val();
             if (!moveData) return;
@@ -116,7 +116,7 @@ export default function OthelloPage() {
             });
         });
 
-        const chatRef = ref(db, `othello_rooms/${roomId}/chat`);
+        const chatRef = ref(db, `reversi_rooms/${roomId}/chat`);
         const unsubscribeChat = onChildAdded(chatRef, (snapshot) => {
             const msg = snapshot.val();
             if (msg) {
@@ -127,20 +127,20 @@ export default function OthelloPage() {
             }
         });
 
-        const rematchRef = ref(db, `othello_rooms/${roomId}/rematch`);
+        const rematchRef = ref(db, `reversi_rooms/${roomId}/rematch`);
         const unsubscribeRematch = onValue(rematchRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.black && data.white) {
                 if (myRole === 'black') {
-                    set(ref(db, `othello_rooms/${roomId}/moves`), null);
-                    set(ref(db, `othello_rooms/${roomId}/chat`), null);
-                    set(ref(db, `othello_rooms/${roomId}/winner`), null);
-                    set(ref(db, `othello_rooms/${roomId}/rematch`), null);
+                    set(ref(db, `reversi_rooms/${roomId}/moves`), null);
+                    set(ref(db, `reversi_rooms/${roomId}/chat`), null);
+                    set(ref(db, `reversi_rooms/${roomId}/winner`), null);
+                    set(ref(db, `reversi_rooms/${roomId}/rematch`), null);
                 }
             }
         });
 
-        const myPlayerRef = ref(db, `othello_rooms/${roomId}/${myRole}`);
+        const myPlayerRef = ref(db, `reversi_rooms/${roomId}/${myRole}`);
         onDisconnect(myPlayerRef).remove();
 
         return () => {
@@ -165,7 +165,7 @@ export default function OthelloPage() {
     const joinRandomGame = async () => {
         setIsLoading(true);
         try {
-            const roomsRef = ref(db, 'othello_rooms');
+            const roomsRef = ref(db, 'reversi_rooms');
             const snapshot = await get(roomsRef);
             const rooms = snapshot.val();
             let foundRoomId = null;
@@ -173,7 +173,7 @@ export default function OthelloPage() {
             if (rooms) {
                 for (const [id, room] of Object.entries(rooms) as [string, any][]) {
                     if (!room.black && !room.white) {
-                        set(ref(db, `othello_rooms/${id}`), null);
+                        set(ref(db, `reversi_rooms/${id}`), null);
                         continue;
                     }
                     if ((room.black && !room.white) || (!room.black && room.white)) {
@@ -186,11 +186,11 @@ export default function OthelloPage() {
             if (foundRoomId) {
                 const room = rooms[foundRoomId];
                 if (!room.white) {
-                    await update(ref(db, `othello_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
+                    await update(ref(db, `reversi_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
                     setRoomId(foundRoomId);
                     setMyRole('white');
                 } else {
-                    await update(ref(db, `othello_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
+                    await update(ref(db, `reversi_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
                     setRoomId(foundRoomId);
                     setMyRole('black');
                 }
@@ -222,7 +222,7 @@ export default function OthelloPage() {
         setIsLoading(true);
         try {
             const rid = customRoomId.trim();
-            const roomRef = ref(db, `othello_rooms/${rid}`);
+            const roomRef = ref(db, `reversi_rooms/${rid}`);
             const snapshot = await get(roomRef);
             const room = snapshot.val();
 
@@ -238,11 +238,11 @@ export default function OthelloPage() {
                 setRoomId(rid);
                 setStatus('waiting');
             } else if (!room.white) {
-                await update(ref(db, `othello_rooms/${rid}/white`), { name: playerName, id: playerId });
+                await update(ref(db, `reversi_rooms/${rid}/white`), { name: playerName, id: playerId });
                 setRoomId(rid);
                 setMyRole('white');
             } else if (!room.black) {
-                await update(ref(db, `othello_rooms/${rid}/black`), { name: playerName, id: playerId });
+                await update(ref(db, `reversi_rooms/${rid}/black`), { name: playerName, id: playerId });
                 setRoomId(rid);
                 setMyRole('black');
             } else {
@@ -295,7 +295,7 @@ export default function OthelloPage() {
             setGameState(newState);
             if (newState.winner) setStatus('finished');
         } else {
-            push(ref(db, `othello_rooms/${roomId}/moves`), { x, y, player: myRole });
+            push(ref(db, `reversi_rooms/${roomId}/moves`), { x, y, player: myRole });
         }
     };
 
@@ -305,13 +305,13 @@ export default function OthelloPage() {
             return;
         }
         if (roomId) {
-            push(ref(db, `othello_rooms/${roomId}/chat`), { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() });
+            push(ref(db, `reversi_rooms/${roomId}/chat`), { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() });
         }
     };
 
     const handleBackToTop = () => {
         if (roomId && myRole && roomId !== 'ai-match') {
-            const myPlayerRef = ref(db, `othello_rooms/${roomId}/${myRole}`);
+            const myPlayerRef = ref(db, `reversi_rooms/${roomId}/${myRole}`);
             set(myPlayerRef, null);
             onDisconnect(myPlayerRef).cancel();
         }
@@ -324,7 +324,7 @@ export default function OthelloPage() {
             setStatus('playing');
             setMessages([]);
         } else if (roomId && myRole) {
-            update(ref(db, `othello_rooms/${roomId}/rematch`), { [myRole]: true });
+            update(ref(db, `reversi_rooms/${roomId}/rematch`), { [myRole]: true });
         }
     };
 
@@ -334,7 +334,7 @@ export default function OthelloPage() {
         return (
             <main className={styles.main}>
                 <div className={styles.setupContainer}>
-                    <h1 className={styles.title}>オセロ</h1>
+                    <h1 className={styles.title}>リバーシ</h1>
                     <form onSubmit={handleNameSubmit} className={styles.setupForm}>
                         <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="プレイヤー名" className={styles.input} required />
                         <button type="submit" className={styles.primaryBtn}>次へ</button>
@@ -349,7 +349,7 @@ export default function OthelloPage() {
             <main className={styles.main}>
                 <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
                 <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>オセロ</h1>
+                    <h1 className={styles.title}>リバーシ</h1>
                     {!joinMode ? (
                         <div className={styles.modeSelection}>
                             <button onClick={joinRandomGame} className={styles.modeBtn}><IconDice size={48} color="#2e7d32" /><span className={styles.modeBtnTitle}>ランダム</span></button>
@@ -369,17 +369,17 @@ export default function OthelloPage() {
 
                 {/* AdSense Content Section */}
                 <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>オセロ（リバーシ）の奥深い世界</h2>
+                    <h2 className={styles.contentTitle}>リバーシ（リバーシ）の奥深い世界</h2>
 
                     <div className={styles.sectionBlock}>
                         <div className={styles.sectionHeader}>
                             <span className={styles.sectionIcon}>⚪⚫</span>
-                            <h3 className={styles.sectionTitle}>オセロの魅力と歴史</h3>
+                            <h3 className={styles.sectionTitle}>リバーシの魅力と歴史</h3>
                         </div>
                         <p className={styles.textBlock}>
-                            オセロ（Othello）は、1973年に日本の長谷川五郎氏によって考案されたボードゲームです。
-                            その名前はシェイクスピアの戯曲『オセロ』に由来し、黒人の将軍オセロと白人の妻デズデモーナの波乱に満ちた物語になぞらえて名付けられました。
-                            「覚えるのは1分、極めるのは一生」という有名なキャッチフレーズの通り、ルールは極めてシンプルですが、一手で形勢が逆転するダイナミックな展開が魅力です。
+                            リバーシは、19世紀後半にイギリスで考案されたと言われるボードゲームです。
+                            2人のプレイヤーが黒と白の石を使い、相手の石を挟んで自分の色に変えていきます。
+                            「覚えるのは1分、極めるのは一生」と言われるほど、ルールはシンプルですが奥深い戦略性を持っています。
                         </p>
                     </div>
 
@@ -414,7 +414,7 @@ export default function OthelloPage() {
                             <h3 className={styles.sectionTitle}>勝率を上げる3つの定石</h3>
                         </div>
                         <p className={styles.textBlock}>
-                            オセロで勝つためには、単に石を多く取るだけではいけません。むしろ序盤は「少なく取る」ことが重要な場合もあります。
+                            リバーシで勝つためには、単に石を多く取るだけではいけません。むしろ序盤は「少なく取る」ことが重要な場合もあります。
                         </p>
                         <div className={styles.highlightBox}>
                             <span className={styles.highlightTitle}>1. 四隅（角）を取る</span>
@@ -476,7 +476,7 @@ export default function OthelloPage() {
                         {gameState?.turn === 'black' ? '黒の番' : '白の番'}
                         {gameState?.turn === myRole && ' (あなた)'}
                     </div>
-                    <OthelloBoard
+                    <ReversiBoard
                         board={gameState!.board}
                         validMoves={validMoves}
                         onCellClick={handleCellClick}

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ref, get, remove } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
-type GameType = 'shogi' | 'othello' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing';
+type GameType = 'shogi' | 'reversi' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing';
 
 interface RoomConfig {
     path: string;
@@ -14,8 +14,8 @@ const CONFIGS: Record<GameType, RoomConfig> = {
         path: 'rooms',
         isEmpty: (room) => !room.sente && !room.gote
     },
-    othello: {
-        path: 'othello_rooms',
+    reversi: {
+        path: 'reversi_rooms',
         isEmpty: (room) => !room.black && !room.white
     },
     gomoku: {

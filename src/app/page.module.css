@@ -172,7 +172,7 @@
   font-weight: bold;
 }
 
-.othelloIcon {
+.reversiIcon {
   font-size: 3.5rem;
   color: #1a202c;
 }
@@ -335,49 +335,73 @@
 
 /* About Section */
 .aboutSection {
-  max-width: 1000px;
-  margin: -2rem auto 3rem;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 2;
+  padding: 4rem 2rem;
+  background-color: #f8fafc;
+  margin-top: 0;
+  max-width: none;
 }
 
 .aboutContainer {
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
 .aboutCard {
   background: white;
-  padding: 1.5rem;
-  border-radius: 20px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+}
+
+.aboutCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .aboutCard h3 {
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin: 0;
 }
 
 .aboutCard p {
-  color: var(--color-text);
-  font-size: 0.95rem;
+  color: #4a5568;
   line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.textLink {
+  color: #3182ce;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.textLink:hover {
+  color: #2c5282;
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
   .aboutContainer {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
   .aboutSection {
-    margin-top: -1rem;
+    padding: 2rem 1rem;
   }
 }

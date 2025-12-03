@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Added useRouter import
 import styles from './page.module.css';
-import { IconShogi, IconOthello, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette, IconCheckers, IconConnect4, IconSwords } from '@/components/Icons';
+import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette, IconCheckers, IconConnect4, IconSwords } from '@/components/Icons';
 import { IconKing } from '@/components/SimpleShogiIcons';
 import { usePlayer } from '@/hooks/usePlayer';
 
@@ -138,29 +138,38 @@ export default function Home() {
       <section className={styles.aboutSection}>
         <div className={styles.aboutContainer}>
           <div className={styles.aboutCard}>
-            <h3>🎮 Asobi Loungeとは？</h3>
+            <div className={styles.cardHeader}>
+              <IconUser size={24} color="#3182ce" />
+              <h3>Asobi Loungeとは？</h3>
+            </div>
             <p>
-              将棋、チェス、オセロなどの定番ゲームから、オリジナルのカードゲームまで。<br />
+              将棋、チェス、リバーシなどの定番ゲームから、オリジナルのカードゲームまで。<br />
               インストール不要で、PCでもスマホでも、すぐに遊べるブラウザゲームサイトです。
             </p>
-            <Link href="/about" style={{ display: 'inline-block', marginTop: '1rem', color: '#3182ce', fontWeight: 'bold' }}>
+            <Link href="/about" className={styles.textLink}>
               詳しく見る &rarr;
             </Link>
           </div>
           <div className={styles.aboutCard}>
-            <h3>☁️ ログインするとできること</h3>
+            <div className={styles.cardHeader}>
+              <IconUser size={24} color="#3182ce" />
+              <h3>ログインするとできること</h3>
+            </div>
             <p>
               Googleアカウントでログインすると、<strong>Divine Duel</strong>のデッキデータがクラウドに保存されます。<br />
               スマホで作ったデッキをPCで使ったり、機種変更してもデータを引き継げます。
             </p>
           </div>
           <div className={styles.aboutCard}>
-            <h3>📚 ゲームコラム</h3>
+            <div className={styles.cardHeader}>
+              <IconUser size={24} color="#3182ce" />
+              <h3>ゲームコラム</h3>
+            </div>
             <p>
               ゲームの歴史や戦略、上達のコツなどを紹介するコラムを連載中。<br />
               初心者から上級者まで楽しめる情報をお届けします。
             </p>
-            <Link href="/blog" style={{ display: 'inline-block', marginTop: '1rem', color: '#3182ce', fontWeight: 'bold' }}>
+            <Link href="/blog" className={styles.textLink}>
               コラムを読む &rarr;
             </Link>
           </div>
@@ -189,12 +198,12 @@ export default function Home() {
           </div>
         </Link>
 
-        <Link href="/othello" className={styles.gameCard}>
+        <Link href="/reversi" className={styles.gameCard}>
           <div className={styles.cardContent}>
             <div className={styles.iconWrapper}>
-              <IconOthello size={50} color="#1a202c" />
+              <IconReversi size={50} color="#1a202c" />
             </div>
-            <h2 className={styles.cardTitle}>オセロ</h2>
+            <h2 className={styles.cardTitle}>リバーシ</h2>
             <p className={styles.cardDesc}>覚えるのは一分、極めるのは一生。石を挟んでひっくり返す。</p>
           </div>
         </Link>

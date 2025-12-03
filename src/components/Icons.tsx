@@ -93,7 +93,7 @@ export const IconShogi: React.FC<IconProps> = ({ size = 24, color = 'currentColo
     </svg>
 );
 
-export const IconOthello: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+export const IconReversi: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <circle cx="12" cy="12" r="10" />
         <circle cx="12" cy="12" r="4" fill={color} />

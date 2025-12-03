@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { IconShogi, IconChess, IconOthello, IconSwords } from '@/components/Icons';
+import { IconShogi, IconChess, IconReversi, IconSwords } from '@/components/Icons';
 
 export default function AboutPage() {
     return (
@@ -28,33 +28,33 @@ export default function AboutPage() {
                 <h2 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.5rem' }}>主な機能と特徴</h2>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px' }}>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '1.5rem' }}>🎮</span> 多彩なゲームラインナップ
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2d3748' }}>
+                            <IconShogi size={24} color="#2b6cb0" /> 多彩なゲームラインナップ
                         </h3>
-                        <p style={{ fontSize: '0.95rem' }}>
-                            将棋、チェス、オセロといった定番ゲームはもちろん、マンカラや五目並べなどの知育ゲーム、
+                        <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
+                            将棋、チェス、リバーシといった定番ゲームはもちろん、マンカラや五目並べなどの知育ゲーム、
                             そしてRPG要素を取り入れたオリジナルカードゲーム「Divine Duel」など、飽きのこないラインナップを用意しています。
                         </p>
                     </div>
 
-                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px' }}>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '1.5rem' }}>☁️</span> クラウドセーブ機能
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2d3748' }}>
+                            <IconSwords size={24} color="#805ad5" /> クラウドセーブ機能
                         </h3>
-                        <p style={{ fontSize: '0.95rem' }}>
+                        <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
                             Googleアカウントでログインすることで、ゲームの進行状況や作成したデッキデータをクラウドに保存できます。
                             PCで遊んだ続きをスマホで楽しむなど、デバイスを跨いだプレイが可能です。
                         </p>
                     </div>
 
-                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px' }}>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '1.5rem' }}>🤖</span> 賢いAIとの対戦
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2d3748' }}>
+                            <IconChess size={24} color="#2b6cb0" /> 賢いAIとの対戦
                         </h3>
-                        <p style={{ fontSize: '0.95rem' }}>
+                        <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
                             一人でも楽しめるよう、多くのゲームにCPU対戦モードを搭載しています。
-                            将棋やオセロでは、初心者から上級者まで楽しめるよう、AIの強さを調整しています。
+                            将棋やリバーシでは、初心者から上級者まで楽しめるよう、AIの強さを調整しています。
                         </p>
                     </div>
                 </div>

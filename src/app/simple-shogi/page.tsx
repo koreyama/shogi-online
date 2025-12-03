@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css'; // Reuse Othello/Connect4 styles or create new? Let's create new or copy.
+import styles from './page.module.css';
 import SimpleShogiBoard from '@/components/SimpleShogiBoard';
 import { Chat } from '@/components/Chat';
 import { createInitialState, getValidMoves, move } from '@/lib/simple-shogi/engine';

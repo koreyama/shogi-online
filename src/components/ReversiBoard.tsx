@@ -1,15 +1,15 @@
 import React from 'react';
-import styles from './OthelloBoard.module.css';
-import { BoardState, Coordinates } from '@/lib/othello/types';
+import styles from './ReversiBoard.module.css';
+import { BoardState, Coordinates } from '@/lib/reversi/types';
 
-interface OthelloBoardProps {
+interface ReversiBoardProps {
     board: BoardState;
     validMoves: Coordinates[];
     onCellClick: (x: number, y: number) => void;
     lastMove?: Coordinates;
 }
 
-export const OthelloBoard: React.FC<OthelloBoardProps> = ({ board, validMoves, onCellClick, lastMove }) => {
+export const ReversiBoard: React.FC<ReversiBoardProps> = ({ board, validMoves, onCellClick, lastMove }) => {
     return (
         <div className={styles.board}>
             {board.map((row, y) => (
