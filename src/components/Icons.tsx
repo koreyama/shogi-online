@@ -367,3 +367,34 @@ export const IconBoot: React.FC<IconProps> = ({ size = 24, color = 'currentColor
         <path d="M10 22v-8" />
     </svg>
 );
+export const IconBomb = ({ size = 24, color = "currentColor" }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="6" />
+        <path d="M12 2v4" />
+        <path d="M12 18v4" />
+        <path d="M2 12h4" />
+        <path d="M18 12h4" />
+        <path d="M4.93 4.93l2.83 2.83" />
+        <path d="M16.24 16.24l2.83 2.83" />
+        <path d="M4.93 19.07l2.83-2.83" />
+        <path d="M16.24 7.76l2.83-2.83" />
+    </svg>
+);
+
+export const IconFlag = ({ size = 24, color = "currentColor" }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+        <line x1="4" y1="22" x2="4" y2="15" />
+    </svg>
+);
+
+export const IconTrophy = ({ size = 24, color = "currentColor" }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 21h8" />
+        <path d="M12 17v4" />
+        <path d="M7 4h10" />
+        <path d="M17 4v8a5 5 0 0 1-10 0V4" />
+        <path d="M5 9v2a2 2 0 0 0 2 2" />
+        <path d="M19 9v2a2 2 0 0 1-2 2" />
+    </svg>
+);

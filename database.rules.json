@@ -1,0 +1,26 @@
+{
+    "rules": {
+        ".read": "now < 1766415600000",
+        ".write": "now < 1766415600000",
+        "minesweeper_scores": {
+            "初級": {
+                ".indexOn": [
+                    "time",
+                    "userId"
+                ]
+            },
+            "中級": {
+                ".indexOn": [
+                    "time",
+                    "userId"
+                ]
+            },
+            "上級": {
+                ".indexOn": [
+                    "time",
+                    "userId"
+                ]
+            }
+        }
+    }
+}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Added useRouter import
 import styles from './page.module.css';
-import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette, IconCheckers, IconConnect4, IconSwords } from '@/components/Icons';
+import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconUser, IconCards, IconPalette, IconCheckers, IconConnect4, IconSwords, IconBomb } from '@/components/Icons';
 import { IconKing } from '@/components/SimpleShogiIcons';
 import { usePlayer } from '@/hooks/usePlayer';
 
@@ -237,6 +237,18 @@ export default function Home() {
             <p className={styles.cardDesc}>斜めに進んで相手を飛び越える。連続ジャンプで逆転を狙え！</p>
           </div>
         </Link>
+
+        <Link href="/minesweeper" className={styles.gameCard}>
+          <div className={styles.cardContent}>
+            <div className={styles.iconWrapper}>
+              <IconBomb size={48} color="#e53e3e" />
+            </div>
+            <h2 className={styles.cardTitle}>マインスイーパー</h2>
+            <p className={styles.cardDesc}>爆弾を避けてマスを開けよう！</p>
+          </div>
+        </Link>
+
+
 
         <Link href="/mancala" className={styles.gameCard}>
           <div className={styles.cardContent}>

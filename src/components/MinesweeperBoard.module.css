@@ -1,0 +1,141 @@
+.board {
+    display: inline-block;
+    background-color: #e2e8f0;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 32px;
+    height: 32px;
+    margin: 2px;
+    border-radius: 4px;
+    background-color: #cbd5e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    color: transparent;
+    /* Hide text in hidden cells */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cell:hover:not(.revealed):not(.flagged) {
+    background-color: #a0aec0;
+    transform: translateY(-1px);
+}
+
+.cell:active:not(.revealed):not(.flagged) {
+    transform: translateY(0);
+    background-color: #718096;
+}
+
+.revealed {
+    background-color: #f7fafc;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    cursor: default;
+    color: inherit;
+    /* Show text */
+}
+
+.mine {
+    background-color: #fc8181;
+    color: #742a2a;
+    animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+.flagged {
+    color: #e53e3e;
+    /* Red flag */
+    background-color: #cbd5e0;
+    /* Keep hidden background */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes shake {
+
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+/* Number Colors - Modern Palette */
+.val1 {
+    color: #3182ce;
+}
+
+/* Blue */
+.val2 {
+    color: #38a169;
+}
+
+/* Green */
+.val3 {
+    color: #e53e3e;
+}
+
+/* Red */
+.val4 {
+    color: #805ad5;
+}
+
+/* Purple */
+.val5 {
+    color: #d69e2e;
+}
+
+/* Orange */
+.val6 {
+    color: #319795;
+}
+
+/* Teal */
+.val7 {
+    color: #2d3748;
+}
+
+/* Dark Gray */
+.val8 {
+    color: #718096;
+}
+
+/* Gray */
+
+@media (max-width: 600px) {
+    .board {
+        padding: 8px;
+    }
+
+    .cell {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+        margin: 1px;
+    }
+}
