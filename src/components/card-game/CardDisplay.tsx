@@ -9,9 +9,10 @@ interface CardDisplayProps {
     size?: 'small' | 'medium' | 'large';
     className?: string;
     disabled?: boolean;
+    overrideCost?: number;
 }
 
-export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 'medium', className = '', disabled = false }) => {
+export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 'medium', className = '', disabled = false, overrideCost }) => {
     const getIcon = () => {
         const iconSize = size === 'small' ? 24 : 48;
         const name = card.name;
@@ -89,7 +90,7 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 
             onClick={!disabled ? onClick : undefined}
         >
             <div className={styles.header}>
-                <span className={styles.cost}>{card.cost} MP</span>
+                <span className={styles.cost}>{overrideCost !== undefined ? overrideCost : card.cost} MP</span>
                 <span className={styles.name}>{card.name}</span>
             </div>
 

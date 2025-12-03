@@ -13,18 +13,21 @@ interface HandProps {
     cardsData: any;
     canDiscard: boolean;
     isManaChargeMode?: boolean;
-    onManaCharge?: (cardId: string) => void;
-    selectedCardIds?: string[];
+    onManaCharge?: (index: number) => void;
+    selectedCardIndices?: number[];
+    freeCardIds?: string[];
 }
 
-export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMyTurn, currentMp, cardsData, canDiscard, isManaChargeMode, onManaCharge, selectedCardIds = [] }) => {
+export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMyTurn, currentMp, cardsData, canDiscard, isManaChargeMode, onManaCharge, selectedCardIndices = [], freeCardIds = [] }) => {
     return (
         <div className={`${styles.handContainer} ${isManaChargeMode ? styles.manaChargeMode : ''}`}>
             {cardIds.map((cardId, index) => {
                 const card = cardsData[cardId];
-                const canPlay = isMyTurn && card && currentMp >= card.cost;
+                const isFree = freeCardIds.includes(cardId);
+                const effectiveCost = isFree ? 0 : card.cost;
+                const canPlay = isMyTurn && card && currentMp >= effectiveCost;
                 const canCharge = isMyTurn && isManaChargeMode;
-                const isSelected = selectedCardIds.includes(cardId);
+                const isSelected = selectedCardIndices.includes(index);
 
                 return (
                     <div key={`${cardId}-${index}`} className={styles.cardWrapper}>
@@ -32,7 +35,7 @@ export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMy
                             card={card}
                             onClick={() => {
                                 if (isManaChargeMode && onManaCharge) {
-                                    onManaCharge(cardId);
+                                    onManaCharge(index);
                                 } else if (canPlay) {
                                     onPlayCard(cardId);
                                 }
@@ -40,6 +43,7 @@ export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMy
                             disabled={!canPlay && !isManaChargeMode}
                             size="small"
                             className={`${isManaChargeMode ? styles.chargeTarget : ''} ${isSelected ? styles.selected : ''}`}
+                            overrideCost={isFree ? 0 : undefined}
                         />
                         {isMyTurn && canDiscard && onDiscard && !isManaChargeMode && (
                             <button

@@ -275,6 +275,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    position: relative;
+    /* For absolute positioning of confirm button */
 }
 
 .manaChargeBtn {
@@ -300,6 +302,15 @@
     transform: translateY(-1px);
 }
 
+.manaChargeBtn.confirm {
+    background: #22c55e;
+    animation: pulse 1s infinite;
+}
+
+.manaChargeBtn.cancel {
+    background: #ef4444;
+}
+
 .manaChargeBtn:disabled {
     background: #94a3b8;
     cursor: not-allowed;
@@ -311,22 +322,213 @@
     opacity: 0.9;
 }
 
-.executeChargeBtn {
-    padding: 0.4rem;
-    border-radius: 6px;
-    font-weight: bold;
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.discardBtn {
+    padding: 0.5rem;
+    border-radius: 8px;
     cursor: pointer;
-    background: #22c55e;
+    background: #64748b;
     color: white;
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-size: 0.8rem;
-    width: 100%;
-    animation: popIn 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: bold;
 }
 
-.executeChargeBtn:hover {
-    background: #16a34a;
+.discardBtn:hover {
+    background: #475569;
+}
+
+.ultimateBtn {
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: #331100;
+    border: 2px solid #ffcc00;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    position: relative;
+    overflow: hidden;
+    font-size: 0.9rem;
+}
+
+.ultimateBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
+    filter: brightness(1.1);
+}
+
+.ultimateBtn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.ultimateBtn:disabled {
+    background: #334155;
+    color: #64748b;
+    border-color: #475569;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.ultimateUsed {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.ultimateCost {
+    font-size: 0.7rem;
+    opacity: 0.9;
+}
+
+/* Add shine effect for ultimate button */
+.ultimateBtn:not(:disabled)::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    width: 100%;
+}
+
+.turnInfo {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: auto;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.turnInfo h2 {
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fieldLabel {
+    font-size: 0.7rem;
+    color: #aaa;
+    margin-bottom: 0.2rem;
+    letter-spacing: 2px;
+}
+
+.fieldCard {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.fieldCard.fire {
+    background: linear-gradient(45deg, #550000, #aa0000);
+    color: #ffcccc;
+    border: 1px solid #ff4444;
+}
+
+.fieldCard.earth {
+    background: linear-gradient(45deg, #332200, #664400);
+    color: #ffebcc;
+    border: 1px solid #ffaa44;
+}
+
+.fieldCard.holy {
+    border-color: #1e40af;
+}
+
+/* Button Styles */
+.actionButtons {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.manaChargeContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    position: relative;
+    /* For absolute positioning of confirm button */
+}
+
+.manaChargeBtn {
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    width: 100%;
+}
+
+.manaChargeBtn:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.manaChargeBtn.confirm {
+    background: #22c55e;
+    animation: pulse 1s infinite;
+}
+
+.manaChargeBtn.cancel {
+    background: #ef4444;
+}
+
+.manaChargeBtn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.chargeCount {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .discardBtn {
@@ -423,54 +625,119 @@
     overflow-y: auto;
 }
 
-/* Resize played card on mobile */
+/* Info Buttons (Graveyard, Mana) */
+.infoButtons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.infoBtn {
+    flex: 1;
+    padding: 0.4rem;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.infoBtn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+/* Full Screen Overlay (Desktop) */
+.overlayContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.overlayContentWrapper {
+    background: white;
+    width: 80%;
+    max-width: 800px;
+    height: 80%;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.overlayHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.overlayTitle {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.closeBtn {
+    background: #f1f5f9;
+    border: none;
+    color: #64748b;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.closeBtn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.overlayGrid {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-content: flex-start;
+    padding: 0.5rem;
+}
+
+.overlayCardWrapper {
+    transform: scale(0.9);
+    transition: transform 0.2s;
+}
+
+.overlayCardWrapper:hover {
+    transform: scale(1);
+    z-index: 10;
+}
+
+/* Mobile Responsiveness - Kept minimal for fallback */
 @media (max-width: 768px) {
-    .playedCard {
-        width: 100px !important;
-        height: 150px !important;
-        font-size: 0.7rem !important;
-    }
-
-    /* Adjust CardDisplay internals for the forced small size */
-    .playedCard :global(.header) {
-        padding: 0.2rem;
-    }
-
-    .playerArea {
-        flex-direction: column;
-        align-items: center;
+    .board {
+        height: 100dvh;
+        grid-template-rows: auto 1fr auto;
         padding: 0.5rem;
-        max-height: none;
         gap: 0.5rem;
+        overflow: hidden;
     }
 
-    .playerControls {
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .actionButtons {
-        width: auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-    }
-
-    .ultimateBtn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-    }
-
-    .discardBtn {
-        width: auto;
-        padding: 0.4rem 0.8rem;
-    }
-
-    .discardBtn span:last-child {
-        display: none;
-    }
+    /* ... other mobile styles can remain as fallback or be removed if MobileGameBoard covers everything */
 }

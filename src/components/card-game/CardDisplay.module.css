@@ -12,10 +12,81 @@
     box-sizing: border-box;
 }
 
+/* Header */
+.header {
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-gradient);
+    color: white;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 32px;
+    /* Fixed height */
+    box-sizing: border-box;
+}
+
 .small {
     width: 120px;
     height: 180px;
     font-size: 0.7rem;
+}
+
+.medium {
+    width: 200px;
+    height: 300px;
+    font-size: 1rem;
+}
+
+.large {
+    width: 300px;
+    height: 450px;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .small {
+        width: 100%;
+        /* Fill container (which is 80px) */
+        min-width: 80px;
+        /* Force minimum width */
+        height: 100%;
+        /* Fill container (which is 120px) */
+        font-size: 0.5rem;
+    }
+
+    .small .description {
+        height: 25px;
+        font-size: 0.7em;
+        line-height: 1.1;
+    }
+
+    .small .header {
+        height: 20px;
+        padding: 0.1rem 0.2rem;
+    }
+
+    .small .cost {
+        font-size: 0.7em;
+        padding: 0 3px;
+    }
+
+    .small .imageArea {
+        min-height: 30px;
+        padding: 0.2rem;
+    }
+
+    .small .body {
+        height: 40px;
+        padding: 0.2rem;
+        gap: 2px;
+    }
+
+    .small .footer {
+        height: 20px;
+        padding: 0.1rem;
+    }
 }
 
 .small .description {
@@ -31,21 +102,6 @@
 .small .value {
     font-size: 0.7em;
     padding: 0 2px;
-}
-
-/* Header */
-.header {
-    padding: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--card-gradient);
-    color: white;
-    font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    height: 32px;
-    /* Fixed height */
-    box-sizing: border-box;
 }
 
 .cost {

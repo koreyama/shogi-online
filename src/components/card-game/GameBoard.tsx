@@ -1,89 +1,141 @@
-import React, { useEffect, useRef } from 'react';
-import { GameState } from '@/lib/card-game/types';
+import React, { useState, useEffect, useRef } from 'react';
+import styles from './GameBoard.module.css';
+import { CardDisplay } from './CardDisplay';
+import { Hand } from './Hand';
+import { PlayerStatus } from './PlayerStatus';
 import { CARDS } from '@/lib/card-game/data/cards';
 import { AVATARS } from '@/lib/card-game/data/avatars';
-import { PlayerStatus } from './PlayerStatus';
-import { Hand } from './Hand';
-import { CardDisplay } from './CardDisplay';
-import { DiscardPileModal } from './DiscardPileModal';
-import styles from './GameBoard.module.css';
-
-import { useGameSound } from '@/hooks/useGameSound';
+import { GameState, Player } from '@/lib/card-game/types';
+import { MobileGameBoard } from './MobileGameBoard';
 
 interface GameBoardProps {
     gameState: GameState;
     myPlayerId: string;
-    onPlayCard: (cardId: string) => void;
-    onDiscardCard?: (cardId: string) => void;
+    onPlayCard: (cardId: string, targetId?: string, handIndex?: number) => void;
     onEndTurn: () => void;
-    onUseUltimate?: () => void;
-    onManaCharge?: (cardIds: string[]) => void;
+    onManaCharge: () => void;
+    onExecuteCharge: () => void;
+    onCancelCharge: () => void;
+    onUseUltimate: () => void;
 }
 
-export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onPlayCard, onDiscardCard, onEndTurn, onUseUltimate, onManaCharge }) => {
-    const myPlayer = gameState.players[myPlayerId];
-    const opponentId = Object.keys(gameState.players).find(id => id !== myPlayerId)!;
-    const opponent = gameState.players[opponentId];
-    const isMyTurn = gameState.turnPlayerId === myPlayerId;
+export const GameBoard: React.FC<GameBoardProps> = ({
+    gameState,
+    myPlayerId,
+    onPlayCard,
+    onEndTurn,
+    onManaCharge,
+    onExecuteCharge,
+    onCancelCharge,
+    onUseUltimate
+}) => {
+    const [showLog, setShowLog] = useState(false);
     const logEndRef = useRef<HTMLDivElement>(null);
+    const myPlayer = gameState.players[myPlayerId];
+    const opponentId = Object.keys(gameState.players).find(id => id !== myPlayerId) || '';
+    const opponent = gameState.players[opponentId];
 
-    const [showLog, setShowLog] = React.useState(false);
-    const [showDiscard, setShowDiscard] = React.useState(false);
-    const [isManaChargeMode, setIsManaChargeMode] = React.useState(false);
-    const { playCardPlaySound, playEndTurnSound, playWinSound, playLoseSound, playManaChargeSound } = useGameSound();
+    const [isMobileView, setIsMobileView] = useState(false);
+    const [showGraveyard, setShowGraveyard] = useState(false);
+    const [showManaZone, setShowManaZone] = useState(false);
 
-    // Sound Effects for Game State Changes
+    // Auto-detect mobile on mount
     useEffect(() => {
-        if (gameState.winner) {
-            if (gameState.winner === myPlayerId) {
-                playWinSound();
-            } else {
-                playLoseSound();
-            }
-        }
-    }, [gameState.winner, myPlayerId, playWinSound, playLoseSound]);
-
-    // Wrap handlers to add sound
-    const handlePlayCard = (cardId: string) => {
-        playCardPlaySound();
-        onPlayCard(cardId);
-    };
-
-    const [selectedManaChargeCards, setSelectedManaChargeCards] = React.useState<string[]>([]);
-
-    const handleManaChargeToggle = (cardId: string) => {
-        if (selectedManaChargeCards.includes(cardId)) {
-            setSelectedManaChargeCards(prev => prev.filter(id => id !== cardId));
-        } else {
-            if (selectedManaChargeCards.length < 3) {
-                setSelectedManaChargeCards(prev => [...prev, cardId]);
-            }
-        }
-    };
-
-    const executeManaCharge = () => {
-        if (onManaCharge && selectedManaChargeCards.length > 0) {
-            onManaCharge(selectedManaChargeCards);
-            setSelectedManaChargeCards([]);
-            setIsManaChargeMode(false);
-        }
-    };
-
-    const handleEndTurn = () => {
-        playEndTurnSound();
-        onEndTurn();
-    };
-
-    const handleUseUltimate = () => {
-        if (onUseUltimate) {
-            // playUltimateSound(); // Assuming we add this
-            onUseUltimate();
-        }
-    };
+        const checkMobile = () => {
+            setIsMobileView(window.innerWidth <= 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [gameState.log, showLog]);
+
+    // Safety check: If myPlayer is not found (e.g. during ID switch), don't render
+    if (!myPlayer) return <div className={styles.loading}>Loading player data...</div>;
+
+
+
+
+
+    const handlePlayCard = (cardId: string, targetId?: string, handIndex?: number) => {
+        if (gameState.turnPlayerId === myPlayerId) {
+            onPlayCard(cardId, targetId, handIndex);
+        }
+    };
+
+    // Mana Charge Button Logic (Desktop)
+    const isChargeMode = myPlayer.isManaChargeMode;
+    const selectedCount = myPlayer.selectedForCharge?.length || 0;
+
+    const handleManaChargeClick = () => {
+        if (isChargeMode) {
+            if (selectedCount > 0) {
+                onExecuteCharge(); // Confirm charge
+            } else {
+                onCancelCharge(); // Cancel mode
+            }
+        } else {
+            onManaCharge(); // Enter charge mode
+        }
+    };
+
+    const getManaChargeButtonText = () => {
+        if (!isChargeMode) return "マナチャージ";
+        return selectedCount > 0 ? "決定" : "キャンセル";
+    };
+
+    const getManaChargeButtonClass = () => {
+        if (!isChargeMode) return styles.manaChargeBtn;
+        return selectedCount > 0 ? `${styles.manaChargeBtn} ${styles.confirm}` : `${styles.manaChargeBtn} ${styles.cancel}`;
+    };
+
+
+
+    // ... (existing useEffects)
+
+    // ... (existing handlers)
+
+    if (isMobileView) {
+        return (
+            <>
+                <MobileGameBoard
+                    gameState={gameState}
+                    myPlayerId={myPlayerId}
+                    onPlayCard={handlePlayCard}
+                    onEndTurn={onEndTurn}
+                    onManaCharge={onManaCharge}
+                    onExecuteCharge={onExecuteCharge}
+                    onCancelCharge={onCancelCharge}
+                    onUseUltimate={onUseUltimate}
+                    onToggleLog={() => setShowLog(!showLog)}
+                    showLog={showLog}
+                />
+                {/* Debug: Toggle View */}
+                <button
+                    onClick={() => setIsMobileView(!isMobileView)}
+                    style={{
+                        position: 'fixed',
+                        top: 10,
+                        right: 10,
+                        zIndex: 1000,
+                        opacity: 0.8,
+                        background: '#334155',
+                        color: 'white',
+                        border: '1px solid #475569',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    PC View
+                </button>
+            </>
+        );
+    }
 
     return (
         <div className={styles.board}>
@@ -150,26 +202,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
                         </div>
                     )}
 
-                    {/* Trap Display (Player) */}
-                    {gameState.traps && gameState.traps.some(t => t.ownerId === myPlayerId) && (
-                        <div className={styles.playerTraps}>
-                            {gameState.traps.filter(t => t.ownerId === myPlayerId).map(t => (
-                                <div key={t.id} className={`${styles.trapCard} ${styles.myTrap}`} title="あなたの罠">
-                                    <div className={styles.trapLabel}>TRAP</div>
-                                    {t.name}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.turnInfo}>
-                    {gameState.winner ? (
+                    {gameState.winner && (
                         <div className={styles.winnerAnnouncement}>
-                            {gameState.winner === myPlayerId ? 'YOU WIN!' : 'YOU LOSE...'}
+                            {gameState.winner === myPlayerId ? 'VICTORY!' : 'DEFEAT...'}
                         </div>
-                    ) : (
-                        <h2>{isMyTurn ? 'あなたのターン' : '相手のターン'}</h2>
                     )}
                 </div>
             </div>
@@ -178,88 +214,117 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, myPlayerId, onP
             <div className={styles.playerArea}>
                 <div className={styles.playerControls}>
                     <PlayerStatus player={myPlayer} />
+
+                    {/* Info Buttons */}
+                    <div className={styles.infoButtons}>
+                        <button className={styles.infoBtn} onClick={() => setShowGraveyard(true)}>
+                            墓地 ({myPlayer.discardPile?.length || 0})
+                        </button>
+                        <button className={styles.infoBtn} onClick={() => setShowManaZone(true)}>
+                            マナ ({myPlayer.manaZone?.length || 0})
+                        </button>
+                    </div>
+
                     <div className={styles.actionButtons}>
                         <button
                             className={styles.endTurnBtn}
-                            onClick={handleEndTurn}
-                            disabled={!isMyTurn}
+                            onClick={onEndTurn}
+                            disabled={gameState.turnPlayerId !== myPlayerId}
                         >
                             ターン終了
                         </button>
 
-                        {/* Mana Charge Button */}
                         <div className={styles.manaChargeContainer}>
                             <button
-                                className={`${styles.manaChargeBtn} ${isManaChargeMode ? styles.active : ''}`}
-                                onClick={() => {
-                                    setIsManaChargeMode(!isManaChargeMode);
-                                    setSelectedManaChargeCards([]); // Reset selection on toggle
-                                }}
-                                disabled={!isMyTurn || (gameState.turnState.manaChargeCount || 0) >= 3}
-                                title="手札をマナゾーンに置いてMP+1 (ターン3回まで)"
+                                className={getManaChargeButtonClass()}
+                                onClick={handleManaChargeClick}
+                                disabled={gameState.turnPlayerId !== myPlayerId && !isChargeMode}
                             >
-                                {isManaChargeMode ? 'キャンセル' : 'マナチャージ'}
+                                {getManaChargeButtonText()}
                                 <span className={styles.chargeCount}>
-                                    {(gameState.turnState.manaChargeCount || 0)}/3
+                                    {isChargeMode ? `${selectedCount}枚選択中` : `(残り${3 - (gameState.turnState.manaChargeCount || 0)}回)`}
                                 </span>
                             </button>
-                            {isManaChargeMode && selectedManaChargeCards.length > 0 && (
-                                <button
-                                    className={styles.executeChargeBtn}
-                                    onClick={executeManaCharge}
-                                >
-                                    決定 ({selectedManaChargeCards.length})
-                                </button>
-                            )}
                         </div>
 
-                        {/* Discard Pile Button */}
-                        <button
-                            className={styles.discardBtn}
-                            onClick={() => setShowDiscard(true)}
-                            title="墓地を確認"
-                        >
-                            <span className={styles.discardIcon}>💀</span>
-                            <span className={styles.discardCount}>{myPlayer.discardPile?.length || 0}</span>
-                        </button>
-
-                        {/* Ultimate Button */}
                         <button
                             className={`${styles.ultimateBtn} ${myPlayer.ultimateUsed ? styles.ultimateUsed : ''}`}
-                            onClick={handleUseUltimate}
-                            disabled={!isMyTurn || myPlayer.ultimateUsed || myPlayer.mp < (AVATARS[myPlayer.avatarId]?.ultimateCost || 999)}
-                            title={AVATARS[myPlayer.avatarId]?.ultimateDescription}
+                            onClick={onUseUltimate}
+                            disabled={myPlayer.ultimateUsed || gameState.turnPlayerId !== myPlayerId}
                         >
-                            ULTIMATE
-                            <span className={styles.ultimateCost}>
-                                {AVATARS[myPlayer.avatarId]?.ultimateCost} MP
-                            </span>
+                            アルティメット
+                            <span className={styles.ultimateCost}>Cost: {AVATARS[myPlayer.avatarId]?.ultimateCost || 0}</span>
                         </button>
                     </div>
                 </div>
                 <Hand
                     cardIds={myPlayer.hand || []}
                     onPlayCard={handlePlayCard}
-                    onDiscard={(cardId) => {
-                        if (onDiscardCard) onDiscardCard(cardId);
-                    }}
-                    isMyTurn={isMyTurn}
+                    isMyTurn={gameState.turnPlayerId === myPlayerId}
+                    isManaChargeMode={myPlayer.isManaChargeMode}
+                    selectedCardIndices={myPlayer.selectedForCharge}
+                    onManaCharge={(index) => handlePlayCard(myPlayer.hand[index], undefined, index)}
                     currentMp={myPlayer.mp}
                     cardsData={CARDS}
-                    canDiscard={!gameState.turnState.hasDiscarded}
-                    isManaChargeMode={isManaChargeMode}
-                    onManaCharge={handleManaChargeToggle}
-                    selectedCardIds={selectedManaChargeCards}
+                    canDiscard={false}
+                    freeCardIds={gameState.turnState.freeCardIds}
                 />
             </div>
 
-            {/* Discard Pile Modal */}
-            {showDiscard && (
-                <DiscardPileModal
-                    cardIds={myPlayer.discardPile || []}
-                    onClose={() => setShowDiscard(false)}
-                />
+            {/* Overlays */}
+            {(showGraveyard || showManaZone) && (
+                <div className={styles.overlayContainer} onClick={() => { setShowGraveyard(false); setShowManaZone(false); }}>
+                    <div className={styles.overlayContentWrapper} onClick={e => e.stopPropagation()}>
+                        <div className={styles.overlayHeader}>
+                            <div className={styles.overlayTitle}>
+                                {showGraveyard ? '墓地 (Graveyard)' : 'マナゾーン (Mana Zone)'}
+                            </div>
+                            <button
+                                className={styles.closeBtn}
+                                onClick={() => {
+                                    setShowGraveyard(false);
+                                    setShowManaZone(false);
+                                }}
+                            >
+                                閉じる
+                            </button>
+                        </div>
+                        <div className={styles.overlayGrid}>
+                            {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).map((cardId: string, i: number) => (
+                                <div key={i} className={styles.overlayCardWrapper}>
+                                    <CardDisplay card={CARDS[cardId]} size="medium" />
+                                </div>
+                            ))}
+                            {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).length === 0 && (
+                                <div style={{ width: '100%', textAlign: 'center', color: '#94a3b8', marginTop: '2rem' }}>
+                                    カードがありません
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
+
+            {/* Debug: Toggle View */}
+            <button
+                onClick={() => setIsMobileView(!isMobileView)}
+                style={{
+                    position: 'fixed',
+                    top: 10,
+                    right: 10,
+                    zIndex: 1000,
+                    opacity: 0.8,
+                    background: '#334155',
+                    color: 'white',
+                    border: '1px solid #475569',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                }}
+            >
+                Mobile View
+            </button>
         </div>
     );
 };

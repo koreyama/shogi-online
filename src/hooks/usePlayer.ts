@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from './useAuth';
 
 const STORAGE_KEY_NAME = 'asobi_lounge_player_name';
 const STORAGE_KEY_ID = 'asobi_lounge_player_id';
 
 export const usePlayer = () => {
-    const [playerName, setPlayerName] = useState<string>('');
+    const { user } = useAuth();
+    const [localName, setLocalName] = useState<string>('');
     const [playerId, setPlayerId] = useState<string>('');
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -14,7 +16,7 @@ export const usePlayer = () => {
             const storedName = localStorage.getItem(STORAGE_KEY_NAME);
             const storedId = localStorage.getItem(STORAGE_KEY_ID);
 
-            if (storedName) setPlayerName(storedName);
+            if (storedName) setLocalName(storedName);
 
             if (storedId) {
                 setPlayerId(storedId);
@@ -31,9 +33,12 @@ export const usePlayer = () => {
     const savePlayerName = (name: string) => {
         if (typeof window !== 'undefined') {
             localStorage.setItem(STORAGE_KEY_NAME, name);
-            setPlayerName(name);
+            setLocalName(name);
         }
     };
+
+    // Googleログインしている場合はその名前を優先、なければローカル保存の名前
+    const playerName = user?.displayName || localName;
 
     return { playerName, playerId, isLoaded, savePlayerName };
 };

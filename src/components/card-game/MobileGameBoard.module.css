@@ -1,0 +1,376 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+.mobileBoard {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #f1f5f9;
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Top: Opponent Area */
+.opponentArea {
+    height: auto;
+    /* Allow auto height to fit content */
+    min-height: 90px;
+    /* Minimum height for status */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid #e2e8f0;
+    overflow: visible;
+    /* Allow overflow if needed */
+}
+
+.opponentHand {
+    display: flex;
+    gap: 2px;
+    height: 60px;
+    /* Fixed height for hand */
+    align-items: center;
+}
+
+.cardBack {
+    width: 30px;
+    height: 45px;
+    background-color: #94a3b8;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px);
+}
+
+/* Middle: Field Area */
+.fieldArea {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow: hidden;
+    padding: 1rem 0;
+    /* Add padding to push content away from edges */
+}
+
+.logToggleBtn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 20;
+    padding: 0.3rem 0.6rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.logOverlay {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    width: 200px;
+    max-height: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.5rem;
+    overflow-y: auto;
+    z-index: 30;
+    font-size: 0.7rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.activeField {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+.fieldLabel {
+    font-size: 0.6rem;
+    color: #aaa;
+    letter-spacing: 1px;
+}
+
+.fieldCard {
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+.fieldCard.fire {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.fieldCard.water {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-color: #93c5fd;
+}
+
+.fieldCard.wind {
+    background: #d1fae5;
+    color: #047857;
+    border-color: #6ee7b7;
+}
+
+.fieldCard.earth {
+    background: #fef3c7;
+    color: #b45309;
+    border-color: #fcd34d;
+}
+
+.fieldCard.holy {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.fieldCard.dark {
+    background: #f3f4f6;
+    color: #1f2937;
+    border-color: #d1d5db;
+}
+
+.playedCardContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.playedCard {
+    /* Ensure played card fits in mobile field */
+    transform: scale(0.9);
+}
+
+.winnerAnnouncement {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fbbf24;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    z-index: 50;
+    white-space: nowrap;
+}
+
+/* Bottom: Player Area */
+.playerArea {
+    height: 220px;
+    /* Increased height for stacked layout */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    /* Stack vertically */
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.playerStatusBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    height: 80px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.statusWrapper {
+    flex: 1;
+    /* Ensure status doesn't get crushed */
+    min-width: 0;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.endTurnBtn,
+.manaChargeBtn,
+.ultimateBtn {
+    width: auto;
+    /* Auto width for horizontal layout */
+    min-width: 60px;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    transition: all 0.1s;
+}
+
+.endTurnBtn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.manaChargeBtn {
+    background: #3b82f6;
+    color: white;
+}
+
+.manaChargeBtn.confirm {
+    background: #22c55e;
+    /* Green for confirm */
+    animation: pulse 1s infinite;
+}
+
+.manaChargeBtn.cancel {
+    background: #ef4444;
+    /* Red for cancel */
+}
+
+.ultimateBtn {
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: #331100;
+    border: 1px solid #ffcc00;
+}
+
+.ultimateBtn:disabled,
+.manaChargeBtn:disabled,
+.endTurnBtn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    border-color: #cbd5e1;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.subText,
+.ultimateCost {
+    font-size: 0.6rem;
+    opacity: 0.9;
+    font-weight: normal;
+}
+
+.handWrapper {
+    flex: 1;
+    width: 100%;
+    overflow-x: auto;
+    /* Horizontal scroll */
+    overflow-y: hidden;
+    padding: 0.5rem;
+    background: #f8fafc;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Info Buttons (Graveyard, Mana) */
+.infoButtons {
+    display: flex;
+    gap: 0.5rem;
+    position: absolute;
+    top: 10px;
+    left: 80px;
+    /* Right of log button */
+    z-index: 20;
+}
+
+.infoBtn {
+    padding: 0.3rem 0.6rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+
+/* Full Screen Overlay */
+.overlayContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.overlayHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.overlayTitle {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.overlayContent {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    align-content: flex-start;
+}
+
+.overlayCardWrapper {
+    transform: scale(0.8);
+    transform-origin: top center;
+    margin-bottom: -20px;
+    /* Compensate for scale */
+}

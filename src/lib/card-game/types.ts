@@ -51,7 +51,11 @@ export interface PlayerState {
     status: 'alive' | 'dead';
     money: number;
     ultimateUsed: boolean;
+    isManaChargeMode?: boolean;
+    selectedForCharge?: number[]; // Indices in hand
 }
+
+export type Player = PlayerState;
 
 export interface Field {
     cardId: string;

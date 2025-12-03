@@ -150,8 +150,12 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
         }
     }
 
-    if (!player.discardPile) player.discardPile = [];
-    player.discardPile.push(cardId);
+    // Only add to discard pile if it's a consumable (Weapon, Magic, Item)
+    // Armor, Enchantment, and Trap go to their respective slots/field.
+    if (card.type === 'weapon' || card.type === 'magic' || card.type === 'item') {
+        if (!player.discardPile) player.discardPile = [];
+        player.discardPile.push(cardId);
+    }
 
     addLog(state, `${player.name}は「${card.name}」を使用した！`);
     state.lastPlayedCard = {
@@ -664,7 +668,8 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
             }
             player.equipment.armor = cardId;
             player.equipment.armorDurability = card.durability !== undefined ? card.durability : 3; // Default 3
-            player.discardPile.pop(); // Remove from discard pile because it's now equipped
+            player.equipment.armorDurability = card.durability !== undefined ? card.durability : 3; // Default 3
+            // player.discardPile.pop(); // Removed because we no longer add armor to discard pile by default
             addLog(state, `${player.name}は「${card.name}」を装備した。(耐久:${player.equipment.armorDurability})`);
             break;
 
@@ -688,6 +693,16 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 effectId: card.effectId || ''
             });
             addLog(state, `${player.name}はカードを伏せた...`);
+            break;
+
+        case 'field':
+            // Set Field
+            state.field = {
+                cardId: card.id,
+                effectId: card.effectId || '',
+                name: card.name
+            };
+            addLog(state, `フィールドが「${card.name}」になった！`);
             break;
     }
 
@@ -878,45 +893,54 @@ export function endTurn(state: GameState): GameState {
     return { ...state };
 }
 
-export function manaCharge(state: GameState, playerId: string, cardIds: string[]): GameState {
+export function manaCharge(state: GameState, playerId: string, cardIndices: number[]): GameState {
     const newState = JSON.parse(JSON.stringify(state));
     const player = newState.players[playerId];
 
-    if (!player) return state;
+    if (!player || !player.hand) return state;
 
     // Check limit
     const currentChargeCount = newState.turnState.manaChargeCount || 0;
-    if (currentChargeCount + cardIds.length > 3) {
+    if (currentChargeCount + cardIndices.length > 3) {
         return state; // Exceeds limit
     }
 
+    // Sort indices descending to remove from end first (prevents shifting issues)
+    const sortedIndices = [...cardIndices].sort((a, b) => b - a);
+
     // Process each card
-    cardIds.forEach((cardId) => {
-        const cardIndex = player.hand.indexOf(cardId);
-        if (cardIndex === -1) return;
+    sortedIndices.forEach((index) => {
+        if (index >= 0 && index < player.hand.length) {
+            const cardId = player.hand[index]; // Get ID before splicing
+            player.hand.splice(index, 1); // Remove from hand
 
-        // Remove from hand
-        player.hand.splice(cardIndex, 1);
+            // Add to Mana Zone
+            if (!player.manaZone) player.manaZone = [];
+            player.manaZone.push(cardId);
 
-        // Add to Mana Zone (create if not exists)
-        if (!player.manaZone) {
-            player.manaZone = [];
+            player.mp += 1;
+            // if (player.mp > player.maxMp) player.mp = player.maxMp; // Allow MP to exceed max? Usually no, but mana charge increases capacity in some games. Here let's stick to maxMp or maybe increase maxMp?
+            // "Mana Charge" usually implies increasing capacity in Duel Masters, but here it says "MP+1". 
+            // If it's just restoring MP, it shouldn't exceed max. 
+            // But if it's "Charge", maybe it increases Max MP too?
+            // Let's assume it increases Max MP for now as that's typical for "Mana Zone" mechanics.
+            // Wait, previous code was `player.mp += 1`.
+            // Let's check `mana_recall` effect (line 541): `player.maxMp = Math.max(0, player.maxMp - 1)`.
+            // This implies Mana Zone cards *represent* Max MP.
+            // So adding to Mana Zone should increase Max MP.
+            // player.maxMp += 1; // Removed as per user request (Recovery only)
+            // player.mp += 1; // Removed duplicate increment
+
+            // Update charge count
+            newState.turnState.manaChargeCount = (newState.turnState.manaChargeCount || 0) + 1;
         }
-        player.manaZone.push(cardId);
-
-        // Gain MP
-        player.mp = Math.min(player.mp + 1, player.maxMp);
     });
 
-    // Update count
-    newState.turnState.manaChargeCount = currentChargeCount + cardIds.length;
+    addLog(newState, `${player.name}は${cardIndices.length}枚のカードをマナに変換した。(最大MP+${cardIndices.length})`);
 
-    // Log
-    newState.log.push({
-        id: crypto.randomUUID(),
-        text: `${player.name}は${cardIds.length}枚のカードをマナチャージしました`,
-        timestamp: Date.now()
-    });
+    // Reset mode and selection
+    player.isManaChargeMode = false;
+    player.selectedForCharge = [];
 
     return newState;
 }
@@ -975,4 +999,36 @@ function addLog(state: GameState, text: string) {
         text,
         timestamp: Date.now()
     });
+}
+
+export function toggleManaChargeMode(state: GameState, playerId: string): GameState {
+    const newState = JSON.parse(JSON.stringify(state));
+    const player = newState.players[playerId];
+    if (!player) return state;
+
+    player.isManaChargeMode = !player.isManaChargeMode;
+    player.selectedForCharge = []; // Reset selection when toggling
+
+    return newState;
+}
+
+export function selectCardForCharge(state: GameState, playerId: string, handIndex: number): GameState {
+    const newState = JSON.parse(JSON.stringify(state));
+    const player = newState.players[playerId];
+    if (!player || !player.isManaChargeMode) return state;
+
+    if (!player.selectedForCharge) player.selectedForCharge = [];
+
+    const index = player.selectedForCharge.indexOf(handIndex);
+    if (index === -1) {
+        // Add if not selected (Max 3)
+        if (player.selectedForCharge.length < 3) {
+            player.selectedForCharge.push(handIndex);
+        }
+    } else {
+        // Remove if already selected
+        player.selectedForCharge.splice(index, 1);
+    }
+
+    return newState;
 }
