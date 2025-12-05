@@ -1,69 +1,137 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 
-export default function PrivacyPage() {
+export default function PrivacyPolicyPage() {
     return (
-        <main style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem', fontFamily: 'sans-serif', lineHeight: '1.8', color: '#2d3748' }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '3rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '1rem', fontWeight: '800' }}>プライバシーポリシー</h1>
-
-            <div style={{ background: 'white', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                <p style={{ marginBottom: '2rem' }}>
-                    Asobi Lounge（以下，「当サイト」といいます。）は，本ウェブサイト上で提供するサービス（以下，「本サービス」といいます。）における，ユーザーの個人情報の取扱いについて，以下のとおりプライバシーポリシー（以下，「本ポリシー」といいます。）を定めます。
-                </p>
-
-                <section style={{ marginBottom: '3rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid #3182ce', paddingLeft: '1rem', color: '#2c5282' }}>第1条（個人情報の収集方法）</h2>
-                    <p>当サイトは，ユーザーが利用登録をする際にGoogleアカウント情報（氏名，メールアドレス，プロフィール画像等）を収集することがあります。また，ユーザーのゲームプレイ履歴，チャットログ等の情報を収集します。</p>
-                </section>
-
-                <section style={{ marginBottom: '3rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid #3182ce', paddingLeft: '1rem', color: '#2c5282' }}>第2条（個人情報の利用目的）</h2>
-                    <p>当サイトが個人情報を利用する目的は，以下のとおりです。</p>
-                    <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
-                        <li>本サービスの提供・運営のため</li>
-                        <li>ユーザーからのお問い合わせに回答するため</li>
-                        <li>利用規約に違反したユーザーや，不正・不当な目的でサービスを利用しようとするユーザーの特定をし，ご利用をお断りするため</li>
-                        <li>上記の利用目的に付随する目的</li>
-                    </ul>
-                </section>
-
-                <section style={{ marginBottom: '3rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid #3182ce', paddingLeft: '1rem', color: '#2c5282' }}>第3条（広告の配信について）</h2>
-                    <p style={{ marginBottom: '1rem' }}>当サイトでは、第三者配信の広告サービス（Googleアドセンス）を利用しています。</p>
-                    <p style={{ marginBottom: '1rem' }}>このような広告配信事業者は、ユーザーの興味に応じた商品やサービスの広告を表示するため、当サイトや他サイトへのアクセスに関する情報 『Cookie』(氏名、住所、メール アドレス、電話番号は含まれません) を使用することがあります。</p>
-                    <p>またGoogleアドセンスに関して、このプロセスの詳細やこのような情報が広告配信事業者に使用されないようにする方法については、<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener noreferrer" style={{ color: '#3182ce', textDecoration: 'underline' }}>こちら</a>をご覧ください。</p>
-                </section>
-
-                <section style={{ marginBottom: '3rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid #3182ce', paddingLeft: '1rem', color: '#2c5282' }}>第4条（アクセス解析ツールについて）</h2>
-                    <p>当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。</p>
-                    <p>このGoogleアナリティクスはトラフィックデータの収集のためにCookieを使用しています。このトラフィックデータは匿名で収集されており、個人を特定するものではありません。この機能はCookieを無効にすることで収集を拒否することが出来ますので、お使いのブラウザの設定をご確認ください。</p>
-                </section>
-
-                <section>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid #3182ce', paddingLeft: '1rem', color: '#2c5282' }}>第5条（お問い合わせ窓口）</h2>
-                    <p>本ポリシーに関するお問い合わせは，下記の窓口までお願いいたします。</p>
-                    <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '8px', marginTop: '1rem' }}>
-                        <p><strong>運営者:</strong> Asobi Lounge 運営事務局</p>
-                        <p><strong>お問い合わせ:</strong> <Link href="/contact" style={{ color: '#3182ce', textDecoration: 'underline' }}>お問い合わせフォーム</Link></p>
-                    </div>
-                </section>
-            </div>
-
-            <div style={{ marginTop: '4rem', textAlign: 'center' }}>
-                <Link href="/" style={{
-                    display: 'inline-block',
-                    padding: '0.8rem 2rem',
-                    background: '#edf2f7',
-                    color: '#4a5568',
-                    textDecoration: 'none',
-                    borderRadius: '30px',
-                    fontWeight: 'bold',
-                    transition: 'background 0.2s'
-                }}>
-                    トップページへ戻る
+        <main style={{ minHeight: '100vh', background: '#ffffff' }}>
+            {/* Navigation */}
+            <nav style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1.5rem 4rem',
+                borderBottom: '1px solid #edf2f7'
+            }}>
+                <Link href="/" style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1a202c', textDecoration: 'none' }}>
+                    Asobi Lounge
                 </Link>
-            </div>
+            </nav>
+
+            {/* Content */}
+            <article style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem 2rem' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1a202c', marginBottom: '2rem' }}>
+                    プライバシーポリシー
+                </h1>
+
+                <div style={{ color: '#4a5568', lineHeight: 1.8 }}>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        Asobi Lounge（以下「当サイト」）は、ユーザーのプライバシーを尊重し、
+                        個人情報の保護に努めています。本プライバシーポリシーでは、
+                        当サイトがどのような情報を収集し、どのように使用するかについて説明します。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        1. 収集する情報
+                    </h2>
+                    <p style={{ marginBottom: '1rem' }}>当サイトは以下の情報を収集することがあります：</p>
+                    <ul style={{ marginLeft: '1.5rem', marginBottom: '1.5rem' }}>
+                        <li style={{ marginBottom: '0.5rem' }}>Googleアカウントによるログイン時の基本情報（名前、メールアドレス、プロフィール画像）</li>
+                        <li style={{ marginBottom: '0.5rem' }}>ゲームの進行状況やスコア</li>
+                        <li style={{ marginBottom: '0.5rem' }}>サイトの利用状況に関する分析データ</li>
+                    </ul>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        2. 情報の利用目的
+                    </h2>
+                    <p style={{ marginBottom: '1rem' }}>収集した情報は以下の目的で使用します：</p>
+                    <ul style={{ marginLeft: '1.5rem', marginBottom: '1.5rem' }}>
+                        <li style={{ marginBottom: '0.5rem' }}>ユーザー認証とアカウント管理</li>
+                        <li style={{ marginBottom: '0.5rem' }}>ゲームデータのクラウド保存</li>
+                        <li style={{ marginBottom: '0.5rem' }}>ランキング機能の提供</li>
+                        <li style={{ marginBottom: '0.5rem' }}>サービスの改善と分析</li>
+                    </ul>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        3. 第三者への提供
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        当サイトは、法令に基づく場合を除き、ユーザーの同意なく個人情報を第三者に提供することはありません。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        4. Cookieの使用
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        当サイトでは、ユーザー体験の向上やアクセス解析のためにCookieを使用しています。
+                        ブラウザの設定によりCookieを無効にすることができますが、
+                        一部の機能が正常に動作しない場合があります。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        5. 広告について
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        当サイトでは、第三者配信の広告サービス（Google AdSenseなど）を利用することがあります。
+                        これらの広告配信事業者は、ユーザーの興味に応じた広告を表示するためにCookieを使用することがあります。
+                        Google AdSenseに関する詳細は、
+                        <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: '#3182ce' }}>
+                            Googleのポリシーと規約
+                        </a>
+                        をご確認ください。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        6. アクセス解析ツール
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        当サイトでは、Googleアナリティクスなどのアクセス解析ツールを使用することがあります。
+                        これらのツールはトラフィックデータの収集のためにCookieを使用しています。
+                        収集されるデータは匿名であり、個人を特定するものではありません。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        7. プライバシーポリシーの変更
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        当サイトは、必要に応じて本プライバシーポリシーを変更することがあります。
+                        重要な変更がある場合は、サイト上でお知らせします。
+                    </p>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a202c', marginTop: '2rem', marginBottom: '1rem' }}>
+                        8. お問い合わせ
+                    </h2>
+                    <p style={{ marginBottom: '1.5rem' }}>
+                        プライバシーポリシーに関するお問い合わせは、
+                        <Link href="/contact" style={{ color: '#3182ce' }}>お問い合わせページ</Link>
+                        よりご連絡ください。
+                    </p>
+
+                    <p style={{ marginTop: '3rem', color: '#718096', fontSize: '0.9rem' }}>
+                        最終更新日：2025年12月6日
+                    </p>
+                </div>
+            </article>
+
+            {/* Footer */}
+            <footer style={{
+                padding: '2rem 4rem',
+                borderTop: '1px solid #edf2f7',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                color: '#718096',
+                fontSize: '0.85rem'
+            }}>
+                <div>© 2025 Asobi Lounge</div>
+                <div style={{ display: 'flex', gap: '2rem' }}>
+                    <Link href="/about" style={{ color: '#718096', textDecoration: 'none' }}>About</Link>
+                    <Link href="/terms" style={{ color: '#718096', textDecoration: 'none' }}>利用規約</Link>
+                    <Link href="/privacy" style={{ color: '#718096', textDecoration: 'none' }}>プライバシーポリシー</Link>
+                    <Link href="/contact" style={{ color: '#718096', textDecoration: 'none' }}>お問い合わせ</Link>
+                </div>
+            </footer>
         </main>
     );
 }

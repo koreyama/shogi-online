@@ -41,14 +41,17 @@
 }
 
 .title {
-  font-size: 4rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 50%, #1a365d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
   position: relative;
   z-index: 1;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .subtitle {

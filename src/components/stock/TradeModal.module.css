@@ -1,0 +1,298 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.header h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1a202c;
+}
+
+.stockName {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.closeBtn:hover {
+    color: #4a5568;
+}
+
+.priceInfo {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.currentPrice {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.change {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.change.up {
+    color: #38a169;
+}
+
+.change.down {
+    color: #e53e3e;
+}
+
+/* Chart */
+.chartSection {
+    margin-bottom: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.chartPeriods {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.periodBtn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #718096;
+    transition: all 0.15s;
+}
+
+.periodBtn:hover {
+    border-color: #3182ce;
+    color: #3182ce;
+}
+
+.periodBtn.active {
+    background: #3182ce;
+    border-color: #3182ce;
+    color: white;
+}
+
+/* Position Info */
+.positionInfo {
+    background: #f7fafc;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.positionRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #4a5568;
+    margin-bottom: 4px;
+}
+
+.positionRow:last-child {
+    margin-bottom: 0;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #4a5568;
+}
+
+.tab:hover:not(.disabled) {
+    border-color: #3182ce;
+    color: #3182ce;
+}
+
+.tab.active {
+    background: #3182ce;
+    border-color: #3182ce;
+    color: white;
+}
+
+.tab.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.inputGroup {
+    margin-bottom: 16px;
+}
+
+.inputGroup label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #3182ce;
+}
+
+.unit {
+    font-weight: 500;
+    color: #718096;
+}
+
+.maxBtn {
+    padding: 8px 12px;
+    background: #edf2f7;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #4a5568;
+    transition: background 0.15s;
+}
+
+.maxBtn:hover {
+    background: #e2e8f0;
+}
+
+.maxInfo {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-top: 6px;
+}
+
+.summary {
+    background: #f7fafc;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.summaryRow:last-child {
+    margin-bottom: 0;
+}
+
+.totalAmount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.submitBtn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.submitBtn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.submitBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.buyBtn {
+    background: #38a169;
+}
+
+.sellBtn {
+    background: #e53e3e;
+}
+
+.up {
+    color: #38a169;
+}
+
+.down {
+    color: #e53e3e;
+}

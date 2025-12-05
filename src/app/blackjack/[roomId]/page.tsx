@@ -1,153 +1,318 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import styles from '../../page.module.css'; // Use shared styles or create new one? 
-// Actually, I should probably use a local module css or reuse one. 
-// Let's assume I can use inline styles or a simple module if I don't want to create a new css file.
-// But for consistency I should probably create page.module.css too.
-// For now, I'll use inline styles for the main container and reuse global classes if possible, 
-// but since I can't easily verify global classes, I'll create a simple css file.
-// Wait, I can import styles from '../page.module.css' if I put it in `src/app/blackjack`.
-// Let's create `src/app/blackjack/page.module.css` as well.
-
-import { IconBack, IconCards } from '@/components/Icons';
-
 export const runtime = 'edge';
 
-export default function BlackjackPage() {
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import styles from './page.module.css';
+import { db } from '@/lib/firebase';
+import { ref, onValue, update, remove, runTransaction } from 'firebase/database';
+import { usePlayer } from '@/hooks/usePlayer';
+import { Card as CardType } from '@/lib/trump/types';
+import { Card } from '@/components/trump/Card';
+import { Deck } from '@/lib/trump/deck';
+import { BlackjackEngine } from '@/lib/blackjack/engine';
+import { IconBack } from '@/components/Icons';
+
+interface BlackjackRoomState {
+    roomId: string;
+    hostId: string;
+    status: 'waiting' | 'playing' | 'finished';
+    playerHand: CardType[];
+    dealerHand: CardType[];
+    dealerHidden: boolean;
+    deck: CardType[];
+    result?: 'win' | 'lose' | 'push' | 'blackjack';
+    createdAt: number;
+}
+
+export default function BlackjackGamePage() {
+    const params = useParams();
     const router = useRouter();
+    const roomId = params.roomId as string;
+    const { playerId, isLoaded } = usePlayer();
+
+    const [room, setRoom] = useState<BlackjackRoomState | null>(null);
+    const [engine] = useState(() => new BlackjackEngine());
+
+    // Subscribe to room
+    useEffect(() => {
+        if (!roomId) return;
+
+        const roomRef = ref(db, `blackjack_rooms/${roomId}`);
+        const unsubscribe = onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setRoom(data);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [roomId]);
+
+    // Calculate hand values
+    const playerHandValue = room?.playerHand ? engine.calculateHandValue(room.playerHand) : null;
+    const dealerHandValue = room?.dealerHand ? engine.calculateHandValue(
+        room.dealerHidden ? [room.dealerHand[0]] : room.dealerHand
+    ) : null;
+    const fullDealerValue = room?.dealerHand ? engine.calculateHandValue(room.dealerHand) : null;
+
+    // Start new game
+    const handleStartGame = async () => {
+        if (!roomId || !playerId) return;
+
+        const deck = new Deck(0); // No jokers
+        deck.shuffle();
+        const cards = deck.getCards();
+
+        // Deal: Player gets 2, Dealer gets 2
+        const playerCards = [cards.pop()!, cards.pop()!];
+        const dealerCards = [cards.pop()!, cards.pop()!];
+
+        const playerHand = engine.calculateHandValue(playerCards);
+        const dealerHand = engine.calculateHandValue(dealerCards);
+
+        let result: string | undefined;
+        let dealerHidden = true;
+
+        // Check for immediate blackjack
+        if (playerHand.isBlackjack && dealerHand.isBlackjack) {
+            result = 'push';
+            dealerHidden = false;
+        } else if (playerHand.isBlackjack) {
+            result = 'blackjack';
+            dealerHidden = false;
+        } else if (dealerHand.isBlackjack) {
+            result = 'lose';
+            dealerHidden = false;
+        }
+
+        await update(ref(db, `blackjack_rooms/${roomId}`), {
+            status: result ? 'finished' : 'playing',
+            playerHand: playerCards,
+            dealerHand: dealerCards,
+            dealerHidden,
+            deck: cards,
+            result: result || null
+        });
+    };
+
+    // Hit action
+    const handleHit = async () => {
+        if (!room || room.status !== 'playing' || !playerHandValue) return;
+
+        const roomRef = ref(db, `blackjack_rooms/${roomId}`);
+        await runTransaction(roomRef, (current) => {
+            if (!current || current.status !== 'playing') return current;
+
+            const newCard = current.deck.pop();
+            const newPlayerHand = [...current.playerHand, newCard];
+            const handValue = engine.calculateHandValue(newPlayerHand);
+
+            current.playerHand = newPlayerHand;
+
+            if (handValue.isBusted) {
+                current.status = 'finished';
+                current.result = 'lose';
+                current.dealerHidden = false;
+            }
+
+            return current;
+        });
+    };
+
+    // Stand action
+    const handleStand = async () => {
+        if (!room || room.status !== 'playing') return;
+
+        const roomRef = ref(db, `blackjack_rooms/${roomId}`);
+        await runTransaction(roomRef, (current) => {
+            if (!current || current.status !== 'playing') return current;
+
+            // Dealer plays
+            let dealerCards = [...current.dealerHand];
+            let dealerHand = engine.calculateHandValue(dealerCards);
+
+            while (dealerHand.value < 17) {
+                const newCard = current.deck.pop();
+                dealerCards.push(newCard);
+                dealerHand = engine.calculateHandValue(dealerCards);
+            }
+
+            current.dealerHand = dealerCards;
+            current.dealerHidden = false;
+
+            // Determine result
+            const playerHand = engine.calculateHandValue(current.playerHand);
+            current.result = engine.determineResult(playerHand, dealerHand);
+            current.status = 'finished';
+
+            return current;
+        });
+    };
+
+    // Double down
+    const handleDouble = async () => {
+        if (!room || room.status !== 'playing' || !playerHandValue || room.playerHand.length !== 2) return;
+
+        const roomRef = ref(db, `blackjack_rooms/${roomId}`);
+        await runTransaction(roomRef, (current) => {
+            if (!current || current.status !== 'playing') return current;
+
+            // Draw one card
+            const newCard = current.deck.pop();
+            const newPlayerHand = [...current.playerHand, newCard];
+            const playerHand = engine.calculateHandValue(newPlayerHand);
+            current.playerHand = newPlayerHand;
+
+            if (playerHand.isBusted) {
+                current.status = 'finished';
+                current.result = 'lose';
+                current.dealerHidden = false;
+                return current;
+            }
+
+            // Dealer plays
+            let dealerCards = [...current.dealerHand];
+            let dealerHand = engine.calculateHandValue(dealerCards);
+
+            while (dealerHand.value < 17) {
+                const newDealerCard = current.deck.pop();
+                dealerCards.push(newDealerCard);
+                dealerHand = engine.calculateHandValue(dealerCards);
+            }
+
+            current.dealerHand = dealerCards;
+            current.dealerHidden = false;
+            current.result = engine.determineResult(playerHand, dealerHand);
+            current.status = 'finished';
+
+            return current;
+        });
+    };
+
+    // Leave room
+    const handleLeaveRoom = async () => {
+        if (!roomId) return;
+        await remove(ref(db, `blackjack_rooms/${roomId}`));
+        router.push('/trump');
+    };
+
+    if (!isLoaded || !room) {
+        return <div className={styles.loading}>読み込み中...</div>;
+    }
+
+    // Waiting screen
+    if (room.status === 'waiting' || !room.playerHand) {
+        return (
+            <main className={styles.main}>
+                <div className={styles.lobbyContainer}>
+                    <h1 className={styles.title}>ブラックジャック</h1>
+                    <button onClick={handleStartGame} className={styles.startBtn}>
+                        ゲーム開始
+                    </button>
+                    <button onClick={handleLeaveRoom} className={styles.leaveBtn}>
+                        退出する
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    const canHit = room.status === 'playing' && playerHandValue && !playerHandValue.isBusted && playerHandValue.value < 21;
+    const canDouble = room.status === 'playing' && room.playerHand.length === 2;
 
     return (
-        <main style={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100vh',
-            padding: '2rem',
-            background: '#f7fafc',
-            fontFamily: '"Inter", sans-serif'
-        }}>
-            <div style={{ marginBottom: '2rem' }}>
-                <button
-                    onClick={() => router.push('/trump')}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        border: 'none',
-                        background: 'none',
-                        cursor: 'pointer',
-                        color: '#4a5568',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    <IconBack size={20} /> 戻る
+        <main className={styles.main}>
+            <div className={styles.header}>
+                <button onClick={handleLeaveRoom} className={styles.backButton}>
+                    <IconBack size={20} /> 終了
                 </button>
+                <div className={styles.gameInfo}>ブラックジャック</div>
             </div>
 
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                marginBottom: '4rem'
-            }}>
-                <div style={{ marginBottom: '1.5rem', color: '#2d3748' }}>
-                    <IconCards size={80} />
+            <div className={styles.tableContainer}>
+                {/* Dealer Area */}
+                <div className={styles.dealerArea}>
+                    <div className={styles.areaLabel}>ディーラー</div>
+                    <div className={styles.cardsRow}>
+                        {room.dealerHand.map((card, i) => (
+                            <div key={i} className={styles.cardWrapper}>
+                                <Card
+                                    card={card}
+                                    isBack={room.dealerHidden && i === 1}
+                                    width={70}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <div className={styles.handValue}>
+                        {room.dealerHidden
+                            ? `${dealerHandValue?.value || 0}+?`
+                            : fullDealerValue?.value || 0
+                        }
+                    </div>
                 </div>
-                <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#1a202c' }}>ブラックジャック</h1>
-                <p style={{ fontSize: '1.25rem', color: '#4a5568', marginBottom: '2rem' }}>
-                    現在開発中です。公開までしばらくお待ちください。
-                </p>
-                <div style={{
-                    padding: '1rem 2rem',
-                    background: '#edf2f7',
-                    borderRadius: '8px',
-                    color: '#2d3748',
-                    fontWeight: 'bold'
-                }}>
-                    Coming Soon...
+
+                {/* Result */}
+                {room.result && (
+                    <div className={`${styles.resultBanner} ${styles[room.result]}`}>
+                        {room.result === 'win' && '勝利！'}
+                        {room.result === 'lose' && '敗北...'}
+                        {room.result === 'push' && '引き分け'}
+                        {room.result === 'blackjack' && 'ブラックジャック！'}
+                    </div>
+                )}
+
+                {/* Player Area */}
+                <div className={styles.playerArea}>
+                    <div className={styles.areaLabel}>あなた</div>
+                    <div className={styles.cardsRow}>
+                        {room.playerHand.map((card, i) => (
+                            <div key={i} className={styles.cardWrapper}>
+                                <Card card={card} width={70} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className={styles.handValue}>
+                        {playerHandValue?.value || 0}
+                        {playerHandValue?.isBusted && ' (バースト)'}
+                    </div>
                 </div>
             </div>
 
-            {/* AdSense Content Section */}
-            <div className="contentSection" style={{
-                background: 'white',
-                padding: '2rem',
-                borderRadius: '12px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-                maxWidth: '800px',
-                margin: '0 auto',
-                width: '100%'
-            }}>
-                <h2 style={{
-                    fontSize: '1.5rem',
-                    borderBottom: '2px solid #e2e8f0',
-                    paddingBottom: '0.5rem',
-                    marginBottom: '1.5rem',
-                    color: '#2d3748'
-                }}>
-                    ブラックジャックの遊び方
-                </h2>
-
-                <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '1.5rem' }}>🃏</span>
-                        <h3 style={{ fontSize: '1.25rem', margin: 0, color: '#2d3748' }}>カジノの王様</h3>
-                    </div>
-                    <p style={{ lineHeight: '1.6', color: '#4a5568' }}>
-                        ブラックジャックは、ディーラー（親）とプレイヤー（子）が対戦するカードゲームです。
-                        手持ちのカードの合計点数を「21」に近づけることを目指しますが、21を超えてはいけません。
-                        運だけでなく、確率に基づいた判断（戦略）が勝敗を分ける、奥深いゲームです。
-                    </p>
-                </div>
-
-                <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '1.5rem' }}>📏</span>
-                        <h3 style={{ fontSize: '1.25rem', margin: 0, color: '#2d3748' }}>基本ルール</h3>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                        <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#2d3748' }}>1. カードの数え方</span>
-                            <p style={{ fontSize: '0.9rem', color: '#4a5568', margin: 0 }}>
-                                2〜9はそのまま、10・J・Q・Kはすべて「10」と数えます。A（エース）は「1」か「11」の都合の良い方で数えられます。
-                            </p>
-                        </div>
-                        <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#2d3748' }}>2. アクション</span>
-                            <p style={{ fontSize: '0.9rem', color: '#4a5568', margin: 0 }}>
-                                カードをもう1枚引く「ヒット」、今の点数で勝負する「スタンド」などを選択します。
-                            </p>
-                        </div>
-                        <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#2d3748' }}>3. 勝敗</span>
-                            <p style={{ fontSize: '0.9rem', color: '#4a5568', margin: 0 }}>
-                                ディーラーより21に近ければ勝ち。21を超えると「バースト」で負けとなります。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '1.5rem' }}>💡</span>
-                        <h3 style={{ fontSize: '1.25rem', margin: 0, color: '#2d3748' }}>ベーシックストラテジー</h3>
-                    </div>
-                    <p style={{ lineHeight: '1.6', color: '#4a5568', marginBottom: '1rem' }}>
-                        自分の手札とディーラーの表向きのカード（アップカード）の組み合わせによって、確率的に最適なアクションが決まっています。
-                    </p>
-                    <div style={{ padding: '1rem', background: '#fff5f5', borderRadius: '8px', borderLeft: '4px solid #fc8181' }}>
-                        <span style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#c53030' }}>セオリーの例</span>
-                        <p style={{ margin: 0, color: '#2d3748' }}>
-                            ・手札が11以下のときは必ずヒットする。<br />
-                            ・手札が17以上のときは必ずスタンドする。<br />
-                            ・ディーラーのアップカードが弱い（2〜6）ときは、バーストを期待して無理に引かない。
-                        </p>
-                    </div>
-                </div>
+            <div className={styles.controls}>
+                {room.status === 'playing' ? (
+                    <>
+                        <button
+                            onClick={handleHit}
+                            className={`${styles.actionBtn} ${styles.hitBtn}`}
+                            disabled={!canHit}
+                        >
+                            ヒット
+                        </button>
+                        <button
+                            onClick={handleStand}
+                            className={`${styles.actionBtn} ${styles.standBtn}`}
+                        >
+                            スタンド
+                        </button>
+                        <button
+                            onClick={handleDouble}
+                            className={`${styles.actionBtn} ${styles.doubleBtn}`}
+                            disabled={!canDouble}
+                        >
+                            ダブル
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={handleStartGame}
+                        className={`${styles.actionBtn} ${styles.newGameBtn}`}
+                    >
+                        もう一度
+                    </button>
+                )}
             </div>
         </main>
     );

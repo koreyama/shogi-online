@@ -18,6 +18,8 @@ const Footer = () => {
                 marginBottom: '1rem',
                 fontSize: '0.9rem'
             }}>
+                <Link href="/about" style={{ textDecoration: 'none', color: 'inherit' }}>About</Link>
+                <Link href="/blog" style={{ textDecoration: 'none', color: 'inherit' }}>Blog</Link>
                 <Link href="/terms" style={{ textDecoration: 'none', color: 'inherit' }}>利用規約</Link>
                 <Link href="/privacy" style={{ textDecoration: 'none', color: 'inherit' }}>プライバシーポリシー</Link>
                 <Link href="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>お問い合わせ</Link>

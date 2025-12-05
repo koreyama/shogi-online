@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://asobi-lounge.vercel.app/sitemap.xml

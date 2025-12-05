@@ -1,7 +1,7 @@
 .main {
     height: 100vh;
     width: 100vw;
-    background: #f0f2f5;
+    background: linear-gradient(135deg, #1a365d 0%, #0a1628 100%);
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -10,34 +10,32 @@
 }
 
 .gameHeader {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 100;
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    margin: 0;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 200;
 }
 
 .backButton {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
     border: none;
-    color: #333;
+    color: #1a202c;
     font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
+    padding: 10px 16px;
+    border-radius: 10px;
     transition: all 0.2s;
-    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .backButton:hover {
-    background: rgba(255, 255, 255, 1);
-    color: #000;
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .gameInfo {
@@ -47,58 +45,68 @@
 .tableContainer {
     width: 100%;
     height: 100%;
-    position: relative;
-    background: #2d3748;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .actionControls {
     position: fixed;
-    bottom: 2rem;
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 1rem;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 1rem 2rem;
+    gap: 12px;
+    z-index: 200;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 24px;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(10px);
 }
 
 .actionBtn {
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
+    padding: 12px 28px;
+    border-radius: 10px;
     border: none;
-    background: linear-gradient(135deg, #333 0%, #000 100%);
-    color: white;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 120px;
+    min-width: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .actionBtn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .actionBtn:disabled {
-    background: #ccc;
+    background: #ccc !important;
     cursor: not-allowed;
     transform: none;
+    opacity: 0.7;
 }
 
-.passBtn {
-    background: white;
-    border: 2px solid #333;
-    color: #333;
+/* Fold Button */
+.foldBtn {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
 }
 
-.passBtn:hover {
-    background: #f8f9fa;
+/* Check/Call Button */
+.checkBtn,
+.callBtn {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+}
+
+/* Raise Button */
+.raiseBtn {
+    background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%);
+    color: #1a202c;
 }
 
 .loading {

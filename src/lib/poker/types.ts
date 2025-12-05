@@ -28,6 +28,7 @@ export interface PokerPlayer {
     role: 'player' | 'spectator';
     isAi: boolean;
     lastAction?: 'fold' | 'check' | 'call' | 'raise' | 'allin' | null;
+    hasActedThisRound: boolean; // Track if player acted in current betting round
 }
 
 export interface PokerGameState {
@@ -44,6 +45,7 @@ export interface PokerGameState {
     winners: string[];
     winningHand?: string; // Description of winning hand
     history: string[];
+    lastAggressorId?: string | null; // Player who made last raise/bet - round ends when back to them
 }
 
 export interface PokerAction {

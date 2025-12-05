@@ -1,0 +1,521 @@
+.main {
+    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 0;
+    color: #1a202c;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 1rem;
+    color: #718096;
+}
+
+/* Header */
+.header {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.backBtn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.title {
+    flex: 1;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #1a202c;
+}
+
+.refreshBtn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.refreshBtn:hover:not(:disabled) {
+    background: #f7fafc;
+}
+
+.refreshBtn:disabled {
+    opacity: 0.5;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.success {
+    background: #48bb78;
+    color: white;
+}
+
+.toast.error {
+    background: #e53e3e;
+    color: white;
+}
+
+/* Portfolio Section */
+.portfolioSection {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 24px;
+}
+
+.portfolioCard {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.portfolioMain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 12px;
+}
+
+.totalValue,
+.totalProfit {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 0.75rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.totalValue .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.totalProfit .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.totalProfit.up .value {
+    color: #38a169;
+}
+
+.totalProfit.down .value {
+    color: #e53e3e;
+}
+
+.cashDisplay {
+    font-size: 0.85rem;
+    color: #718096;
+    padding-top: 12px;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.syncStatus {
+    font-size: 0.75rem;
+}
+
+.cloudSync {
+    color: #38a169;
+}
+
+.syncing {
+    color: #ecc94b;
+}
+
+.localOnly {
+    color: #a0aec0;
+}
+
+/* Search Section */
+.searchSection {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+}
+
+.searchWrapper {
+    position: relative;
+    max-width: 500px;
+}
+
+.searchBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+.searchBar svg {
+    color: #a0aec0;
+    flex-shrink: 0;
+}
+
+.searchInput {
+    flex: 1;
+    border: none;
+    font-size: 0.95rem;
+    outline: none;
+    min-width: 0;
+}
+
+.searchInput::placeholder {
+    color: #a0aec0;
+}
+
+.searchBtn {
+    background: #3182ce;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.searchBtn:hover:not(:disabled) {
+    background: #2c5282;
+}
+
+.searchBtn:disabled {
+    opacity: 0.6;
+}
+
+/* Search Suggestions */
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    padding: 0;
+    z-index: 50;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.suggestionItem {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.suggestionItem:last-child {
+    border-bottom: none;
+}
+
+.suggestionItem:hover {
+    background: #f7fafc;
+}
+
+.suggestionSymbol {
+    font-weight: 600;
+    color: #2d3748;
+    min-width: 80px;
+}
+
+.suggestionName {
+    color: #718096;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.searchError {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #e53e3e;
+}
+
+.searchResult {
+    margin-top: 12px;
+    max-width: 220px;
+}
+
+/* Content Layout */
+.content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+}
+
+/* Stocks Section */
+.stocksSection {
+    min-width: 0;
+}
+
+.sectionTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.updateTime {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    font-weight: normal;
+}
+
+.stockGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+/* Sidebar */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.positionsCard,
+.leaderboardCard {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.positionsCard h3,
+.leaderboardCard h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.noPositions,
+.noData {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    text-align: center;
+    padding: 24px 0;
+}
+
+.positionList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.positionItem {
+    padding: 10px;
+    margin: 0 -10px;
+    border-radius: 6px;
+    border-bottom: 1px solid #edf2f7;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.positionItem:hover {
+    background: #f7fafc;
+}
+
+.positionItem:last-child {
+    border-bottom: none;
+}
+
+.positionHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.positionSymbol {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2d3748;
+}
+
+.positionShares {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.positionValue {
+    font-size: 0.85rem;
+    display: flex;
+    gap: 8px;
+    color: #4a5568;
+}
+
+.positionValue .up {
+    color: #38a169;
+}
+
+.positionValue .down {
+    color: #e53e3e;
+}
+
+/* Leaderboard */
+.leaderboardList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.leaderboardItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 0.85rem;
+}
+
+.leaderboardItem:last-child {
+    border-bottom: none;
+}
+
+.leaderboardItem.isMe {
+    background: #ebf8ff;
+    margin: 0 -16px;
+    padding: 8px 16px;
+}
+
+.rank {
+    width: 24px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.playerName {
+    flex: 1;
+    color: #2d3748;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playerValue {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.up {
+    color: #38a169;
+}
+
+.down {
+    color: #e53e3e;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        order: -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        padding: 12px 16px;
+    }
+
+    .content {
+        padding: 16px;
+    }
+
+    .portfolioSection {
+        padding: 16px;
+    }
+
+    .portfolioMain {
+        gap: 20px;
+    }
+
+    .totalValue .value {
+        font-size: 1.4rem;
+    }
+
+    .stockGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sidebar {
+        grid-template-columns: 1fr;
+    }
+}

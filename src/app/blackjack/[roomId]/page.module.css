@@ -1,0 +1,223 @@
+.main {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.backButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.gameInfo {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tableContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.dealerArea {
+    text-align: center;
+}
+
+.areaLabel {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.handValue {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    color: #ffd700;
+}
+
+.cardsRow {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cardWrapper {
+    width: 70px;
+    height: 98px;
+}
+
+.playerArea {
+    text-align: center;
+}
+
+.resultBanner {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    animation: pulse 1s infinite;
+}
+
+.resultBanner.win {
+    background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);
+}
+
+.resultBanner.lose {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+}
+
+.resultBanner.push {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+}
+
+.resultBanner.blackjack {
+    background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.actionBtn {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 120px;
+}
+
+.actionBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.actionBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.hitBtn {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+}
+
+.standBtn {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+}
+
+.doubleBtn {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+    color: white;
+}
+
+.newGameBtn {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-size: 1.5rem;
+    color: white;
+    background: #1a472a;
+}
+
+.lobbyContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    gap: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    color: #ffd700;
+}
+
+.startBtn {
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.startBtn:hover {
+    transform: scale(1.05);
+}
+
+.leaveBtn {
+    padding: 0.75rem 1.5rem;
+    background: rgba(229, 62, 62, 0.2);
+    color: #fc8181;
+    border: 1px solid #fc8181;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.leaveBtn:hover {
+    background: rgba(229, 62, 62, 0.4);
+}

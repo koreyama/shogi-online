@@ -1,0 +1,31 @@
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.chart {
+    display: block;
+}
+
+.label {
+    font-size: 10px;
+    fill: #718096;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.xAxis {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 10px 0 50px;
+    font-size: 10px;
+    color: #a0aec0;
+}
+
+.noData {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 150px;
+    color: #a0aec0;
+    font-size: 0.85rem;
+}

@@ -4,8 +4,14 @@ import "./globals.css";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Asobi Lounge",
+  title: "Asobi Lounge - オンラインボードゲームプラットフォーム",
   description: "オンラインで遊べるゲームサイト",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
   other: {
     google: "notranslate",
   },

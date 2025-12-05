@@ -57,6 +57,16 @@ export default function AboutPage() {
                             将棋やリバーシでは、初心者から上級者まで楽しめるよう、AIの強さを調整しています。
                         </p>
                     </div>
+
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2d3748' }}>
+                            <IconSwords size={24} color="#e53e3e" /> スマホ対応進行中
+                        </h3>
+                        <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
+                            新作の「Civilization Builder」をはじめ、一部のゲームがスマートフォンでのプレイに対応しました。
+                            今後、他のゲームも順次対応していく予定です。
+                        </p>
+                    </div>
                 </div>
             </section>
 

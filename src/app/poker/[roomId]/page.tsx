@@ -105,7 +105,15 @@ export default function PokerGamePage() {
         const deck = new Deck(0); // No jokers
         deck.shuffle();
 
-        const playerIds = Object.keys(room.players);
+        // Get current players - use gameState if available (for new rounds), otherwise room.players
+        const currentPlayers = gameState?.players || room.players;
+        const playerIds = Object.keys(currentPlayers);
+
+        if (playerIds.length < 2) {
+            console.error('Not enough players to start game');
+            return;
+        }
+
         const players: Record<string, PokerPlayer> = {};
 
         // Deal 2 cards to each player
@@ -117,19 +125,36 @@ export default function PokerGamePage() {
             }
         }
 
+        // Rotate dealer for new game
+        let dealerIndex = 0;
+        if (gameState?.dealerId) {
+            const prevDealerIndex = playerIds.indexOf(gameState.dealerId);
+            dealerIndex = (prevDealerIndex + 1) % playerIds.length;
+        }
+
+        const sbIndex = playerIds.length === 2 ? dealerIndex : (dealerIndex + 1) % playerIds.length;
+        const bbIndex = playerIds.length === 2 ? (dealerIndex + 1) % playerIds.length : (dealerIndex + 2) % playerIds.length;
+
         playerIds.forEach((pid, i) => {
+            const existingPlayer = currentPlayers[pid];
+            // Preserve chips from previous game, or use starting chips
+            const prevChips = (gameState?.players[pid]?.chips) || STARTING_CHIPS;
+
             players[pid] = {
-                ...room.players[pid],
+                id: pid,
+                name: existingPlayer.name || `Player ${i + 1}`,
                 hand: hands[i],
-                chips: STARTING_CHIPS,
+                chips: prevChips > 0 ? prevChips : STARTING_CHIPS, // Reset if busted
                 currentBet: 0,
                 isActive: true,
                 isAllIn: false,
-                isDealer: i === 0, // Randomize later
-                isSmallBlind: i === 1 % playerIds.length,
-                isBigBlind: i === 2 % playerIds.length,
+                isDealer: i === dealerIndex,
+                isSmallBlind: i === sbIndex,
+                isBigBlind: i === bbIndex,
                 role: 'player',
-                isAi: room.players[pid].isAi || false
+                isAi: existingPlayer.isAi || false,
+                hasActedThisRound: false,
+                lastAction: null
             } as PokerPlayer;
         });
 
@@ -146,20 +171,15 @@ export default function PokerGamePage() {
             bbPlayer.currentBet = BIG_BLIND;
         }
 
-        // Next turn is usually UTG (Under the Gun), left of BB.
-        // For 2 players: Dealer is SB, other is BB. Preflop: Dealer acts first? No, BB acts last.
-        // Heads up: Dealer is SB. SB posts SB. BB posts BB. Dealer acts first preflop.
-        // 3+ players: SB, BB, UTG. UTG acts first.
-
+        // Preflop: First to act
         let turnIndex = 0;
         if (playerIds.length === 2) {
-            // Heads up: Dealer (SB) acts first preflop
-            turnIndex = playerIds.findIndex(pid => players[pid].isDealer);
+            turnIndex = dealerIndex; // Dealer/SB acts first heads up
         } else {
-            // UTG acts first (left of BB)
-            const bbIndex = playerIds.findIndex(pid => players[pid].isBigBlind);
             turnIndex = (bbIndex + 1) % playerIds.length;
         }
+
+        const bbPlayerId = playerIds[bbIndex];
 
         const initialState: PokerGameState = {
             pot: SMALL_BLIND + BIG_BLIND,
@@ -167,13 +187,14 @@ export default function PokerGamePage() {
             deck: deck.getCards(),
             players,
             turnPlayerId: playerIds[turnIndex],
-            dealerId: playerIds.find(pid => players[pid].isDealer)!,
+            dealerId: playerIds[dealerIndex],
             smallBlindAmount: SMALL_BLIND,
             bigBlindAmount: BIG_BLIND,
             currentBet: BIG_BLIND,
             phase: 'preflop',
             winners: [],
-            history: ['Game Started']
+            history: ['Game Started'],
+            lastAggressorId: bbPlayerId
         };
 
         console.log('Starting game with state:', initialState);
@@ -191,9 +212,13 @@ export default function PokerGamePage() {
             const state = currentRoom.gameState as PokerGameState;
 
             if (state.turnPlayerId !== actorId) return;
+            if (state.phase === 'showdown') return;
 
             const player = state.players[actorId];
             const callAmount = state.currentBet - player.currentBet;
+
+            // Mark player as having acted this round
+            player.hasActedThisRound = true;
 
             // Process Action
             if (type === 'fold') {
@@ -210,18 +235,7 @@ export default function PokerGamePage() {
                 player.lastAction = 'call';
                 if (player.chips === 0) player.isAllIn = true;
             } else if (type === 'raise') {
-                const raiseAmount = amount || (state.bigBlindAmount * 2); // Default min raise
-                const totalBet = state.currentBet + raiseAmount; // Raise ON TOP or TO? Usually "Raise TO X" or "Raise BY X".
-                // Let's assume 'amount' is the total amount to add to pot? No, usually raise amount.
-                // Simple: Raise to 'amount'.
-                // If amount is not provided, min raise.
-
-                // Logic: Player puts in chips to match currentBet, plus raiseAmount.
-                // Actually, let's simplify: 'raise' means matching current bet AND adding 'amount'.
-                // Or 'amount' is the TOTAL bet for this round.
-
                 let actualRaise = amount || state.bigBlindAmount;
-                // Ensure min raise
                 if (actualRaise < state.bigBlindAmount) actualRaise = state.bigBlindAmount;
 
                 const totalNeeded = state.currentBet + actualRaise - player.currentBet;
@@ -233,89 +247,64 @@ export default function PokerGamePage() {
                 state.currentBet = player.currentBet;
                 player.lastAction = 'raise';
                 if (player.chips === 0) player.isAllIn = true;
+
+                // On raise, set as last aggressor and reset hasActedThisRound for others
+                state.lastAggressorId = actorId;
+                Object.values(state.players).forEach(p => {
+                    if (p.id !== actorId && p.isActive && !p.isAllIn) {
+                        p.hasActedThisRound = false;
+                    }
+                });
             }
 
-            // Move Turn
-            // Find next active player
+            // Find next active non-all-in player
             const playerIds = Object.keys(state.players);
             let currentIndex = playerIds.indexOf(actorId);
             let nextIndex = (currentIndex + 1) % playerIds.length;
             let loopCount = 0;
 
-            // Check if round is complete
-            // Round ends when all active players have bet equal amount (or are all-in) AND everyone had a chance to act.
-            // This is tricky. Simplified:
-            // If everyone checked/called/folded, move to next phase.
-
-            // Check if everyone matches currentBet
-            const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.isAllIn);
-            const allMatched = activePlayers.every(p => p.currentBet === state.currentBet);
-            // Also need to ensure everyone acted at least once if no raise?
-            // Or simply: if the next player has already matched the bet and we are just cycling?
-
-            // Let's rely on a simple counter or check.
-            // If 'raise' happened, everyone needs to act again.
-            // If 'check'/'call' happened, and next player matches, maybe done?
-
-            // Robust way:
-            // Keep track of 'lastAggressor' or similar?
-            // Or: if (allMatched && (actor was last to act or everyone acted))
-
-            // Hacky: If next player has already matched currentBet, and it's not a new raise...
-            // But preflop BB has option to raise even if matched.
-
-            // Let's just move turn for now, and check phase transition separately.
-
-            while (!state.players[playerIds[nextIndex]].isActive || state.players[playerIds[nextIndex]].isAllIn) {
+            while (loopCount < playerIds.length) {
+                const nextPlayer = state.players[playerIds[nextIndex]];
+                if (nextPlayer.isActive && !nextPlayer.isAllIn) {
+                    break;
+                }
                 nextIndex = (nextIndex + 1) % playerIds.length;
                 loopCount++;
-                if (loopCount > playerIds.length) break; // Should not happen
             }
 
-            // Check for Phase Transition
-            // If only 1 player active -> Winner
+            // Check for game end conditions
             const activeCount = Object.values(state.players).filter(p => p.isActive).length;
+
             if (activeCount === 1) {
+                // Only one player left - they win
                 state.phase = 'showdown';
-                state.winners = engine.determineWinners(Object.values(state.players), state.communityCards);
-                // End game / New round logic
-                // ...
+                const winnerId = Object.values(state.players).find(p => p.isActive)?.id;
+                state.winners = winnerId ? [winnerId] : [];
+            } else if (activeCount <= 1 || loopCount >= playerIds.length) {
+                // Everyone is all-in or folded - go to showdown
+                advanceToShowdown(state);
             } else {
-                // Check if betting round is over
-                // Betting round over if:
-                // 1. All active players (not all-in) have currentBet == state.currentBet
-                // 2. AND (someone raised OR everyone checked) - tricky.
+                // Check if betting round is complete
+                const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.isAllIn);
+                const allMatched = activePlayers.every(p => p.currentBet === state.currentBet);
+                const allActed = activePlayers.every(p => p.hasActedThisRound);
 
-                // Let's assume if we cycle back to a player who has already matched the bet, and no one raised since?
-                // We need a 'lastRaiser' or 'aggressorIndex'.
+                // Special case: Preflop BB option
+                const isBBOption = state.phase === 'preflop'
+                    && actorId !== state.lastAggressorId
+                    && state.players[state.lastAggressorId || '']?.isBigBlind
+                    && !state.players[state.lastAggressorId || '']?.hasActedThisRound;
 
-                // Simplified: If all active players have matched currentBet, AND the next player has ALSO matched (and isn't Big Blind preflop option)...
-
-                const allActiveMatched = Object.values(state.players)
-                    .filter(p => p.isActive && !p.isAllIn)
-                    .every(p => p.currentBet === state.currentBet);
-
-                // Special case: Preflop BB option.
-                // If preflop, and everyone called BB, BB gets to check.
-
-                if (allActiveMatched && type !== 'raise' && (type !== 'fold' || activeCount > 1)) {
-                    // Potential end of round.
-                    // If preflop, check if actor was BB and checked? Or everyone called and it's back to BB?
-
-                    // Let's just advance phase if everyone matched.
-                    // (This is slightly buggy for preflop BB option but acceptable for MVP)
-
-                    // Ensure deck is an array
+                if (allMatched && allActed && !isBBOption) {
+                    // Betting round complete - advance phase
                     if (!state.deck) {
-                        console.error('Deck missing in game state, creating new deck');
                         state.deck = new Deck(0).getCards();
                     } else if (!Array.isArray(state.deck)) {
-                        // Firebase might return array as object
                         state.deck = Object.values(state.deck);
                     }
-
                     nextPhase(state, state.deck);
                 } else {
+                    // Continue betting round
                     state.turnPlayerId = playerIds[nextIndex];
                 }
             }
@@ -324,10 +313,39 @@ export default function PokerGamePage() {
         });
     };
 
+    const advanceToShowdown = (state: PokerGameState) => {
+        // Deal remaining community cards and go to showdown
+        if (!state.deck) state.deck = [];
+        if (!Array.isArray(state.deck)) state.deck = Object.values(state.deck);
+
+        if (!state.communityCards) state.communityCards = [];
+        if (!Array.isArray(state.communityCards)) state.communityCards = Object.values(state.communityCards);
+
+        const draw = (): Card => {
+            if (state.deck.length > 0) {
+                return state.deck.pop()!;
+            }
+            return { suit: 'spade', rank: 'A' } as Card;
+        };
+
+        while (state.communityCards.length < 5) {
+            draw(); // burn
+            state.communityCards.push(draw());
+        }
+
+        state.phase = 'showdown';
+        state.winners = engine.determineWinners(Object.values(state.players), state.communityCards);
+    };
+
     const nextPhase = (state: PokerGameState, deck: any[]) => {
-        // Reset bets
-        Object.values(state.players).forEach(p => p.currentBet = 0);
+        // Reset bets and hasActedThisRound for all players
+        Object.values(state.players).forEach(p => {
+            p.currentBet = 0;
+            p.hasActedThisRound = false;
+            p.lastAction = null;
+        });
         state.currentBet = 0;
+        state.lastAggressorId = null; // No aggressor in new round
 
         if (!state.communityCards) {
             state.communityCards = [];
@@ -335,22 +353,17 @@ export default function PokerGamePage() {
             state.communityCards = Object.values(state.communityCards);
         }
 
-        // Deal cards
-        // Need to reconstruct Deck object or just pop from array
-        // deck is array of cards
-
-        const draw = () => {
+        const draw = (): Card => {
             if (!deck || deck.length === 0) {
-                console.error('Deck empty or undefined during draw');
-                return { suit: 'spade', rank: 'A' }; // Fallback
+                console.error('Deck empty during draw');
+                return { suit: 'spade', rank: 'A' } as Card;
             }
-            return deck.pop();
+            return deck.pop()!;
         };
 
         if (state.phase === 'preflop') {
             state.phase = 'flop';
-            // Burn 1?
-            draw();
+            draw(); // burn
             state.communityCards.push(draw(), draw(), draw());
         } else if (state.phase === 'flop') {
             state.phase = 'turn';
@@ -363,14 +376,21 @@ export default function PokerGamePage() {
         } else if (state.phase === 'river') {
             state.phase = 'showdown';
             state.winners = engine.determineWinners(Object.values(state.players), state.communityCards);
+            return; // Don't set turn if showdown
         }
 
         // Set turn to first active player left of dealer
         const playerIds = Object.keys(state.players);
         const dealerIndex = playerIds.findIndex(pid => state.players[pid].isDealer);
         let nextIndex = (dealerIndex + 1) % playerIds.length;
-        while (!state.players[playerIds[nextIndex]].isActive || state.players[playerIds[nextIndex]].isAllIn) {
+        let loopCount = 0;
+        while (loopCount < playerIds.length) {
+            const nextPlayer = state.players[playerIds[nextIndex]];
+            if (nextPlayer.isActive && !nextPlayer.isAllIn) {
+                break;
+            }
             nextIndex = (nextIndex + 1) % playerIds.length;
+            loopCount++;
         }
         state.turnPlayerId = playerIds[nextIndex];
     };
@@ -426,6 +446,8 @@ export default function PokerGamePage() {
     const isMyTurn = gameState?.turnPlayerId === playerId;
     const myPlayer = gameState?.players[playerId || ''];
     const callAmount = (gameState?.currentBet || 0) - (myPlayer?.currentBet || 0);
+    const isShowdown = gameState?.phase === 'showdown';
+    const isHost = room.hostId === playerId;
 
     return (
         <main className={styles.main}>
@@ -434,20 +456,28 @@ export default function PokerGamePage() {
             </div>
 
             <div className={styles.tableContainer}>
-                {gameState && <PokerTable gameState={gameState} myId={playerId || ''} />}
-            </div>
-
-            <div className={styles.actionControls}>
-                {isMyTurn && (
-                    <>
-                        <button onClick={() => executeAction(playerId!, 'fold')} className={styles.actionBtn} style={{ background: '#e53e3e' }}>Fold</button>
-                        <button onClick={() => executeAction(playerId!, callAmount === 0 ? 'check' : 'call')} className={styles.actionBtn}>
-                            {callAmount === 0 ? 'Check' : `Call $${callAmount}`}
-                        </button>
-                        <button onClick={() => executeAction(playerId!, 'raise')} className={styles.actionBtn} style={{ background: '#d69e2e' }}>Raise</button>
-                    </>
+                {gameState && (
+                    <PokerTable
+                        gameState={gameState}
+                        myId={playerId || ''}
+                        onNewGame={isHost ? handleStartGame : undefined}
+                    />
                 )}
             </div>
+
+            {!isShowdown && (
+                <div className={styles.actionControls}>
+                    {isMyTurn && (
+                        <>
+                            <button onClick={() => executeAction(playerId!, 'fold')} className={`${styles.actionBtn} ${styles.foldBtn}`}>Fold</button>
+                            <button onClick={() => executeAction(playerId!, callAmount === 0 ? 'check' : 'call')} className={`${styles.actionBtn} ${styles.checkBtn}`}>
+                                {callAmount === 0 ? 'Check' : `Call $${callAmount}`}
+                            </button>
+                            <button onClick={() => executeAction(playerId!, 'raise')} className={`${styles.actionBtn} ${styles.raiseBtn}`}>Raise</button>
+                        </>
+                    )}
+                </div>
+            )}
         </main>
     );
 }
