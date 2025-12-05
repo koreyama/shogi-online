@@ -3,6 +3,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 const YAHOO_CHART_API = 'https://query1.finance.yahoo.com/v8/finance/chart';
 const YAHOO_SEARCH_API = 'https://query1.finance.yahoo.com/v1/finance/search';
 
