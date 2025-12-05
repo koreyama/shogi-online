@@ -21,7 +21,7 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
 
         const isResearched = tech.researched;
         const isUnlocked = tech.unlocked;
-        const canAfford = Object.entries(tech.cost).every(([res, amount]) => gameState.resources[res as any] >= (amount as number));
+        const canAfford = Object.entries(tech.cost).every(([res, amount]) => gameState.resources[res as keyof typeof gameState.resources] >= (amount as number));
 
         return (
             <div key={techId} className={`${styles.treeNode} ${isResearched ? styles.nodeResearched : ''} ${!isUnlocked ? styles.nodeLocked : ''}`}>
@@ -36,7 +36,7 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                     ) : (
                         <div className={styles.costList}>
                             {Object.entries(tech.cost).map(([res, amount]) => {
-                                const hasEnough = gameState.resources[res as any] >= (amount as number);
+                                const hasEnough = gameState.resources[res as keyof typeof gameState.resources] >= (amount as number);
                                 return (
                                     <span key={res} style={{ color: hasEnough ? '#2d3748' : '#e53e3e', marginRight: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
                                         {res === 'knowledge' ? <IconBook size={14} /> :
@@ -69,7 +69,7 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                             const building = gameState.buildings[bId];
                             if (!building) return null;
                             const cost = calculateCost(building);
-                            const canBuy = Object.entries(cost).every(([r, a]) => gameState.resources[r as any] >= (a as number));
+                            const canBuy = Object.entries(cost).every(([r, a]) => gameState.resources[r as keyof typeof gameState.resources] >= (a as number));
 
                             return (
                                 <div key={bId} className={styles.buildingNode}>
