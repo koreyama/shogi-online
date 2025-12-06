@@ -111,11 +111,34 @@
     margin: 0 auto;
 }
 
+.portfolioHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
 .portfolioMain {
     display: flex;
     flex-wrap: wrap;
     gap: 40px;
-    margin-bottom: 12px;
+}
+
+.resetBtn {
+    background: transparent;
+    border: 1px solid #cbd5e0;
+    color: #718096;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.resetBtn:hover {
+    background: #fff5f5;
+    border-color: #fc8181;
+    color: #e53e3e;
 }
 
 .totalValue,
@@ -124,12 +147,18 @@
     flex-direction: column;
 }
 
+.totalValueHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
 .label {
     font-size: 0.75rem;
     color: #718096;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 4px;
 }
 
 .totalValue .value {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
-import { Stock, Portfolio, LeaderboardEntry, INITIAL_CASH, FEATURED_STOCKS } from '@/lib/stock/types';
+import { Stock, Portfolio, LeaderboardEntry, INITIAL_CASH, FEATURED_STOCKS, USD_JPY_RATE } from '@/lib/stock/types';
 import { PortfolioEngine } from '@/lib/stock/engine';
 import { fetchFeaturedStocks, searchStock, searchStocks, fetchStockPrice, fetchExchangeRate } from '@/lib/stock/api';
 import { StockCard } from '@/components/stock/StockCard';
@@ -46,12 +46,19 @@ export default function StockTradePage() {
     const [engine, setEngine] = useState<PortfolioEngine | null>(null);
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
     const [showTradeModal, setShowTradeModal] = useState(false);
+
+    // Ref to track latest engine for async operations
+    const engineRef = React.useRef<PortfolioEngine | null>(null);
+    useEffect(() => {
+        engineRef.current = engine;
+    }, [engine]);
+
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [cloudSyncStatus, setCloudSyncStatus] = useState<'local' | 'cloud' | 'syncing'>('local');
-    const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+    const [exchangeRate, setExchangeRate] = useState<number>(USD_JPY_RATE);
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -105,30 +112,38 @@ export default function StockTradePage() {
     const fetchPrices = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [stockData, rate] = await Promise.all([
-                fetchFeaturedStocks(),
-                fetchExchangeRate()
-            ]);
+            // Fetch rate first to ensure it settles
+            let rate = USD_JPY_RATE;
+            try {
+                rate = await fetchExchangeRate();
+            } catch (e) {
+                console.warn('Failed to fetch exchange rate, using default:', e);
+            }
+
+            // Should always be a number due to fallback in api.ts, but double safety
+            setExchangeRate(rate || USD_JPY_RATE);
+
+            const stockData = await fetchFeaturedStocks();
             setStocks(stockData);
-            setExchangeRate(rate);
             setLastUpdate(new Date());
 
-            if (engine) {
-                engine.updatePrices(stockData);
-                setPortfolio(engine.getPortfolio());
-                savePortfolio(engine);
-                updateLeaderboard(engine.getPortfolio());
+            const currentEngine = engineRef.current;
+            if (currentEngine) {
+                currentEngine.updatePrices(stockData);
+                setPortfolio(currentEngine.getPortfolio());
+                savePortfolio(currentEngine);
+                updateLeaderboard(currentEngine.getPortfolio());
             }
         } catch (error) {
             console.error('Failed to fetch prices:', error);
         } finally {
             setIsLoading(false);
         }
-    }, [engine, savePortfolio]);
+    }, [savePortfolio]);
 
     useEffect(() => {
         if (engine) fetchPrices();
-    }, [engine]);
+    }, [engine, fetchPrices]);
 
     useEffect(() => {
         if (!engine) return;
@@ -362,21 +377,44 @@ export default function StockTradePage() {
             {/* Portfolio Summary */}
             <section className={styles.portfolioSection}>
                 <div className={styles.portfolioCard}>
-                    <div className={styles.portfolioMain}>
-                        <div className={styles.totalValue}>
-                            <span className={styles.label}>TOTAL VALUE</span>
-                            <span className={styles.value}>{formatCurrency(portfolio.totalValue)}</span>
+                    <div className={styles.portfolioHeaderRow}>
+                        <div className={styles.portfolioMain}>
+                            <div className={styles.totalValue}>
+                                <div className={styles.totalValueHeader}>
+                                    <span className={styles.label}>TOTAL VALUE</span>
+                                    <span className={styles.exchangeRate}>USD/JPY: ¥{(exchangeRate || USD_JPY_RATE).toFixed(2)}</span>
+                                </div>
+                                <span className={styles.value}>{portfolio && formatCurrency(portfolio.totalValue)}</span>
+                            </div>
+                            <div className={`${styles.totalProfit} ${portfolio && portfolio.totalProfit >= 0 ? styles.up : styles.down}`}>
+                                <span className={styles.label}>P&L</span>
+                                <span className={styles.value}>
+                                    {portfolio && portfolio.totalProfit >= 0 ? '+' : ''}{portfolio && formatCurrency(portfolio.totalProfit)}
+                                    ({portfolio && portfolio.totalProfit >= 0 ? '+' : ''}{portfolio && portfolio.totalProfitPercent.toFixed(2)}%)
+                                </span>
+                            </div>
                         </div>
-                        <div className={`${styles.totalProfit} ${portfolio.totalProfit >= 0 ? styles.up : styles.down}`}>
-                            <span className={styles.label}>P&L</span>
-                            <span className={styles.value}>
-                                {portfolio.totalProfit >= 0 ? '+' : ''}{formatCurrency(portfolio.totalProfit)}
-                                ({portfolio.totalProfit >= 0 ? '+' : ''}{portfolio.totalProfitPercent.toFixed(2)}%)
-                            </span>
-                        </div>
+                        <button
+                            className={styles.resetBtn}
+                            onClick={() => {
+                                if (window.confirm('本当に資産をリセットしますか？\nこの操作は取り消せません。')) {
+                                    const newEngine = new PortfolioEngine();
+                                    setEngine(newEngine);
+                                    engineRef.current = newEngine; // Immediately update ref
+                                    setPortfolio(newEngine.getPortfolio());
+                                    savePortfolio(newEngine);
+                                    updateLeaderboard(newEngine.getPortfolio());
+                                    setMessage({ type: 'success', text: '資産をリセットしました' });
+                                    setTimeout(() => setMessage(null), 3000);
+                                }
+                            }}
+                        >
+                            リセット
+                        </button>
                     </div>
+
                     <div className={styles.cashDisplay}>
-                        Cash: {formatCurrency(portfolio.cash)}
+                        Cash: {portfolio && formatCurrency(portfolio.cash)}
                         <span className={styles.syncStatus}>
                             {cloudSyncStatus === 'cloud' && user ? (
                                 <span className={styles.cloudSync}>Cloud Sync ON ({user.displayName})</span>
@@ -447,11 +485,6 @@ export default function StockTradePage() {
                 <section className={styles.stocksSection}>
                     <h2 className={styles.sectionTitle}>
                         Featured Stocks
-                        {exchangeRate && (
-                            <span className={styles.exchangeRate}>
-                                USD/JPY: ¥{exchangeRate.toFixed(2)}
-                            </span>
-                        )}
                         {lastUpdate && (
                             <span className={styles.updateTime}>
                                 Updated: {lastUpdate.toLocaleTimeString('ja-JP')}
