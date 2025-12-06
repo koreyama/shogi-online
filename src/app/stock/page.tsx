@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { Stock, Portfolio, LeaderboardEntry, INITIAL_CASH, FEATURED_STOCKS } from '@/lib/stock/types';
 import { PortfolioEngine } from '@/lib/stock/engine';
-import { fetchFeaturedStocks, searchStock, searchStocks, fetchStockPrice } from '@/lib/stock/api';
+import { fetchFeaturedStocks, searchStock, searchStocks, fetchStockPrice, fetchExchangeRate } from '@/lib/stock/api';
 import { StockCard } from '@/components/stock/StockCard';
 import { TradeModal } from '@/components/stock/TradeModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,6 +51,7 @@ export default function StockTradePage() {
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [cloudSyncStatus, setCloudSyncStatus] = useState<'local' | 'cloud' | 'syncing'>('local');
+    const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -104,8 +105,12 @@ export default function StockTradePage() {
     const fetchPrices = useCallback(async () => {
         setIsLoading(true);
         try {
-            const stockData = await fetchFeaturedStocks();
+            const [stockData, rate] = await Promise.all([
+                fetchFeaturedStocks(),
+                fetchExchangeRate()
+            ]);
             setStocks(stockData);
+            setExchangeRate(rate);
             setLastUpdate(new Date());
 
             if (engine) {
@@ -442,6 +447,11 @@ export default function StockTradePage() {
                 <section className={styles.stocksSection}>
                     <h2 className={styles.sectionTitle}>
                         Featured Stocks
+                        {exchangeRate && (
+                            <span className={styles.exchangeRate}>
+                                USD/JPY: ¥{exchangeRate.toFixed(2)}
+                            </span>
+                        )}
                         {lastUpdate && (
                             <span className={styles.updateTime}>
                                 Updated: {lastUpdate.toLocaleTimeString('ja-JP')}

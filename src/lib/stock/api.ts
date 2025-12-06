@@ -30,9 +30,56 @@ const CORS_PROXIES = [
     (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
+// Cache exchange rate to avoid excessive API calls
+let cachedExchangeRate: { rate: number; timestamp: number } | null = null;
+const RATE_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+// Fetch real-time USD/JPY exchange rate
+export async function fetchExchangeRate(): Promise<number> {
+    if (cachedExchangeRate && (Date.now() - cachedExchangeRate.timestamp < RATE_CACHE_DURATION)) {
+        return cachedExchangeRate.rate;
+    }
+
+    const symbol = 'JPY=X';
+    const url = `${YAHOO_CHART_API}/${symbol}?interval=1d&range=1d`;
+    console.log('Fetching exchange rate...');
+
+    for (const proxyFn of CORS_PROXIES) {
+        try {
+            const proxyUrl = proxyFn(url);
+            const response = await fetch(proxyUrl, {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            const result = data.chart?.result?.[0];
+
+            if (!result || !result.meta) continue;
+
+            const rate = result.meta.regularMarketPrice;
+            if (rate && typeof rate === 'number') {
+                console.log(`Exchange rate fetched: ${rate}`);
+                cachedExchangeRate = { rate, timestamp: Date.now() };
+                return rate;
+            }
+        } catch (err) {
+            console.warn(`Exchange rate fetch failed:`, err);
+            continue;
+        }
+    }
+
+    // Fallback to fixed rate if fetch fails
+    return USD_JPY_RATE;
+}
+
 // Fetch stock price via client-side CORS proxy
-export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
+export async function fetchStockPrice(symbol: string, exchangeRate?: number): Promise<Stock | null> {
     const url = `${YAHOO_CHART_API}/${symbol}?interval=1d&range=5d`;
+
+    // Use provided rate, cached rate, or default
+    const currentRate = exchangeRate || (cachedExchangeRate?.rate || USD_JPY_RATE);
 
     for (const proxyFn of CORS_PROXIES) {
         try {
@@ -58,8 +105,9 @@ export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
             const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
 
             const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
-            const currency = meta.currency || (symbol.includes('.T') ? 'JPY' : 'USD');
-            const priceInJPY = currency === 'USD' ? currentPrice * USD_JPY_RATE : currentPrice;
+            const isJP = symbol.includes('.T');
+            const currency = meta.currency || (isJP ? 'JPY' : 'USD');
+            const priceInJPY = currency === 'USD' ? currentPrice * currentRate : currentPrice;
 
             return {
                 symbol,
@@ -83,7 +131,7 @@ export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
     }
 
     // All proxies failed, use simulation
-    return getSimulatedStock(symbol);
+    return getSimulatedStock(symbol, currentRate);
 }
 
 // Search result type
@@ -137,15 +185,23 @@ export async function searchStock(symbol: string): Promise<Stock | null> {
     const upperSymbol = symbol.toUpperCase().trim();
     if (!upperSymbol) return null;
 
+    // Ensure we have an exchange rate
+    if (!cachedExchangeRate) {
+        await fetchExchangeRate();
+    }
+
     // Use the same fetchStockPrice function which already uses CORS proxy
     return fetchStockPrice(upperSymbol);
 }
 
 // Fetch featured stocks in parallel for better performance
 export async function fetchFeaturedStocks(): Promise<Stock[]> {
+    // Fetch exchange rate first
+    const rate = await fetchExchangeRate();
+
     // Fetch all stocks in parallel
     const results = await Promise.allSettled(
-        FEATURED_STOCKS.map(info => fetchStockPrice(info.symbol))
+        FEATURED_STOCKS.map(info => fetchStockPrice(info.symbol, rate))
     );
 
     const stocks: Stock[] = [];
@@ -219,7 +275,7 @@ function simulatePriceMovement(symbol: string): void {
     data.price = Math.max(data.price + change, data.price * 0.5);
 }
 
-export function getSimulatedStock(symbol: string): Stock | null {
+export function getSimulatedStock(symbol: string, exchangeRate?: number): Stock | null {
     initializePrices(symbol);
 
     if (!currentPrices[symbol] && !BASE_PRICES[symbol]) {
@@ -233,12 +289,15 @@ export function getSimulatedStock(symbol: string): Stock | null {
 
     simulatePriceMovement(symbol);
 
+    // Conversion rate logic
+    const currentRate = exchangeRate || (cachedExchangeRate?.rate || USD_JPY_RATE);
+
     const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
     const change = data.price - data.previousClose;
     const changePercent = (change / data.previousClose) * 100;
     const isJP = symbol.includes('.T');
     const currency = isJP ? 'JPY' : 'USD';
-    const priceInJPY = currency === 'USD' ? data.price * USD_JPY_RATE : data.price;
+    const priceInJPY = currency === 'USD' ? data.price * currentRate : data.price;
     const finalPrice = isJP ? Math.round(data.price) : Math.round(data.price * 100) / 100;
 
     return {
