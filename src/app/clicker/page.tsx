@@ -106,13 +106,13 @@ export default function ClickerPage() {
                 // Let's explicitly load cloud save here if available.
                 setGameState(prev => ({
                     ...prev,
-                    ...cloudSave,
+                    ...(cloudSave as any),
                     // Ensure we don't break references if structure changed (safety)
-                    buildings: { ...prev.buildings, ...cloudSave.buildings },
-                    techs: { ...prev.techs, ...cloudSave.techs },
-                    resources: { ...prev.resources, ...cloudSave.resources },
-                    jobs: { ...cloudSave.jobs },
-                    logs: cloudSave.logs || []
+                    buildings: { ...prev.buildings, ...(cloudSave as any).buildings },
+                    techs: { ...prev.techs, ...(cloudSave as any).techs },
+                    resources: { ...prev.resources, ...(cloudSave as any).resources },
+                    jobs: { ...(cloudSave as any).jobs },
+                    logs: (cloudSave as any).logs || []
                 }));
             }
         }
