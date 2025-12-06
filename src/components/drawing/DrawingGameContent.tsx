@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import styles from './DrawingGameContent.module.css';
 import { DrawingCanvas } from '@/components/drawing/DrawingCanvas';
 import { ChatArea } from '@/components/drawing/ChatArea';
@@ -13,10 +12,12 @@ import { DrawingGameState } from '@/lib/drawing/types';
 import { getRandomWords } from '@/lib/drawing/words';
 import { IconPen, IconBack, IconUser, IconPalette } from '@/components/Icons';
 
-export default function DrawingGameContent() {
-    const params = useParams();
-    const router = useRouter();
-    const roomId = params.roomId as string;
+interface Props {
+    roomId: string;
+    onExit: () => void;
+}
+
+export default function DrawingGameContent({ roomId, onExit }: Props) {
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const playerId = user?.uid || '';
     const playerName = user?.displayName || 'Guest';
@@ -58,7 +59,7 @@ export default function DrawingGameContent() {
                 }
             } else {
                 // Room deleted
-                router.push('/drawing');
+                onExit();
             }
         });
 
@@ -66,7 +67,7 @@ export default function DrawingGameContent() {
             unsubscribe();
             remove(playerRef); // Remove self on unmount
         };
-    }, [roomId, playerId, playerName, router]);
+    }, [roomId, playerId, playerName, onExit]);
 
     // Helper: Am I the drawer?
     const isDrawer = gameState?.currentDrawerId === playerId;
@@ -202,7 +203,7 @@ export default function DrawingGameContent() {
                             <Timer endTime={gameState.turnEndTime} onTimeUp={nextTurn} />
                         )}
                     </div>
-                    <button onClick={() => router.push('/drawing')} className={styles.backButton}>
+                    <button onClick={onExit} className={styles.backButton}>
                         <IconBack size={20} /> 退出
                     </button>
                 </div>

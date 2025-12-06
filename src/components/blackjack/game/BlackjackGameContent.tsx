@@ -1,10 +1,7 @@
 'use client';
 
-export const runtime = 'edge';
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import styles from './BlackjackGameContent.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, remove, runTransaction } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,17 +23,18 @@ interface BlackjackRoomState {
     createdAt: number;
 }
 
-export default function BlackjackGamePage() {
-    const params = useParams();
-    const router = useRouter();
-    const roomId = params.roomId as string;
+interface Props {
+    roomId: string;
+    onExit: () => void;
+}
+
+export default function BlackjackGameContent({ roomId, onExit }: Props) {
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const playerId = user?.uid || '';
 
     const [room, setRoom] = useState<BlackjackRoomState | null>(null);
     const [engine] = useState(() => new BlackjackEngine());
 
-    // Subscribe to room
     useEffect(() => {
         if (!roomId) return;
 
@@ -51,22 +49,19 @@ export default function BlackjackGamePage() {
         return () => unsubscribe();
     }, [roomId]);
 
-    // Calculate hand values
     const playerHandValue = room?.playerHand ? engine.calculateHandValue(room.playerHand) : null;
     const dealerHandValue = room?.dealerHand ? engine.calculateHandValue(
         room.dealerHidden ? [room.dealerHand[0]] : room.dealerHand
     ) : null;
     const fullDealerValue = room?.dealerHand ? engine.calculateHandValue(room.dealerHand) : null;
 
-    // Start new game
     const handleStartGame = async () => {
         if (!roomId || !playerId) return;
 
-        const deck = new Deck(0); // No jokers
+        const deck = new Deck(0);
         deck.shuffle();
         const cards = deck.getCards();
 
-        // Deal: Player gets 2, Dealer gets 2
         const playerCards = [cards.pop()!, cards.pop()!];
         const dealerCards = [cards.pop()!, cards.pop()!];
 
@@ -76,7 +71,6 @@ export default function BlackjackGamePage() {
         let result: string | undefined;
         let dealerHidden = true;
 
-        // Check for immediate blackjack
         if (playerHand.isBlackjack && dealerHand.isBlackjack) {
             result = 'push';
             dealerHidden = false;
@@ -98,7 +92,6 @@ export default function BlackjackGamePage() {
         });
     };
 
-    // Hit action
     const handleHit = async () => {
         if (!room || room.status !== 'playing' || !playerHandValue) return;
 
@@ -122,7 +115,6 @@ export default function BlackjackGamePage() {
         });
     };
 
-    // Stand action
     const handleStand = async () => {
         if (!room || room.status !== 'playing') return;
 
@@ -130,7 +122,6 @@ export default function BlackjackGamePage() {
         await runTransaction(roomRef, (current) => {
             if (!current || current.status !== 'playing') return current;
 
-            // Dealer plays
             let dealerCards = [...current.dealerHand];
             let dealerHand = engine.calculateHandValue(dealerCards);
 
@@ -143,7 +134,6 @@ export default function BlackjackGamePage() {
             current.dealerHand = dealerCards;
             current.dealerHidden = false;
 
-            // Determine result
             const playerHand = engine.calculateHandValue(current.playerHand);
             current.result = engine.determineResult(playerHand, dealerHand);
             current.status = 'finished';
@@ -152,7 +142,6 @@ export default function BlackjackGamePage() {
         });
     };
 
-    // Double down
     const handleDouble = async () => {
         if (!room || room.status !== 'playing' || !playerHandValue || room.playerHand.length !== 2) return;
 
@@ -160,7 +149,6 @@ export default function BlackjackGamePage() {
         await runTransaction(roomRef, (current) => {
             if (!current || current.status !== 'playing') return current;
 
-            // Draw one card
             const newCard = current.deck.pop();
             const newPlayerHand = [...current.playerHand, newCard];
             const playerHand = engine.calculateHandValue(newPlayerHand);
@@ -173,7 +161,6 @@ export default function BlackjackGamePage() {
                 return current;
             }
 
-            // Dealer plays
             let dealerCards = [...current.dealerHand];
             let dealerHand = engine.calculateHandValue(dealerCards);
 
@@ -192,11 +179,10 @@ export default function BlackjackGamePage() {
         });
     };
 
-    // Leave room
     const handleLeaveRoom = async () => {
         if (!roomId) return;
         await remove(ref(db, `blackjack_rooms/${roomId}`));
-        router.push('/trump');
+        onExit();
     };
 
     if (authLoading) {
@@ -237,7 +223,6 @@ export default function BlackjackGamePage() {
         return <div className={styles.loading}>読み込み中...</div>;
     }
 
-    // Waiting screen
     if (room.status === 'waiting' || !room.playerHand) {
         return (
             <main className={styles.main}>

@@ -8,6 +8,25 @@ import { ref, set, push, onValue } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
 import { IconUser, IconPlus, IconBack, IconPalette } from '@/components/Icons';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
+import dynamic from 'next/dynamic';
+
+// Dynamically load the game content to avoid SSR issues
+const DrawingGameContent = dynamic(() => import('@/components/drawing/DrawingGameContent'), {
+    ssr: false,
+    loading: () => (
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            background: '#f3f4f6',
+            color: '#6b7280',
+            fontSize: '1.2rem'
+        }}>
+            読み込み中...
+        </div>
+    )
+});
 
 interface DrawingRoom {
     id: string;
@@ -18,12 +37,15 @@ interface DrawingRoom {
     createdAt: number;
 }
 
-export default function DrawingLobbyPage() {
+export default function DrawingPage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const [rooms, setRooms] = useState<DrawingRoom[]>([]);
     const [newRoomName, setNewRoomName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
+
+    // This is the key state - when set, we show the game instead of lobby
+    const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
     // Clean up empty drawing rooms
     useRoomJanitor(['drawing']);
@@ -71,13 +93,23 @@ export default function DrawingLobbyPage() {
                         }
                     }
                 });
-                router.push(`/drawing/${roomId}`);
+                // Instead of navigating, just set the active room
+                setActiveRoomId(roomId);
             }
         } catch (error) {
             console.error('Error creating room:', error);
         } finally {
             setIsCreating(false);
         }
+    };
+
+    const handleJoinRoom = (roomId: string) => {
+        setActiveRoomId(roomId);
+    };
+
+    const handleExitGame = () => {
+        setActiveRoomId(null);
+        setNewRoomName('');
     };
 
     if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
@@ -113,6 +145,12 @@ export default function DrawingLobbyPage() {
         );
     }
 
+    // If in a game room, show the game content
+    if (activeRoomId) {
+        return <DrawingGameContent roomId={activeRoomId} onExit={handleExitGame} />;
+    }
+
+    // Lobby view
     return (
         <main className={styles.main}>
             <div className={styles.header}>
@@ -160,7 +198,7 @@ export default function DrawingLobbyPage() {
                             <div className={styles.noRooms}>ルームがありません。作成してください。</div>
                         ) : (
                             rooms.map(room => (
-                                <div key={room.id} className={styles.roomCard} onClick={() => router.push(`/drawing/${room.id}`)}>
+                                <div key={room.id} className={styles.roomCard} onClick={() => handleJoinRoom(room.id)}>
                                     <div className={styles.roomHeader}>
                                         <h3>{room.name}</h3>
                                         <span className={`${styles.statusBadge} ${styles[room.status]}`}>

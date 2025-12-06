@@ -1,10 +1,7 @@
 'use client';
 
-export const runtime = 'edge';
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import styles from './TrumpGameContent.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, set, runTransaction, onDisconnect, remove } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,10 +13,12 @@ import { DaifugoAI } from '@/lib/trump/daifugo/ai';
 import confetti from 'canvas-confetti';
 import { IconBack, IconUser, IconCards } from '@/components/Icons';
 
-export default function TrumpGamePage() {
-    const params = useParams();
-    const router = useRouter();
-    const roomId = params.roomId as string;
+interface Props {
+    roomId: string;
+    onExit: () => void;
+}
+
+export default function TrumpGameContent({ roomId, onExit }: Props) {
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const playerId = user?.uid || '';
     const playerName = user?.displayName || 'Guest';
@@ -128,7 +127,7 @@ export default function TrumpGamePage() {
         });
 
         return () => unsubscribe();
-    }, [roomId, router, playerId]);
+    }, [roomId, playerId]);
 
     // Join room & Presence logic
     useEffect(() => {
@@ -237,9 +236,6 @@ export default function TrumpGamePage() {
 
             // Check Shibari
             if (rules.isShibari) {
-                // Check if this move establishes Shibari (engine logic should return this, but we can also infer)
-                // Actually, we should use the result from validateMove if possible, but executeMove re-validates implicitly or assumes validity.
-                // Let's check if suits match last move
                 if (gameState.lastMove) {
                     const lastSuits = gameState.lastMove.cards.filter((c: CardType) => c.suit !== 'joker').map((c: CardType) => c.suit).sort().join(',');
                     const currentSuits = cards.filter(c => c.suit !== 'joker').map(c => c.suit).sort().join(',');
@@ -254,26 +250,20 @@ export default function TrumpGamePage() {
                 gameState.finishedPlayers = gameState.finishedPlayers || [];
                 gameState.finishedPlayers.push(actorId);
                 gameState.ranks = gameState.ranks || {};
-
-                // Assign rank
-                // Simple rank assignment based on finish order
             }
 
             // Next Turn Logic
             if (is8Cut) {
-                // 8-Cut: Field clears, same player goes again
                 gameState.field = [];
                 gameState.lastMove = null;
                 gameState.is11Back = false;
                 gameState.isShibari = false;
 
                 if (newHand.length === 0) {
-                    // If finished with 8-cut, next player starts fresh
                     const nextId = getNextActivePlayer(currentRoom.players, gameState.finishedPlayers, actorId);
                     if (nextId) gameState.turn = nextId;
                     else currentRoom.status = 'finished';
                 } else {
-                    // Same player continues
                     gameState.turn = actorId;
                 }
             } else {
@@ -299,7 +289,6 @@ export default function TrumpGamePage() {
             const gameState = currentRoom.gameState;
             gameState.passCount = (gameState.passCount || 0) + 1;
 
-            // Check if everyone passed
             const allPlayerIds = Object.keys(currentRoom.players);
             const finishedIds = gameState.finishedPlayers || [];
             const activeCount = allPlayerIds.length - finishedIds.length;
@@ -311,23 +300,21 @@ export default function TrumpGamePage() {
                 return currentRoom;
             }
 
-            // Check if field should clear
             if (gameState.lastMove && nextId === gameState.lastMove.playerId) {
                 gameState.field = [];
                 gameState.lastMove = null;
                 gameState.passCount = 0;
                 gameState.is11Back = false;
                 gameState.isShibari = false;
-                gameState.turn = nextId; // They start fresh
+                gameState.turn = nextId;
             } else if (gameState.lastMove && finishedIds.includes(gameState.lastMove.playerId)) {
                 if (gameState.passCount >= activeCount) {
-                    // Everyone active has passed.
                     gameState.field = [];
                     gameState.lastMove = null;
                     gameState.passCount = 0;
                     gameState.is11Back = false;
                     gameState.isShibari = false;
-                    gameState.turn = nextId; // The person who would have been next starts fresh
+                    gameState.turn = nextId;
                 } else {
                     gameState.turn = nextId;
                 }
@@ -435,22 +422,19 @@ export default function TrumpGamePage() {
     const handleLeaveRoom = async () => {
         if (!roomId || !playerId) return;
 
-        // Remove player
         const playerRef = ref(db, `trump_rooms/${roomId}/players/${playerId}`);
         await remove(playerRef);
 
-        // If room is empty, delete it (best effort)
         if (room && room.players) {
             const remainingPlayers = Object.keys(room.players).filter(pid => pid !== playerId);
             if (remainingPlayers.length === 0) {
                 await remove(ref(db, `trump_rooms/${roomId}`));
             } else if (remainingPlayers.every(pid => room.players[pid].isAi)) {
-                // If only AI left, delete room
                 await remove(ref(db, `trump_rooms/${roomId}`));
             }
         }
 
-        router.push('/trump');
+        onExit();
     };
 
     if (authLoading) return <div className={styles.loading}>読み込み中...</div>;

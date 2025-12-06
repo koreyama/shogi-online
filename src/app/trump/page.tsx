@@ -9,6 +9,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { TrumpRoom } from '@/lib/trump/types';
 import { IconBack, IconCards, IconUser } from '@/components/Icons';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
+import dynamic from 'next/dynamic';
+
+// Dynamic import to avoid SSR issues
+const TrumpGameContent = dynamic(() => import('@/components/trump/game/TrumpGameContent'), {
+    ssr: false,
+    loading: () => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f3f4f6', color: '#6b7280' }}>読み込み中...</div>
+});
+
+const PokerGameContent = dynamic(() => import('@/components/poker/game/PokerGameContent'), {
+    ssr: false,
+    loading: () => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f3f4f6', color: '#6b7280' }}>読み込み中...</div>
+});
+
+const BlackjackGameContent = dynamic(() => import('@/components/blackjack/game/BlackjackGameContent'), {
+    ssr: false,
+    loading: () => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f3f4f6', color: '#6b7280' }}>読み込み中...</div>
+});
 
 export default function TrumpLobbyPage() {
     const router = useRouter();
@@ -27,6 +44,9 @@ export default function TrumpLobbyPage() {
         isShibari: false,
         isSpade3: false
     });
+
+    // Active room ID for state-based navigation (for daifugo)
+    const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
     // Clean up empty trump rooms
     useRoomJanitor(['trump']);
@@ -89,13 +109,8 @@ export default function TrumpLobbyPage() {
                 };
 
                 await set(newRoomRef, newRoom);
-                if (selectedGame === 'poker') {
-                    router.push(`/poker/${roomId}`);
-                } else if (selectedGame === 'blackjack') {
-                    router.push(`/blackjack/${roomId}`);
-                } else {
-                    router.push(`/trump/${roomId}`);
-                }
+                // Use state-based navigation for all game types
+                setActiveRoomId(roomId);
             }
         } catch (error) {
             console.error('Error creating room:', error);
@@ -150,13 +165,8 @@ export default function TrumpLobbyPage() {
                 };
 
                 await set(newRoomRef, newRoom);
-                if (selectedGame === 'poker') {
-                    router.push(`/poker/${roomId}`);
-                } else if (selectedGame === 'blackjack') {
-                    router.push(`/blackjack/${roomId}`);
-                } else {
-                    router.push(`/trump/${roomId}`);
-                }
+                // Use state-based navigation for all game types
+                setActiveRoomId(roomId);
             }
         } catch (error) {
             console.error('Error creating AI room:', error);
@@ -166,13 +176,13 @@ export default function TrumpLobbyPage() {
     };
 
     const handleJoinRoom = (roomId: string) => {
-        if (selectedGame === 'poker') {
-            router.push(`/poker/${roomId}`);
-        } else if (selectedGame === 'blackjack') {
-            router.push(`/blackjack/${roomId}`);
-        } else {
-            router.push(`/trump/${roomId}`);
-        }
+        // For all game types, use state-based navigation
+        setActiveRoomId(roomId);
+    };
+
+    const handleExitGame = () => {
+        setActiveRoomId(null);
+        setNewRoomName('');
     };
 
     const toggleRule = (key: keyof typeof rules) => {
@@ -182,6 +192,17 @@ export default function TrumpLobbyPage() {
     };
 
     if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
+
+    // If in a game room, show the appropriate game content
+    if (activeRoomId) {
+        if (selectedGame === 'poker') {
+            return <PokerGameContent roomId={activeRoomId} onExit={handleExitGame} />;
+        } else if (selectedGame === 'blackjack') {
+            return <BlackjackGameContent roomId={activeRoomId} onExit={handleExitGame} />;
+        } else {
+            return <TrumpGameContent roomId={activeRoomId} onExit={handleExitGame} />;
+        }
+    }
 
     // Login required screen
     if (!user) {

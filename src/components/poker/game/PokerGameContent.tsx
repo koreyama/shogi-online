@@ -1,10 +1,7 @@
 'use client';
 
-export const runtime = 'edge';
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import styles from './PokerGameContent.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, set, runTransaction, onDisconnect, remove } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,17 +12,16 @@ import { Deck } from '@/lib/trump/deck';
 import { PokerEngine } from '@/lib/poker/engine';
 import { PokerAI } from '@/lib/poker/ai';
 import { IconBack, IconUser, IconCards } from '@/components/Icons';
-// import confetti from 'canvas-confetti';
 
-export default function PokerGamePage() {
-    const params = useParams();
-    const router = useRouter();
-    const roomId = params.roomId as string;
+interface Props {
+    roomId: string;
+    onExit: () => void;
+}
+
+export default function PokerGameContent({ roomId, onExit }: Props) {
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const playerId = user?.uid || '';
     const playerName = user?.displayName || 'Guest';
-
-    console.log('PokerGamePage rendering', { roomId, authLoading, playerName });
 
     const [room, setRoom] = useState<TrumpRoom | null>(null);
     const [gameState, setGameState] = useState<PokerGameState | null>(null);
@@ -33,19 +29,16 @@ export default function PokerGamePage() {
     const [ai] = useState(() => new PokerAI());
     const lastProcessedStateRef = useRef<string>("");
 
-    // Game constants
     const SMALL_BLIND = 10;
     const BIG_BLIND = 20;
     const STARTING_CHIPS = 1000;
 
     useEffect(() => {
         if (!roomId) return;
-        console.log('PokerGamePage: Setting up listener for room', roomId);
 
         const roomRef = ref(db, `poker_rooms/${roomId}`);
         const unsubscribe = onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            console.log('PokerGamePage: Room data received', data);
             if (data) {
                 setRoom(data);
                 if (data.gameState) {
@@ -60,7 +53,6 @@ export default function PokerGamePage() {
         return () => unsubscribe();
     }, [roomId]);
 
-    // Join room logic
     useEffect(() => {
         if (user && roomId && playerName && playerId) {
             const playerRef = ref(db, `poker_rooms/${roomId}/players/${playerId}`);
@@ -81,14 +73,12 @@ export default function PokerGamePage() {
         }
     }, [user, roomId, playerName, playerId, room]);
 
-    // AI Turn Logic
     useEffect(() => {
         if (!gameState || room?.status !== 'playing' || !playerId) return;
 
         const currentTurnPlayerId = gameState.turnPlayerId;
         const currentPlayer = gameState.players[currentTurnPlayerId];
 
-        // Host manages AI
         if (currentPlayer?.isAi && room.hostId === playerId) {
             const stateSignature = `${currentTurnPlayerId}-${gameState.phase}-${gameState.currentBet}`;
             if (lastProcessedStateRef.current === stateSignature) return;
@@ -104,21 +94,15 @@ export default function PokerGamePage() {
     const handleStartGame = async () => {
         if (!room || !playerId) return;
 
-        const deck = new Deck(0); // No jokers
+        const deck = new Deck(0);
         deck.shuffle();
 
-        // Get current players - use gameState if available (for new rounds), otherwise room.players
         const currentPlayers = gameState?.players || room.players;
         const playerIds = Object.keys(currentPlayers);
 
-        if (playerIds.length < 2) {
-            console.error('Not enough players to start game');
-            return;
-        }
+        if (playerIds.length < 2) return;
 
         const players: Record<string, PokerPlayer> = {};
-
-        // Deal 2 cards to each player
         const hands: Card[][] = Array.from({ length: playerIds.length }, () => []);
         for (let i = 0; i < 2; i++) {
             for (let j = 0; j < playerIds.length; j++) {
@@ -127,7 +111,6 @@ export default function PokerGamePage() {
             }
         }
 
-        // Rotate dealer for new game
         let dealerIndex = 0;
         if (gameState?.dealerId) {
             const prevDealerIndex = playerIds.indexOf(gameState.dealerId);
@@ -139,14 +122,13 @@ export default function PokerGamePage() {
 
         playerIds.forEach((pid, i) => {
             const existingPlayer = currentPlayers[pid];
-            // Preserve chips from previous game, or use starting chips
             const prevChips = (gameState?.players[pid]?.chips) || STARTING_CHIPS;
 
             players[pid] = {
                 id: pid,
                 name: existingPlayer.name || `Player ${i + 1}`,
                 hand: hands[i],
-                chips: prevChips > 0 ? prevChips : STARTING_CHIPS, // Reset if busted
+                chips: prevChips > 0 ? prevChips : STARTING_CHIPS,
                 currentBet: 0,
                 isActive: true,
                 isAllIn: false,
@@ -160,7 +142,6 @@ export default function PokerGamePage() {
             } as PokerPlayer;
         });
 
-        // Blinds
         const sbPlayer = Object.values(players).find(p => p.isSmallBlind);
         const bbPlayer = Object.values(players).find(p => p.isBigBlind);
 
@@ -173,14 +154,7 @@ export default function PokerGamePage() {
             bbPlayer.currentBet = BIG_BLIND;
         }
 
-        // Preflop: First to act
-        let turnIndex = 0;
-        if (playerIds.length === 2) {
-            turnIndex = dealerIndex; // Dealer/SB acts first heads up
-        } else {
-            turnIndex = (bbIndex + 1) % playerIds.length;
-        }
-
+        let turnIndex = playerIds.length === 2 ? dealerIndex : (bbIndex + 1) % playerIds.length;
         const bbPlayerId = playerIds[bbIndex];
 
         const initialState: PokerGameState = {
@@ -199,8 +173,6 @@ export default function PokerGamePage() {
             lastAggressorId: bbPlayerId
         };
 
-        console.log('Starting game with state:', initialState);
-
         await update(ref(db, `poker_rooms/${roomId}`), {
             status: 'playing',
             gameState: initialState
@@ -218,16 +190,13 @@ export default function PokerGamePage() {
 
             const player = state.players[actorId];
             const callAmount = state.currentBet - player.currentBet;
-
-            // Mark player as having acted this round
             player.hasActedThisRound = true;
 
-            // Process Action
             if (type === 'fold') {
                 player.isActive = false;
                 player.lastAction = 'fold';
             } else if (type === 'check') {
-                if (callAmount > 0) return; // Invalid check
+                if (callAmount > 0) return;
                 player.lastAction = 'check';
             } else if (type === 'call') {
                 const amountToCall = Math.min(callAmount, player.chips);
@@ -250,7 +219,6 @@ export default function PokerGamePage() {
                 player.lastAction = 'raise';
                 if (player.chips === 0) player.isAllIn = true;
 
-                // On raise, set as last aggressor and reset hasActedThisRound for others
                 state.lastAggressorId = actorId;
                 Object.values(state.players).forEach(p => {
                     if (p.id !== actorId && p.isActive && !p.isAllIn) {
@@ -259,7 +227,6 @@ export default function PokerGamePage() {
                 });
             }
 
-            // Find next active non-all-in player
             const playerIds = Object.keys(state.players);
             let currentIndex = playerIds.indexOf(actorId);
             let nextIndex = (currentIndex + 1) % playerIds.length;
@@ -267,46 +234,34 @@ export default function PokerGamePage() {
 
             while (loopCount < playerIds.length) {
                 const nextPlayer = state.players[playerIds[nextIndex]];
-                if (nextPlayer.isActive && !nextPlayer.isAllIn) {
-                    break;
-                }
+                if (nextPlayer.isActive && !nextPlayer.isAllIn) break;
                 nextIndex = (nextIndex + 1) % playerIds.length;
                 loopCount++;
             }
 
-            // Check for game end conditions
             const activeCount = Object.values(state.players).filter(p => p.isActive).length;
 
             if (activeCount === 1) {
-                // Only one player left - they win
                 state.phase = 'showdown';
                 const winnerId = Object.values(state.players).find(p => p.isActive)?.id;
                 state.winners = winnerId ? [winnerId] : [];
             } else if (activeCount <= 1 || loopCount >= playerIds.length) {
-                // Everyone is all-in or folded - go to showdown
                 advanceToShowdown(state);
             } else {
-                // Check if betting round is complete
                 const activePlayers = Object.values(state.players).filter(p => p.isActive && !p.isAllIn);
                 const allMatched = activePlayers.every(p => p.currentBet === state.currentBet);
                 const allActed = activePlayers.every(p => p.hasActedThisRound);
 
-                // Special case: Preflop BB option
                 const isBBOption = state.phase === 'preflop'
                     && actorId !== state.lastAggressorId
                     && state.players[state.lastAggressorId || '']?.isBigBlind
                     && !state.players[state.lastAggressorId || '']?.hasActedThisRound;
 
                 if (allMatched && allActed && !isBBOption) {
-                    // Betting round complete - advance phase
-                    if (!state.deck) {
-                        state.deck = new Deck(0).getCards();
-                    } else if (!Array.isArray(state.deck)) {
-                        state.deck = Object.values(state.deck);
-                    }
+                    if (!state.deck) state.deck = new Deck(0).getCards();
+                    else if (!Array.isArray(state.deck)) state.deck = Object.values(state.deck);
                     nextPhase(state, state.deck);
                 } else {
-                    // Continue betting round
                     state.turnPlayerId = playerIds[nextIndex];
                 }
             }
@@ -316,22 +271,18 @@ export default function PokerGamePage() {
     };
 
     const advanceToShowdown = (state: PokerGameState) => {
-        // Deal remaining community cards and go to showdown
         if (!state.deck) state.deck = [];
         if (!Array.isArray(state.deck)) state.deck = Object.values(state.deck);
-
         if (!state.communityCards) state.communityCards = [];
         if (!Array.isArray(state.communityCards)) state.communityCards = Object.values(state.communityCards);
 
         const draw = (): Card => {
-            if (state.deck.length > 0) {
-                return state.deck.pop()!;
-            }
+            if (state.deck.length > 0) return state.deck.pop()!;
             return { suit: 'spade', rank: 'A' } as Card;
         };
 
         while (state.communityCards.length < 5) {
-            draw(); // burn
+            draw();
             state.communityCards.push(draw());
         }
 
@@ -340,32 +291,25 @@ export default function PokerGamePage() {
     };
 
     const nextPhase = (state: PokerGameState, deck: any[]) => {
-        // Reset bets and hasActedThisRound for all players
         Object.values(state.players).forEach(p => {
             p.currentBet = 0;
             p.hasActedThisRound = false;
             p.lastAction = null;
         });
         state.currentBet = 0;
-        state.lastAggressorId = null; // No aggressor in new round
+        state.lastAggressorId = null;
 
-        if (!state.communityCards) {
-            state.communityCards = [];
-        } else if (!Array.isArray(state.communityCards)) {
-            state.communityCards = Object.values(state.communityCards);
-        }
+        if (!state.communityCards) state.communityCards = [];
+        else if (!Array.isArray(state.communityCards)) state.communityCards = Object.values(state.communityCards);
 
         const draw = (): Card => {
-            if (!deck || deck.length === 0) {
-                console.error('Deck empty during draw');
-                return { suit: 'spade', rank: 'A' } as Card;
-            }
+            if (!deck || deck.length === 0) return { suit: 'spade', rank: 'A' } as Card;
             return deck.pop()!;
         };
 
         if (state.phase === 'preflop') {
             state.phase = 'flop';
-            draw(); // burn
+            draw();
             state.communityCards.push(draw(), draw(), draw());
         } else if (state.phase === 'flop') {
             state.phase = 'turn';
@@ -378,19 +322,16 @@ export default function PokerGamePage() {
         } else if (state.phase === 'river') {
             state.phase = 'showdown';
             state.winners = engine.determineWinners(Object.values(state.players), state.communityCards);
-            return; // Don't set turn if showdown
+            return;
         }
 
-        // Set turn to first active player left of dealer
         const playerIds = Object.keys(state.players);
         const dealerIndex = playerIds.findIndex(pid => state.players[pid].isDealer);
         let nextIndex = (dealerIndex + 1) % playerIds.length;
         let loopCount = 0;
         while (loopCount < playerIds.length) {
             const nextPlayer = state.players[playerIds[nextIndex]];
-            if (nextPlayer.isActive && !nextPlayer.isAllIn) {
-                break;
-            }
+            if (nextPlayer.isActive && !nextPlayer.isAllIn) break;
             nextIndex = (nextIndex + 1) % playerIds.length;
             loopCount++;
         }
@@ -415,7 +356,7 @@ export default function PokerGamePage() {
     };
 
     const handleLeaveRoom = async () => {
-        router.push('/trump');
+        onExit();
     };
 
     if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
@@ -453,7 +394,6 @@ export default function PokerGamePage() {
     if (!room) return <div className={styles.loading}>読み込み中...</div>;
 
     if (room.status === 'waiting') {
-        // Reusing lobby UI from trump page (simplified)
         return (
             <main className={styles.main}>
                 <div className={styles.lobbyContainer}>
