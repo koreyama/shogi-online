@@ -151,9 +151,17 @@
 
 .createForm {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
-    flex-wrap: wrap;
+}
+
+.amountInput {
+    background: #1a202c;
+    border: 1px solid #4a5568;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
 }
 
 .select {

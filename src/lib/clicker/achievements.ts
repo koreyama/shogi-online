@@ -70,6 +70,37 @@ export const ACHIEVEMENTS: Achievement[] = [
 
     // --- Wonder Milestones ---
     { id: 'wonder_pyramids', title: '永遠の安息', description: 'ピラミッドを建設する', condition: (state) => state.buildings['pyramids']?.count > 0 },
-    { id: 'wonder_eiffel', title: '鉄の貴婦人', description: 'エッフェル塔を建設する', condition: (state) => state.buildings['eiffel_tower']?.count > 0 }
+    { id: 'wonder_eiffel', title: '鉄の貴婦人', description: 'エッフェル塔を建設する', condition: (state) => state.buildings['eiffel_tower']?.count > 0 },
+    { id: 'wonder_space_elevator', title: '天への架け橋', description: '宇宙エレベーターを建設する', condition: (state) => state.buildings['space_elevator']?.count > 0 },
+
+    // --- Advanced Resource Milestones ---
+    { id: 'culture_100', title: '文化の萌芽', description: '文化を100蓄積する', condition: (state) => state.resources.culture >= 100 },
+    { id: 'culture_1k', title: '文明開化', description: '文化を1,000蓄積する', condition: (state) => state.resources.culture >= 1000 },
+    { id: 'culture_10k', title: '文化的覇権', description: '文化を10,000蓄積する', condition: (state) => state.resources.culture >= 10000 },
+
+    { id: 'oil_100', title: '黒い黄金', description: '石油を100バレル確保する', condition: (state) => state.resources.oil >= 100 },
+    { id: 'oil_5k', title: '石油王', description: '石油を5,000バレル確保する', condition: (state) => state.resources.oil >= 5000 },
+
+    { id: 'silicon_100', title: '半導体の夜明け', description: 'シリコンを100個製造する', condition: (state) => state.resources.silicon >= 100 },
+    { id: 'silicon_5k', title: 'シリコンバレー', description: 'シリコンを5,000個製造する', condition: (state) => state.resources.silicon >= 5000 },
+
+    // --- Advanced Tech Milestones ---
+    { id: 'tech_computers', title: '情報革命', description: '「コンピュータ」を研究する', condition: (state) => state.techs['computers']?.researched },
+    { id: 'tech_nuclear', title: '原子の力', description: '「核分裂」を研究する', condition: (state) => state.techs['nuclear_fission']?.researched },
+    { id: 'tech_fusion', title: '人工太陽', description: '「核融合」を研究する', condition: (state) => state.techs['fusion_power']?.researched },
+    { id: 'tech_space', title: '星々の海へ', description: '「宇宙入植」を研究する', condition: (state) => state.techs['space_colonization']?.researched },
+
+    // --- Policy Milestones ---
+    { id: 'policy_code_of_laws', title: '法の支配', description: '「法典」を採用する', condition: (state) => state.policies['code_of_laws']?.active },
+    { id: 'policy_welfare', title: 'ゆりかごから墓場まで', description: '「福祉国家」を採用する', condition: (state) => state.policies['welfare_state']?.active },
+
+    // --- Era Milestones ---
+    { id: 'era_medieval', title: '暗黒時代を超えて', description: '中世に到達する', condition: (state) => ['medieval', 'renaissance', 'industrial', 'atomic', 'information', 'modern'].includes(state.era) },
+    { id: 'era_industrial', title: '機械の時代', description: '産業革命時代に到達する', condition: (state) => ['industrial', 'atomic', 'information', 'modern'].includes(state.era) },
+    { id: 'era_information', title: '情報の時代', description: '情報化時代に到達する', condition: (state) => ['information', 'modern'].includes(state.era) },
+    { id: 'era_future', title: '未来へ', description: '現代(最終時代)に到達する', condition: (state) => state.era === 'modern' },
+
+    // --- Economy Milestones ---
+    { id: 'trade_route_master', title: 'シルクロード', description: '全ての交易路を開通させる', condition: (state) => Object.values(state.tradeRoutes || {}).filter(t => t.active).length >= 2 } // Assuming 2 routes currently
 
 ];

@@ -10,6 +10,7 @@ import { AchievementToast } from './AchievementToast';
 import { ACHIEVEMENTS } from '@/lib/clicker/achievements';
 import { JobManager } from './JobManager';
 import { ExpeditionManager } from './ExpeditionManager';
+import { PolicyManager } from './PolicyManager';
 import { formatNumber } from '@/lib/clicker/utils';
 import { TitleScreen } from './TitleScreen';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,14 +34,15 @@ export default function ClickerPage() {
         loadFromCloud,
         saveGame,
         addTradeRoute,
-        removeTradeRoute
+        removeTradeRoute,
+        unlockPolicy
     } = useClickerEngine();
 
     const [showTechTree, setShowTechTree] = useState(false);
     const [showAchievements, setShowAchievements] = useState(false);
     const [showTradeRoutes, setShowTradeRoutes] = useState(false); // Added
     const [clickAnims, setClickAnims] = useState<{ id: number, x: number, y: number, gained: Partial<Resources> }[]>([]);
-    const [activeTab, setActiveTab] = useState<'main' | 'jobs' | 'expedition' | 'settings'>('main');
+    const [activeTab, setActiveTab] = useState<'main' | 'jobs' | 'expedition' | 'policies' | 'settings'>('main');
     const [showTitle, setShowTitle] = useState(true);
     const [isLoadingSave, setIsLoadingSave] = useState(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -181,6 +183,7 @@ export default function ClickerPage() {
                     <ResourceItem icon={<IconWood />} name="木材" amount={gameState.resources.wood} rate={gameState.rates?.wood} />
                     <ResourceItem icon={<IconPickaxe />} name="石材" amount={gameState.resources.stone} rate={gameState.rates?.stone} />
                     <ResourceItem icon={<IconBook />} name="知識" amount={gameState.resources.knowledge} rate={gameState.rates?.knowledge} />
+                    <ResourceItem icon={<IconBook />} name="文化" amount={gameState.resources.culture} rate={gameState.rates?.culture} />
                     <ResourceItem icon={<IconGold />} name="金" amount={gameState.resources.gold} rate={gameState.rates?.gold} />
                     <ResourceItem icon={<IconIron />} name="鉄" amount={gameState.resources.iron} rate={gameState.rates?.iron} />
                     <ResourceItem icon={<IconCoal />} name="石炭" amount={gameState.resources.coal} rate={gameState.rates?.coal} />
@@ -189,17 +192,34 @@ export default function ClickerPage() {
                     <ResourceItem icon={<IconUsers />} name="人口" amount={gameState.resources.population} />
                 </div>
 
-                <div className={styles.panelHeader} style={{ marginTop: '2rem' }}>
-                    <h2>幸福度 (Happiness)</h2>
-                </div>
-                <div className={styles.happinessBar}>
-                    <div className={styles.happinessFill} style={{ width: `${gameState.happiness}%` }} />
-                    <span className={styles.happinessText}>{Math.round(gameState.happiness)}%</span>
-                </div>
+
             </div>
 
             {/* Center Panel: Tabs & Content */}
             <div className={styles.mainPanel}>
+                {/* Happiness HUD */}
+                <div style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '2rem',
+                    width: '200px',
+                    zIndex: 20
+                }}>
+                    <div style={{
+                        color: '#4a5568',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        marginBottom: '0.2rem',
+                        textAlign: 'right'
+                    }}>
+                        幸福度 {Math.round(gameState.happiness)}%
+                    </div>
+                    <div className={styles.happinessBar}>
+                        <div className={styles.happinessFill} style={{ width: `${gameState.happiness}%` }} />
+                        <span className={styles.happinessText}>{Math.round(gameState.happiness)}%</span>
+                    </div>
+                </div>
+
                 {/* Tab Navigation */}
                 <div className={styles.tabContainer}>
                     <button
@@ -219,6 +239,12 @@ export default function ClickerPage() {
                         onClick={() => setActiveTab('expedition')}
                     >
                         探索
+                    </button>
+                    <button
+                        className={`${styles.tabButton} ${activeTab === 'policies' ? styles.tabButtonActive : ''}`}
+                        onClick={() => setActiveTab('policies')}
+                    >
+                        社会制度
                     </button>
                     <button
                         className={`${styles.tabButton} ${activeTab === 'settings' ? styles.tabButtonActive : ''}`}
@@ -285,6 +311,11 @@ export default function ClickerPage() {
                 {/* Expedition Tab */}
                 {activeTab === 'expedition' && (
                     <ExpeditionManager gameState={gameState} onSendExpedition={sendExpedition} />
+                )}
+
+                {/* Policies Tab */}
+                {activeTab === 'policies' && (
+                    <PolicyManager gameState={gameState} onUnlockPolicy={unlockPolicy} />
                 )}
 
                 {/* Settings Tab */}

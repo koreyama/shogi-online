@@ -3,7 +3,7 @@ import { GameState, Resources, ExpeditionType } from '@/lib/clicker/types';
 import { EXPEDITIONS } from '@/lib/clicker/data';
 import styles from './ExpeditionManager.module.css';
 import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPickaxe, IconBook } from '@/components/Icons';
-import { formatNumber } from '@/lib/clicker/utils';
+import { formatNumber, getExpeditionScaling } from '@/lib/clicker/utils';
 
 interface ExpeditionManagerProps {
     gameState: GameState;
@@ -28,6 +28,8 @@ export const ExpeditionManager: React.FC<ExpeditionManagerProps> = ({ gameState,
     const activeCount = gameState.activeExpeditions?.length || 0;
     const maxActive = 3;
 
+    const multiplier = getExpeditionScaling(gameState.era);
+
     return (
         <div className={styles.container}>
             <h2 className={styles.title}>探索ミッション (Expeditions)</h2>
@@ -40,15 +42,22 @@ export const ExpeditionManager: React.FC<ExpeditionManagerProps> = ({ gameState,
                     if (exp.id === 'research') { Icon = IconBook; variant = 'cardResearch'; }
                     if (exp.id === 'trade') { Icon = IconGold; variant = 'cardTrade'; }
 
-                    const canAfford = Object.entries(exp.cost).every(([k, v]) => (gameState.resources[k as keyof Resources] || 0) >= (v as number));
+                    const scaledCost: Record<string, number> = {};
+                    Object.entries(exp.cost).forEach(([k, v]) => {
+                        scaledCost[k] = (v as number) * multiplier;
+                    });
+
+                    const canAfford = Object.entries(scaledCost).every(([k, v]) => (gameState.resources[k as keyof Resources] || 0) >= v);
+
+                    const rewardText = multiplier > 1 ? `${exp.rewardDesc} (x${formatNumber(multiplier)})` : exp.rewardDesc;
 
                     return (
                         <ExpeditionCard
                             key={exp.id}
                             title={exp.title}
                             desc={exp.description}
-                            cost={exp.cost}
-                            rewards={exp.rewardDesc}
+                            cost={scaledCost}
+                            rewards={rewardText}
                             risk={exp.risk}
                             duration={`${exp.duration}秒`}
                             variant={variant}

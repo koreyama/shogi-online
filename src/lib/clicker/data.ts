@@ -1,4 +1,4 @@
-import { Building, Tech, ClickDrop, Job, ExpeditionConfig } from './types';
+import { Building, Tech, ClickDrop, Job, ExpeditionConfig, Policy } from './types';
 
 export const CLICK_DROPS: ClickDrop[] = [
     { resource: 'food', amount: 1, chance: 1.0 },
@@ -6,6 +6,7 @@ export const CLICK_DROPS: ClickDrop[] = [
     // { resource: 'wood', amount: 1, chance: 0.5, reqTech: 'stone_tools' },
     // { resource: 'stone', amount: 1, chance: 0.3, reqTech: 'mining' },
     { resource: 'knowledge', amount: 2, chance: 0.2, reqTech: 'writing' }, // Boost after Writing
+    { resource: 'culture', amount: 1, chance: 0.1 }, // Small chance for culture from start
     // { resource: 'gold', amount: 1, chance: 0.05, reqTech: 'currency' },
     // { resource: 'iron', amount: 1, chance: 0.1, reqTech: 'iron_working' },
     // { resource: 'coal', amount: 1, chance: 0.1, reqTech: 'industrialization' },
@@ -18,6 +19,15 @@ export const INITIAL_JOBS: { [key: string]: Job } = {
         description: '食料を集める',
         production: { food: 2 },
         unlocked: true
+    },
+    storyteller: {
+        id: 'storyteller',
+        name: '語り部',
+        description: '物語を語り、文化を継承する',
+        production: { culture: 1 },
+        consumption: { food: 1 },
+        unlocked: false,
+        reqTech: ['stone_tools']
     },
     woodcutter: {
         id: 'woodcutter',
@@ -98,7 +108,7 @@ export const INITIAL_JOBS: { [key: string]: Job } = {
         id: 'artist',
         name: '芸術家',
         description: '文化を生み出し幸福度を上げる',
-        production: { knowledge: 3 }, // Placeholder: Happiness not a resource yet, use Knowledge for now
+        production: { culture: 1 }, // Changed from knowledge to culture
         consumption: { gold: 2 },
         unlocked: false,
         reqTech: ['drama']
@@ -111,6 +121,47 @@ export const INITIAL_JOBS: { [key: string]: Job } = {
         consumption: { gold: 1 },
         unlocked: false,
         reqTech: ['theology']
+    },
+    // --- Advanced Jobs ---
+    oil_driller: {
+        id: 'oil_driller',
+        name: '石油採掘員',
+        description: '石油を採掘する',
+        production: { oil: 1 },
+        unlocked: false,
+        reqTech: ['combustion']
+    },
+    nuclear_engineer: {
+        id: 'nuclear_engineer',
+        name: '原子力技師',
+        description: '原子炉を管理し、知識を生み出す',
+        production: { knowledge: 10, gold: 5 },
+        unlocked: false,
+        reqTech: ['nuclear_fission']
+    },
+    chip_engineer: {
+        id: 'chip_engineer',
+        name: '半導体技師',
+        description: 'シリコンチップを製造',
+        production: { silicon: 1 },
+        unlocked: false,
+        reqTech: ['computers']
+    },
+    data_analyst: {
+        id: 'data_analyst',
+        name: 'データ分析官',
+        description: 'データを分析し、知識を生み出す',
+        production: { knowledge: 50 },
+        unlocked: false,
+        reqTech: ['internet']
+    },
+    fusion_engineer: {
+        id: 'fusion_engineer',
+        name: '核融合技師',
+        description: '未来のエネルギーを管理',
+        production: { gold: 500, knowledge: 200 },
+        unlocked: false,
+        reqTech: ['fusion_power']
     }
 };
 
@@ -462,6 +513,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: '油田',
         description: '地下資源を採掘する施設。石油を生産する。',
         baseCost: { wood: 50000, iron: 50000, gold: 100000 },
+        jobSlots: { oil_driller: 2 },
         passiveProduction: { oil: 1 },
         costScaling: 1.25,
         count: 0,
@@ -474,6 +526,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: '原子力発電所',
         description: '莫大なエネルギーを生み出す。知識と金を生産する。',
         baseCost: { stone: 200000, iron: 200000, gold: 500000, oil: 50000 },
+        jobSlots: { nuclear_engineer: 3 },
         passiveProduction: { knowledge: 50, gold: 100 },
         costScaling: 1.4,
         count: 0,
@@ -487,6 +540,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: '半導体工場',
         description: 'シリコンウェハーを製造する精密工場。',
         baseCost: { iron: 500000, gold: 1000000, oil: 200000 },
+        jobSlots: { chip_engineer: 3 },
         passiveProduction: { silicon: 1 },
         costScaling: 1.3,
         count: 0,
@@ -499,6 +553,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: 'データセンター',
         description: '膨大な情報を処理する。知識の生産を加速させる。',
         baseCost: { iron: 1000000, silicon: 100000, gold: 2000000 },
+        jobSlots: { data_analyst: 4 },
         passiveProduction: { knowledge: 200 },
         costScaling: 1.35,
         count: 0,
@@ -512,6 +567,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: '核融合炉',
         description: '無限のクリーンエネルギー。',
         baseCost: { iron: 5000000, silicon: 2000000, gold: 10000000, knowledge: 20000000 },
+        jobSlots: { fusion_engineer: 2 },
         passiveProduction: { gold: 5000, knowledge: 2000 },
         costScaling: 1.5,
         count: 0,
@@ -1173,7 +1229,152 @@ export const RESOURCE_VALUES: Record<string, number> = {
     gold: 10,
     silicon: 15,
     knowledge: 20,
+    culture: 50,
     population: 50 // High value, maybe not tradable?
+};
+
+export const INITIAL_POLICIES: { [key: string]: Policy } = {
+    // --- Primitive / Ancient Policies ---
+    tribal_council: {
+        id: 'tribal_council',
+        name: '部族会議',
+        description: '長老たちによる指導。食料生産が少し安定する。',
+        cost: 10,
+        unlocked: true, // Start unlocked
+        active: false,
+        reqEra: 'primitive',
+        effects: {
+            resourceMultiplier: { food: 1.05 }
+        }
+    },
+    oral_tradition: {
+        id: 'oral_tradition',
+        name: '口承伝承',
+        description: '物語を通じて知識を伝える。文化と知識の生産が増加。',
+        cost: 50,
+        unlocked: false,
+        active: false,
+        reqEra: 'ancient',
+        effects: {
+            resourceMultiplier: { culture: 1.1, knowledge: 1.05 }
+        }
+    },
+    code_of_laws: {
+        id: 'code_of_laws',
+        name: '法典',
+        description: '社会の秩序を保つための規則。生産性が向上し、汚職が減る（金生産増）。',
+        cost: 200,
+        unlocked: false,
+        active: false,
+        reqEra: 'ancient',
+        effects: {
+            resourceMultiplier: { gold: 1.1, culture: 1.1 }
+        }
+    },
+
+    // --- Classical Policies ---
+    feudal_contract: {
+        id: 'feudal_contract',
+        name: '封建契約',
+        description: '農民の生産性が向上するが、自由が制限される',
+        cost: 500, // Increased cost slightly
+        unlocked: false,
+        active: false,
+        reqEra: 'classical', // Moved to classical/medieval transition usually, but let's keep it accessible or slightly higher req
+        effects: {
+            resourceMultiplier: { food: 1.2 },
+        }
+    },
+    monument_building: {
+        id: 'monument_building',
+        name: '記念碑建設',
+        description: '石材加工技術の向上により、建築コストが低下',
+        cost: 300,
+        unlocked: false,
+        active: false,
+        reqEra: 'classical',
+        effects: {
+            buildingCostMultiplier: 0.95
+        }
+    },
+
+    // --- Medieval Policies ---
+    guild_monopoly: {
+        id: 'guild_monopoly',
+        name: 'ギルド独占',
+        description: '職人の技術が向上する (木材・石材・鉄)',
+        cost: 1500,
+        unlocked: false,
+        active: false,
+        reqEra: 'medieval',
+        effects: {
+            resourceMultiplier: { wood: 1.2, stone: 1.2, iron: 1.2 }
+        }
+    },
+    religious_unity: {
+        id: 'religious_unity',
+        name: '宗教的統一',
+        description: '信仰による結束。知識と幸福度(未実装)にボーナス',
+        cost: 2000,
+        unlocked: false,
+        active: false,
+        reqEra: 'medieval',
+        effects: {
+            resourceMultiplier: { knowledge: 1.15 }
+        }
+    },
+
+    // --- Renaissance/Industrial ---
+    merchant_confederacy: {
+        id: 'merchant_confederacy',
+        name: '商人連合',
+        description: '交易と商業を重視する。金の生産が大幅増加。',
+        cost: 8000,
+        unlocked: false,
+        active: false,
+        reqEra: 'renaissance',
+        effects: {
+            resourceMultiplier: { gold: 1.5 }
+        }
+    },
+    rationalism: {
+        id: 'rationalism',
+        name: '合理主義',
+        description: '科学的思考の普及。知識生産を加速。',
+        cost: 12000,
+        unlocked: false,
+        active: false,
+        reqEra: 'renaissance',
+        effects: {
+            resourceMultiplier: { knowledge: 1.3 }
+        }
+    },
+    industrial_planning: {
+        id: 'industrial_planning',
+        name: '産業計画',
+        description: '国家主導の工場建設。',
+        cost: 50000,
+        unlocked: false,
+        active: false,
+        reqEra: 'industrial',
+        effects: {
+            buildingCostMultiplier: 0.9
+        }
+    },
+
+    // --- Modern ---
+    welfare_state: {
+        id: 'welfare_state',
+        name: '福祉国家',
+        description: '市民の生活を保障。人口増加率(未実装)や安定性に寄与。',
+        cost: 500000,
+        unlocked: false,
+        active: false,
+        reqEra: 'modern',
+        effects: {
+            resourceMultiplier: { food: 1.5 } // Simulating better living standards
+        }
+    }
 };
 
 // Preserved for legacy/examples, but UI will mainly use dynamic creation

@@ -1,4 +1,4 @@
-export type ResourceType = 'food' | 'wood' | 'stone' | 'knowledge' | 'population' | 'gold' | 'iron' | 'coal' | 'oil' | 'silicon';
+export type ResourceType = 'food' | 'wood' | 'stone' | 'knowledge' | 'population' | 'gold' | 'iron' | 'coal' | 'oil' | 'silicon' | 'culture';
 
 export type Era = 'primitive' | 'ancient' | 'classical' | 'medieval' | 'renaissance' | 'industrial' | 'atomic' | 'information' | 'modern';
 
@@ -13,6 +13,7 @@ export interface Resources {
     coal: number;
     oil: number; // Added for Atomic Era
     silicon: number; // Added for Information Era
+    culture: number; // Added for Policies
 }
 
 export interface ClickDrop {
@@ -67,6 +68,22 @@ export interface Tech {
     reqTech?: string[];
 }
 
+export interface Policy {
+    id: string;
+    name: string;
+    description: string;
+    cost: number; // Culture cost
+    unlocked: boolean; // Accessible to buy
+    active: boolean; // Purchased
+    reqEra: Era;
+    reqTech?: string[];
+    effects: {
+        resourceMultiplier?: Partial<Record<ResourceType, number>>;
+        buildingCostMultiplier?: number;
+        // productionSpeed?: number; // Future idea
+    };
+}
+
 export type ExpeditionType = 'scout' | 'research' | 'trade';
 
 export interface ExpeditionConfig {
@@ -86,6 +103,7 @@ export interface ActiveExpedition {
     startTime: number;
     duration: number;
     cost: Partial<Resources>;
+    multiplier?: number; // Added in v5.13 for era scaling
 }
 
 export interface TradeRoute {
@@ -93,8 +111,9 @@ export interface TradeRoute {
     from: ResourceType;
     to: ResourceType;
     rate: number;
+    amount: number; // Amount of 'from' resource to consume per second
     active: boolean;
-    name?: string; // Optional custom name
+    name?: string;
 }
 
 export interface GameState {
@@ -103,6 +122,7 @@ export interface GameState {
     buildings: { [key: string]: Building };
     techs: { [key: string]: Tech };
     jobs: { [key: string]: number };
+    policies: { [key: string]: Policy }; // Added in v5.14
     era: Era;
     happiness: number;
     maxPopulation: number;
@@ -131,7 +151,8 @@ export const INITIAL_RESOURCES: Resources = {
     iron: 0,
     coal: 0,
     oil: 0,
-    silicon: 0
+    silicon: 0,
+    culture: 0
 };
 
 export const ERAS: Record<Era, { name: string; description: string }> = {

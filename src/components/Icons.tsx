@@ -505,3 +505,37 @@ export const IconKnowledge = IconBook;
 export const IconPopulation = IconUsers;
 export const IconGold = IconCoin;
 
+export const IconFeather: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
+        <line x1="16" y1="8" x2="2" y2="22" />
+        <line x1="17.5" y1="15" x2="9" y2="15" />
+    </svg>
+);
+
+type ResourceIconProps = {
+    type: string;
+    size?: number;
+    color?: string;
+    className?: string;
+};
+
+export const ResourceIcon: React.FC<ResourceIconProps> = ({ type, size = 16, color = 'currentColor', className }) => {
+    switch (type) {
+        case 'food': return <IconFood size={size} color={color} className={className} />;
+        case 'wood': return <IconWood size={size} color={color} className={className} />;
+        case 'stone': return <IconStone size={size} color={color} className={className} />;
+        case 'knowledge': return <IconKnowledge size={size} color={color} className={className} />;
+        case 'gold': return <IconGold size={size} color={color} className={className} />;
+        case 'iron': return <IconIron size={size} color={color} className={className} />;
+        case 'coal': return <IconCoal size={size} color={color} className={className} />;
+        case 'oil': return <IconOil size={size} color={color} className={className} />;
+        case 'silicon': return <IconSilicon size={size} color={color} className={className} />;
+        case 'silicon': return <IconSilicon size={size} color={color} className={className} />;
+        case 'culture': return <IconFeather size={size} color={color} className={className} />;
+        case 'population': return <IconPopulation size={size} color={color} className={className} />;
+        case 'population': return <IconPopulation size={size} color={color} className={className} />;
+        default: return null;
+    }
+};
+

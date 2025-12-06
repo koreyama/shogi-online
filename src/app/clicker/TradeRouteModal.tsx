@@ -8,25 +8,28 @@ interface Props {
     gameState: GameState;
     onClose: () => void;
     onToggleRoute: (routeId: string) => void;
-    onAddRoute: (from: ResourceType, to: ResourceType) => void;
+    onAddRoute: (from: ResourceType, to: ResourceType, amount: number) => void;
     onRemoveRoute: (routeId: string) => void;
 }
 
-const TRADABLE_RESOURCES: ResourceType[] = ['food', 'wood', 'stone', 'coal', 'iron', 'gold', 'knowledge'];
+const TRADABLE_RESOURCES: ResourceType[] = ['food', 'wood', 'stone', 'coal', 'iron', 'gold', 'knowledge', 'oil', 'silicon'];
 
 export const TradeRouteModal: React.FC<Props> = ({ gameState, onClose, onToggleRoute, onAddRoute, onRemoveRoute }) => {
     const [fromRes, setFromRes] = useState<ResourceType>('wood');
     const [toRes, setToRes] = useState<ResourceType>('gold');
+    const [amount, setAmount] = useState<number>(1);
 
     const handleCreate = () => {
         if (fromRes === toRes) return;
-        onAddRoute(fromRes, toRes);
+        if (amount <= 0) return;
+        onAddRoute(fromRes, toRes, amount);
     };
 
     // Calculate preview rate
     const valFrom = RESOURCE_VALUES[fromRes] || 1;
     const valTo = RESOURCE_VALUES[toRes] || 1;
     const previewRate = (valFrom / valTo) * 0.8; // 20% tax
+    const previewGain = amount * previewRate;
 
     return (
         <div className={styles.modalOverlay} onClick={onClose}>
@@ -41,24 +44,35 @@ export const TradeRouteModal: React.FC<Props> = ({ gameState, onClose, onToggleR
                 <div className={styles.createSection}>
                     <div className={styles.createHeader}>新規ルート作成 (Create Route)</div>
                     <div className={styles.createForm}>
-                        <select
-                            className={styles.select}
-                            value={fromRes}
-                            onChange={(e) => setFromRes(e.target.value as ResourceType)}
-                        >
-                            {TRADABLE_RESOURCES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                        </select>
-                        <span className={styles.arrow}>➡</span>
-                        <select
-                            className={styles.select}
-                            value={toRes}
-                            onChange={(e) => setToRes(e.target.value as ResourceType)}
-                        >
-                            {TRADABLE_RESOURCES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                        </select>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <input
+                                type="number"
+                                className={styles.amountInput}
+                                value={amount}
+                                onChange={(e) => setAmount(Math.max(0.1, parseFloat(e.target.value) || 1))}
+                                min="0.1"
+                                step="0.5"
+                                style={{ width: '60px', textAlign: 'center' }}
+                            />
+                            <select
+                                className={styles.select}
+                                value={fromRes}
+                                onChange={(e) => setFromRes(e.target.value as ResourceType)}
+                            >
+                                {TRADABLE_RESOURCES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+                            </select>
+                            <span className={styles.arrow}>➡</span>
+                            <select
+                                className={styles.select}
+                                value={toRes}
+                                onChange={(e) => setToRes(e.target.value as ResourceType)}
+                            >
+                                {TRADABLE_RESOURCES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+                            </select>
+                        </div>
 
-                        <div style={{ fontSize: '0.8rem', color: '#a0aec0', marginLeft: '1rem' }}>
-                            レート: {previewRate.toFixed(2)} (手数料 20%)
+                        <div style={{ fontSize: '0.8rem', color: '#a0aec0', marginTop: '0.5rem' }}>
+                            消費: -{amount.toFixed(1)} {fromRes}/秒 ⇒ 獲得: +{previewGain.toFixed(2)} {toRes}/秒 (税20%)
                         </div>
 
                         <button className={styles.createButton} onClick={handleCreate}>開設</button>
@@ -75,10 +89,10 @@ export const TradeRouteModal: React.FC<Props> = ({ gameState, onClose, onToggleR
                                     </div>
                                     <div className={styles.routeDetail}>
                                         <span>変換: {route.from.toUpperCase()} → {route.to.toUpperCase()}</span>
-                                        <span className={styles.flowRate}>(レート: {(route.rate * 100).toFixed(1)}%)</span>
+                                        <span className={styles.flowRate}>(レート: {route.rate.toFixed(2)})</span>
                                     </div>
                                     <div className={styles.routeDetail}>
-                                        コスト: -1.0 {route.from}/秒  ⇒  獲得: +{route.rate.toFixed(2)} {route.to}/秒
+                                        消費: -{(route.amount || 1).toFixed(1)} {route.from}/秒 ⇒ 獲得: +{((route.amount || 1) * route.rate).toFixed(2)} {route.to}/秒
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

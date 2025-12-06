@@ -8,6 +8,7 @@ interface AchievementsModalProps {
 }
 
 export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose, unlockedAchievements }) => {
+    // Render the list of all available achievements
     if (!isOpen) return null;
 
     const unlockedCount = unlockedAchievements.length;

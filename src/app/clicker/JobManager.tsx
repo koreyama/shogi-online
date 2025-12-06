@@ -81,7 +81,17 @@ export const JobManager: React.FC<JobManagerProps> = ({ gameState, onAssign }) =
                                     return (
                                         <div key={res} className={styles.prodItem}>
                                             <span className={styles.prodLabel}>生産:</span>
-                                            <span className={styles.prodValue}>+{formatNumber(finalAmount)} {res === 'food' ? '食料' : res === 'wood' ? '木材' : res === 'stone' ? '石材' : res === 'knowledge' ? '知識' : res === 'gold' ? '金' : res === 'iron' ? '鉄' : res === 'coal' ? '石炭' : res}</span>
+                                            <span className={styles.prodValue}>+{formatNumber(finalAmount)} {
+                                                res === 'food' ? '食料' :
+                                                    res === 'wood' ? '木材' :
+                                                        res === 'stone' ? '石材' :
+                                                            res === 'knowledge' ? '知識' :
+                                                                res === 'gold' ? '金' :
+                                                                    res === 'iron' ? '鉄' :
+                                                                        res === 'coal' ? '石炭' :
+                                                                            res === 'oil' ? '石油' :
+                                                                                res === 'silicon' ? 'シリコン' : res
+                                            }</span>
                                         </div>
                                     );
                                 })}
@@ -92,7 +102,9 @@ export const JobManager: React.FC<JobManagerProps> = ({ gameState, onAssign }) =
                                                 res === 'knowledge' ? '知識' :
                                                     res === 'gold' ? '金' :
                                                         res === 'iron' ? '鉄' :
-                                                            res === 'coal' ? '石炭' : '資源';
+                                                            res === 'coal' ? '石炭' :
+                                                                res === 'oil' ? '石油' :
+                                                                    res === 'silicon' ? 'シリコン' : res;
                                     return (
                                         <div key={res} className={styles.consItem}>
                                             <span className={styles.prodLabel} style={{ color: '#f56565' }}>消費:</span>
