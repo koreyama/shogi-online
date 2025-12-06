@@ -8,7 +8,7 @@ import { ChatArea } from '@/components/drawing/ChatArea';
 import { Timer } from '@/components/drawing/Timer';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, onDisconnect, remove } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { DrawingGameState } from '@/lib/drawing/types';
 import { getRandomWords } from '@/lib/drawing/words';
 import { IconPen, IconBack, IconUser, IconPalette } from '@/components/Icons';
@@ -17,7 +17,9 @@ export default function DrawingGameContent() {
     const params = useParams();
     const router = useRouter();
     const roomId = params.roomId as string;
-    const { playerId, playerName } = usePlayer();
+    const { user, signInWithGoogle, loading: authLoading } = useAuth();
+    const playerId = user?.uid || '';
+    const playerName = user?.displayName || 'Guest';
 
     const [gameState, setGameState] = useState<DrawingGameState | null>(null);
     const [players, setPlayers] = useState<Record<string, any>>({});

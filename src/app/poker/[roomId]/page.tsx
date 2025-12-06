@@ -7,23 +7,25 @@ import { useParams, useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, set, runTransaction, onDisconnect, remove } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { TrumpRoom, Card } from '@/lib/trump/types';
 import { PokerGameState, PokerPlayer, PokerPhase } from '@/lib/poker/types';
 import { PokerTable } from '@/components/poker/PokerTable';
 import { Deck } from '@/lib/trump/deck';
 import { PokerEngine } from '@/lib/poker/engine';
 import { PokerAI } from '@/lib/poker/ai';
-import { IconBack, IconUser } from '@/components/Icons';
+import { IconBack, IconUser, IconCards } from '@/components/Icons';
 // import confetti from 'canvas-confetti';
 
 export default function PokerGamePage() {
     const params = useParams();
     const router = useRouter();
     const roomId = params.roomId as string;
-    const { playerName, playerId, isLoaded } = usePlayer();
+    const { user, signInWithGoogle, loading: authLoading } = useAuth();
+    const playerId = user?.uid || '';
+    const playerName = user?.displayName || 'Guest';
 
-    console.log('PokerGamePage rendering', { roomId, isLoaded, playerName });
+    console.log('PokerGamePage rendering', { roomId, authLoading, playerName });
 
     const [room, setRoom] = useState<TrumpRoom | null>(null);
     const [gameState, setGameState] = useState<PokerGameState | null>(null);
@@ -60,7 +62,7 @@ export default function PokerGamePage() {
 
     // Join room logic
     useEffect(() => {
-        if (isLoaded && roomId && playerName && playerId) {
+        if (user && roomId && playerName && playerId) {
             const playerRef = ref(db, `poker_rooms/${roomId}/players/${playerId}`);
             onDisconnect(playerRef).remove();
 
@@ -77,7 +79,7 @@ export default function PokerGamePage() {
                 }
             }
         }
-    }, [isLoaded, roomId, playerName, playerId, room]);
+    }, [user, roomId, playerName, playerId, room]);
 
     // AI Turn Logic
     useEffect(() => {
@@ -416,7 +418,39 @@ export default function PokerGamePage() {
         router.push('/trump');
     };
 
-    if (!isLoaded || !room) return <div className={styles.loading}>読み込み中...</div>;
+    if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
+
+    if (!user) {
+        return (
+            <main className={styles.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <IconCards size={64} color="#2b6cb0" />
+                    <h1 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>ポーカー</h1>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>プレイするにはログインが必要です</p>
+                    <button
+                        onClick={signInWithGoogle}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            background: '#3182ce',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Googleでログイン
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    if (!room) return <div className={styles.loading}>読み込み中...</div>;
 
     if (room.status === 'waiting') {
         // Reusing lobby UI from trump page (simplified)

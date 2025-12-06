@@ -7,12 +7,12 @@ import { useParams, useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, update, remove, runTransaction } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { Card as CardType } from '@/lib/trump/types';
 import { Card } from '@/components/trump/Card';
 import { Deck } from '@/lib/trump/deck';
 import { BlackjackEngine } from '@/lib/blackjack/engine';
-import { IconBack } from '@/components/Icons';
+import { IconBack, IconCards } from '@/components/Icons';
 
 interface BlackjackRoomState {
     roomId: string;
@@ -30,7 +30,8 @@ export default function BlackjackGamePage() {
     const params = useParams();
     const router = useRouter();
     const roomId = params.roomId as string;
-    const { playerId, isLoaded } = usePlayer();
+    const { user, signInWithGoogle, loading: authLoading } = useAuth();
+    const playerId = user?.uid || '';
 
     const [room, setRoom] = useState<BlackjackRoomState | null>(null);
     const [engine] = useState(() => new BlackjackEngine());
@@ -198,7 +199,41 @@ export default function BlackjackGamePage() {
         router.push('/trump');
     };
 
-    if (!isLoaded || !room) {
+    if (authLoading) {
+        return <div className={styles.loading}>読み込み中...</div>;
+    }
+
+    if (!user) {
+        return (
+            <main className={styles.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <IconCards size={64} color="#2b6cb0" />
+                    <h1 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>ブラックジャック</h1>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>プレイするにはログインが必要です</p>
+                    <button
+                        onClick={signInWithGoogle}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            background: '#3182ce',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Googleでログイン
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    if (!room) {
         return <div className={styles.loading}>読み込み中...</div>;
     }
 
