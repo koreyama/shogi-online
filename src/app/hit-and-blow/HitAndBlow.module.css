@@ -1,0 +1,334 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+    background: #111827;
+    /* gray-900 */
+    color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid #374151;
+    /* gray-700 */
+    max-width: 32rem;
+    /* max-w-lg */
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    /* Tech feel */
+}
+
+/* Status Section */
+.status_section {
+    margin-bottom: 2rem;
+    text-align: center;
+    width: 100%;
+}
+
+.game_over_win {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(to right, #4ade80, #3b82f6);
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+    animation: bounce 1s infinite;
+}
+
+.game_over_loss {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(to right, #ef4444, #f97316);
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+.secret_reveal {
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+    color: #d1d5db;
+    /* gray-300 */
+}
+
+.secret_code {
+    font-family: monospace;
+    background: #1f2937;
+    /* gray-800 */
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    letter-spacing: 0.2em;
+    color: #fff;
+    border: 1px solid #4b5563;
+    /* gray-600 */
+}
+
+.play_again_btn {
+    margin-top: 1.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(to right, #2563eb, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.play_again_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(37, 99, 235, 0.4);
+}
+
+.instruction {
+    font-size: 1.125rem;
+    color: #bfdbfe;
+    /* blue-200 */
+    font-weight: 500;
+}
+
+.attempts_info {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.attempts_label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    /* gray-400 */
+}
+
+.attempts_count {
+    font-family: monospace;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.attempts_safe {
+    color: #4ade80;
+}
+
+.attempts_danger {
+    color: #f87171;
+}
+
+/* History Section */
+.history_container {
+    width: 100%;
+    background: rgba(31, 41, 55, 0.5);
+    font-family: monospace;
+    font-size: 1.125rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.history_row:last-child {
+    border-bottom: none;
+}
+
+.guess_text {
+    letter-spacing: 0.2em;
+}
+
+.result_badge {
+    font-weight: bold;
+    border-radius: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.hit_badge {
+    color: #4ade80;
+    background: rgba(20, 83, 45, 0.3);
+}
+
+.blow_badge {
+    color: #facc15;
+    background: rgba(113, 63, 18, 0.3);
+}
+
+.empty_history {
+    text-align: center;
+    color: #4b5563;
+    font-style: italic;
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Input Display */
+.input_display {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.input_slots {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.slot {
+    width: 3.5rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.25rem;
+    font-weight: bold;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: transparent;
+}
+
+.slot_filled {
+    border: 2px solid #3b82f6;
+    color: #fff;
+    background: rgba(30, 58, 138, 0.2);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Keypad */
+.keypad_container {
+    width: 100%;
+    max-width: 24rem;
+}
+
+.key_grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.num_key {
+    aspect-ratio: 1;
+    border-radius: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.1s;
+    background: #374151;
+    /* gray-700 */
+    color: white;
+    box-shadow: 0 4px 0 #1f2937;
+    /* gray-800 */
+    border-top: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.num_key:hover:not(:disabled) {
+    background: #4b5563;
+    /* gray-600 */
+    transform: translateY(-1px);
+}
+
+.num_key:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.num_key:disabled {
+    background: #1f2937;
+    /* gray-800 */
+    color: #4b5563;
+    /* gray-600 */
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 1px solid #374151;
+}
+
+.action_row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.action_btn {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.delete_btn {
+    background: rgba(127, 29, 29, 0.3);
+    color: #fecaca;
+    border: 1px solid rgba(127, 29, 29, 0.5);
+}
+
+.delete_btn:hover {
+    background: rgba(127, 29, 29, 0.5);
+}
+
+.enter_btn {
+    background: linear-gradient(to right, #16a34a, #22c55e);
+    color: white;
+    box-shadow: 0 4px 0 #14532d;
+}
+
+.enter_btn:hover:not(:disabled) {
+    background: linear-gradient(to right, #15803d, #16a34a);
+}
+
+.enter_btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.enter_btn:disabled {
+    background: #1f2937;
+    color: #4b5563;
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 1px solid #374151;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

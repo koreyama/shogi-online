@@ -39,12 +39,14 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                             >
                                 続きから
                             </button>
-                            <button
-                                className={`${styles.menuBtn} ${styles.newGameBtn}`}
-                                onClick={onNewGame}
-                            >
-                                初めから
-                            </button>
+                            {!hasSave && (
+                                <button
+                                    className={`${styles.menuBtn} ${styles.newGameBtn}`}
+                                    onClick={onNewGame}
+                                >
+                                    初めから
+                                </button>
+                            )}
                             <button
                                 className={styles.menuBtn}
                                 onClick={() => window.location.href = '/'}

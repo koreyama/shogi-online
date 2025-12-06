@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './page.module.css';
 import { GameState, Tech, Building } from '@/lib/clicker/types';
-import { IconLock, IconCheck, IconBook, IconHammer, IconFood, IconWood, IconPickaxe, IconGold } from '@/components/Icons';
+import { IconLock, IconCheck, IconBook, IconHammer, IconFood, IconWood, IconPickaxe, IconGold, IconIron, IconCoal } from '@/components/Icons';
 import { formatNumber } from '@/lib/clicker/utils';
 
 type Props = {
@@ -44,7 +44,8 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                                                 res === 'wood' ? <IconWood size={14} /> :
                                                     res === 'stone' ? <IconPickaxe size={14} /> :
                                                         res === 'gold' ? <IconGold size={14} /> :
-                                                            res === 'iron' ? <IconPickaxe size={14} color="#718096" /> : <IconPickaxe size={14} color="#2d3748" />}
+                                                            res === 'iron' ? <IconIron size={14} /> :
+                                                                res === 'coal' ? <IconCoal size={14} /> : <IconPickaxe size={14} />}
                                         {formatNumber(amount as number)}
                                     </span>
                                 );
@@ -81,7 +82,7 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                                     </div>
                                     <button
                                         className={styles.buildButton}
-                                        disabled={!canBuy}
+                                        disabled={!canBuy || !isResearched}
                                         onClick={() => onBuyBuilding(bId)}
                                     >
                                         建設 ({building.count})

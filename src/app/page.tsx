@@ -467,6 +467,47 @@ export default function Home() {
             </div>
           </Link>
 
+          <Link href="/hit-and-blow" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4299e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Hit & Blow</div>
+            </div>
+          </Link>
+
+          <Link href="/dots-and-boxes" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed64a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor" />
+                <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" />
+                <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" />
+                <line x1="8.5" y1="8.5" x2="15.5" y2="8.5" />
+                <line x1="8.5" y1="8.5" x2="8.5" y2="15.5" />
+              </svg>
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Dots & Boxes</div>
+            </div>
+          </Link>
+
+          <Link href="/yacht" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed8936" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <circle cx="8" cy="8" r="2" fill="currentColor" />
+                <circle cx="16" cy="16" r="2" fill="currentColor" />
+                <circle cx="8" cy="16" r="2" fill="currentColor" />
+                <circle cx="16" cy="8" r="2" fill="currentColor" />
+                <circle cx="12" cy="12" r="2" fill="currentColor" />
+              </svg>
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Yacht</div>
+            </div>
+          </Link>
+
           <Link href="/minesweeper" style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
               <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>

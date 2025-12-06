@@ -460,9 +460,25 @@ export const IconSettings = ({ size = 24, color = "currentColor" }: IconProps) =
     </svg>
 );
 
+export const IconIron: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M6 7h12l3 9H3L6 7z" />
+        <path d="M3 16h18" />
+        <path d="M6 7v9" />
+        <path d="M18 7v9" />
+    </svg>
+);
+
+export const IconCoal: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M5.5 8.5c-.5-1.5 1-3.5 3-4s4.5.5 5.5 2c1-1 3-1.5 5-.5s2.5 3.5 1 5c1 1.5.5 4-1.5 5c-1 .5-2.5 0-3-.5c-.5 1.5-2.5 2-4.5 1.5c-1.5-.5-2.5-2-2.5-3c-1.5 0-3-1-3.5-3z" />
+    </svg>
+);
+
 // Aliases for consistency
 export const IconFood = IconApple;
 export const IconStone = IconPickaxe;
 export const IconKnowledge = IconBook;
 export const IconPopulation = IconUsers;
 export const IconGold = IconCoin;
+

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './page.module.css';
 import { useClickerEngine } from '@/lib/clicker/engine';
-import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPopulation, IconSettings, IconHammer, IconBook, IconLock, IconCheck, IconApple, IconPickaxe, IconUsers } from '@/components/Icons';
+import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPopulation, IconSettings, IconHammer, IconBook, IconLock, IconCheck, IconApple, IconPickaxe, IconUsers, IconIron, IconCoal } from '@/components/Icons';
 import { TechTreeModal } from './TechTreeModal';
 import { AchievementsModal } from './AchievementsModal';
 import { AchievementToast } from './AchievementToast';
@@ -159,8 +159,8 @@ export default function ClickerPage() {
                     <ResourceItem icon={<IconPickaxe />} name="石材" amount={gameState.resources.stone} rate={gameState.rates?.stone} />
                     <ResourceItem icon={<IconBook />} name="知識" amount={gameState.resources.knowledge} rate={gameState.rates?.knowledge} />
                     <ResourceItem icon={<IconGold />} name="金" amount={gameState.resources.gold} rate={gameState.rates?.gold} />
-                    <ResourceItem icon={<IconPickaxe color="#718096" />} name="鉄" amount={gameState.resources.iron} rate={gameState.rates?.iron} />
-                    <ResourceItem icon={<IconPickaxe color="#2d3748" />} name="石炭" amount={gameState.resources.coal} rate={gameState.rates?.coal} />
+                    <ResourceItem icon={<IconIron />} name="鉄" amount={gameState.resources.iron} rate={gameState.rates?.iron} />
+                    <ResourceItem icon={<IconCoal />} name="石炭" amount={gameState.resources.coal} rate={gameState.rates?.coal} />
                     <ResourceItem icon={<IconUsers />} name="人口" amount={gameState.resources.population} />
                 </div>
 

@@ -51,9 +51,19 @@ export const useClickerEngine = () => {
     const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const calculateProduction = (jobs: { [key: string]: number }): Partial<Resources> => {
+        // Calculate Tech Multipliers
+        const multipliers: { [key: string]: number } = {};
+        Object.values(gameState.techs).forEach(tech => {
+            if (tech.researched && tech.effects?.resourceMultiplier) {
+                Object.entries(tech.effects.resourceMultiplier).forEach(([res, mult]) => {
+                    multipliers[res] = (multipliers[res] || 1) * mult;
+                });
+            }
+        });
+
         const totalProd: Partial<Resources> = {
-            food: 1, // Base foraging production
-            knowledge: 0.1 // Base passive knowledge
+            food: 1 * (multipliers['food'] || 1),
+            knowledge: 0.1 * (multipliers['knowledge'] || 1)
         };
 
         const hasPaper = gameState.techs['paper']?.researched;
@@ -65,9 +75,14 @@ export const useClickerEngine = () => {
                     const rKey = res as ResourceType;
                     let finalAmount = amount as number;
 
-                    // Tech Bonuses
+                    // Tech Bonuses (Specific)
                     if (jobId === 'scholar' && hasPaper && rKey === 'knowledge') {
                         finalAmount += 1; // Paper boosts Scholar
+                    }
+
+                    // Apply Global Multipliers
+                    if (multipliers[rKey]) {
+                        finalAmount *= multipliers[rKey];
                     }
 
                     totalProd[rKey] = (totalProd[rKey] || 0) + (finalAmount * count);
@@ -293,16 +308,36 @@ export const useClickerEngine = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    // Auto-Save
+    const gameStateRef = useRef(gameState); // Ref to track latest state for event listeners
+
     useEffect(() => {
-        saveIntervalRef.current = setInterval(() => {
-            setGameState(current => {
-                const toSave = { ...current, lastSaveTime: Date.now() };
-                localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
-                return toSave;
-            });
-        }, 10000);
-        return () => { if (saveIntervalRef.current) clearInterval(saveIntervalRef.current); };
+        gameStateRef.current = gameState;
+    }, [gameState]);
+
+    // Auto-Save & Cleanup
+    useEffect(() => {
+        const save = () => {
+            const current = gameStateRef.current;
+            const toSave = { ...current, lastSaveTime: Date.now() };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
+        };
+
+        const handleBeforeUnload = () => save();
+        const handleVisibilityChange = () => {
+            if (document.hidden) save();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        saveIntervalRef.current = setInterval(save, 1000);
+
+        return () => {
+            if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            save(); // Save on unmount too
+        };
     }, []);
 
     // Job Assignment Logic
@@ -349,11 +384,20 @@ export const useClickerEngine = () => {
     const clickResource = useCallback(() => {
         const gained: Partial<Resources> = {};
 
+        // Calculate Click Multiplier from Techs
+        let clickMult = 1;
+        Object.values(gameState.techs).forEach(tech => {
+            if (tech.researched && tech.effects?.clickMultiplier) {
+                clickMult *= tech.effects.clickMultiplier;
+            }
+        });
+
         // Dynamic Click Drops based on Tech
         CLICK_DROPS.forEach(drop => {
             if (!drop.reqTech || gameState.techs[drop.reqTech]?.researched) {
                 if (Math.random() <= drop.chance) {
-                    gained[drop.resource] = (gained[drop.resource] || 0) + drop.amount;
+                    const amount = drop.amount * clickMult;
+                    gained[drop.resource] = (gained[drop.resource] || 0) + amount;
                 }
             }
         });
@@ -382,6 +426,9 @@ export const useClickerEngine = () => {
         setGameState(prev => {
             const building = prev.buildings[buildingId];
             if (!building) return prev;
+
+            // Security check: Must be unlocked
+            if (!building.unlocked) return prev;
 
             const cost = calculateCost(building);
 
