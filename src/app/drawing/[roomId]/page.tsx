@@ -1,7 +1,5 @@
 'use client';
 
-export const runtime = 'edge';
-
 import dynamic from 'next/dynamic';
 
 const DrawingGameContent = dynamic(() => import('@/components/drawing/DrawingGameContent'), {
