@@ -20,7 +20,8 @@ export const StockCard: React.FC<StockCardProps> = ({
     const isPositive = stock.change >= 0;
 
     const formatPrice = (price: number) => {
-        if (stock.symbol.includes('.T')) {
+        const isJPY = stock.currency === 'JPY' || stock.symbol.includes('.T');
+        if (isJPY) {
             // Japanese stock - use yen
             return `¥${price.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}`;
         }
@@ -30,7 +31,8 @@ export const StockCard: React.FC<StockCardProps> = ({
 
     const formatChange = (change: number, percent: number) => {
         const sign = change >= 0 ? '+' : '';
-        if (stock.symbol.includes('.T')) {
+        const isJPY = stock.currency === 'JPY' || stock.symbol.includes('.T');
+        if (isJPY) {
             return `${sign}¥${change.toLocaleString('ja-JP', { maximumFractionDigits: 0 })} (${sign}${percent.toFixed(2)}%)`;
         }
         return `${sign}$${change.toFixed(2)} (${sign}${percent.toFixed(2)}%)`;

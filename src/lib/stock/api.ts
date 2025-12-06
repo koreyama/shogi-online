@@ -70,6 +70,7 @@ export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
                 low: meta.regularMarketDayLow || currentPrice,
                 volume: meta.regularMarketVolume || 0,
                 sector: featuredInfo?.sector,
+                currency: meta.currency || (symbol.includes('.T') ? 'JPY' : 'USD'),
                 lastUpdated: Date.now()
             };
         } catch (err) {
@@ -137,14 +138,18 @@ export async function searchStock(symbol: string): Promise<Stock | null> {
     return fetchStockPrice(upperSymbol);
 }
 
-// Fetch featured stocks
+// Fetch featured stocks in parallel for better performance
 export async function fetchFeaturedStocks(): Promise<Stock[]> {
-    const stocks: Stock[] = [];
+    // Fetch all stocks in parallel
+    const results = await Promise.allSettled(
+        FEATURED_STOCKS.map(info => fetchStockPrice(info.symbol))
+    );
 
-    for (const info of FEATURED_STOCKS) {
-        const stock = await fetchStockPrice(info.symbol);
-        if (stock) stocks.push(stock);
-        await new Promise(resolve => setTimeout(resolve, 100));
+    const stocks: Stock[] = [];
+    for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+            stocks.push(result.value);
+        }
     }
 
     return stocks.length > 0 ? stocks : getSimulatedFeaturedStocks();
@@ -241,6 +246,7 @@ export function getSimulatedStock(symbol: string): Stock | null {
         low: data.price * 0.99,
         volume: Math.floor(Math.random() * 10000000) + 1000000,
         sector: featuredInfo?.sector,
+        currency: isJP ? 'JPY' : 'USD',
         lastUpdated: Date.now()
     };
 }

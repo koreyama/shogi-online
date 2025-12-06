@@ -13,6 +13,7 @@ export interface Stock {
     marketCap?: number;
     lastUpdated: number;
     sector?: string;
+    currency?: string; // USD, JPY, etc.
 }
 
 export interface PriceHistory {
