@@ -1,6 +1,6 @@
 // Stock API Service - Real data via API + search support
 
-import { Stock, PriceHistory, FEATURED_STOCKS } from './types';
+import { Stock, PriceHistory, FEATURED_STOCKS, USD_JPY_RATE } from './types';
 
 // Base prices for simulation fallback
 const BASE_PRICES: Record<string, number> = {
@@ -58,11 +58,14 @@ export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
             const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
 
             const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
+            const currency = meta.currency || (symbol.includes('.T') ? 'JPY' : 'USD');
+            const priceInJPY = currency === 'USD' ? currentPrice * USD_JPY_RATE : currentPrice;
 
             return {
                 symbol,
                 name: featuredInfo?.name || meta.shortName || meta.longName || symbol,
                 price: currentPrice,
+                priceInJPY: Math.round(priceInJPY),
                 previousClose: previousClose,
                 change: Math.round(change * 100) / 100,
                 changePercent: Math.round(changePercent * 100) / 100,
@@ -70,7 +73,7 @@ export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
                 low: meta.regularMarketDayLow || currentPrice,
                 volume: meta.regularMarketVolume || 0,
                 sector: featuredInfo?.sector,
-                currency: meta.currency || (symbol.includes('.T') ? 'JPY' : 'USD'),
+                currency: currency,
                 lastUpdated: Date.now()
             };
         } catch (err) {
@@ -234,11 +237,15 @@ export function getSimulatedStock(symbol: string): Stock | null {
     const change = data.price - data.previousClose;
     const changePercent = (change / data.previousClose) * 100;
     const isJP = symbol.includes('.T');
+    const currency = isJP ? 'JPY' : 'USD';
+    const priceInJPY = currency === 'USD' ? data.price * USD_JPY_RATE : data.price;
+    const finalPrice = isJP ? Math.round(data.price) : Math.round(data.price * 100) / 100;
 
     return {
         symbol,
         name: featuredInfo?.name || symbol,
-        price: isJP ? Math.round(data.price) : Math.round(data.price * 100) / 100,
+        price: finalPrice,
+        priceInJPY: Math.round(priceInJPY),
         previousClose: isJP ? Math.round(data.previousClose) : Math.round(data.previousClose * 100) / 100,
         change: isJP ? Math.round(change) : Math.round(change * 100) / 100,
         changePercent: Math.round(changePercent * 100) / 100,
@@ -246,7 +253,7 @@ export function getSimulatedStock(symbol: string): Stock | null {
         low: data.price * 0.99,
         volume: Math.floor(Math.random() * 10000000) + 1000000,
         sector: featuredInfo?.sector,
-        currency: isJP ? 'JPY' : 'USD',
+        currency: currency,
         lastUpdated: Date.now()
     };
 }

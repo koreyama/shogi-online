@@ -26,7 +26,8 @@ export class PortfolioEngine {
 
     // Buy shares
     buy(stock: Stock, shares: number): { success: boolean; message: string; trade?: Trade } {
-        const totalCost = stock.price * shares;
+        const price = stock.priceInJPY || stock.price; // Fallback for safety
+        const totalCost = price * shares;
 
         if (totalCost > this.portfolio.cash) {
             return { success: false, message: '資金が不足しています' };
@@ -52,8 +53,8 @@ export class PortfolioEngine {
                 symbol: stock.symbol,
                 name: stock.name,
                 shares,
-                averageCost: stock.price,
-                currentPrice: stock.price,
+                averageCost: price,
+                currentPrice: price,
                 totalCost: totalCost,
                 marketValue: totalCost,
                 profit: 0,
@@ -67,7 +68,7 @@ export class PortfolioEngine {
             symbol: stock.symbol,
             type: 'buy',
             shares,
-            price: stock.price,
+            price: price, // Record in JPY
             total: totalCost,
             timestamp: Date.now()
         };
@@ -79,6 +80,7 @@ export class PortfolioEngine {
     // Sell shares
     sell(stock: Stock, shares: number): { success: boolean; message: string; trade?: Trade } {
         const position = this.portfolio.positions[stock.symbol];
+        const price = stock.priceInJPY || stock.price;
 
         if (!position) {
             return { success: false, message: 'この銘柄を保有していません' };
@@ -92,7 +94,7 @@ export class PortfolioEngine {
             return { success: false, message: '株数を正しく入力してください' };
         }
 
-        const saleValue = stock.price * shares;
+        const saleValue = price * shares;
 
         // Add cash
         this.portfolio.cash += saleValue;
@@ -115,7 +117,7 @@ export class PortfolioEngine {
             symbol: stock.symbol,
             type: 'sell',
             shares,
-            price: stock.price,
+            price: price, // Record in JPY
             total: saleValue,
             timestamp: Date.now()
         };
@@ -132,8 +134,9 @@ export class PortfolioEngine {
         for (const stock of stocks) {
             const position = this.portfolio.positions[stock.symbol];
             if (position) {
-                position.currentPrice = stock.price;
-                position.marketValue = position.shares * stock.price;
+                const price = stock.priceInJPY || stock.price;
+                position.currentPrice = price;
+                position.marketValue = position.shares * price;
                 position.profit = position.marketValue - position.totalCost;
                 position.profitPercent = (position.profit / position.totalCost) * 100;
                 totalMarketValue += position.marketValue;

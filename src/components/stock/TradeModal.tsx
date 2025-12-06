@@ -33,18 +33,26 @@ export const TradeModal: React.FC<TradeModalProps> = ({
         setHistory(getPriceHistory(stock.symbol, chartPeriod));
     }, [stock.symbol, chartPeriod]);
 
-    const maxBuyShares = Math.floor(cash / stock.price);
+    const priceInJPY = stock.priceInJPY || stock.price;
+    const maxBuyShares = Math.floor(cash / priceInJPY);
     const maxSellShares = position?.shares || 0;
 
-    const isJapanese = stock.symbol.includes('.T');
-    const formatPrice = (price: number) => {
+    const isJapanese = stock.currency === 'JPY' || stock.symbol.includes('.T');
+
+    // Format stock price (Native Currency)
+    const formatNativePrice = (price: number) => {
         if (isJapanese) {
             return `¥${price.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}`;
         }
         return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
-    const total = stock.price * shares;
+    // Format portfolio values (Always JPY)
+    const formatJPY = (amount: number) => {
+        return `¥${amount.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}`;
+    };
+
+    const total = priceInJPY * shares;
     const isValid = mode === 'buy'
         ? shares > 0 && shares <= maxBuyShares
         : shares > 0 && shares <= maxSellShares;
@@ -74,7 +82,7 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                 </div>
 
                 <div className={styles.priceInfo}>
-                    <span className={styles.currentPrice}>{formatPrice(stock.price)}</span>
+                    <span className={styles.currentPrice}>{formatNativePrice(stock.price)}</span>
                     <span className={`${styles.change} ${stock.change >= 0 ? styles.up : styles.down}`}>
                         {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                     </span>
@@ -105,7 +113,7 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                         <div className={styles.positionRow}>
                             <span>評価損益</span>
                             <span className={position.profit >= 0 ? styles.up : styles.down}>
-                                {formatPrice(position.profit)} ({position.profit >= 0 ? '+' : ''}{position.profitPercent.toFixed(2)}%)
+                                {formatJPY(position.profit)} ({position.profit >= 0 ? '+' : ''}{position.profitPercent.toFixed(2)}%)
                             </span>
                         </div>
                     </div>
@@ -148,12 +156,12 @@ export const TradeModal: React.FC<TradeModalProps> = ({
 
                 <div className={styles.summary}>
                     <div className={styles.summaryRow}>
-                        <span>合計</span>
-                        <span className={styles.totalAmount}>{formatPrice(total)}</span>
+                        <span>合計 (円換算)</span>
+                        <span className={styles.totalAmount}>{formatJPY(total)}</span>
                     </div>
                     <div className={styles.summaryRow}>
                         <span>{mode === 'buy' ? '購入後残高' : '売却後残高'}</span>
-                        <span>{formatPrice(mode === 'buy' ? cash - total : cash + total)}</span>
+                        <span>{formatJPY(mode === 'buy' ? cash - total : cash + total)}</span>
                     </div>
                 </div>
 

@@ -3,7 +3,8 @@
 export interface Stock {
     symbol: string;
     name: string;
-    price: number;
+    price: number;           // Original price in native currency
+    priceInJPY: number;      // Price converted to JPY for portfolio calculations
     previousClose: number;
     change: number;
     changePercent: number;
@@ -93,3 +94,7 @@ export const FEATURED_STOCKS = [
 ];
 
 export const INITIAL_CASH = 10000000; // 1000万円
+
+// USD to JPY exchange rate (fixed rate for simplicity)
+// TODO: Consider fetching real-time rate from API
+export const USD_JPY_RATE = 150;
