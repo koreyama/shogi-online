@@ -16,6 +16,16 @@ export const JobManager: React.FC<JobManagerProps> = ({ gameState, onAssign }) =
     const totalPop = Math.floor(gameState.resources.population);
     const unassigned = totalPop - totalAssigned;
 
+    // Calculate Tech Multipliers
+    const multipliers: { [key: string]: number } = {};
+    Object.values(gameState.techs).forEach(tech => {
+        if (tech.researched && tech.effects?.resourceMultiplier) {
+            Object.entries(tech.effects.resourceMultiplier).forEach(([res, mult]) => {
+                multipliers[res] = (multipliers[res] || 1) * mult;
+            });
+        }
+    });
+
     return (
         <div className={styles.container}>
             <h2 className={styles.title}>職業管理 (Jobs)</h2>
@@ -63,19 +73,33 @@ export const JobManager: React.FC<JobManagerProps> = ({ gameState, onAssign }) =
                                         finalAmount += 1;
                                     }
 
+                                    // Apply Global Multipliers
+                                    if (multipliers[res]) {
+                                        finalAmount *= multipliers[res];
+                                    }
+
                                     return (
                                         <div key={res} className={styles.prodItem}>
                                             <span className={styles.prodLabel}>生産:</span>
-                                            <span className={styles.prodValue}>+{formatNumber(finalAmount)} {res === 'food' ? '食料' : res === 'wood' ? '木材' : res === 'stone' ? '石材' : '知識'}</span>
+                                            <span className={styles.prodValue}>+{formatNumber(finalAmount)} {res === 'food' ? '食料' : res === 'wood' ? '木材' : res === 'stone' ? '石材' : res === 'knowledge' ? '知識' : res === 'gold' ? '金' : res === 'iron' ? '鉄' : res === 'coal' ? '石炭' : res}</span>
                                         </div>
                                     );
                                 })}
-                                {job.consumption && Object.entries(job.consumption).map(([res, amt]) => (
-                                    <div key={res} className={styles.consItem}>
-                                        <span className={styles.consLabel}>消費:</span>
-                                        <span className={styles.consValue}>-{formatNumber(amt)} {res === 'food' ? '食料' : '資源'}</span>
-                                    </div>
-                                ))}
+                                {job.consumption && Object.entries(job.consumption).map(([res, amt]) => {
+                                    const resName = res === 'food' ? '食料' :
+                                        res === 'wood' ? '木材' :
+                                            res === 'stone' ? '石材' :
+                                                res === 'knowledge' ? '知識' :
+                                                    res === 'gold' ? '金' :
+                                                        res === 'iron' ? '鉄' :
+                                                            res === 'coal' ? '石炭' : '資源';
+                                    return (
+                                        <div key={res} className={styles.consItem}>
+                                            <span className={styles.prodLabel} style={{ color: '#f56565' }}>消費:</span>
+                                            <span className={styles.consValue}>-{formatNumber(amt)} {resName}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             <div className={styles.controls}>

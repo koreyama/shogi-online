@@ -1,6 +1,6 @@
-export type ResourceType = 'food' | 'wood' | 'stone' | 'knowledge' | 'population' | 'gold' | 'iron' | 'coal';
+export type ResourceType = 'food' | 'wood' | 'stone' | 'knowledge' | 'population' | 'gold' | 'iron' | 'coal' | 'oil' | 'silicon';
 
-export type Era = 'primitive' | 'ancient' | 'classical' | 'medieval' | 'renaissance' | 'industrial';
+export type Era = 'primitive' | 'ancient' | 'classical' | 'medieval' | 'renaissance' | 'industrial' | 'atomic' | 'information' | 'modern';
 
 export interface Resources {
     food: number;
@@ -11,6 +11,8 @@ export interface Resources {
     gold: number;
     iron: number;
     coal: number;
+    oil: number; // Added for Atomic Era
+    silicon: number; // Added for Information Era
 }
 
 export interface ClickDrop {
@@ -35,7 +37,7 @@ export interface Building {
     name: string;
     description: string;
     baseCost: Partial<Resources>;
-    // production: Partial<Resources>; // Removed in v5.1
+    passiveProduction?: Partial<Resources>; // Added in v5.12 for automated buildings
     jobSlots?: { [jobId: string]: number }; // Added in v5.1: Job ID -> Slots per building
     consumption?: Partial<Resources>; // Maintenance cost (not per worker)
     costScaling: number;
@@ -59,6 +61,7 @@ export interface Tech {
         unlockJob?: string[]; // Added
         resourceMultiplier?: Partial<Record<ResourceType, number>>;
         clickMultiplier?: number;
+        buildingCostMultiplier?: number; // Added for Wheel/Masonry effects
     };
     reqEra?: Era;
     reqTech?: string[];
@@ -85,6 +88,15 @@ export interface ActiveExpedition {
     cost: Partial<Resources>;
 }
 
+export interface TradeRoute {
+    id: string;
+    from: ResourceType;
+    to: ResourceType;
+    rate: number;
+    active: boolean;
+    name?: string; // Optional custom name
+}
+
 export interface GameState {
     resources: Resources;
     rates: Partial<Resources>; // Added: Production rate per second
@@ -99,6 +111,7 @@ export interface GameState {
     activeExpeditions: ActiveExpedition[]; // Added in v5.9
     logs: LogEntry[]; // Added in v5.10
     unlockedAchievements: string[];
+    tradeRoutes: Record<string, TradeRoute>; // Added in v5.11
 }
 
 export interface LogEntry {
@@ -116,7 +129,9 @@ export const INITIAL_RESOURCES: Resources = {
     population: 5, // Changed from 1 to 5 in v5.9
     gold: 0,
     iron: 0,
-    coal: 0
+    coal: 0,
+    oil: 0,
+    silicon: 0
 };
 
 export const ERAS: Record<Era, { name: string; description: string }> = {
@@ -125,5 +140,8 @@ export const ERAS: Record<Era, { name: string; description: string }> = {
     classical: { name: '古典時代', description: '哲学と帝国の時代' },
     medieval: { name: '中世', description: '封建制とギルド' },
     renaissance: { name: 'ルネサンス', description: '再生と発見' },
-    industrial: { name: '産業時代', description: '蒸気と鋼鉄' }
+    industrial: { name: '産業時代', description: '蒸気と鋼鉄' },
+    atomic: { name: '原子力時代', description: '核エネルギーと大量消費' },
+    information: { name: '情報化時代', description: 'ネットワークとグローバル化' },
+    modern: { name: '現代・未来', description: 'AIと宇宙開拓' }
 };

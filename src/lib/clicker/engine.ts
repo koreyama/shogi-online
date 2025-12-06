@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { GameState, Resources, Building, Tech, ResourceType, INITIAL_RESOURCES, Era, ExpeditionType } from './types';
-import { INITIAL_BUILDINGS, INITIAL_TECHS, INITIAL_JOBS, CLICK_DROPS, EXPEDITIONS } from './data';
+import { GameState, Resources, Building, Tech, ResourceType, INITIAL_RESOURCES, Era, ExpeditionType, TradeRoute } from './types';
+import { INITIAL_BUILDINGS, INITIAL_TECHS, INITIAL_JOBS, CLICK_DROPS, EXPEDITIONS, AVAILABLE_TRADE_ROUTES, RESOURCE_VALUES } from './data';
 import { ACHIEVEMENTS } from './achievements';
 
 const SAVE_KEY = 'civ_builder_save_v5_10'; // Bumped version for new save structure
@@ -20,7 +20,8 @@ export const useClickerEngine = () => {
         totalPlayTime: 0,
         activeExpeditions: [],
         logs: [],
-        unlockedAchievements: []
+        unlockedAchievements: [],
+        tradeRoutes: {} // Initialize
     });
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -30,15 +31,40 @@ export const useClickerEngine = () => {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
+                // Deep merge techs: take cost/effects from INITIAL_TECHS, but keep progress from save
+                const mergedTechs: { [key: string]: Tech } = {};
+                Object.keys(INITIAL_TECHS).forEach(techId => {
+                    const initial = INITIAL_TECHS[techId];
+                    const saved = parsed.techs?.[techId];
+                    mergedTechs[techId] = {
+                        ...initial,
+                        unlocked: saved?.unlocked ?? initial.unlocked,
+                        researched: saved?.researched ?? initial.researched,
+                    };
+                });
+
+                // Deep merge buildings: take baseCost from INITIAL_BUILDINGS, but keep count/unlocked from save
+                const mergedBuildings: { [key: string]: Building } = {};
+                Object.keys(INITIAL_BUILDINGS).forEach(buildingId => {
+                    const initial = INITIAL_BUILDINGS[buildingId];
+                    const saved = parsed.buildings?.[buildingId];
+                    mergedBuildings[buildingId] = {
+                        ...initial,
+                        count: saved?.count ?? initial.count,
+                        unlocked: saved?.unlocked ?? initial.unlocked,
+                    };
+                });
+
                 setGameState(prev => ({
                     ...prev,
                     ...parsed,
-                    buildings: { ...INITIAL_BUILDINGS, ...parsed.buildings },
-                    techs: { ...INITIAL_TECHS, ...parsed.techs },
+                    buildings: mergedBuildings,
+                    techs: mergedTechs,
                     resources: { ...INITIAL_RESOURCES, ...parsed.resources },
                     jobs: { ...parsed.jobs },
                     logs: parsed.logs || [],
-                    unlockedAchievements: parsed.unlockedAchievements || []
+                    unlockedAchievements: parsed.unlockedAchievements || [],
+                    tradeRoutes: parsed.tradeRoutes || {}
                 }));
             } catch (e) {
                 console.error("Failed to load save", e);
@@ -50,10 +76,10 @@ export const useClickerEngine = () => {
     const lastTickRef = useRef<number>(Date.now());
     const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const calculateProduction = (jobs: { [key: string]: number }): Partial<Resources> => {
+    const calculateProduction = (jobs: { [key: string]: number }, techs: { [key: string]: Tech }, buildings: { [key: string]: Building }): Partial<Resources> => {
         // Calculate Tech Multipliers
         const multipliers: { [key: string]: number } = {};
-        Object.values(gameState.techs).forEach(tech => {
+        Object.values(techs).forEach(tech => {
             if (tech.researched && tech.effects?.resourceMultiplier) {
                 Object.entries(tech.effects.resourceMultiplier).forEach(([res, mult]) => {
                     multipliers[res] = (multipliers[res] || 1) * mult;
@@ -66,7 +92,7 @@ export const useClickerEngine = () => {
             knowledge: 0.1 * (multipliers['knowledge'] || 1)
         };
 
-        const hasPaper = gameState.techs['paper']?.researched;
+        const hasPaper = techs['paper']?.researched;
 
         Object.entries(jobs).forEach(([jobId, count]) => {
             const job = INITIAL_JOBS[jobId];
@@ -115,7 +141,7 @@ export const useClickerEngine = () => {
             lastTickRef.current = now;
 
             setGameState(prev => {
-                const production = calculateProduction(prev.jobs);
+                const production = calculateProduction(prev.jobs, prev.techs, prev.buildings);
                 const consumption = calculateConsumption(prev.jobs, prev.resources.population);
 
                 const newResources = { ...prev.resources };
@@ -129,6 +155,29 @@ export const useClickerEngine = () => {
                     const prod = production[key] || 0;
                     const cons = consumption[key] || 0;
                     currentRates[key] = prod - cons;
+                });
+
+                // --- Trade Routes Logic ---
+                const tradeDiff: Partial<Resources> = {};
+                Object.values(prev.tradeRoutes).forEach(route => {
+                    if (route.active) {
+                        const flow = 1 * delta; // 1 unit per second base flow
+
+                        if (newResources[route.from] >= flow) {
+                            newResources[route.from] -= flow;
+                            const gain = flow * route.rate;
+                            newResources[route.to] = (newResources[route.to] || 0) + gain;
+
+                            tradeDiff[route.from] = (tradeDiff[route.from] || 0) - flow; // Negative rate
+                            tradeDiff[route.to] = (tradeDiff[route.to] || 0) + gain;   // Positive rate
+                        }
+                    }
+                });
+
+                // Update rates with trade info
+                Object.entries(tradeDiff).forEach(([res, rate]) => {
+                    const rKey = res as ResourceType;
+                    currentRates[rKey] = (currentRates[rKey] || 0) + (rate / delta); // Convert back to per-second rate
                 });
 
                 // Apply Production & Consumption
@@ -386,9 +435,18 @@ export const useClickerEngine = () => {
 
         // Calculate Click Multiplier from Techs
         let clickMult = 1;
+        const multipliers: { [key: string]: number } = {}; // Also calculate resource multipliers for clicks
+
         Object.values(gameState.techs).forEach(tech => {
-            if (tech.researched && tech.effects?.clickMultiplier) {
-                clickMult *= tech.effects.clickMultiplier;
+            if (tech.researched) {
+                if (tech.effects?.clickMultiplier) {
+                    clickMult *= tech.effects.clickMultiplier;
+                }
+                if (tech.effects?.resourceMultiplier) {
+                    Object.entries(tech.effects.resourceMultiplier).forEach(([res, mult]) => {
+                        multipliers[res] = (multipliers[res] || 1) * mult;
+                    });
+                }
             }
         });
 
@@ -396,7 +454,11 @@ export const useClickerEngine = () => {
         CLICK_DROPS.forEach(drop => {
             if (!drop.reqTech || gameState.techs[drop.reqTech]?.researched) {
                 if (Math.random() <= drop.chance) {
-                    const amount = drop.amount * clickMult;
+                    let amount = drop.amount * clickMult;
+                    // Apply resource specific multiplier
+                    if (multipliers[drop.resource]) {
+                        amount *= multipliers[drop.resource];
+                    }
                     gained[drop.resource] = (gained[drop.resource] || 0) + amount;
                 }
             }
@@ -413,14 +475,32 @@ export const useClickerEngine = () => {
         return gained;
     }, [gameState.techs]);
 
-    const calculateCost = (building: Building): Partial<Resources> => {
+    const calculateCost = useCallback((building: Building): Partial<Resources> => {
         const cost: Partial<Resources> = {};
+
+        // Calculate Global Cost Multiplier
+        let multiplier = 1.0;
+
+        // 1. Building Effects (e.g. Pyramids)
+        if (gameState.buildings['pyramids']?.count > 0) {
+            multiplier *= 0.9; // -10%
+        }
+
+        // 2. Tech Effects (e.g. Wheel)
+        Object.values(gameState.techs).forEach(tech => {
+            if (tech.researched && tech.effects?.buildingCostMultiplier) {
+                multiplier *= tech.effects.buildingCostMultiplier;
+            }
+        });
+
         Object.entries(building.baseCost).forEach(([res, amount]) => {
             const rKey = res as ResourceType;
-            cost[rKey] = Math.floor(amount * Math.pow(building.costScaling, building.count));
+            // Apply scaling then multiplier
+            const scaledAmount = amount * Math.pow(building.costScaling, building.count) * multiplier;
+            cost[rKey] = Math.floor(scaledAmount);
         });
         return cost;
-    };
+    }, [gameState]);
 
     const buyBuilding = useCallback((buildingId: string) => {
         setGameState(prev => {
@@ -506,6 +586,9 @@ export const useClickerEngine = () => {
             if (techId === 'feudalism') newEra = 'medieval';
             if (techId === 'printing_press') newEra = 'renaissance';
             if (techId === 'steam_power') newEra = 'industrial';
+            if (techId === 'nuclear_fission') newEra = 'atomic';
+            if (techId === 'computers') newEra = 'information';
+            if (techId === 'ai') newEra = 'modern';
 
             return {
                 ...prev,
@@ -532,7 +615,8 @@ export const useClickerEngine = () => {
             totalPlayTime: 0,
             activeExpeditions: [],
             logs: [],
-            unlockedAchievements: []
+            unlockedAchievements: [],
+            tradeRoutes: {}
         });
     };
 
@@ -599,6 +683,47 @@ export const useClickerEngine = () => {
         return result;
     }, []);
 
+
+
+    const addTradeRoute = useCallback((from: ResourceType, to: ResourceType) => {
+        setGameState(prev => {
+            const valFrom = RESOURCE_VALUES[from] || 1;
+            const valTo = RESOURCE_VALUES[to] || 1;
+
+            // Tax: 20% loss on conversion
+            const tax = 0.2;
+            const rate = (valFrom / valTo) * (1 - tax);
+            const id = `route_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+            const newRoute: TradeRoute = {
+                id,
+                from,
+                to,
+                rate,
+                active: true
+            };
+
+            return {
+                ...prev,
+                tradeRoutes: {
+                    ...prev.tradeRoutes,
+                    [id]: newRoute
+                }
+            };
+        });
+    }, []);
+
+    const removeTradeRoute = useCallback((id: string) => {
+        setGameState(prev => {
+            const newRoutes = { ...prev.tradeRoutes };
+            delete newRoutes[id];
+            return {
+                ...prev,
+                tradeRoutes: newRoutes
+            };
+        });
+    }, []);
+
     // Cloud Save Logic
     const saveToCloud = async (user: any, state: GameState) => {
         if (!user) return;
@@ -647,6 +772,8 @@ export const useClickerEngine = () => {
         sendExpedition,
         saveToCloud,
         loadFromCloud,
-        saveGame
+        saveGame,
+        addTradeRoute,
+        removeTradeRoute
     };
 };

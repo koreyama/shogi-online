@@ -475,6 +475,29 @@ export const IconCoal: React.FC<IconProps> = ({ size = 24, color = 'currentColor
     </svg>
 );
 
+
+export const IconOil: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 2C8 2 8 8 8 8s-4 2-4 7c0 3.866 3.582 7 8 7s8-3.134 8-7c0-5-4-7-4-7s0-6-4-6z" />
+        <path d="M10 12l4 4" />
+    </svg>
+);
+
+export const IconSilicon: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <path d="M9 9h6v6H9z" />
+        <path d="M9 4v2" />
+        <path d="M15 4v2" />
+        <path d="M9 18v2" />
+        <path d="M15 18v2" />
+        <path d="M4 9h2" />
+        <path d="M4 15h2" />
+        <path d="M18 9h2" />
+        <path d="M18 15h2" />
+    </svg>
+);
+
 // Aliases for consistency
 export const IconFood = IconApple;
 export const IconStone = IconPickaxe;

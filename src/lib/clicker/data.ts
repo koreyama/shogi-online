@@ -122,7 +122,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         description: '採集者のスロット+1',
         baseCost: { food: 25 },
         jobSlots: { gatherer: 1 },
-        costScaling: 1.25,
+        costScaling: 1.15, // Reduced from 1.25
         count: 0,
         unlocked: true,
         reqEra: 'primitive'
@@ -132,7 +132,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         name: 'テント',
         description: '人口上限+2',
         baseCost: { food: 50, wood: 10 },
-        costScaling: 1.2,
+        costScaling: 1.15, // Reduced from 1.2
         count: 0,
         unlocked: false,
         reqEra: 'primitive',
@@ -145,7 +145,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         description: '木こりのスロット+1',
         baseCost: { food: 100 },
         jobSlots: { woodcutter: 1 },
-        costScaling: 1.25,
+        costScaling: 1.15, // Reduced from 1.25
         count: 0,
         unlocked: false,
         reqEra: 'primitive',
@@ -157,7 +157,7 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         description: '鉱夫のスロット+1',
         baseCost: { food: 150, wood: 50 },
         jobSlots: { miner: 1 },
-        costScaling: 1.3,
+        costScaling: 1.2, // Reduced from 1.3
         count: 0,
         unlocked: false,
         reqEra: 'primitive',
@@ -455,7 +455,83 @@ export const INITIAL_BUILDINGS: { [key: string]: Building } = {
         unlocked: false,
         reqEra: 'industrial',
         reqTech: ['industrialization']
-    }
+    },
+    // --- Atomic Era Buildings ---
+    oil_rig: {
+        id: 'oil_rig',
+        name: '油田',
+        description: '地下資源を採掘する施設。石油を生産する。',
+        baseCost: { wood: 50000, iron: 50000, gold: 100000 },
+        passiveProduction: { oil: 1 },
+        costScaling: 1.25,
+        count: 0,
+        unlocked: false,
+        reqEra: 'atomic',
+        reqTech: ['combustion']
+    },
+    nuclear_plant: {
+        id: 'nuclear_plant',
+        name: '原子力発電所',
+        description: '莫大なエネルギーを生み出す。知識と金を生産する。',
+        baseCost: { stone: 200000, iron: 200000, gold: 500000, oil: 50000 },
+        passiveProduction: { knowledge: 50, gold: 100 },
+        costScaling: 1.4,
+        count: 0,
+        unlocked: false,
+        reqEra: 'atomic',
+        reqTech: ['nuclear_fission']
+    },
+    // --- Information Era Buildings ---
+    semiconductor_fab: {
+        id: 'semiconductor_fab',
+        name: '半導体工場',
+        description: 'シリコンウェハーを製造する精密工場。',
+        baseCost: { iron: 500000, gold: 1000000, oil: 200000 },
+        passiveProduction: { silicon: 1 },
+        costScaling: 1.3,
+        count: 0,
+        unlocked: false,
+        reqEra: 'information',
+        reqTech: ['computers']
+    },
+    data_center: {
+        id: 'data_center',
+        name: 'データセンター',
+        description: '膨大な情報を処理する。知識の生産を加速させる。',
+        baseCost: { iron: 1000000, silicon: 100000, gold: 2000000 },
+        passiveProduction: { knowledge: 200 },
+        costScaling: 1.35,
+        count: 0,
+        unlocked: false,
+        reqEra: 'information',
+        reqTech: ['internet']
+    },
+    // --- Modern/Future Buildings ---
+    fusion_reactor: {
+        id: 'fusion_reactor',
+        name: '核融合炉',
+        description: '無限のクリーンエネルギー。',
+        baseCost: { iron: 5000000, silicon: 2000000, gold: 10000000, knowledge: 20000000 },
+        passiveProduction: { gold: 5000, knowledge: 2000 },
+        costScaling: 1.5,
+        count: 0,
+        unlocked: false,
+        reqEra: 'modern',
+        reqTech: ['fusion_power']
+    },
+    space_elevator: {
+        id: 'space_elevator',
+        name: '宇宙エレベーター',
+        description: '宇宙への架け橋。',
+        baseCost: { iron: 50000000, silicon: 20000000, gold: 100000000 },
+        costScaling: 2.0,
+        count: 0,
+        unlocked: false,
+        housing: 5000,
+        reqEra: 'modern',
+        reqTech: ['space_colonization']
+    },
+
 };
 
 export const INITIAL_TECHS: { [key: string]: Tech } = {
@@ -469,6 +545,17 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
         researched: false,
         effects: { unlockBuilding: ['wood_camp'] },
         reqEra: 'primitive'
+    },
+    sturdy_axe: {
+        id: 'sturdy_axe',
+        name: '頑丈な斧',
+        description: '木材生産効率アップ',
+        cost: { knowledge: 30, wood: 10 },
+        unlocked: false,
+        researched: false,
+        effects: { resourceMultiplier: { wood: 1.2 } },
+        reqEra: 'primitive',
+        reqTech: ['stone_tools']
     },
     weaving: {
         id: 'weaving',
@@ -577,9 +664,20 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
         cost: { knowledge: 600, wood: 400 },
         unlocked: false,
         researched: false,
-        effects: { clickMultiplier: 1.2 },
+        effects: { buildingCostMultiplier: 0.9 },
         reqEra: 'ancient',
         reqTech: ['pottery']
+    },
+    lumber_mill: {
+        id: 'lumber_mill',
+        name: '製材技術',
+        description: '木材生産効率を強化',
+        cost: { knowledge: 1500, gold: 500 },
+        unlocked: false,
+        researched: false,
+        effects: { resourceMultiplier: { wood: 1.5 } },
+        reqEra: 'ancient',
+        reqTech: ['wheel', 'stone_tools']
     },
     masonry: {
         id: 'masonry',
@@ -623,7 +721,7 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
         cost: { knowledge: 8000, gold: 2000 },
         unlocked: false,
         researched: false,
-        effects: { unlockBuilding: ['academy'] },
+        effects: { unlockBuilding: ['academy', 'great_library'] },
         reqEra: 'classical',
         reqTech: ['currency']
     },
@@ -724,9 +822,20 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
         cost: { knowledge: 35000, gold: 10000 },
         unlocked: false,
         researched: false,
-        effects: { resourceMultiplier: { wood: 1.2, stone: 1.2, iron: 1.2 } },
+        effects: { resourceMultiplier: { wood: 1.5, stone: 1.5, iron: 1.5 } }, // Buffed to 1.5
         reqEra: 'medieval',
         reqTech: ['feudalism']
+    },
+    steel_tools: {
+        id: 'steel_tools',
+        name: '鋼鉄の道具',
+        description: '伐採・採掘効率を大幅向上',
+        cost: { knowledge: 45000, iron: 5000, gold: 5000 },
+        unlocked: false,
+        researched: false,
+        effects: { resourceMultiplier: { wood: 1.5, stone: 1.5 } },
+        reqEra: 'medieval',
+        reqTech: ['iron_working', 'guilds']
     },
     compass: {
         id: 'compass',
@@ -835,11 +944,22 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
     industrialization: {
         id: 'industrialization',
         name: '工業化',
-        description: '工場を解放',
+        description: '工場を解放し、生産力を爆発的に向上',
         cost: { knowledge: 1000000, iron: 100000, coal: 30000 },
         unlocked: false,
         researched: false,
-        effects: { unlockBuilding: ['factory'] },
+        effects: { unlockBuilding: ['factory'], resourceMultiplier: { wood: 2.0, stone: 2.0, iron: 2.0 } },
+        reqEra: 'industrial',
+        reqTech: ['steam_power']
+    },
+    explosives: {
+        id: 'explosives',
+        name: '爆薬',
+        description: '採掘効率を劇的に向上',
+        cost: { knowledge: 600000, coal: 10000, gold: 20000 },
+        unlocked: false,
+        researched: false,
+        effects: { resourceMultiplier: { stone: 3.0, coal: 3.0, iron: 2.0 } },
         reqEra: 'industrial',
         reqTech: ['steam_power']
     },
@@ -873,8 +993,142 @@ export const INITIAL_TECHS: { [key: string]: Tech } = {
         unlocked: false,
         researched: false,
         effects: { resourceMultiplier: { wood: 1.2, stone: 1.2, iron: 1.2, coal: 1.2 } },
+    },
+    // --- Atomic Era Techs ---
+    combustion: {
+        id: 'combustion',
+        name: '内燃機関',
+        description: '石油を動力源とする技術。原子力の前提。',
+        cost: { knowledge: 3000000, iron: 200000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['oil_rig']
+        },
         reqEra: 'industrial',
         reqTech: ['steam_power']
+    },
+    plastics: {
+        id: 'plastics',
+        name: 'プラスチック',
+        description: '石油化学製品。様々な産業に応用される。',
+        cost: { knowledge: 4000000, oil: 10000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            resourceMultiplier: { wood: 1.5, food: 1.5 }
+        },
+        reqEra: 'atomic',
+        reqTech: ['combustion']
+    },
+    nuclear_fission: {
+        id: 'nuclear_fission',
+        name: '核分裂',
+        description: '原子の力を利用する。原子力時代へ。',
+        cost: { knowledge: 5000000, gold: 500000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['nuclear_plant']
+        },
+        reqEra: 'atomic',
+        reqTech: ['combustion']
+    },
+    mass_media: {
+        id: 'mass_media',
+        name: 'マスメディア',
+        description: '情報の拡散。',
+        cost: { knowledge: 4500000, gold: 300000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            clickMultiplier: 2.0
+        },
+        reqEra: 'atomic',
+        reqTech: ['printing_press']
+    },
+    // --- Information Era Techs ---
+    computers: {
+        id: 'computers',
+        name: 'コンピュータ',
+        description: '情報処理の革命。情報化時代へ。',
+        cost: { knowledge: 15000000, gold: 1000000, oil: 50000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['semiconductor_fab']
+        },
+        reqEra: 'information',
+        reqTech: ['plastics', 'mass_media']
+    },
+    internet: {
+        id: 'internet',
+        name: 'インターネット',
+        description: '世界を繋ぐネットワーク。',
+        cost: { knowledge: 25000000, silicon: 20000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['data_center'],
+            resourceMultiplier: { knowledge: 2.0 }
+        },
+        reqEra: 'information',
+        reqTech: ['computers']
+    },
+    globalization: {
+        id: 'globalization',
+        name: 'グローバリゼーション',
+        description: '世界経済の統合。',
+        cost: { knowledge: 30000000, gold: 5000000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            resourceMultiplier: { gold: 2.0 }
+        },
+        reqEra: 'information',
+        reqTech: ['internet']
+    },
+    // --- Modern/Future Techs ---
+    ai: {
+        id: 'ai',
+        name: '人工知能 (AI)',
+        description: '自律的な知性。現代・未来へ。',
+        cost: { knowledge: 100000000, silicon: 100000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            clickMultiplier: 5.0,
+            resourceMultiplier: { knowledge: 1.5, gold: 1.5 }
+        },
+        reqEra: 'modern',
+        reqTech: ['computers', 'internet']
+    },
+    fusion_power: {
+        id: 'fusion_power',
+        name: '核融合',
+        description: '夢のエネルギー。',
+        cost: { knowledge: 500000000, silicon: 500000, gold: 10000000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['fusion_reactor'],
+            resourceMultiplier: { iron: 2.0, stone: 2.0, wood: 2.0, coal: 2.0 }
+        },
+        reqEra: 'modern',
+        reqTech: ['nuclear_fission', 'ai']
+    },
+    space_colonization: {
+        id: 'space_colonization',
+        name: '宇宙開拓',
+        description: '地球の外へ。',
+        cost: { knowledge: 1000000000, silicon: 1000000, oil: 500000 },
+        unlocked: false,
+        researched: false,
+        effects: {
+            unlockBuilding: ['space_elevator']
+        },
+        reqEra: 'modern',
+        reqTech: ['ai']
     }
 };
 
@@ -906,4 +1160,24 @@ export const EXPEDITIONS: Record<string, ExpeditionConfig> = {
         risk: '高',
         duration: 60,
     }
+    // End of EXPEDITIONS
 };
+
+export const RESOURCE_VALUES: Record<string, number> = {
+    food: 1,
+    wood: 1,
+    stone: 2,
+    coal: 4,
+    iron: 5,
+    oil: 8,
+    gold: 10,
+    silicon: 15,
+    knowledge: 20,
+    population: 50 // High value, maybe not tradable?
+};
+
+// Preserved for legacy/examples, but UI will mainly use dynamic creation
+export const AVAILABLE_TRADE_ROUTES = [
+    { id: 'wood_to_gold', from: 'wood', to: 'gold', rate: 0.08, name: '木材輸出' }, // 10 Wood (10 val) -> 0.8 Gold (8 val). 20% tax.
+    { id: 'stone_to_gold', from: 'stone', to: 'gold', rate: 0.16, name: '石材輸出' },
+];

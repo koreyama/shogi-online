@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { generateSecret, checkGuess, GuessRecord } from './utils';
+import React, { useState, useEffect, useRef } from 'react';
+import { generateSecret, checkGuess, GuessRecord, COLORS } from './utils';
 import styles from './HitAndBlow.module.css';
 
 const DIGIT_COUNT = 4;
@@ -14,9 +14,18 @@ export default function HitAndBlowGame() {
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [won, setWon] = useState<boolean>(false);
 
+    // For auto-scroll
+    const historyEndRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         startNewGame();
     }, []);
+
+    useEffect(() => {
+        if (historyEndRef.current) {
+            historyEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [history]);
 
     const startNewGame = () => {
         setSecret(generateSecret(DIGIT_COUNT));
@@ -26,10 +35,10 @@ export default function HitAndBlowGame() {
         setWon(false);
     };
 
-    const handleDigitClick = (digit: string) => {
+    const handleColorClick = (colorInitial: string) => {
         if (gameOver || currentGuess.length >= DIGIT_COUNT) return;
-        if (currentGuess.includes(digit)) return; // No duplicates allowed
-        setCurrentGuess((prev) => prev + digit);
+        if (currentGuess.includes(colorInitial)) return; // No duplicates allowed
+        setCurrentGuess((prev) => prev + colorInitial);
     };
 
     const handleBackspace = () => {
@@ -61,23 +70,32 @@ export default function HitAndBlowGame() {
                 {gameOver ? (
                     <div className={styles.gameOverAnimation}>
                         {won ? (
-                            <h2 className={styles.game_over_win}>勝利！</h2>
+                            <h2 className={styles.game_over_win}>Excellent!</h2>
                         ) : (
-                            <h2 className={styles.game_over_loss}>ゲームオーバー</h2>
+                            <h2 className={styles.game_over_loss}>Game Over</h2>
                         )}
-                        <p className={styles.secret_reveal}>正解: <span className={styles.secret_code}>{secret}</span></p>
+                        <div className={styles.secret_reveal}>
+                            正解:
+                            <div className={styles.guess_colors}>
+                                {secret.split('').map((char, i) => (
+                                    <div key={i} className={styles.slot} style={{ width: '2.5rem', height: '2.5rem', border: 'none' }}>
+                                        <div className={`${styles.circle} ${styles[`circle_${char}`]}`} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                         <button
                             onClick={startNewGame}
                             className={styles.play_again_btn}
                         >
-                            もう一度遊ぶ
+                            Play Again
                         </button>
                     </div>
                 ) : (
                     <div>
-                        <p className={styles.instruction}>4桁の数字を当ててください（重複なし）</p>
+                        <p className={styles.instruction}>4色の並びを当ててください</p>
                         <div className={styles.attempts_info}>
-                            <span className={styles.attempts_label}>残り試行回数:</span>
+                            <span className={styles.attempts_label}>残り回数:</span>
                             <span className={`${styles.attempts_count} ${MAX_ATTEMPTS - history.length <= 3 ? styles.attempts_danger : styles.attempts_safe}`}>
                                 {MAX_ATTEMPTS - history.length}
                             </span>
@@ -90,50 +108,57 @@ export default function HitAndBlowGame() {
             <div className={styles.history_container}>
                 <div className={styles.history_header}>
                     <div>予想</div>
-                    <div className={styles.header_hit}>ヒット</div>
-                    <div className={styles.header_blow}>ブロー</div>
+                    <div>HIT</div>
+                    <div>BLOW</div>
                 </div>
                 {history.map((record, index) => (
                     <div key={index} className={styles.history_row}>
-                        <div className={styles.guess_text}>{record.guess}</div>
+                        <div className={styles.guess_colors}>
+                            {record.guess.split('').map((char, i) => (
+                                <div key={i} className={styles.history_dot + ' ' + styles[`circle_${char}`]} />
+                            ))}
+                        </div>
                         <div className={`${styles.result_badge} ${styles.hit_badge}`}>{record.result.hit}</div>
                         <div className={`${styles.result_badge} ${styles.blow_badge}`}>{record.result.blow}</div>
                     </div>
                 ))}
                 {history.length === 0 && !gameOver && (
                     <div className={styles.empty_history}>
-                        <span className={styles.empty_history_placeholder}>? ? ? ?</span>
-                        <span className={styles.empty_history_text}>最初の予想を入力してください...</span>
+                        履歴がここに表示されます
                     </div>
                 )}
+                <div ref={historyEndRef} />
             </div>
 
             {/* Input Display */}
             <div className={styles.input_display}>
                 <div className={styles.input_slots}>
-                    {Array.from({ length: DIGIT_COUNT }).map((_, i) => (
-                        <div key={i} className={`${styles.slot} ${i < currentGuess.length ? styles.slot_filled : ''}`}>
-                            {currentGuess[i] || '.'}
-                        </div>
-                    ))}
+                    {Array.from({ length: DIGIT_COUNT }).map((_, i) => {
+                        const char = currentGuess[i];
+                        return (
+                            <div key={i} className={`${styles.slot} ${char ? styles.slot_filled : ''}`}>
+                                {char && <div className={`${styles.circle} ${styles[`circle_${char}`]}`} />}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Keypad */}
             {!gameOver && (
                 <div className={styles.keypad_container}>
-                    <div className={styles.key_grid}>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => {
-                            const isUsed = currentGuess.includes(num.toString());
+                    <div className={styles.color_grid}>
+                        {COLORS.map((color) => {
+                            const char = color[0];
+                            const isUsed = currentGuess.includes(char);
                             return (
                                 <button
-                                    key={num}
-                                    onClick={() => handleDigitClick(num.toString())}
+                                    key={color}
+                                    onClick={() => handleColorClick(char)}
                                     disabled={isUsed}
-                                    className={`${styles.num_key} ${isUsed ? styles.num_key_disabled : ''}`}
-                                >
-                                    {num}
-                                </button>
+                                    className={`${styles.color_btn} ${styles[`circle_${char}`]}`}
+                                    title={color}
+                                />
                             );
                         })}
                     </div>
@@ -142,14 +167,14 @@ export default function HitAndBlowGame() {
                             onClick={handleBackspace}
                             className={`${styles.action_btn} ${styles.delete_btn}`}
                         >
-                            <span>⌫</span> 削除
+                            <span style={{ fontSize: '1.2rem' }}>⌫</span>
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={currentGuess.length !== DIGIT_COUNT}
-                            className={`${styles.action_btn} ${currentGuess.length === DIGIT_COUNT ? styles.enter_btn : styles.enter_btn_disabled}`}
+                            className={`${styles.action_btn} ${styles.enter_btn}`}
                         >
-                            決定 ↵
+                            ENTER
                         </button>
                     </div>
                 </div>

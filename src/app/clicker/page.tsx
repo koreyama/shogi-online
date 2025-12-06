@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './page.module.css';
 import { useClickerEngine } from '@/lib/clicker/engine';
-import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPopulation, IconSettings, IconHammer, IconBook, IconLock, IconCheck, IconApple, IconPickaxe, IconUsers, IconIron, IconCoal } from '@/components/Icons';
+import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPopulation, IconSettings, IconHammer, IconBook, IconLock, IconCheck, IconApple, IconPickaxe, IconUsers, IconIron, IconCoal, IconOil, IconSilicon } from '@/components/Icons';
 import { TechTreeModal } from './TechTreeModal';
 import { AchievementsModal } from './AchievementsModal';
+import { TradeRouteModal } from './TradeRouteModal'; // Added
 import { AchievementToast } from './AchievementToast';
 import { ACHIEVEMENTS } from '@/lib/clicker/achievements';
 import { JobManager } from './JobManager';
@@ -12,7 +13,8 @@ import { ExpeditionManager } from './ExpeditionManager';
 import { formatNumber } from '@/lib/clicker/utils';
 import { TitleScreen } from './TitleScreen';
 import { useAuth } from '@/hooks/useAuth';
-import { Resources } from '@/lib/clicker/types';
+import { Resources, TradeRoute, ResourceType } from '@/lib/clicker/types';
+import { AVAILABLE_TRADE_ROUTES } from '@/lib/clicker/data';
 
 export default function ClickerPage() {
     const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
@@ -29,11 +31,14 @@ export default function ClickerPage() {
         sendExpedition,
         saveToCloud,
         loadFromCloud,
-        saveGame
+        saveGame,
+        addTradeRoute,
+        removeTradeRoute
     } = useClickerEngine();
 
     const [showTechTree, setShowTechTree] = useState(false);
     const [showAchievements, setShowAchievements] = useState(false);
+    const [showTradeRoutes, setShowTradeRoutes] = useState(false); // Added
     const [clickAnims, setClickAnims] = useState<{ id: number, x: number, y: number, gained: Partial<Resources> }[]>([]);
     const [activeTab, setActiveTab] = useState<'main' | 'jobs' | 'expedition' | 'settings'>('main');
     const [showTitle, setShowTitle] = useState(true);
@@ -142,6 +147,24 @@ export default function ClickerPage() {
         }, 1000);
     };
 
+    const toggleTradeRoute = (routeId: string) => {
+        setGameState(prev => {
+            const currentRoute = prev.tradeRoutes[routeId];
+            if (!currentRoute) return prev;
+
+            return {
+                ...prev,
+                tradeRoutes: {
+                    ...prev.tradeRoutes,
+                    [routeId]: {
+                        ...currentRoute,
+                        active: !currentRoute.active
+                    }
+                }
+            };
+        });
+    };
+
     const objective = getNextObjective();
 
     return (
@@ -161,6 +184,8 @@ export default function ClickerPage() {
                     <ResourceItem icon={<IconGold />} name="金" amount={gameState.resources.gold} rate={gameState.rates?.gold} />
                     <ResourceItem icon={<IconIron />} name="鉄" amount={gameState.resources.iron} rate={gameState.rates?.iron} />
                     <ResourceItem icon={<IconCoal />} name="石炭" amount={gameState.resources.coal} rate={gameState.rates?.coal} />
+                    <ResourceItem icon={<IconOil />} name="石油" amount={gameState.resources.oil} rate={gameState.rates?.oil} />
+                    <ResourceItem icon={<IconSilicon />} name="シリコン" amount={gameState.resources.silicon} rate={gameState.rates?.silicon} />
                     <ResourceItem icon={<IconUsers />} name="人口" amount={gameState.resources.population} />
                 </div>
 
@@ -241,6 +266,11 @@ export default function ClickerPage() {
                             <button className={styles.techTreeButton} style={{ background: '#48bb78', marginLeft: '0.5rem' }} onClick={() => setShowAchievements(true)}>
                                 <IconCheck /> 実績
                             </button>
+                            {gameState.techs.currency?.researched && (
+                                <button className={styles.techTreeButton} style={{ background: '#d69e2e', marginLeft: '0.5rem' }} onClick={() => setShowTradeRoutes(true)}>
+                                    🚢 交易
+                                </button>
+                            )}
                         </div>
                     </>
                 )}
@@ -329,6 +359,16 @@ export default function ClickerPage() {
                     onResearch={researchTech}
                     onBuyBuilding={buyBuilding}
                     calculateCost={calculateCost}
+                />
+            )}
+
+            {showTradeRoutes && (
+                <TradeRouteModal
+                    gameState={gameState}
+                    onClose={() => setShowTradeRoutes(false)}
+                    onToggleRoute={toggleTradeRoute}
+                    onAddRoute={addTradeRoute}
+                    onRemoveRoute={removeTradeRoute}
                 />
             )}
 

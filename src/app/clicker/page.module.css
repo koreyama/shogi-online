@@ -1,9 +1,14 @@
 /* Global Theme & Layout */
 .gameContainer {
     min-height: 100vh;
-    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    /* Dark Strategy Theme with Geometric Pattern */
+    background-color: #1a202c;
+    background-image:
+        radial-gradient(#4a5568 1px, transparent 1px),
+        radial-gradient(#4a5568 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+
     color: #2d3748;
     font-family: 'Outfit', 'Noto Sans JP', sans-serif;
     display: flex;
@@ -40,6 +45,7 @@
     flex-direction: column;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     height: calc(100vh - 3rem);
+    overflow-y: auto;
 }
 
 .mainPanel {

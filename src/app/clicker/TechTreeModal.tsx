@@ -110,6 +110,8 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                         <div className={styles.nodeGroup}>
                             {renderTechNode('stone_tools')}
                             <div className={styles.connectorLine} />
+                            {renderTechNode('sturdy_axe')}
+                            <div className={styles.connectorLine} />
                             {renderTechNode('fire')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('mining')}
@@ -133,6 +135,8 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                             {renderTechNode('writing')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('wheel')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('lumber_mill')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('masonry')}
                             <div className={styles.connectorLine} />
@@ -172,6 +176,8 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                             <div className={styles.connectorLine} />
                             {renderTechNode('guilds')}
                             <div className={styles.connectorLine} />
+                            {renderTechNode('steel_tools')}
+                            <div className={styles.connectorLine} />
                             {renderTechNode('compass')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('theology')}
@@ -204,11 +210,51 @@ export const TechTreeModal: React.FC<Props> = ({ gameState, onClose, onResearch,
                             <div className={styles.connectorLine} />
                             {renderTechNode('industrialization')}
                             <div className={styles.connectorLine} />
+                            {renderTechNode('explosives')}
+                            <div className={styles.connectorLine} />
                             {renderTechNode('electricity')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('chemistry')}
                             <div className={styles.connectorLine} />
                             {renderTechNode('railroad')}
+                        </div>
+                    </div>
+
+                    {/* Atomic Era */}
+                    <div className={styles.eraColumn}>
+                        <h3 className={styles.columnTitle}>原子力時代</h3>
+                        <div className={styles.nodeGroup}>
+                            {renderTechNode('combustion')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('plastics')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('nuclear_fission')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('mass_media')}
+                        </div>
+                    </div>
+
+                    {/* Information Era */}
+                    <div className={styles.eraColumn}>
+                        <h3 className={styles.columnTitle}>情報化時代</h3>
+                        <div className={styles.nodeGroup}>
+                            {renderTechNode('computers')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('internet')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('globalization')}
+                        </div>
+                    </div>
+
+                    {/* Modern/Future Era */}
+                    <div className={styles.eraColumn}>
+                        <h3 className={styles.columnTitle}>現代・未来</h3>
+                        <div className={styles.nodeGroup}>
+                            {renderTechNode('ai')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('fusion_power')}
+                            <div className={styles.connectorLine} />
+                            {renderTechNode('space_colonization')}
                         </div>
                     </div>
                 </div>
