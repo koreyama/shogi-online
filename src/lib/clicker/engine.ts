@@ -206,13 +206,15 @@ export const useClickerEngine = () => {
                 Object.values(prev.tradeRoutes).forEach(route => {
                     if (route.active) {
                         const flow = (route.amount || 1) * delta; // Use custom amount per second
+                        const available = newResources[route.from] || 0;
+                        const actualFlow = Math.min(available, flow);
 
-                        if (newResources[route.from] >= flow) {
-                            newResources[route.from] -= flow;
-                            const gain = flow * route.rate;
+                        if (actualFlow > 0) {
+                            newResources[route.from] -= actualFlow;
+                            const gain = actualFlow * route.rate;
                             newResources[route.to] = (newResources[route.to] || 0) + gain;
 
-                            tradeDiff[route.from] = (tradeDiff[route.from] || 0) - flow;
+                            tradeDiff[route.from] = (tradeDiff[route.from] || 0) - actualFlow;
                             tradeDiff[route.to] = (tradeDiff[route.to] || 0) + gain;
                         }
                     }
@@ -687,31 +689,47 @@ export const useClickerEngine = () => {
         localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
     }, [gameState]);
 
-    const addTradeRoute = useCallback((from: ResourceType, to: ResourceType) => {
+    const addTradeRoute = useCallback((from: ResourceType, to: ResourceType, amount: number) => {
         setGameState(prev => {
-            // Check if route type exists in data
-            const routeDef: any = AVAILABLE_TRADE_ROUTES.find(r => r.id === `${from}_to_${to}`);
-            if (!routeDef) return prev;
+            const id = `${from}_to_${to}`;
 
-            // Check prerequisites
-            if (routeDef.reqTech && !prev.techs[routeDef.reqTech]?.researched) return prev;
+            // Check if already exists
+            if (prev.tradeRoutes[id]) {
+                // Optionally update amount? For now just return or maybe update.
+                // Let's update the amount if it exists
+                return {
+                    ...prev,
+                    tradeRoutes: {
+                        ...prev.tradeRoutes,
+                        [id]: {
+                            ...prev.tradeRoutes[id],
+                            amount: amount // Update amount
+                        }
+                    }
+                };
+            }
 
-            // Check if already exists (unless we allow duplicates? for now one per type)
-            if (prev.tradeRoutes[routeDef.id]) return prev;
+            // Calculate dynamic rate
+            const isTradable = RESOURCE_VALUES[from] && RESOURCE_VALUES[to];
+            if (!isTradable) return prev;
+
+            const valFrom = RESOURCE_VALUES[from];
+            const valTo = RESOURCE_VALUES[to];
+            const rate = (valFrom / valTo) * 0.8; // 20% tax
 
             const newRoute: TradeRoute = {
-                id: routeDef.id,
-                name: routeDef.name || 'Trade Route',
+                id,
+                name: `${from} ➡ ${to}`, // Simple name
                 from,
                 to,
-                rate: routeDef.rate || 1,
+                rate,
                 active: true,
-                amount: 10 // Default amount to trade
+                amount: amount
             };
 
             return {
                 ...prev,
-                tradeRoutes: { ...prev.tradeRoutes, [routeDef.id]: newRoute }
+                tradeRoutes: { ...prev.tradeRoutes, [id]: newRoute }
             };
         });
     }, []);
