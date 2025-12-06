@@ -20,36 +20,66 @@ const BASE_PRICES: Record<string, number> = {
 
 const currentPrices: Record<string, { price: number; previousClose: number; history: number[] }> = {};
 
-// Fetch stock price via API route
+// Yahoo Finance API endpoints
+const YAHOO_CHART_API = 'https://query1.finance.yahoo.com/v8/finance/chart';
+const YAHOO_SEARCH_API = 'https://query1.finance.yahoo.com/v1/finance/search';
+
+// CORS proxy for client-side requests (fallback options)
+const CORS_PROXIES = [
+    (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
+
+// Fetch stock price via client-side CORS proxy
 export async function fetchStockPrice(symbol: string): Promise<Stock | null> {
-    try {
-        const response = await fetch(`/api/stock?symbol=${encodeURIComponent(symbol)}`);
-        if (!response.ok) {
-            return getSimulatedStock(symbol);
-        }
-        const data = await response.json();
-        if (data.error) {
-            return getSimulatedStock(symbol);
-        }
+    const url = `${YAHOO_CHART_API}/${symbol}?interval=1d&range=5d`;
 
-        const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
+    for (const proxyFn of CORS_PROXIES) {
+        try {
+            const proxyUrl = proxyFn(url);
+            const response = await fetch(proxyUrl, {
+                headers: { 'Accept': 'application/json' }
+            });
 
-        return {
-            symbol,
-            name: featuredInfo?.name || data.name || symbol,
-            price: data.price,
-            previousClose: data.previousClose,
-            change: data.change,
-            changePercent: data.changePercent,
-            high: data.high,
-            low: data.low,
-            volume: data.volume,
-            sector: featuredInfo?.sector,
-            lastUpdated: Date.now()
-        };
-    } catch {
-        return getSimulatedStock(symbol);
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            const result = data.chart?.result?.[0];
+
+            if (!result) continue;
+
+            const meta = result.meta;
+            const quote = result.indicators?.quote?.[0];
+            const closes = quote?.close?.filter((c: number | null) => c !== null) || [];
+
+            const currentPrice = meta.regularMarketPrice || closes[closes.length - 1] || 0;
+            const previousClose = meta.chartPreviousClose || meta.previousClose || (closes.length > 1 ? closes[closes.length - 2] : currentPrice);
+            const change = currentPrice - previousClose;
+            const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
+
+            const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
+
+            return {
+                symbol,
+                name: featuredInfo?.name || meta.shortName || meta.longName || symbol,
+                price: currentPrice,
+                previousClose: previousClose,
+                change: Math.round(change * 100) / 100,
+                changePercent: Math.round(changePercent * 100) / 100,
+                high: meta.regularMarketDayHigh || currentPrice,
+                low: meta.regularMarketDayLow || currentPrice,
+                volume: meta.regularMarketVolume || 0,
+                sector: featuredInfo?.sector,
+                lastUpdated: Date.now()
+            };
+        } catch (err) {
+            console.warn(`CORS proxy failed for ${symbol}:`, err);
+            continue;
+        }
     }
+
+    // All proxies failed, use simulation
+    return getSimulatedStock(symbol);
 }
 
 // Search result type
@@ -59,52 +89,52 @@ interface SearchResult {
     exchange?: string;
 }
 
-// Search for stocks by symbol or name
+// Search for stocks by symbol or name via CORS proxy
 export async function searchStocks(query: string): Promise<SearchResult[]> {
     const trimmed = query.trim();
     if (!trimmed) return [];
 
-    try {
-        const response = await fetch(`/api/stock?query=${encodeURIComponent(trimmed)}`);
-        if (!response.ok) return [];
+    const url = `${YAHOO_SEARCH_API}?q=${encodeURIComponent(trimmed)}&quotesCount=10&newsCount=0`;
 
-        const data = await response.json();
-        return data.results || [];
-    } catch {
-        return [];
+    for (const proxyFn of CORS_PROXIES) {
+        try {
+            const proxyUrl = proxyFn(url);
+            const response = await fetch(proxyUrl, {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            const quotes = data.quotes || [];
+
+            // Filter to only stocks (EQUITY type)
+            const stocks = quotes
+                .filter((q: Record<string, unknown>) => q.quoteType === 'EQUITY')
+                .slice(0, 5)
+                .map((q: Record<string, unknown>) => ({
+                    symbol: q.symbol as string,
+                    name: (q.shortname || q.longname || q.symbol) as string,
+                    exchange: q.exchange as string | undefined
+                }));
+
+            return stocks;
+        } catch (err) {
+            console.warn('Search proxy failed:', err);
+            continue;
+        }
     }
+
+    return [];
 }
 
-// Fetch a specific stock by symbol - only returns real data
+// Fetch a specific stock by symbol via CORS proxy
 export async function searchStock(symbol: string): Promise<Stock | null> {
     const upperSymbol = symbol.toUpperCase().trim();
     if (!upperSymbol) return null;
 
-    try {
-        const response = await fetch(`/api/stock?symbol=${encodeURIComponent(upperSymbol)}`);
-        if (!response.ok) return null;
-
-        const data = await response.json();
-        if (data.error) return null;
-
-        const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === upperSymbol);
-
-        return {
-            symbol: upperSymbol,
-            name: featuredInfo?.name || data.shortName || upperSymbol,
-            price: data.price,
-            previousClose: data.previousClose,
-            change: data.change,
-            changePercent: data.changePercent,
-            high: data.high,
-            low: data.low,
-            volume: data.volume,
-            sector: featuredInfo?.sector,
-            lastUpdated: Date.now()
-        };
-    } catch {
-        return null;
-    }
+    // Use the same fetchStockPrice function which already uses CORS proxy
+    return fetchStockPrice(upperSymbol);
 }
 
 // Fetch featured stocks
