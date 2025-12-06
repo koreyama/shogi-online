@@ -20,7 +20,16 @@ export default function YachtPage() {
 
     return (
         <main className={menuStyles.container}>
-            {gameMode === 'menu' ? (
+            {gameMode === 'ai' ? (
+                <div style={{ width: '100%', maxWidth: '1000px' }}>
+                    <div style={{ padding: '1rem 0' }}>
+                        <button onClick={handleBackToMenu} className={menuStyles.backButton} style={{ position: 'relative', marginBottom: '1rem' }}>
+                            <IconBack size={20} /> メニューへ戻る
+                        </button>
+                    </div>
+                    <YachtGame />
+                </div>
+            ) : (
                 <>
                     <div className={menuStyles.header}>
                         <Link href="/" className={menuStyles.backButton}>
@@ -77,15 +86,6 @@ export default function YachtPage() {
                         </div>
                     )}
                 </>
-            ) : (
-                <div style={{ width: '100%', maxWidth: '1000px' }}>
-                    <div style={{ padding: '1rem 0' }}>
-                        <button onClick={handleBackToMenu} className={menuStyles.backButton} style={{ position: 'relative', marginBottom: '1rem' }}>
-                            <IconBack size={20} /> メニューへ戻る
-                        </button>
-                    </div>
-                    {gameMode === 'ai' && <YachtGame />}
-                </div>
             )}
         </main>
     );
