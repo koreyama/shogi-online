@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { IconUser, IconPlus, IconBack, IconPalette } from '@/components/Icons';
+import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 
 interface DrawingRoom {
     id: string;
@@ -17,11 +18,9 @@ interface DrawingRoom {
     createdAt: number;
 }
 
-import { useRoomJanitor } from '@/hooks/useRoomJanitor';
-
 export default function DrawingLobbyPage() {
     const router = useRouter();
-    const { playerName, playerId, isLoaded } = usePlayer();
+    const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const [rooms, setRooms] = useState<DrawingRoom[]>([]);
     const [newRoomName, setNewRoomName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
@@ -48,7 +47,7 @@ export default function DrawingLobbyPage() {
     }, []);
 
     const handleCreateRoom = async () => {
-        if (!newRoomName.trim() || !playerId || !playerName) return;
+        if (!newRoomName.trim() || !user) return;
         setIsCreating(true);
 
         try {
@@ -60,13 +59,13 @@ export default function DrawingLobbyPage() {
                 await set(newRoomRef, {
                     id: roomId,
                     name: newRoomName,
-                    hostId: playerId,
+                    hostId: user.uid,
                     status: 'waiting',
                     createdAt: Date.now(),
                     players: {
-                        [playerId]: {
-                            id: playerId,
-                            name: playerName,
+                        [user.uid]: {
+                            id: user.uid,
+                            name: user.displayName || 'Guest',
                             score: 0,
                             isDrawer: false
                         }
@@ -81,7 +80,38 @@ export default function DrawingLobbyPage() {
         }
     };
 
-    if (!isLoaded) return <div className={styles.loading}>読み込み中...</div>;
+    if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
+
+    // Login required screen
+    if (!user) {
+        return (
+            <main className={styles.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <IconPalette size={64} color="#d53f8c" />
+                    <h1 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>お絵かきクイズ</h1>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>プレイするにはログインが必要です</p>
+                    <button
+                        onClick={signInWithGoogle}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            background: '#3182ce',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Googleでログイン
+                    </button>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className={styles.main}>
@@ -97,7 +127,7 @@ export default function DrawingLobbyPage() {
                 </div>
                 <div className={styles.userInfo}>
                     <IconUser size={20} />
-                    <span>{playerName}</span>
+                    <span>{user.displayName}</span>
                 </div>
             </div>
 
@@ -210,8 +240,6 @@ export default function DrawingLobbyPage() {
                     </ul>
                 </div>
             </div>
-
-
         </main>
     );
 }

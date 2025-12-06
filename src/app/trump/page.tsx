@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, push, set, onValue } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { TrumpRoom } from '@/lib/trump/types';
 import { IconBack, IconCards, IconUser } from '@/components/Icons';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 
 export default function TrumpLobbyPage() {
     const router = useRouter();
-    const { playerName, playerId, isLoaded } = usePlayer();
+    const { user, signInWithGoogle, loading: authLoading } = useAuth();
     const [selectedGame, setSelectedGame] = useState<'daifugo' | 'poker' | 'blackjack'>('daifugo');
     const [rooms, setRooms] = useState<TrumpRoom[]>([]);
     const [newRoomName, setNewRoomName] = useState('');
@@ -58,7 +58,7 @@ export default function TrumpLobbyPage() {
     }, [selectedGame]);
 
     const handleCreateRoom = async () => {
-        if (!newRoomName.trim() || !playerId || !playerName) return;
+        if (!newRoomName.trim() || !user) return;
         setIsCreating(true);
 
         try {
@@ -71,13 +71,13 @@ export default function TrumpLobbyPage() {
             if (roomId) {
                 const newRoom: TrumpRoom = {
                     roomId,
-                    hostId: playerId,
+                    hostId: user.uid,
                     status: 'waiting',
                     gameType: selectedGame,
                     players: {
-                        [playerId]: {
-                            id: playerId,
-                            name: playerName,
+                        [user.uid]: {
+                            id: user.uid,
+                            name: user.displayName || 'Guest',
                             role: 'host',
                             isReady: true,
                             hand: [],
@@ -105,7 +105,7 @@ export default function TrumpLobbyPage() {
     };
 
     const handleCreateAiRoom = async () => {
-        if (!playerId || !playerName) return;
+        if (!user) return;
         setIsCreating(true);
 
         try {
@@ -118,9 +118,9 @@ export default function TrumpLobbyPage() {
             if (roomId) {
                 const aiPlayers: Record<string, any> = {};
                 // Add Host
-                aiPlayers[playerId] = {
-                    id: playerId,
-                    name: playerName,
+                aiPlayers[user.uid] = {
+                    id: user.uid,
+                    name: user.displayName || 'Guest',
                     role: 'host',
                     isReady: true,
                     hand: [],
@@ -141,7 +141,7 @@ export default function TrumpLobbyPage() {
 
                 const newRoom: TrumpRoom = {
                     roomId,
-                    hostId: playerId,
+                    hostId: user.uid,
                     status: 'waiting',
                     gameType: selectedGame,
                     players: aiPlayers,
@@ -181,7 +181,38 @@ export default function TrumpLobbyPage() {
         }
     };
 
-    if (!isLoaded) return <div className={styles.loading}>読み込み中...</div>;
+    if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
+
+    // Login required screen
+    if (!user) {
+        return (
+            <main className={styles.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <IconCards size={64} color="#2b6cb0" />
+                    <h1 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>トランプゲーム</h1>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>プレイするにはログインが必要です</p>
+                    <button
+                        onClick={signInWithGoogle}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            background: '#3182ce',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Googleでログイン
+                    </button>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className={styles.main}>
