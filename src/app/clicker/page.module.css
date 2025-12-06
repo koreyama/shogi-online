@@ -606,6 +606,8 @@
     margin-bottom: 1rem;
     flex-wrap: wrap;
     justify-content: center;
+    position: relative;
+    z-index: 20;
 }
 
 .tabButton {
@@ -657,6 +659,12 @@
 
     .clickIcon {
         font-size: 3rem;
+    }
+
+    .objectiveBanner {
+        position: relative;
+        top: auto;
+        margin-bottom: 1rem;
     }
 }
 
