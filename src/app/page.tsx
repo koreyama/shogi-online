@@ -33,10 +33,26 @@ const IconGames = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const IconStock = ({ size = 50 }: { size?: number }) => (
+const IconStock = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M3 3v18h18" />
     <path d="M18 9l-5 5-3-3-4 4" />
+  </svg>
+);
+
+const IconVirus = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10l2.1 2.1M4.9 19.1l2.1-2.1m10-10l2.1-2.1" />
+  </svg>
+);
+
+const IconBlocks = ({ size = 24, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="1.5">
+    <rect x="4" y="4" width="7" height="7" rx="1" />
+    <rect x="13" y="4" width="7" height="7" rx="1" />
+    <rect x="4" y="13" width="7" height="7" rx="1" />
+    <rect x="13" y="13" width="7" height="7" rx="1" fill={color || "currentColor"} stroke="none" />
   </svg>
 );
 
@@ -427,13 +443,34 @@ export default function Home() {
 
       <section style={{ maxWidth: '1200px', margin: '0 auto 1.5rem', padding: '0 1rem' }}>
         <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#2d3748', borderLeft: '3px solid #3182ce', paddingLeft: '0.75rem' }}>最新情報</h2>
-        <Link href="/blog/clicker-game-release" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
-            <span style={{ background: '#ecc94b', color: '#744210', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
-            <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder リリース</span>
-          </div>
-        </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Link href="/polyomino" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
+              <span style={{ background: '#d53f8c', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Neon Territory (陣取りゲーム) リリース</span>
+            </div>
+          </Link>
+          <Link href="/piano" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
+              <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Virtual Piano リリース</span>
+            </div>
+          </Link>
+          <Link href="/plague" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Bio-Hazard Simulator リリース</span>
+            </div>
+          </Link>
+          <Link href="/clicker" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder リリース</span>
+            </div>
+          </Link>
+        </div>
       </section>
 
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 2rem' }}>
@@ -464,6 +501,29 @@ export default function Home() {
               <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
               <IconCoin size={36} color="#ecc94b" />
               <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Civilization</div>
+            </div>
+          </Link>
+
+          <Link href="/plague" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
+              <IconVirus size={36} />
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Bio-Hazard</div>
+            </div>
+          </Link>
+
+          <Link href="/piano" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#3182ce', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
+              <IconPalette size={36} color="#3182ce" />
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Virtual Piano</div>
+            </div>
+          </Link>
+
+          <Link href="/polyomino" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#d53f8c', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
+              <IconBlocks size={36} color="#d53f8c" />
+              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Neon Territory</div>
             </div>
           </Link>
 

@@ -68,11 +68,45 @@
 }
 
 .die_wrapper.held {
-    transform: translateY(15px);
+    /* Lift up significantly to indicate selection */
+    transform: translateY(-20px);
 }
 
-.die_wrapper.held .die {
-    box-shadow: 0 0 0 4px #fbbf24;
+.die_wrapper.held .die .face {
+    /* Gold border and glow on faces when held */
+    border: 3px solid #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4) inset;
+    background-color: #fffbeb;
+}
+
+/* Badge for clear text indication */
+.held_badge {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f59e0b;
+    color: white;
+    font-weight: 900;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    white-space: nowrap;
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
 }
 
 .die_wrapper.disabled {

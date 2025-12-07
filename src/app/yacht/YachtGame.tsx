@@ -38,6 +38,7 @@ const Die = ({ value, held, rolling, onClick, disabled }: { value: number, held:
             className={`${styles.die_wrapper} ${held ? styles.held : ''} ${disabled ? styles.disabled : ''}`}
             onClick={onClick}
         >
+            {held && <div className={styles.held_badge}>KEEP</div>}
             <div
                 className={styles.die}
                 style={{ transform: rotations[value] }}
