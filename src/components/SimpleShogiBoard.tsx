@@ -124,19 +124,43 @@ export default function SimpleShogiBoard({
             {/* Board */}
             <div className={styles.board}>
                 {displayBoard.map((row, r) => (
-                    row.map((piece, c) => (
-                        <div
-                            key={`${r}-${c}`}
-                            className={getCellClass(r, c)}
-                            onClick={() => handleCellClick(r, c)}
-                        >
-                            {piece && (
-                                <span className={`${styles.piece} ${piece.owner === 'gote' ? styles.gotePiece : ''}`}>
-                                    {renderPiece(piece.type)}
-                                </span>
-                            )}
-                        </div>
-                    ))
+                    row.map((piece, c) => {
+                        // Calculate background style based on actual row
+                        // displayBoard[r][c] corresponds to actual board coordinates transformed
+                        // But we want visual zones.
+                        // Visual Row 0 (Top) -> Gote Base
+                        // Visual Row 3 (Bottom) -> Sente Base
+                        // If isSente: Row 0 is Gote Area (Forest), Row 3 is Sente Area (Sky)
+                        // If !isSente: Row 0 is Sente Area (Sky, flipped), Row 3 is Gote Area (Forest, flipped)
+
+                        let zoneClass = '';
+                        if (isSente) {
+                            if (r === 0) zoneClass = styles.zoneGote;
+                            if (r === 3) zoneClass = styles.zoneSente;
+                        } else {
+                            if (r === 0) zoneClass = styles.zoneSente; // Sente base is at top visually
+                            if (r === 3) zoneClass = styles.zoneGote; // Gote base is at bottom visually
+                        }
+
+                        // Rotation Logic:
+                        // If isSente (Self=Sente): Gote pieces (Opponent) rotate 180.
+                        // If !isSente (Self=Gote): Sente pieces (Opponent) rotate 180.
+                        const shouldRotate = piece ? (isSente ? piece.owner === 'gote' : piece.owner === 'sente') : false;
+
+                        return (
+                            <div
+                                key={`${r}-${c}`}
+                                className={`${getCellClass(r, c)} ${zoneClass}`}
+                                onClick={() => handleCellClick(r, c)}
+                            >
+                                {piece && (
+                                    <span className={`${styles.piece} ${shouldRotate ? styles.rotated : ''}`}>
+                                        {renderPiece(piece.type)}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })
                 ))}
             </div>
 

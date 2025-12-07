@@ -58,7 +58,12 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
                 onClick={() => onCellClick(x, y)}
             >
                 {piece && (
-                    <span className={`${styles.piece} ${piece.player === 'white' ? styles.whitePiece : styles.blackPiece}`}>
+                    <span
+                        className={`${styles.piece} ${piece.player === 'white' ? styles.whitePiece : styles.blackPiece}`}
+                        style={{
+                            transform: myRole === 'black' ? 'rotate(180deg)' : 'none'
+                        }}
+                    >
                         {PIECE_ICONS[piece.type]}
                     </span>
                 )}
@@ -79,7 +84,12 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
     }
 
     return (
-        <div className={styles.board}>
+        <div
+            className={styles.board}
+            style={{
+                transform: myRole === 'black' ? 'rotate(180deg)' : 'none'
+            }}
+        >
             {rows}
         </div>
     );

@@ -43,6 +43,12 @@ export const Board: React.FC<BoardProps> = ({
                         const isSelected = selectedPos?.x === x && selectedPos?.y === y;
                         const isTarget = isValidMove(x, y);
 
+                        const isHoshi = (
+                            (x === 2 && y === 2) || (x === 2 && y === 6) ||
+                            (x === 6 && y === 2) || (x === 6 && y === 6) ||
+                            (x === 4 && y === 4)
+                        );
+
                         return (
                             <div
                                 key={`${x}-${y}`}
@@ -52,6 +58,7 @@ export const Board: React.FC<BoardProps> = ({
                     ${isLastMoveTo(x, y) ? styles.lastMove : ''}
                   `}
                                 onClick={() => onCellClick(x, y)}
+                                data-hoshi={isHoshi}
                             >
 
 

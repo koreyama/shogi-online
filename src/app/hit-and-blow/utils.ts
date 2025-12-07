@@ -6,27 +6,26 @@ export interface HitBlowResult {
 export interface GuessRecord {
     guess: string;
     result: HitBlowResult;
+    player?: string;
 }
 
 export const COLORS = ['Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Orange'];
 
-export function generateSecret(length: number = 4): string {
+export function generateSecret(length: number = 4, allowDuplicates: boolean = false): string {
     const availableColors = [...COLORS];
     let secret = '';
 
     for (let i = 0; i < length; i++) {
-        const randomIndex = Math.floor(Math.random() * availableColors.length);
-        // We use a simplified single-char representation for internal logic if needed, 
-        // or just comma-separated strings? 
-        // Logic currently uses string concatenation: "1234". 
-        // For colors, maybe use initials? R, B, G, Y, P, O.
-        // Let's use initials for the secret string to keep logic simple: "RBGY"
-        // But wait, "Blue" and "Black" (none here). "Green" "Gray".
-        // The colors are distinct: R, B, G, Y, P, O.
+        // If duplicates are allowed, we don't remove from availableColors
+        // But if NOT allowed, we must pick from remaining
+        const pool = allowDuplicates ? COLORS : availableColors;
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        const color = pool[randomIndex];
+        secret += color[0];
 
-        const color = availableColors[randomIndex];
-        secret += color[0]; // First letter
-        availableColors.splice(randomIndex, 1);
+        if (!allowDuplicates) {
+            availableColors.splice(randomIndex, 1);
+        }
     }
 
     return secret;
@@ -41,11 +40,32 @@ export function checkGuess(secret: string, guess: string): HitBlowResult {
     let hit = 0;
     let blow = 0;
 
+    const secretArr = secret.split('');
+    const guessArr = guess.split('');
+    const secretUsed = new Array(secret.length).fill(false);
+    const guessUsed = new Array(guess.length).fill(false);
+
+    // 1. Check Hits
     for (let i = 0; i < guess.length; i++) {
-        if (guess[i] === secret[i]) {
+        if (guessArr[i] === secretArr[i]) {
             hit++;
-        } else if (secret.includes(guess[i])) {
-            blow++;
+            secretUsed[i] = true;
+            guessUsed[i] = true;
+        }
+    }
+
+    // 2. Check Blows
+    for (let i = 0; i < guess.length; i++) {
+        if (guessUsed[i]) continue;
+
+        const char = guessArr[i];
+        // Find a matching unused character in secret
+        for (let j = 0; j < secret.length; j++) {
+            if (!secretUsed[j] && secretArr[j] === char) {
+                blow++;
+                secretUsed[j] = true;
+                break;
+            }
         }
     }
 

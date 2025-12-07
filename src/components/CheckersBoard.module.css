@@ -3,13 +3,16 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  background: #2d3748;
+  padding: 1.5rem;
+  background-color: #3e2723;
+  /* Dark Wood Container */
+  background-image: linear-gradient(315deg, #3e2723 0%, #5d4037 74%);
   border-radius: 16px;
-  color: white;
+  color: #fce8cc;
   user-select: none;
   width: 100%;
   max-width: 600px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .board {
@@ -18,8 +21,9 @@
   grid-template-rows: repeat(8, 1fr);
   width: 100%;
   aspect-ratio: 1;
-  border: 8px solid #4a5568;
+  border: 12px solid #5d4037;
   border-radius: 4px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 .cell {
@@ -33,60 +37,124 @@
 }
 
 .darkCell {
-  background-color: #718096;
+  background-color: #8b4513;
+  /* SaddleBrown */
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
 }
 
 .lightCell {
-  background-color: #cbd5e0;
+  background-color: #deb887;
+  /* Burlywood */
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
 }
 
 .validMove::after {
   content: '';
   width: 30%;
   height: 30%;
-  background-color: rgba(0, 255, 0, 0.5);
+  background-color: rgba(0, 255, 0, 0.6);
   border-radius: 50%;
   position: absolute;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
 }
 
 .lastMove {
-  background-color: rgba(255, 255, 0, 0.3);
+  background-color: rgba(255, 215, 0, 0.3) !important;
 }
 
 .piece {
   width: 80%;
   height: 80%;
   border-radius: 50%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.4),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.4);
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.2s;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .piece:hover {
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
+/* Red Piece - Plastic/Resin look */
 .redPiece {
-  background: radial-gradient(circle at 30% 30%, #fc8181, #c53030);
-  border: 2px solid #9b2c2c;
+  background: radial-gradient(circle at 35% 35%, #ff6b6b, #c53030);
+  border: 3px solid #9b2c2c;
 }
 
+/* Black Piece */
 .blackPiece {
-  background: radial-gradient(circle at 30% 30%, #4a5568, #1a202c);
-  border: 2px solid #000;
+  background: radial-gradient(circle at 35% 35%, #4a5568, #1a202c);
+  border: 3px solid #000;
 }
 
 .king::before {
-  content: '👑';
-  font-size: 1.5rem;
+  content: '♕';
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.redPiece.king::before {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.blackPiece.king::before {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .selected {
-  box-shadow: 0 0 15px #ecc94b;
-  transform: scale(1.1);
+  box-shadow: 0 0 20px #ecc94b, 0 5px 15px rgba(0, 0, 0, 0.5);
+  transform: scale(1.15) translateY(-5px);
+  z-index: 10;
+}
+
+.movable {
+  animation: pulse 2s infinite;
+  cursor: grab;
+}
+
+.movable::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 3px solid rgba(255, 255, 0, 0.6);
+  border-radius: 50%;
+  animation: ring 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
 }
 
 .playerArea {
@@ -95,11 +163,13 @@
   width: 100%;
   padding: 0 1rem;
   font-weight: bold;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Responsive adjustments for king icon */
+/* Responsive adjustments */
 @container (max-width: 400px) {
   .king::before {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 }

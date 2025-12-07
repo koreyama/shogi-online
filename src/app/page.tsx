@@ -448,7 +448,7 @@ export default function Home() {
             <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
               <span style={{ background: '#d53f8c', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Neon Territory (陣取りゲーム) リリース</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Block Territory (陣取りゲーム) リリース</span>
             </div>
           </Link>
           <Link href="/piano" style={{ textDecoration: 'none' }}>
@@ -473,187 +473,245 @@ export default function Home() {
         </div>
       </section>
 
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 2rem' }}>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#2d3748' }}>ゲーム一覧</h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-          gap: '0.75rem'
-        }}>
-          <Link href="/stock" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
-              <IconStock size={36} />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Stock Simulator</div>
-            </div>
-          </Link>
 
-          <Link href="/card-game/lobby" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
-              <IconSwords size={36} color="#805ad5" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Divine Duel</div>
-            </div>
-          </Link>
+      {/* Game Categories */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 4rem', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
-          <Link href="/clicker" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
-              <IconCoin size={36} color="#ecc94b" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Civilization</div>
-            </div>
-          </Link>
+        {/* Simulation & Strategy */}
+        <section>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#2d3748', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ width: '6px', height: '24px', background: '#38a169', borderRadius: '3px' }}></span>
+            シミュレーション & 戦略
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+            gap: '1rem'
+          }}>
+            <Link href="/stock" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
+                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+                <IconStock size={40} />
+                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Stock Simulator</div>
+                <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>本格株取引シミュ</div>
+              </div>
+            </Link>
 
-          <Link href="/plague" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <IconVirus size={36} />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Bio-Hazard</div>
-            </div>
-          </Link>
+            <Link href="/clicker" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
+                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+                <IconCoin size={40} color="#ecc94b" />
+                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Civilization Builder</div>
+                <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>資源管理＆文明発展</div>
+              </div>
+            </Link>
 
-          <Link href="/piano" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#3182ce', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
-              <IconPalette size={36} color="#3182ce" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Virtual Piano</div>
-            </div>
-          </Link>
+            <Link href="/card-game/lobby" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
+                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+                <IconSwords size={40} color="#805ad5" />
+                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Divine Duel</div>
+                <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>戦略カードバトル</div>
+              </div>
+            </Link>
 
-          <Link href="/polyomino" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#d53f8c', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
-              <IconBlocks size={36} color="#d53f8c" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Neon Territory</div>
-            </div>
-          </Link>
+            <Link href="/plague" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '2px solid #e53e3e', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
+                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#e53e3e', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
+                <IconVirus size={40} />
+                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Bio-Hazard</div>
+                <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>感染拡大シミュレータ</div>
+              </div>
+            </Link>
+          </div>
+        </section>
 
-          <Link href="/hit-and-blow" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4299e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Hit & Blow</div>
-            </div>
-          </Link>
+        {/* Puzzle & Brain */}
+        <section>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#2d3748', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ width: '6px', height: '24px', background: '#d53f8c', borderRadius: '3px' }}></span>
+            パズル & 頭脳
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '0.75rem'
+          }}>
+            <Link href="/polyomino" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.5rem' }}><IconBlocks size={36} color="#d53f8c" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: '#1a202c' }}>Block Territory</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>陣取りパズル</div>
+              </div>
+            </Link>
 
-          <Link href="/dots-and-boxes" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed64a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-                <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor" />
-                <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" />
-                <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" />
-                <line x1="8.5" y1="8.5" x2="15.5" y2="8.5" />
-                <line x1="8.5" y1="8.5" x2="8.5" y2="15.5" />
-              </svg>
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Dots & Boxes</div>
-            </div>
-          </Link>
+            <Link href="/minesweeper" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.5rem' }}><IconBomb size={36} color="#e53e3e" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: '#1a202c' }}>マインスイーパー</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>爆弾処理ゲーム</div>
+              </div>
+            </Link>
 
-          <Link href="/yacht" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed8936" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                <circle cx="8" cy="8" r="2" fill="currentColor" />
-                <circle cx="16" cy="16" r="2" fill="currentColor" />
-                <circle cx="8" cy="16" r="2" fill="currentColor" />
-                <circle cx="16" cy="8" r="2" fill="currentColor" />
-                <circle cx="12" cy="12" r="2" fill="currentColor" />
-              </svg>
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>Yacht</div>
-            </div>
-          </Link>
+            <Link href="/hit-and-blow" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4299e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: '#1a202c' }}>Hit & Blow</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>推理ゲーム</div>
+              </div>
+            </Link>
 
-          <Link href="/minesweeper" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
-              <IconBomb size={36} color="#e53e3e" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>マインスイーパー</div>
-            </div>
-          </Link>
+            <Link href="/dots-and-boxes" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed64a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                    <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor" />
+                    <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" />
+                    <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" />
+                    <line x1="8.5" y1="8.5" x2="15.5" y2="8.5" />
+                    <line x1="8.5" y1="8.5" x2="8.5" y2="15.5" />
+                  </svg>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: '#1a202c' }}>Dots & Boxes</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>陣取りゲーム</div>
+              </div>
+            </Link>
 
-          <Link href="/shogi" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconShogi size={36} color="#2c5282" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>将棋</div>
-            </div>
-          </Link>
+            <Link href="/yacht" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ed8936" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <circle cx="8" cy="8" r="2" fill="currentColor" />
+                    <circle cx="16" cy="16" r="2" fill="currentColor" />
+                    <circle cx="8" cy="16" r="2" fill="currentColor" />
+                    <circle cx="16" cy="8" r="2" fill="currentColor" />
+                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  </svg>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: '#1a202c' }}>Yacht</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>サイコロポーカー</div>
+              </div>
+            </Link>
+          </div>
+        </section>
 
-          <Link href="/chess" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconChess size={36} color="#2b6cb0" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>チェス</div>
-            </div>
-          </Link>
+        {/* Classic Board Games */}
+        <section>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#2d3748', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ width: '6px', height: '24px', background: '#3182ce', borderRadius: '3px' }}></span>
+            定番ボードゲーム
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+            gap: '0.75rem'
+          }}>
+            <Link href="/shogi" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconShogi size={32} color="#2c5282" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>将棋</div>
+              </div>
+            </Link>
+            <Link href="/chess" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconChess size={32} color="#2b6cb0" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>チェス</div>
+              </div>
+            </Link>
+            <Link href="/reversi" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconReversi size={32} color="#1a202c" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>リバーシ</div>
+              </div>
+            </Link>
+            <Link href="/gomoku" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconGomoku size={32} color="#c53030" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>五目並べ</div>
+              </div>
+            </Link>
+            <Link href="/connect4" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconConnect4 size={32} color="#e53e3e" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>四目並べ</div>
+              </div>
+            </Link>
+            <Link href="/simple-shogi" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconKing size={32} color="#4a5568" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>ファンタジー将棋</div>
+              </div>
+            </Link>
+            <Link href="/honeycomb" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconGomoku size={32} color="#d69e2e" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>蜂の陣</div>
+              </div>
+            </Link>
+            <Link href="/checkers" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconCheckers size={32} color="#e53e3e" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>チェッカー</div>
+              </div>
+            </Link>
+            <Link href="/mancala" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconMancala size={32} color="#d69e2e" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>マンカラ</div>
+              </div>
+            </Link>
+          </div>
+        </section>
 
-          <Link href="/reversi" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconReversi size={36} color="#1a202c" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>リバーシ</div>
-            </div>
-          </Link>
+        {/* Variety & Casual */}
+        <section>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#2d3748', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ width: '6px', height: '24px', background: '#ed8936', borderRadius: '3px' }}></span>
+            バラエティ & カジュアル
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+            gap: '0.75rem'
+          }}>
+            <Link href="/piano" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconPalette size={32} color="#3182ce" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>Virtual Piano</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>楽器演奏</div>
+              </div>
+            </Link>
 
-          <Link href="/connect4" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconConnect4 size={36} color="#c53030" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>四目並べ</div>
-            </div>
-          </Link>
+            <Link href="/drawing" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconPalette size={32} color="#d53f8c" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>お絵かきクイズ</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>マルチプレイ</div>
+              </div>
+            </Link>
 
-          <Link href="/gomoku" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconGomoku size={36} color="#c53030" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>五目並べ</div>
-            </div>
-          </Link>
+            <Link href="/trump" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconCards size={32} color="#2b6cb0" /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>トランプ</div>
+                <div style={{ fontSize: '0.6rem', color: '#718096', marginTop: '0.2rem' }}>大富豪 etc.</div>
+              </div>
+            </Link>
+          </div>
+        </section>
 
-          <Link href="/checkers" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconCheckers size={36} color="#e53e3e" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>チェッカー</div>
-            </div>
-          </Link>
+      </div>
 
-          <Link href="/mancala" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconMancala size={36} color="#d69e2e" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>マンカラ</div>
-            </div>
-          </Link>
-
-          <Link href="/simple-shogi" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconKing size={36} color="#4a5568" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>ファンタジー将棋</div>
-            </div>
-          </Link>
-
-          <Link href="/drawing" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconPalette size={36} color="#d53f8c" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>お絵かきクイズ</div>
-            </div>
-          </Link>
-
-          <Link href="/honeycomb" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconGomoku size={36} color="#d69e2e" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>蜂の陣</div>
-            </div>
-          </Link>
-
-          <Link href="/trump" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
-              <IconCards size={36} color="#2b6cb0" />
-              <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c', marginTop: '0.3rem' }}>トランプ</div>
-            </div>
-          </Link>
-        </div>
-      </section>
     </main>
   );
 }

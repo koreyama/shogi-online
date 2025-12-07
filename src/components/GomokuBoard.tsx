@@ -51,7 +51,7 @@ const GomokuBoard: React.FC<GomokuBoardProps> = ({
 
                                 {/* ホバー時のプレビュー（PCのみ） */}
                                 {!cell && isMyTurn && !winner && (
-                                    <div className={`${styles.stone} ${styles[turn]} ${styles.preview}`} style={{ display: 'none' }} />
+                                    <div className={`${styles.stone} ${styles[turn]} ${styles.preview}`} />
                                 )}
                             </div>
                         );

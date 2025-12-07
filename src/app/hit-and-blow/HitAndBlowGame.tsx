@@ -3,23 +3,70 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateSecret, checkGuess, GuessRecord, COLORS } from './utils';
 import styles from './HitAndBlow.module.css';
+import { db } from '@/lib/firebase';
+import { ref, onValue, update, set, push, get, child } from 'firebase/database';
 
 const DIGIT_COUNT = 4;
 const MAX_ATTEMPTS = 10;
 
-export default function HitAndBlowGame() {
+interface HitAndBlowGameProps {
+    roomId?: string | null;
+    myRole?: 'P1' | 'P2' | null;
+    onLeave?: () => void;
+}
+
+export default function HitAndBlowGame({ roomId, myRole, onLeave }: HitAndBlowGameProps) {
     const [secret, setSecret] = useState<string>('');
     const [currentGuess, setCurrentGuess] = useState<string>('');
     const [history, setHistory] = useState<GuessRecord[]>([]);
     const [gameOver, setGameOver] = useState<boolean>(false);
     const [won, setWon] = useState<boolean>(false);
+    const [allowDuplicates, setAllowDuplicates] = useState<boolean>(false);
+
+    // Multiplayer specific
+    const [turn, setTurn] = useState<'P1' | 'P2'>('P1');
+    const [winner, setWinner] = useState<'P1' | 'P2' | null>(null);
+    const [opponentName, setOpponentName] = useState('Opponent');
 
     // For auto-scroll
     const historyEndRef = useRef<HTMLDivElement>(null);
 
+    // Initial Start
     useEffect(() => {
-        startNewGame();
-    }, []);
+        if (!roomId) {
+            // Single Player
+            startNewGame(allowDuplicates);
+        }
+    }, [roomId]);
+
+    // Multiplayer Sync
+    useEffect(() => {
+        if (!roomId || !myRole) return;
+
+        const roomRef = ref(db, `hit_and_blow_rooms/${roomId}`);
+        const unsubscribe = onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            if (data.secret) setSecret(data.secret);
+            if (data.history) setHistory(data.history);
+            else setHistory([]);
+
+            if (data.turn) setTurn(data.turn);
+            if (data.winner) {
+                setWinner(data.winner);
+                setGameOver(true);
+                setWon(data.winner === myRole);
+            }
+            if (data.allowDuplicates !== undefined) setAllowDuplicates(data.allowDuplicates);
+
+            // Opponent Name
+            const oppRole = myRole === 'P1' ? 'P2' : 'P1';
+            if (data[oppRole]?.name) setOpponentName(data[oppRole].name);
+        });
+
+        return () => unsubscribe();
+    }, [roomId, myRole]);
 
     useEffect(() => {
         if (historyEndRef.current) {
@@ -27,17 +74,40 @@ export default function HitAndBlowGame() {
         }
     }, [history]);
 
-    const startNewGame = () => {
-        setSecret(generateSecret(DIGIT_COUNT));
-        setCurrentGuess('');
-        setHistory([]);
-        setGameOver(false);
-        setWon(false);
+    const startNewGame = async (duplicates: boolean = allowDuplicates) => {
+        if (roomId) {
+            // Only P1 can restart? Or disable restart in MP?
+            // Usually Rematch logic. For now, let's just allow reset if P1.
+            if (myRole === 'P1') {
+                const newSecret = generateSecret(DIGIT_COUNT, duplicates);
+                await update(ref(db, `hit_and_blow_rooms/${roomId}`), {
+                    secret: newSecret,
+                    history: [],
+                    turn: 'P1',
+                    winner: null,
+                    allowDuplicates: duplicates
+                });
+            }
+        } else {
+            setSecret(generateSecret(DIGIT_COUNT, duplicates));
+            setCurrentGuess('');
+            setHistory([]);
+            setGameOver(false);
+            setWon(false);
+            setWinner(null);
+        }
+    };
+
+    const handleModeToggle = () => {
+        const newMode = !allowDuplicates;
+        setAllowDuplicates(newMode);
+        startNewGame(newMode);
     };
 
     const handleColorClick = (colorInitial: string) => {
         if (gameOver || currentGuess.length >= DIGIT_COUNT) return;
-        if (currentGuess.includes(colorInitial)) return; // No duplicates allowed
+        if (roomId && turn !== myRole) return; // Not my turn
+        if (!allowDuplicates && currentGuess.includes(colorInitial)) return;
         setCurrentGuess((prev) => prev + colorInitial);
     };
 
@@ -46,24 +116,71 @@ export default function HitAndBlowGame() {
         setCurrentGuess((prev) => prev.slice(0, -1));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (gameOver || currentGuess.length !== DIGIT_COUNT) return;
+        if (roomId && turn !== myRole) return;
 
         const result = checkGuess(secret, currentGuess);
-        const newHistory = [...history, { guess: currentGuess, result }];
-        setHistory(newHistory);
-        setCurrentGuess('');
+        const newRecord = { guess: currentGuess, result, player: myRole || 'P1' }; // Add player field to record
 
-        if (result.hit === DIGIT_COUNT) {
-            setWon(true);
-            setGameOver(true);
-        } else if (newHistory.length >= MAX_ATTEMPTS) {
-            setGameOver(true);
+        if (roomId) {
+            // Firebase Update
+            const newHistory = [...history, newRecord];
+            const nextTurn = turn === 'P1' ? 'P2' : 'P1';
+            let updates: any = {
+                history: newHistory,
+                turn: nextTurn
+            };
+
+            if (result.hit === DIGIT_COUNT) {
+                updates.winner = myRole;
+            }
+
+            await update(ref(db, `hit_and_blow_rooms/${roomId}`), updates);
+            setCurrentGuess('');
+        } else {
+            // Single Player
+            const newHistory = [...history, newRecord];
+            setHistory(newHistory);
+            setCurrentGuess('');
+
+            if (result.hit === DIGIT_COUNT) {
+                setWon(true);
+                setGameOver(true);
+            } else if (newHistory.length >= MAX_ATTEMPTS) {
+                setGameOver(true);
+            }
         }
     };
 
+    const isMyTurn = !roomId || turn === myRole;
+
     return (
         <div className={styles.container}>
+            {/* Header info for Multiplayer */}
+            {roomId && (
+                <div style={{ marginBottom: '1rem', width: '100%', textAlign: 'center', background: '#edf2f7', padding: '0.5rem', borderRadius: '8px' }}>
+                    <div style={{ fontWeight: 'bold', color: isMyTurn ? '#2e7d32' : '#718096' }}>
+                        {winner ? (winner === myRole ? 'YOU WIN!' : 'LOSE...') : isMyTurn ? 'あなたの番です' : `${opponentName}の番です`}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#718096' }}>Room: {roomId}</div>
+                </div>
+            )}
+
+            {/* Mode Toggle (Only P1 or Single) */}
+            {(!roomId || myRole === 'P1') && (
+                <div className={styles.mode_toggle_container}>
+                    <label className={styles.toggle_label}>
+                        <input
+                            type="checkbox"
+                            checked={allowDuplicates}
+                            onChange={handleModeToggle}
+                            disabled={!!roomId && history.length > 0} // Lock if game started
+                        />
+                        重複ありモード
+                    </label>
+                </div>
+            )}
 
             {/* Game Status / Result */}
             <div className={styles.status_section}>
@@ -85,7 +202,7 @@ export default function HitAndBlowGame() {
                             </div>
                         </div>
                         <button
-                            onClick={startNewGame}
+                            onClick={() => startNewGame()}
                             className={styles.play_again_btn}
                         >
                             Play Again
@@ -150,7 +267,7 @@ export default function HitAndBlowGame() {
                     <div className={styles.color_grid}>
                         {COLORS.map((color) => {
                             const char = color[0];
-                            const isUsed = currentGuess.includes(char);
+                            const isUsed = !allowDuplicates && currentGuess.includes(char);
                             return (
                                 <button
                                     key={color}

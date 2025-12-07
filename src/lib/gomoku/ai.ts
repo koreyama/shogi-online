@@ -1,51 +1,57 @@
 import { BoardState, Player, Move, BOARD_SIZE } from './types';
 import { isValidMove } from './engine';
 
-const MAX_DEPTH = 2; // 探索深さ（パフォーマンス考慮）
+const MAX_DEPTH = 2; // Performance consideration
 
-// 評価スコア
+// Evaluation Scores
 const SCORES = {
-    WIN: 100000,
-    OPEN_FOUR: 10000, // 両端が開いた4連
-    FOUR: 1000,       // 片端が閉じた4連
-    OPEN_THREE: 1000, // 両端が開いた3連
-    THREE: 100,       // 片端が閉じた3連
-    OPEN_TWO: 100,    // 両端が開いた2連
-    TWO: 10,          // 片端が閉じた2連
+    WIN: 1000000,
+    LIVE_FOUR: 100000, // 011110 - Unstoppable unless immediate block
+    DEAD_FOUR: 10000,  // x11110 - Must block
+    LIVE_THREE: 10000, // 01110 - Major threat
+    DEAD_THREE: 1000,
+    LIVE_TWO: 100,
+    DEAD_TWO: 10
 };
 
 export const getBestMove = (board: BoardState, player: Player): Move | null => {
-    // 最初の数手は中心付近に打つ（探索省略）
+    // 1. If board is empty, play center
     let stoneCount = 0;
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
             if (board[y][x] !== null) stoneCount++;
         }
     }
-
     if (stoneCount === 0) {
         return { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2), player };
     }
 
-    // 有効な手を列挙（石の周囲のみ探索対象にするなどの最適化が必要だが、まずは全探索に近い形で）
-    // パフォーマンスのため、既存の石の周囲2マス以内のみを候補とする
+    // 2. Candidate generation (nearby stones)
     const candidates = getCandidateMoves(board);
-
     if (candidates.length === 0) return null;
 
     let bestScore = -Infinity;
     let bestMove: Move | null = null;
+    let alpha = -Infinity;
+    let beta = Infinity;
 
+    // 3. Simple Minimax with Alpha-Beta
     for (const move of candidates) {
         const newBoard = board.map(row => [...row]);
         newBoard[move.y][move.x] = player;
 
-        const score = minimax(newBoard, MAX_DEPTH - 1, false, -Infinity, Infinity, player);
+        // Check instant win
+        if (evaluateBoard(newBoard, player) >= SCORES.WIN) {
+            return { x: move.x, y: move.y, player };
+        }
+
+        const score = minimax(newBoard, MAX_DEPTH - 1, false, alpha, beta, player);
 
         if (score > bestScore) {
             bestScore = score;
             bestMove = { x: move.x, y: move.y, player };
         }
+        alpha = Math.max(alpha, bestScore);
     }
 
     return bestMove || { x: candidates[0].x, y: candidates[0].y, player };
@@ -55,10 +61,10 @@ const getCandidateMoves = (board: BoardState): { x: number, y: number }[] => {
     const candidates: { x: number, y: number }[] = [];
     const visited = new Set<string>();
 
+    // Optimization: Only check cells within 2 steps of existing stones
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
             if (board[y][x] !== null) {
-                // 周囲2マスを候補に追加
                 for (let dy = -2; dy <= 2; dy++) {
                     for (let dx = -2; dx <= 2; dx++) {
                         const ny = y + dy;
@@ -75,10 +81,9 @@ const getCandidateMoves = (board: BoardState): { x: number, y: number }[] => {
             }
         }
     }
-
-    // 候補がない（初手など）場合は中心を返す
-    if (candidates.length === 0 && board[Math.floor(BOARD_SIZE / 2)][Math.floor(BOARD_SIZE / 2)] === null) {
-        candidates.push({ x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2) });
+    // If no candidates found (shouldn't happen if board not empty), pick center of empty
+    if (candidates.length === 0) {
+        if (board[7][7] === null) candidates.push({ x: 7, y: 7 });
     }
 
     return candidates;
@@ -93,14 +98,13 @@ const minimax = (
     player: Player
 ): number => {
     const opponent = player === 'black' ? 'white' : 'black';
-    const score = evaluateBoard(board, player);
+    const currentScore = evaluateBoard(board, player);
 
-    // 終了条件
-    if (Math.abs(score) >= SCORES.WIN / 2) return score; // 勝敗がついている
-    if (depth === 0) return score;
+    if (Math.abs(currentScore) >= SCORES.WIN / 2) return currentScore;
+    if (depth === 0) return currentScore;
 
     const candidates = getCandidateMoves(board);
-    if (candidates.length === 0) return 0; // 引き分け
+    if (candidates.length === 0) return 0;
 
     if (isMaximizing) {
         let maxEval = -Infinity;
@@ -127,12 +131,22 @@ const minimax = (
     }
 };
 
+// --- Evaluation Logic ---
+
 const evaluateBoard = (board: BoardState, player: Player): number => {
     const opponent = player === 'black' ? 'white' : 'black';
-    let score = 0;
+    let myScore = evaluatePlayer(board, player);
+    let oppScore = evaluatePlayer(board, opponent);
 
-    // 縦横斜めを走査してパターンマッチング
-    // 簡易的な評価関数
+    // Defense is slightly more important if opponent has high threat
+    if (oppScore >= SCORES.LIVE_FOUR) oppScore *= 1.2;
+    if (oppScore >= SCORES.LIVE_THREE) oppScore *= 1.1;
+
+    return myScore - oppScore;
+};
+
+const evaluatePlayer = (board: BoardState, player: Player): number => {
+    let score = 0;
     const directions = [
         { dx: 1, dy: 0 },
         { dx: 0, dy: 1 },
@@ -140,66 +154,70 @@ const evaluateBoard = (board: BoardState, player: Player): number => {
         { dx: 1, dy: -1 },
     ];
 
+    // Scan all 4 directions for every cell to identify sequences
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
-            if (board[y][x] !== null) {
-                // 各方向について連をチェック
-                // 重複カウントを避けるため、始点のみで評価するか、全走査して割るか
-                // ここでは簡易的に、各セルから4方向を見る（重複ありだが相対評価なので許容）
-
+            if (board[y][x] === player) {
                 for (const { dx, dy } of directions) {
-                    score += evaluateLine(board, x, y, dx, dy, player, opponent);
+                    // Check if this stone is the start of a sequence (previous is not player)
+                    // This avoids double counting 1-1-1-1-1 as 5 separate things
+                    const px = x - dx;
+                    const py = y - dy;
+                    if (px >= 0 && px < BOARD_SIZE && py >= 0 && py < BOARD_SIZE && board[py][px] === player) {
+                        continue;
+                    }
+
+                    score += evaluateSequence(board, x, y, dx, dy, player);
                 }
             }
         }
     }
-
     return score;
 };
 
-const evaluateLine = (
-    board: BoardState,
-    x: number,
-    y: number,
-    dx: number,
-    dy: number,
-    player: Player,
-    opponent: Player
-): number => {
-    // このセルを始点とする連を評価するわけではないが、
-    // このセルを含むラインを評価する
+const evaluateSequence = (board: BoardState, x: number, y: number, dx: number, dy: number, player: Player): number => {
+    let count = 0;
+    let openEnds = 0;
 
-    // 簡易実装: 5つ並び、4つ並びなどを検出
-    // 本格的な評価は複雑なので、ここでは「自分の石が並んでいる数」を重視
-
-    let myCount = 0;
-    let oppCount = 0;
-    let emptyCount = 0;
-
-    // 5マス分を見る
-    for (let i = 0; i < 5; i++) {
+    // Scan forward to find length
+    let i = 0;
+    while (true) {
         const nx = x + dx * i;
         const ny = y + dy * i;
-
-        if (nx < 0 || nx >= BOARD_SIZE || ny < 0 || ny >= BOARD_SIZE) return 0; // 盤外を含むラインは無視（5連になれない）
-
-        const cell = board[ny][nx];
-        if (cell === player) myCount++;
-        else if (cell === opponent) oppCount++;
-        else emptyCount++;
+        if (nx < 0 || nx >= BOARD_SIZE || ny < 0 || ny >= BOARD_SIZE || board[ny][nx] !== player) {
+            break;
+        }
+        count++;
+        i++;
     }
 
-    if (myCount === 5) return SCORES.WIN;
-    if (oppCount === 5) return -SCORES.WIN;
+    // Check ends
+    // Start side (x-dx, y-dy)
+    const sx = x - dx;
+    const sy = y - dy;
+    if (sx >= 0 && sx < BOARD_SIZE && sy >= 0 && sy < BOARD_SIZE && board[sy][sx] === null) {
+        openEnds++;
+    }
 
-    if (myCount === 4 && emptyCount === 1) return SCORES.OPEN_FOUR; // 実際は端が空いているか見る必要があるが簡易化
-    if (oppCount === 4 && emptyCount === 1) return -SCORES.OPEN_FOUR * 1.2; // 防御優先
+    // End side (x + dx*count, y + dy*count)
+    const ex = x + dx * count;
+    const ey = y + dy * count;
+    if (ex >= 0 && ex < BOARD_SIZE && ey >= 0 && ey < BOARD_SIZE && board[ey][ex] === null) {
+        openEnds++;
+    }
 
-    if (myCount === 3 && emptyCount === 2) return SCORES.OPEN_THREE;
-    if (oppCount === 3 && emptyCount === 2) return -SCORES.OPEN_THREE * 1.2;
-
-    if (myCount === 2 && emptyCount === 3) return SCORES.TWO;
-    if (oppCount === 2 && emptyCount === 3) return -SCORES.TWO;
+    if (count >= 5) return SCORES.WIN;
+    if (count === 4) {
+        if (openEnds === 2) return SCORES.LIVE_FOUR;
+        if (openEnds === 1) return SCORES.DEAD_FOUR;
+    }
+    if (count === 3) {
+        if (openEnds === 2) return SCORES.LIVE_THREE;
+        if (openEnds === 1) return SCORES.DEAD_THREE;
+    }
+    if (count === 2) {
+        if (openEnds === 2) return SCORES.LIVE_TWO;
+    }
 
     return 0;
 };

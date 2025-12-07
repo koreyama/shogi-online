@@ -64,6 +64,12 @@ export default function CheckersBoard({
                 const piece = board[actualR][actualC];
                 const isSelected = selectedPos?.r === actualR && selectedPos?.c === actualC;
 
+                // Determine if this piece is allowed to move
+                const canMove = piece && validMoves.some(m => m.from.r === actualR && m.from.c === actualC);
+
+                // If it's my turn, highlight pieces that MUST be moved (forced jumps or any move if no jump)
+                const isMovable = canMove && turn === myRole;
+
                 cols.push(
                     <div
                         key={`${actualR}-${actualC}`}
@@ -76,6 +82,7 @@ export default function CheckersBoard({
                                 ${piece.owner === 'red' ? styles.redPiece : styles.blackPiece}
                                 ${piece.type === 'king' ? styles.king : ''}
                                 ${isSelected ? styles.selected : ''}
+                                ${isMovable ? styles.movable : ''}
                             `} />
                         )}
                     </div>

@@ -1,55 +1,83 @@
-'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './DotsAndBoxes.module.css';
 import { IconRobot, IconUser } from '@/components/Icons';
+import { db } from '@/lib/firebase';
+import { ref, onValue, update, set } from 'firebase/database';
 
 type Player = 1 | 2;
 const ROWS = 6;
 const COLS = 6;
 
-// Box grid is (ROWS-1) x (COLS-1)
-// Horizontal lines: ROWS x (COLS-1)
-// Vertical lines: (ROWS-1) x COLS
-
 interface GameState {
-    hLines: boolean[][]; // [row][col] - row: 0..ROWS-1, col: 0..COLS-2
-    vLines: boolean[][]; // [row][col] - row: 0..ROWS-2, col: 0..COLS-1
-    boxes: (Player | null)[][]; // [row][col] - row: 0..ROWS-2, col: 0..COLS-2
+    hLines: boolean[][];
+    vLines: boolean[][];
+    boxes: (Player | null)[][];
     currentPlayer: Player;
     scores: { 1: number; 2: number };
-    winner: Player | 0 | null; // 0 for draw
-    lastCompletedBoxes: { row: number, col: number }[]; // For animation/highlight
+    winner: Player | 0 | null;
+    lastCompletedBoxes: { row: number, col: number }[];
 }
 
-export default function DotsAndBoxesGame() {
+interface DotsAndBoxesGameProps {
+    roomId?: string | null;
+    myRole?: 'P1' | 'P2' | null;
+}
+
+export default function DotsAndBoxesGame({ roomId, myRole }: DotsAndBoxesGameProps) {
     const [gameState, setGameState] = useState<GameState | null>(null);
-    const [isCpuMode, setIsCpuMode] = useState(true); // Default to CPU
+    const [isCpuMode, setIsCpuMode] = useState(true);
     const [isCpuThinking, setIsCpuThinking] = useState(false);
+    const [opponentName, setOpponentName] = useState('Opponent');
 
     useEffect(() => {
-        startNewGame();
-    }, []);
+        if (!roomId) {
+            startNewGame();
+        } else {
+            setIsCpuMode(false); // Force PvP
+        }
+    }, [roomId]);
 
-    // CPU Turn Effect
+    // Multiplayer Sync
     useEffect(() => {
+        if (!roomId || !myRole) return;
+
+        const roomRef = ref(db, `dots_and_boxes_rooms/${roomId}`);
+        const unsubscribe = onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            if (data.gameState) {
+                setGameState(data.gameState);
+            }
+
+            // Sync opponent name
+            const oppRole = myRole === 'P1' ? 'P2' : 'P1';
+            if (data[oppRole]?.name) setOpponentName(data[oppRole].name);
+        });
+
+        return () => unsubscribe();
+    }, [roomId, myRole]);
+
+    // CPU Turn Effect (Only if offline)
+    useEffect(() => {
+        if (roomId) return; // Disable CPU in Multi
         if (!gameState || gameState.winner !== null || !isCpuMode || gameState.currentPlayer !== 2) {
             return;
         }
 
         const timer = setTimeout(() => {
             makeCpuMove();
-        }, 600); // Delay for better feel
+        }, 600);
 
         return () => clearTimeout(timer);
-    }, [gameState, isCpuMode]);
+    }, [gameState, isCpuMode, roomId]);
 
-    const startNewGame = () => {
+    const startNewGame = async () => {
         const hLines = Array(ROWS).fill(null).map(() => Array(COLS - 1).fill(false));
         const vLines = Array(ROWS - 1).fill(null).map(() => Array(COLS).fill(false));
         const boxes = Array(ROWS - 1).fill(null).map(() => Array(COLS - 1).fill(null));
 
-        setGameState({
+        const newGame: GameState = {
             hLines,
             vLines,
             boxes,
@@ -57,8 +85,16 @@ export default function DotsAndBoxesGame() {
             scores: { 1: 0, 2: 0 },
             winner: null,
             lastCompletedBoxes: []
-        });
-        setIsCpuThinking(false);
+        };
+
+        if (roomId && myRole === 'P1') {
+            await update(ref(db, `dots_and_boxes_rooms/${roomId}`), {
+                gameState: newGame
+            });
+        } else if (!roomId) {
+            setGameState(newGame);
+            setIsCpuThinking(false);
+        }
     };
 
     const checkCompletedBoxes = (
@@ -74,7 +110,6 @@ export default function DotsAndBoxesGame() {
         for (let r = 0; r < ROWS - 1; r++) {
             for (let c = 0; c < COLS - 1; c++) {
                 if (newBoxes[r][c] === null) {
-                    // Check if all 4 sides are filled
                     const top = hLines[r][c];
                     const bottom = hLines[r + 1][c];
                     const left = vLines[r][c];
@@ -105,34 +140,24 @@ export default function DotsAndBoxesGame() {
         setIsCpuThinking(true);
 
         const { hLines, vLines, boxes } = gameState;
-
         let bestMove: { type: 'h' | 'v', r: number, c: number } | null = null;
-
-        // Helper to find all available moves
         const availableMoves: { type: 'h' | 'v', r: number, c: number }[] = [];
 
-        // Scan H lines
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS - 1; c++) {
                 if (!hLines[r][c]) availableMoves.push({ type: 'h', r, c });
             }
         }
-        // Scan V lines
         for (let r = 0; r < ROWS - 1; r++) {
             for (let c = 0; c < COLS; c++) {
                 if (!vLines[r][c]) availableMoves.push({ type: 'v', r, c });
             }
         }
 
-        if (availableMoves.length === 0) return; // Should not happen if game not over
+        if (availableMoves.length === 0) return;
 
-        // Strategy 1: Take any box that has 3 lines (scoring move)
-        // We need to check if a move completes a box.
-        // A move can complete 1 or 2 boxes.
-
-        // Check for moves that complete boxes
+        // Strategy 1: Score
         for (const move of availableMoves) {
-            // Simulate the move locally to see if it scores
             const tempHLines = hLines.map(row => [...row]);
             const tempVLines = vLines.map(row => [...row]);
             if (move.type === 'h') tempHLines[move.r][move.c] = true;
@@ -141,33 +166,27 @@ export default function DotsAndBoxesGame() {
             const { points } = checkCompletedBoxes(tempHLines, tempVLines, boxes, 2);
             if (points > 0) {
                 bestMove = move;
-                break; // Take the first scoring move found (greedy)
+                break;
             }
         }
 
-        // Strategy 2: If no scoring move, create a safe move. A safe move is one that does NOT give the opponent a free box (does not make a box have 3 lines)
+        // Strategy 2: Safe move
         if (!bestMove) {
             const safeMoves: typeof availableMoves = [];
-
             for (const move of availableMoves) {
-                // Simulate move
                 const tempHLines = hLines.map(row => [...row]);
                 const tempVLines = vLines.map(row => [...row]);
                 if (move.type === 'h') tempHLines[move.r][move.c] = true;
                 else tempVLines[move.r][move.c] = true;
 
-                // Check if ANY box now has 3 lines (which would allow opponent to score)
                 let givesPoint = false;
-
-                // Check neighbors of the line
-                // Only need to check boxes adjacent to the line
                 const boxesToCheck: { r: number, c: number }[] = [];
                 if (move.type === 'h') {
-                    if (move.r > 0) boxesToCheck.push({ r: move.r - 1, c: move.c }); // Box above
-                    if (move.r < ROWS - 1) boxesToCheck.push({ r: move.r, c: move.c }); // Box below
+                    if (move.r > 0) boxesToCheck.push({ r: move.r - 1, c: move.c });
+                    if (move.r < ROWS - 1) boxesToCheck.push({ r: move.r, c: move.c });
                 } else {
-                    if (move.c > 0) boxesToCheck.push({ r: move.r, c: move.c - 1 }); // Box left
-                    if (move.c < COLS - 1) boxesToCheck.push({ r: move.r, c: move.c }); // Box right
+                    if (move.c > 0) boxesToCheck.push({ r: move.r, c: move.c - 1 });
+                    if (move.c < COLS - 1) boxesToCheck.push({ r: move.r, c: move.c });
                 }
 
                 for (const box of boxesToCheck) {
@@ -176,20 +195,15 @@ export default function DotsAndBoxesGame() {
                         break;
                     }
                 }
-
-                if (!givesPoint) {
-                    safeMoves.push(move);
-                }
+                if (!givesPoint) safeMoves.push(move);
             }
-
             if (safeMoves.length > 0) {
                 const randBase = Math.floor(Math.random() * safeMoves.length);
                 bestMove = safeMoves[randBase];
             }
         }
 
-        // Strategy 3: If no safe moves, just pick random (must sacrifice)
-        // Ideally pick one that gives the least chain, but random is fine for "Simple CPU"
+        // Strategy 3: Random
         if (!bestMove) {
             const randBase = Math.floor(Math.random() * availableMoves.length);
             bestMove = availableMoves[randBase];
@@ -199,17 +213,14 @@ export default function DotsAndBoxesGame() {
         setIsCpuThinking(false);
     };
 
-    const executeMove = (type: 'h' | 'v', r: number, c: number) => {
+    const executeMove = async (type: 'h' | 'v', r: number, c: number) => {
         if (!gameState) return;
 
         const newHLines = gameState.hLines.map(row => [...row]);
         const newVLines = gameState.vLines.map(row => [...row]);
 
-        if (type === 'h') {
-            newHLines[r][c] = true;
-        } else {
-            newVLines[r][c] = true;
-        }
+        if (type === 'h') newHLines[r][c] = true;
+        else newVLines[r][c] = true;
 
         const { newBoxes, points, completedIndices } = checkCompletedBoxes(newHLines, newVLines, gameState.boxes, gameState.currentPlayer);
 
@@ -233,7 +244,7 @@ export default function DotsAndBoxesGame() {
             else winner = 0;
         }
 
-        setGameState({
+        const newState = {
             hLines: newHLines,
             vLines: newVLines,
             boxes: newBoxes,
@@ -241,12 +252,26 @@ export default function DotsAndBoxesGame() {
             scores: newScores,
             winner: winner,
             lastCompletedBoxes: completedIndices.length > 0 ? completedIndices : []
-        });
+        };
+
+        if (roomId) {
+            await update(ref(db, `dots_and_boxes_rooms/${roomId}`), {
+                gameState: newState
+            });
+        } else {
+            setGameState(newState);
+        }
     }
 
     const handleLineClick = (type: 'h' | 'v', r: number, c: number) => {
         if (!gameState || gameState.winner !== null) return;
-        if (isCpuMode && gameState.currentPlayer === 2) return; // Wait for CPU
+        if (isCpuMode && gameState.currentPlayer === 2) return;
+
+        // Multiplayer Turn Check
+        if (roomId && myRole) {
+            const neededTurn = myRole === 'P1' ? 1 : 2;
+            if (gameState.currentPlayer !== neededTurn) return; // Not my turn
+        }
 
         if (type === 'h') {
             if (gameState.hLines[r][c]) return;
@@ -259,16 +284,19 @@ export default function DotsAndBoxesGame() {
 
     if (!gameState) return <div>Loading...</div>;
 
-    const DOT_SPACING = 50; // Smaller spacing for larger grid
+    const DOT_SPACING = 50;
     const DOT_RADIUS = 6;
     const PADDING = 20;
-
     const isGameOver = gameState.winner !== null;
+
+    // Determine name display
+    const p1Name = roomId ? (myRole === 'P1' ? 'Me' : opponentName) : 'Player 1';
+    const p2Name = roomId ? (myRole === 'P2' ? 'Me' : opponentName) : (isCpuMode ? 'CPU' : 'Player 2');
 
     return (
         <div className={styles.container}>
-            {/* Mode Selection Toggle */}
-            {!isGameOver && gameState.scores[1] === 0 && gameState.scores[2] === 0 && (
+            {/* Mode Selection Toggle (Only Offline) */}
+            {!roomId && !isGameOver && gameState.scores[1] === 0 && gameState.scores[2] === 0 && (
                 <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', background: '#f3f4f6', padding: '0.5rem', borderRadius: '2rem' }}>
                     <button
                         onClick={() => { setIsCpuMode(true); startNewGame(); }}
@@ -306,13 +334,13 @@ export default function DotsAndBoxesGame() {
             {/* Score Board */}
             <div className={styles.score_board}>
                 <div className={`${styles.player_card} ${gameState.currentPlayer === 1 && !isGameOver ? styles.player_card_active + ' ' + styles.p1_active : ''}`}>
-                    {gameState.currentPlayer === 1 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p1_turn}`}>YOUR TURN</div>}
-                    <span className={`${styles.player_name} ${styles.p1_name}`}>Player 1</span>
+                    {gameState.currentPlayer === 1 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p1_turn}`}>TURN</div>}
+                    <span className={`${styles.player_name} ${styles.p1_name}`}>{p1Name}</span>
                     <span className={styles.player_score}>{gameState.scores[1]}</span>
                 </div>
                 <div className={`${styles.player_card} ${gameState.currentPlayer === 2 && !isGameOver ? styles.player_card_active + ' ' + styles.p2_active : ''}`}>
-                    {gameState.currentPlayer === 2 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p2_turn}`}>{isCpuMode ? 'CPU TURN' : 'YOUR TURN'}</div>}
-                    <span className={`${styles.player_name} ${styles.p2_name}`}>{isCpuMode ? 'CPU' : 'Player 2'}</span>
+                    {gameState.currentPlayer === 2 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p2_turn}`}>TURN</div>}
+                    <span className={`${styles.player_name} ${styles.p2_name}`}>{p2Name}</span>
                     <span className={styles.player_score}>{gameState.scores[2]}</span>
                 </div>
             </div>
@@ -322,15 +350,17 @@ export default function DotsAndBoxesGame() {
                     <h2 className={styles.winner_text}>
                         {gameState.winner === 0
                             ? "Draw!"
-                            : gameState.winner === 1 ? "Player 1 Wins!" : (isCpuMode ? "CPU Wins!" : "Player 2 Wins!")
+                            : gameState.winner === 1 ? `${p1Name} Wins!` : `${p2Name} Wins!`
                         }
                     </h2>
-                    <button
-                        onClick={startNewGame}
-                        className={styles.play_again_btn}
-                    >
-                        もう一度遊ぶ
-                    </button>
+                    {(roomId ? myRole === 'P1' : true) && (
+                        <button
+                            onClick={() => startNewGame()}
+                            className={styles.play_again_btn}
+                        >
+                            もう一度遊ぶ
+                        </button>
+                    )}
                 </div>
             )}
 

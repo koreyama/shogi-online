@@ -1,12 +1,5 @@
-export type Hex = { q: number; r: number; s: number };
-export type Player = 1 | 2;
-
-const DIRECTIONS = [
-    { q: 1, r: 0, s: -1 }, { q: 1, r: -1, s: 0 }, { q: 0, r: -1, s: 1 },
-    { q: -1, r: 0, s: 1 }, { q: -1, r: 1, s: 0 }, { q: 0, r: 1, s: -1 }
-];
-
-const getHexKey = (hex: Hex) => `${hex.q},${hex.r},${hex.s}`;
+import { Hex, Player, DIRECTIONS } from './types';
+import { checkWinLoss, getHexKey } from './engine';
 
 // Check line length for a specific player starting from a hex in a direction
 const countLine = (board: Map<string, Player>, start: Hex, dir: Hex, player: Player): number => {
@@ -29,47 +22,13 @@ const evaluateMoveResult = (board: Map<string, Player>, move: Hex, player: Playe
     const key = getHexKey(move);
     board.set(key, player);
 
-    let maxCount = 0;
-    let isLoss = false;
-
-    // Check all 3 axes
-    const axes = [
-        { q: 1, r: 0, s: -1 },
-        { q: 0, r: 1, s: -1 },
-        { q: 1, r: -1, s: 0 }
-    ];
-
-    for (const axis of axes) {
-        // Count consecutive including the new piece
-        // We need to check both directions from the placed piece
-        let count = 1;
-
-        // Forward
-        let curr = { q: move.q + axis.q, r: move.r + axis.r, s: move.s + axis.s };
-        while (board.get(getHexKey(curr)) === player) {
-            count++;
-            curr = { q: curr.q + axis.q, r: curr.r + axis.r, s: curr.s + axis.s };
-        }
-
-        // Backward
-        curr = { q: move.q - axis.q, r: move.r - axis.r, s: move.s - axis.s };
-        while (board.get(getHexKey(curr)) === player) {
-            count++;
-            curr = { q: curr.q - axis.q, r: curr.r - axis.r, s: curr.s - axis.s };
-        }
-
-        if (count >= 4) {
-            maxCount = Math.max(maxCount, count);
-        } else if (count === 3) {
-            isLoss = true;
-        }
-    }
+    const { won, lost } = checkWinLoss(board, move, player);
 
     // Remove temp move
     board.delete(key);
 
-    if (maxCount >= 4) return 2; // Win takes precedence
-    if (isLoss) return -1; // Loss
+    if (won) return 2; // Win takes precedence
+    if (lost) return -1; // Loss
     return 1; // Neutral
 };
 

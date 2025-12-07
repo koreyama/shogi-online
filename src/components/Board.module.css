@@ -3,42 +3,86 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
-    background: #deb887;
-    /* Wood color */
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    /* Richer wood color for the table/stand */
+    background: #8b5a2b;
+    background-image:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 2px, transparent 2px, transparent 4px),
+        linear-gradient(to bottom, #8b5a2b, #5c3a1e);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.2);
 }
 
 .board {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
-    gap: 1px;
-    background: #000;
-    border: 2px solid #000;
+    grid-template-rows: repeat(9, 1fr);
+    gap: 0;
+    /* No gap, we draw lines */
+
+    /* Kaya wood texture simulation */
+    background-color: #e6b422;
+    background-image:
+        /* Grain */
+        repeating-linear-gradient(90deg,
+            rgba(160, 82, 45, 0.1) 0px,
+            rgba(160, 82, 45, 0.1) 1px,
+            transparent 1px,
+            transparent 10px),
+        /* Subtle natural variations */
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), transparent 40%),
+        radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.05), transparent 40%);
+
+    border: 3px solid #3e2723;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    padding: 2px;
+    /* Slight padding for border */
 }
 
 .cell {
-    width: 40px;
-    height: 44px;
-    background: #f0d9b5;
+    width: 42px;
+    height: 46px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     position: relative;
+
+    /* Grid lines */
+    border-right: 1px solid rgba(0, 0, 0, 0.7);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+}
+
+/* Remove outer borders for clean look */
+.board .cell:nth-child(9n) {
+    border-right: none;
+}
+
+.board .cell:nth-last-child(-n+9) {
+    border-bottom: none;
+}
+
+/* Hoshi (Star points) */
+.cell[data-hoshi="true"]::before {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    z-index: 0;
 }
 
 .cell:hover {
-    background: #e6cca0;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .selected {
-    background: #ffeb3b;
+    background-color: rgba(255, 235, 59, 0.4);
 }
 
 .lastMove {
-    background: #a5d6a7;
+    background-color: rgba(100, 221, 23, 0.3);
 }
 
 .validMove {
@@ -48,33 +92,32 @@
 .validMove::after {
     content: '';
     position: absolute;
-    width: 10px;
-    height: 10px;
-    background: rgba(0, 255, 0, 0.5);
+    width: 12px;
+    height: 12px;
+    background: rgba(33, 150, 243, 0.6);
     border-radius: 50%;
+    box-shadow: 0 0 4px rgba(33, 150, 243, 0.8);
 }
 
 .piece {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: bold;
     user-select: none;
+    z-index: 1;
+    /* Above hoshi */
 }
 
 .opponentPiece {
     transform: rotate(180deg);
 }
 
-.promoted {
-    color: #d32f2f;
-}
-
 @media (max-width: 600px) {
     .cell {
-        width: 32px;
-        height: 36px;
+        width: 34px;
+        height: 38px;
     }
 
     .piece {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
 }

@@ -404,3 +404,56 @@
         /* Align left to allow scrolling from start */
     }
 }
+
+/* VS Multiplayer Styles */
+.vsBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.vsPlayer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.vsPlayer span {
+    font-weight: 700;
+    color: #4a5568;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.vsInfo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #e53e3e;
+    padding: 0 1.5rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progressBar>div {
+    height: 100%;
+    background: #48bb78;
+    transition: width 0.3s ease;
+}

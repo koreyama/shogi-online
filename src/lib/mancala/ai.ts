@@ -1,7 +1,7 @@
 import { GameState, Player, FIRST_STORE, SECOND_STORE, PITS_PER_PLAYER } from './types';
 import { executeMove, isValidMove } from './engine';
 
-const MAX_DEPTH = 4; // 探索深さ
+const MAX_DEPTH = 6; // Increased depth for better lookahead
 
 export const getBestMove = (state: GameState, player: Player): number | null => {
     const validMoves = getValidMoves(state);
@@ -10,13 +10,18 @@ export const getBestMove = (state: GameState, player: Player): number | null => 
     let bestScore = -Infinity;
     let bestMove = validMoves[0];
 
+    // Order moves to improve pruning?
+    // Start with moves that end in store (rightmost usually?)
+    // For now just search.
+
     for (const move of validMoves) {
         const newState = executeMove(state, move);
-        // 連続手番の場合は深さを減らさずに探索（あるいはボーナスを与える）
-        // ここでは簡易的に深さを減らす（連続手番も1手とみなす）が、連続手番ならもう一度自分のターンで探索すべき
-        // ミニマックスの再帰で処理する
 
-        const score = minimax(newState, MAX_DEPTH - 1, false, -Infinity, Infinity, player);
+        // Depth Control: If turn remains same (Extra Turn), do not reduce depth
+        const isExtraTurn = newState.turn === state.turn && !newState.isGameOver;
+        const nextDepth = isExtraTurn ? MAX_DEPTH : MAX_DEPTH - 1;
+
+        const score = minimax(newState, nextDepth, !isExtraTurn, -Infinity, Infinity, player);
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
@@ -36,7 +41,8 @@ const getValidMoves = (state: GameState): number[] => {
             moves.push(i);
         }
     }
-    return moves;
+    // Reverse order might be better for alpha-beta (checking right-most pits first often yields extra turns)
+    return moves.reverse();
 };
 
 const minimax = (
@@ -47,29 +53,38 @@ const minimax = (
     beta: number,
     player: Player
 ): number => {
-    if (state.isGameOver || depth === 0) {
+    if (state.isGameOver || depth <= 0) {
         return evaluate(state, player);
     }
 
-    // ターンが変わっていない場合（連続手番）は、Maximize/Minimizeを維持
-    const isSameTurn = state.turn === (isMaximizing ? player : (player === 'first' ? 'second' : 'first'));
-    // しかし、executeMoveでターンは切り替わっているはず。
-    // もし連続手番なら state.turn は player のまま。
-    // つまり isMaximizing のときに state.turn === player なら、次も Maximizing
+    const currentTurnPlayer = state.turn;
+    const isMyTurn = currentTurnPlayer === player;
 
-    // ロジック整理:
-    // 現在のノードの評価値を求める。
-    // 次の手番が自分なら Maximize, 相手なら Minimize
+    // In Mancala, "Minimizing" isn't always opponent's turn because of extra turns.
+    // We strictly track if the current state node allows ME to move (Maximize) or OPPONENT (Minimize).
+    // The passed `isMaximizing` flag helps track "logical" depth layers but `state.turn` is truth.
 
-    const nextIsMaximizing = state.turn === player;
+    // Actually standard minimax: 
+    // If state.turn == player -> Maximize
+    // If state.turn != player -> Minimize
+
+    const nodeIsMaximizing = state.turn === player;
 
     const validMoves = getValidMoves(state);
 
-    if (nextIsMaximizing) {
+    if (nodeIsMaximizing) {
         let maxEval = -Infinity;
         for (const move of validMoves) {
             const newState = executeMove(state, move);
-            const evalScore = minimax(newState, depth - 1, true, alpha, beta, player);
+            // Extra Turn Check
+            const isExtraTurn = newState.turn === state.turn && !newState.isGameOver;
+            // Reduce depth only if turn changes, or maybe always reduce slightly to prevent infinite?
+            // Let's reduce by 1 normally, but 0 if extra turn.
+            // Safety: limit max depth extension? MaxDepth is strictly decremented to avoid infinite loops in bad logic.
+            // But here let's try standard decay:
+            const newDepth = isExtraTurn ? depth : depth - 1;
+
+            const evalScore = minimax(newState, newDepth, true, alpha, beta, player);
             maxEval = Math.max(maxEval, evalScore);
             alpha = Math.max(alpha, evalScore);
             if (beta <= alpha) break;
@@ -79,7 +94,10 @@ const minimax = (
         let minEval = Infinity;
         for (const move of validMoves) {
             const newState = executeMove(state, move);
-            const evalScore = minimax(newState, depth - 1, false, alpha, beta, player);
+            const isExtraTurn = newState.turn === state.turn && !newState.isGameOver;
+            const newDepth = isExtraTurn ? depth : depth - 1;
+
+            const evalScore = minimax(newState, newDepth, false, alpha, beta, player);
             minEval = Math.min(minEval, evalScore);
             beta = Math.min(beta, evalScore);
             if (beta <= alpha) break;
@@ -89,13 +107,20 @@ const minimax = (
 };
 
 const evaluate = (state: GameState, player: Player): number => {
-    const myStore = player === 'first' ? state.board[FIRST_STORE] : state.board[SECOND_STORE];
-    const oppStore = player === 'first' ? state.board[SECOND_STORE] : state.board[FIRST_STORE];
+    const myStoreIndex = player === 'first' ? FIRST_STORE : SECOND_STORE;
+    const oppStoreIndex = player === 'first' ? SECOND_STORE : FIRST_STORE;
+
+    const myStore = state.board[myStoreIndex];
+    const oppStore = state.board[oppStoreIndex];
 
     let score = (myStore - oppStore) * 100;
 
-    // 自分の側の種の数（多い方が有利になりやすいが、終了条件にも関わるので微妙）
-    // ここではストアの差を最優先
+    // Bonus for stones on my side (potential score)?
+    // Or maybe keeping stones on my side is good for defense?
+    // Actually, "stones in store" is the only thing that matters for winning.
+    // But having mobility (moves available) is good.
+
+    // Basic heuristic: Store Diff implies winning.
 
     return score;
 };

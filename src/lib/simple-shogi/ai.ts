@@ -81,7 +81,23 @@ function evaluate(state: GameState, player: Player): number {
         for (let c = 0; c < 3; c++) {
             const p = state.board[r][c];
             if (p) {
-                const val = PIECE_VALUES[p.type];
+                let val = PIECE_VALUES[p.type];
+
+                // Incentivize Try (King advancement)
+                if (p.type === 'king') {
+                    if (p.owner === 'sente') {
+                        // Sente wants to go to row 0. 
+                        // Row 3 (start) -> 0 bonus
+                        // Row 2 -> +200
+                        // Row 1 -> +500
+                        // Row 0 -> Win (handled by win check, but bias helps)
+                        val += (3 - r) * 300;
+                    } else {
+                        // Gote wants to go to row 3.
+                        val += r * 300;
+                    }
+                }
+
                 score += p.owner === player ? val : -val;
             }
         }

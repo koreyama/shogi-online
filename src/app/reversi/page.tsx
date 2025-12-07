@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import { ReversiBoard } from '@/components/ReversiBoard';
 import { Chat } from '@/components/Chat';
 import { createInitialState, executeMove, getValidMoves } from '@/lib/reversi/engine';
+import { getBestMove } from '@/lib/reversi/ai';
 import { GameState, Player, Coordinates } from '@/lib/reversi/types';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
@@ -267,22 +268,87 @@ export default function ReversiPage() {
         if (roomId !== 'ai-match' || !gameState || gameState.turn !== 'white' || status !== 'playing') return;
 
         const timer = setTimeout(() => {
-            const moves = getValidMoves(gameState.board, 'white');
-            if (moves.length > 0) {
-                // Simple AI: Random move
-                const randomMove = moves[Math.floor(Math.random() * moves.length)];
-                const newState = executeMove(gameState, randomMove.x, randomMove.y);
+            const bestMove = getBestMove(gameState.board, 'white');
+            if (bestMove) {
+                const newState = executeMove(gameState, bestMove.x, bestMove.y);
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
             } else {
-                // Pass logic if needed, but engine handles turn switching if no moves?
-                // engine.ts logic check: executeMove returns next state.
-                // If white has no moves, engine should handle it or we need to detect pass.
-                // For now assuming engine handles or AI just waits.
+                // AI Pass
+                // If AI has no moves, execution normally passes back to player in `executeMove` if player can move?
+                // Wait, `executeMove` logic: 
+                // Checks next player valid moves. 
+                // If next cannot move, checks current player valid moves again.
+                // So if AI has no moves, `executeMove` (called by previous Human move) would have already set turn back to Human?
+                // Let's verify `executeMove` logic in engine.ts separately.
+                // Assuming engine correctly handles pass:
+                // If it IS AI turn here, it means AI CAN move. 
+                // getBestMove should return null only if no moves. 
+                // If engine set turn to AI, it means AI has moves.
+                // So this branch should theoretically not be reached unless engine bug or race condition.
+                // But for safety:
+                if (!gameState.canMove) {
+                    // Should be game over?
+                }
             }
         }, 1000);
         return () => clearTimeout(timer);
     }, [gameState, roomId, status]);
+
+    // Pass Detection & Notification
+    const [showPassModal, setShowPassModal] = useState(false);
+    const [passPlayer, setPassPlayer] = useState<Player | null>(null);
+
+    useEffect(() => {
+        if (!gameState) return;
+
+        // This effect needs to run when turn updates.
+        // We want to detect if a "Pass" happened.
+        // Pass happens inside `executeMove`. 
+        // We can compare the expected next turn vs actual next turn? No.
+        // We can check if `history` contains a pass? `engine.ts` doesn't record explicit pass in history, 
+        // but it does skip turn.
+
+        // Simpler approach: 
+        // If it's my turn, and I have no valid moves... wait, engine auto-skips me?
+        // engine pass logic:
+        // `if (!canNextMove) { ... finalNextTurn = player; ... }`
+        // So if Human plays, and AI cannot move, Turn stays Human.
+
+        // So:
+        // 1. Human moves.
+        // 2. State updates. Turn is STILL Human.
+        // 3. We need to notify "AI Passed".
+
+        // Tracking "previous turn" to detect double turn?
+    }, [gameState]);
+
+    // Better idea: Modify executeMove to easier detect pass, OR just check if turn repeated in history?
+    // engine.ts history only pushes MOVES.
+    // If I move, history length +1. Turn should be Opponent. 
+    // If Turn is ME, then Opponent passed.
+
+    // Let's add a `lastTurn` ref to track changes?
+
+    // Actually, simply:
+    // When `gameState` updates:
+    // if last move was made by ME (from history), and current turn is ME, then opponent passed.
+    // if last move was made by OPPONENT, and current turn is OPPONENT, then I passed?
+
+    useEffect(() => {
+        if (!gameState || gameState.history.length === 0) return;
+
+        const lastMove = gameState.history[gameState.history.length - 1];
+        const lastPlayer = lastMove.player;
+        const currentTurn = gameState.turn;
+
+        if (lastPlayer === currentTurn && !gameState.winner) {
+            // Player played, and it's still their turn -> Opponent passed
+            setPassPlayer(currentTurn === 'black' ? 'white' : 'black');
+            setShowPassModal(true);
+            setTimeout(() => setShowPassModal(false), 2000);
+        }
+    }, [gameState]);
 
     const handleCellClick = (x: number, y: number) => {
         if (!gameState || !myRole || gameState.turn !== myRole || status !== 'playing') return;
@@ -492,6 +558,12 @@ export default function ReversiPage() {
                         <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
                         <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
                     </div>
+                </div>
+            )}
+
+            {showPassModal && (
+                <div className={styles.toast}>
+                    <p>{passPlayer === 'black' ? '黒' : '白'} はパスしました</p>
                 </div>
             )}
         </main>

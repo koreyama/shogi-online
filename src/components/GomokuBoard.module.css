@@ -120,6 +120,17 @@
 
 .preview {
     opacity: 0.5;
+    transform: scale(0.9);
+    filter: grayscale(30%);
+    display: none;
+    /* Mobile optimization: usually hover doesn't work well on touch, but we allow it. JS handles logic. */
+}
+
+/* Use media query to only show preview on devices that support hover */
+@media (hover: hover) {
+    .cell:hover .preview {
+        display: block;
+    }
 }
 
 @media (max-width: 600px) {

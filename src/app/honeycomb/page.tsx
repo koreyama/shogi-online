@@ -9,14 +9,8 @@ import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off }
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import { getBestMove } from '@/lib/honeycomb/ai';
-
-// Hexagon grid logic
-const HEX_SIZE = 25;
-const BOARD_RADIUS = 5;
-
-type Hex = { q: number; r: number; s: number };
-type Player = 1 | 2; // 1: Blue (First), 2: Red (Second)
-type GameState = 'playing' | 'won' | 'lost';
+import { generateGrid, hexToPixel, getHexPoints, checkWinLoss, getHexKey } from '@/lib/honeycomb/engine';
+import { Hex, Player, GameState, BOARD_RADIUS, HEX_SIZE } from '@/lib/honeycomb/types';
 
 interface ChatMessage {
     id: string;
@@ -65,33 +59,7 @@ export default function HoneycombPage() {
     }, [isLoaded, savedName]);
 
     // Generate grid
-    const hexes: Hex[] = [];
-    for (let q = -BOARD_RADIUS; q <= BOARD_RADIUS; q++) {
-        const r1 = Math.max(-BOARD_RADIUS, -q - BOARD_RADIUS);
-        const r2 = Math.min(BOARD_RADIUS, -q + BOARD_RADIUS);
-        for (let r = r1; r <= r2; r++) {
-            hexes.push({ q, r, s: -q - r });
-        }
-    }
-
-    const getHexKey = (hex: Hex) => `${hex.q},${hex.r},${hex.s}`;
-
-    // Pointy Top Hex to Pixel
-    const hexToPixel = (hex: Hex) => {
-        const x = HEX_SIZE * (Math.sqrt(3) * hex.q + Math.sqrt(3) / 2 * hex.r);
-        const y = HEX_SIZE * (3. / 2 * hex.r);
-        return { x, y };
-    };
-
-    const getHexPoints = (size: number) => {
-        const points = [];
-        for (let i = 0; i < 6; i++) {
-            const angle_deg = 60 * i - 30;
-            const angle_rad = Math.PI / 180 * angle_deg;
-            points.push(`${size * Math.cos(angle_rad)},${size * Math.sin(angle_rad)}`);
-        }
-        return points.join(' ');
-    };
+    const hexes = generateGrid();
 
     // Firebase Logic
     useEffect(() => {
@@ -170,7 +138,7 @@ export default function HoneycombPage() {
     }, [roomId, currentPlayer, gameState, board]); // Depend on board to ensure fresh state
 
     const applyMove = (q: number, r: number, s: number, player: Player) => {
-        const key = `${q},${r},${s}`;
+        const key = getHexKey({ q, r, s });
         setBoard(prev => {
             if (prev.has(key)) return prev; // Safety: Prevent overwrite
 
@@ -194,49 +162,6 @@ export default function HoneycombPage() {
 
             return newBoard;
         });
-    };
-
-    const checkWinLoss = (currentBoard: Map<string, Player>, lastMove: Hex, player: Player) => {
-        const axes = [
-            { q: 1, r: 0, s: -1 },
-            { q: 0, r: 1, s: -1 },
-            { q: 1, r: -1, s: 0 }
-        ];
-
-        let won = false;
-        let lost = false;
-        let winLine: string[] = [];
-
-        for (const axis of axes) {
-            let count = 1;
-            let line = [getHexKey(lastMove)];
-
-            // Forward
-            let curr = { q: lastMove.q + axis.q, r: lastMove.r + axis.r, s: lastMove.s + axis.s };
-            while (currentBoard.get(getHexKey(curr)) === player) {
-                count++;
-                line.push(getHexKey(curr));
-                curr = { q: curr.q + axis.q, r: curr.r + axis.r, s: curr.s + axis.s };
-            }
-
-            // Backward
-            curr = { q: lastMove.q - axis.q, r: lastMove.r - axis.r, s: lastMove.s - axis.s };
-            while (currentBoard.get(getHexKey(curr)) === player) {
-                count++;
-                line.push(getHexKey(curr));
-                curr = { q: curr.q - axis.q, r: curr.r - axis.r, s: curr.s - axis.s };
-            }
-
-            if (count >= 4) {
-                won = true;
-                winLine = line;
-                break;
-            } else if (count === 3) {
-                lost = true;
-            }
-        }
-
-        return { won, lost, line: winLine };
     };
 
     const handleHexClick = (hex: Hex) => {

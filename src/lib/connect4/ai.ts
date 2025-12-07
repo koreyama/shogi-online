@@ -127,15 +127,18 @@ function evaluateWindow(window: (Player | null)[], player: Player, opponent: Pla
     const opponentCount = window.filter(cell => cell === opponent).length;
 
     if (playerCount === 4) {
-        score += 100;
+        score += 10000;
     } else if (playerCount === 3 && emptyCount === 1) {
-        score += 5;
+        score += 10;
     } else if (playerCount === 2 && emptyCount === 2) {
         score += 2;
     }
 
     if (opponentCount === 3 && emptyCount === 1) {
-        score -= 4;
+        score -= 80; // HEAVILY penalized to force blocking
+    }
+    if (opponentCount === 2 && emptyCount === 2) {
+        score -= 5;
     }
 
     return score;

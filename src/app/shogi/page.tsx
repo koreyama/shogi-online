@@ -546,14 +546,25 @@ export default function ShogiPage() {
     // 1. Handle Drop
     if (selectedHandPiece) {
       if (!clickedCell) {
-        // For both AI and online matches, push the move.
-        // The onChildAdded listener will handle the state update.
-        push(ref(db, `rooms/${roomId}/moves`), {
-          type: 'drop',
-          pieceType: selectedHandPiece.type,
-          to: { x, y },
-          owner: myRole
-        });
+        // Check if AI match
+        if (roomId === 'ai-match') {
+          const newState = executeDrop(gameState, selectedHandPiece.type, { x, y }, myRole);
+          setGameState(newState);
+          soundManager.playMoveSound();
+          if (newState.winner) {
+            soundManager.playWinSound();
+            setStatus('finished');
+          }
+        } else {
+          // For online matches, push the move.
+          // The onChildAdded listener will handle the state update.
+          push(ref(db, `rooms/${roomId}/moves`), {
+            type: 'drop',
+            pieceType: selectedHandPiece.type,
+            to: { x, y },
+            owner: myRole
+          });
+        }
 
         // Clear selection immediately for better UX
         setSelectedHandPiece(null);

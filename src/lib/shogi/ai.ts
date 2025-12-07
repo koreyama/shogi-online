@@ -13,144 +13,228 @@ type AIMove = {
     to: Coordinates;
 };
 
-export const getBestMove = (gameState: GameState, aiPlayer: Player, level: number = 1): AIMove | null => {
-    // Lv.1: ランダム + 駒得 (既存ロジック)
-    if (level === 1) {
-        return getLevel1Move(gameState, aiPlayer);
-    }
-
-    // Lv.2: 1手読み (自分の手の評価)
-    if (level === 2) {
-        return getLevel2Move(gameState, aiPlayer);
-    }
-
-    // Lv.3: 2手読み (Alpha-Beta探索)
-    if (level === 3) {
-        return getLevel3Move(gameState, aiPlayer);
-    }
-
-    return getLevel1Move(gameState, aiPlayer);
+// Piece Square Tables (Simplified)
+// Lower index = Top of board (gote home), Higher = Bottom (sente home)
+// For Sente, we use as is. For Gote, we mirror logic.
+// Values are small positional adjustments (approx +/- 10-20 points)
+const PST: Record<PieceType, number[][]> = {
+    pawn: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [-5, -5, -5, -5, -5, -5, -5, -5, -5],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ],
+    // King safety preference (sit in castle)
+    king: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [10, 20, 0, 0, 0, 0, 0, 20, 10],
+        [20, 30, 10, 0, 0, 0, 10, 30, 20]
+    ],
+    rook: [], bishop: [], gold: [], silver: [], knight: [], lance: []
 };
 
-// Lv.1: ランダム + 駒得
-const getLevel1Move = (gameState: GameState, aiPlayer: Player): AIMove | null => {
-    const possibleMoves = getAllPossibleMoves(gameState, aiPlayer);
-    if (possibleMoves.length === 0) return null;
+// Fill empty PSTs
+['rook', 'bishop', 'gold', 'silver', 'knight', 'lance'].forEach(key => {
+    if ((PST as any)[key].length === 0) {
+        (PST as any)[key] = Array(9).fill(Array(9).fill(0));
+    }
+});
 
-    const scoredMoves = possibleMoves.map(move => {
-        let score = Math.random() * 10; // ランダム要素
+// Time limit for iterative deepening (ms)
+const TIME_LIMIT = 2000;
 
-        if (move.type === 'move') {
-            const targetCell = gameState.board[move.to.y][move.to.x];
-            if (targetCell) {
-                score += getPieceValue(targetCell.type) * 10;
-            }
-            if (move.promote) score += 20;
-        }
-        return { move, score };
-    });
+export const getBestMove = (gameState: GameState, aiPlayer: Player, level: number = 2): AIMove | null => {
+    if (level === 1) return getLevel1Move(gameState, aiPlayer);
 
-    scoredMoves.sort((a, b) => b.score - a.score);
-    const topMoves = scoredMoves.slice(0, Math.min(3, scoredMoves.length));
-    return topMoves[Math.floor(Math.random() * topMoves.length)].move;
-};
-
-// Lv.2: 1手読み
-const getLevel2Move = (gameState: GameState, aiPlayer: Player): AIMove | null => {
-    const possibleMoves = getAllPossibleMoves(gameState, aiPlayer);
-    if (possibleMoves.length === 0) return null;
-
+    // Level 2+: Iterative Deepening with improved eval
+    const startTime = performance.now();
     let bestMove: AIMove | null = null;
-    let bestScore = -Infinity;
+    let depth = 1;
+    let maxDepth = level === 2 ? 3 : 5; // Go deeper for higher levels
 
-    for (const move of possibleMoves) {
-        const newState = simulateMove(gameState, move, aiPlayer);
-        const score = evaluateBoard(newState, aiPlayer);
+    // If level 2, maybe fixed depth is enough, but ID is safer for time
+    // For this implementation, let's do ID
+    try {
+        while (depth <= maxDepth) {
+            if (performance.now() - startTime > TIME_LIMIT) break;
 
-        // 少しランダム性を入れて、同じスコアならバラけるように
-        const randomBonus = Math.random() * 5;
-
-        if (score + randomBonus > bestScore) {
-            bestScore = score + randomBonus;
-            bestMove = move;
+            const result = alphabetaRoot(gameState, depth, aiPlayer, startTime);
+            if (result) {
+                bestMove = result.move;
+                if (result.score > 9000) break; // Winning move found
+            }
+            depth++;
         }
+    } catch (e) {
+        console.error("AI Error", e);
     }
 
     return bestMove;
 };
 
-// Lv.3: Alpha-Beta探索 (2手読み)
-const getLevel3Move = (gameState: GameState, aiPlayer: Player): AIMove | null => {
-    const possibleMoves = getAllPossibleMoves(gameState, aiPlayer);
-    if (possibleMoves.length === 0) return null;
+const getLevel1Move = (gameState: GameState, aiPlayer: Player): AIMove | null => {
+    const moves = getAllPossibleMoves(gameState, aiPlayer);
+    if (moves.length === 0) return null;
+    // Simple random
+    return moves[Math.floor(Math.random() * moves.length)];
+};
 
-    let bestMove: AIMove | null = null;
+// Alpha-Beta Search
+const alphabetaRoot = (gameState: GameState, depth: number, aiPlayer: Player, startTime: number): { move: AIMove, score: number } | null => {
+    const moves = getAllPossibleMoves(gameState, aiPlayer);
+    if (moves.length === 0) return null;
+
+    // Move Ordering: Captures and Promotions first
+    moves.sort((a, b) => scoreMove(b, gameState) - scoreMove(a, gameState));
+
+    let bestMove = moves[0];
+    let alpha = -Infinity;
+    let beta = Infinity;
     let bestScore = -Infinity;
-    const alpha = -Infinity;
-    const beta = Infinity;
 
-    // 深さ2で探索 (自分 -> 相手)
-    for (const move of possibleMoves) {
+    for (const move of moves) {
+        if (performance.now() - startTime > TIME_LIMIT) break;
+
         const newState = simulateMove(gameState, move, aiPlayer);
-        // 相手のターンになるので、相手にとっての最小スコア（自分にとっての最悪ケース）を探す
-        const score = minimax(newState, 1, alpha, beta, false, aiPlayer);
+        const score = -alphabeta(newState, depth - 1, -beta, -alpha, aiPlayer === 'sente' ? 'gote' : 'sente', aiPlayer, startTime);
 
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
         }
+        alpha = Math.max(alpha, score);
     }
 
-    return bestMove;
+    return { move: bestMove, score: bestScore };
 };
 
-const minimax = (
+const alphabeta = (
     gameState: GameState,
     depth: number,
     alpha: number,
     beta: number,
-    isMaximizing: boolean,
-    aiPlayer: Player
+    currentPlayer: Player,
+    rootPlayer: Player,
+    startTime: number
 ): number => {
+    if (performance.now() - startTime > TIME_LIMIT) return 0; // Timeout fallback
+
     if (depth === 0 || gameState.winner) {
-        return evaluateBoard(gameState, aiPlayer);
+        // Evaluate from perspective of currentPlayer
+        const score = evaluateBoard(gameState, currentPlayer);
+        return score;
     }
 
-    const currentPlayer = isMaximizing ? aiPlayer : (aiPlayer === 'sente' ? 'gote' : 'sente');
-    const possibleMoves = getAllPossibleMoves(gameState, currentPlayer);
-
-    if (possibleMoves.length === 0) {
-        return evaluateBoard(gameState, aiPlayer);
+    const moves = getAllPossibleMoves(gameState, currentPlayer);
+    if (moves.length === 0) {
+        // No moves = checkmate/stalemate
+        if (gameState.isCheck) return -10000 + (10 - depth); // Prefer faster checkmate
+        return 0; // Stalemate?
     }
 
-    if (isMaximizing) {
-        let maxEval = -Infinity;
-        for (const move of possibleMoves) {
-            const newState = simulateMove(gameState, move, currentPlayer);
-            const evalScore = minimax(newState, depth - 1, alpha, beta, false, aiPlayer);
-            maxEval = Math.max(maxEval, evalScore);
-            alpha = Math.max(alpha, evalScore);
-            if (beta <= alpha) break;
-        }
-        return maxEval;
-    } else {
-        let minEval = Infinity;
-        for (const move of possibleMoves) {
-            const newState = simulateMove(gameState, move, currentPlayer);
-            const evalScore = minimax(newState, depth - 1, alpha, beta, true, aiPlayer);
-            minEval = Math.min(minEval, evalScore);
-            beta = Math.min(beta, evalScore);
-            if (beta <= alpha) break;
-        }
-        return minEval;
+    // Move Ordering
+    moves.sort((a, b) => scoreMove(b, gameState) - scoreMove(a, gameState));
+
+    for (const move of moves) {
+        const newState = simulateMove(gameState, move, currentPlayer);
+        // Negamax: score is -alphabeta(...)
+        const score = -alphabeta(newState, depth - 1, -beta, -alpha, currentPlayer === 'sente' ? 'gote' : 'sente', rootPlayer, startTime);
+
+        if (score >= beta) return beta;
+        alpha = Math.max(alpha, score);
+    }
+
+    return alpha;
+};
+
+// Simple heuristic for move ordering
+const scoreMove = (move: AIMove, state: GameState): number => {
+    let score = 0;
+    if (move.type === 'move') {
+        if (move.promote) score += 50;
+        const target = state.board[move.to.y][move.to.x];
+        if (target) score += getPieceValue(target.type) * 10;
+    }
+    return score;
+};
+
+// Evaluation Function
+const evaluateBoard = (gameState: GameState, player: Player): number => {
+    // If winner, massive score
+    if (gameState.winner === player) return 10000;
+    if (gameState.winner && gameState.winner !== player) return -10000;
+
+    let score = 0;
+    const opponent = player === 'sente' ? 'gote' : 'sente';
+
+    // 1. Material
+    gameState.board.forEach((row, y) => {
+        row.forEach((cell, x) => {
+            if (cell) {
+                let val = getPieceValue(cell.type);
+                if (cell.isPromoted) val *= 1.4; // Promoted value
+
+                // PST
+                let posVal = 0;
+                if (['pawn', 'king'].includes(cell.type)) {
+                    // Use PST
+                    // Sente: y is index
+                    // Gote: y is 8-index
+                    const pstY = cell.owner === 'sente' ? y : 8 - y;
+                    const pstX = cell.owner === 'sente' ? x : 8 - x;
+                    posVal = (PST as any)[cell.type][pstY]?.[pstX] || 0;
+                }
+
+                if (cell.owner === player) {
+                    score += val + posVal;
+                } else {
+                    score -= (val + posVal);
+                }
+            }
+        });
+    });
+
+    // 2. Hands
+    gameState.hands[player].forEach(p => score += getPieceValue(p.type) * 1.1);
+    gameState.hands[opponent].forEach(p => score -= getPieceValue(p.type) * 1.1);
+
+    // 3. Mobility (Simple count of legal moves)
+    // Calculating full mobility is expensive, let's approximate or skip for performance in JS
+    // Or just add a small random factor to break symmetry
+    score += Math.random() * 2;
+
+    return score;
+};
+
+const getPieceValue = (type: PieceType): number => {
+    switch (type) {
+        case 'king': return 1000;
+        case 'rook': return 110;
+        case 'bishop': return 100;
+        case 'gold': return 60;
+        case 'silver': return 50;
+        case 'knight': return 40;
+        case 'lance': return 30;
+        case 'pawn': return 10;
+        default: return 0;
     }
 };
 
-// ヘルパー関数: 全ての手を生成
 const getAllPossibleMoves = (gameState: GameState, player: Player): AIMove[] => {
     const moves: AIMove[] = [];
 
-    // 盤上の移動
+    // Board moves
     gameState.board.forEach((row, y) => {
         row.forEach((cell, x) => {
             if (cell && cell.owner === player) {
@@ -161,83 +245,39 @@ const getAllPossibleMoves = (gameState: GameState, player: Player): AIMove[] => 
 
                     if (canPromote && !cell.isPromoted && !['gold', 'king'].includes(cell.type)) {
                         moves.push({ type: 'move', from: { x, y }, to, promote: true });
+                        // Optional: Don't promote if it's bad?
+                        // For simplicity, consider both unless mandatory.
+                        // Actually, AI should consider both.
+                        if (cell.type !== 'pawn' && cell.type !== 'lance') { // Pawn/Lance often must promote if deep
+                            moves.push({ type: 'move', from: { x, y }, to, promote: false });
+                        }
+                    } else {
+                        moves.push({ type: 'move', from: { x, y }, to, promote: false });
                     }
-                    moves.push({ type: 'move', from: { x, y }, to, promote: false });
                 });
             }
         });
     });
 
-    // 持ち駒打ち
-    const uniqueHandPieces = Array.from(new Set(gameState.hands[player].map(p => p.type)))
-        .map(type => gameState.hands[player].find(p => p.type === type)!);
-
-    uniqueHandPieces.forEach(piece => {
-        const drops = getValidDrops(gameState.board, piece, player, gameState.hands);
-        drops.forEach(to => {
-            moves.push({ type: 'drop', pieceType: piece.type, to });
-        });
-    });
+    // Drop moves
+    const uniqueTypes = Array.from(new Set(gameState.hands[player].map(p => p.type)));
+    for (const type of uniqueTypes) {
+        const piece = gameState.hands[player].find(p => p.type === type);
+        if (piece) {
+            const drops = getValidDrops(gameState.board, piece, player, gameState.hands);
+            drops.forEach(to => {
+                moves.push({ type: 'drop', pieceType: type, to });
+            });
+        }
+    }
 
     return moves;
 };
 
-// ヘルパー関数: 手のシミュレーション
 const simulateMove = (gameState: GameState, move: AIMove, player: Player): GameState => {
     if (move.type === 'move') {
         return executeMove(gameState, move.from, move.to, move.promote);
     } else {
         return executeDrop(gameState, move.pieceType, move.to, player);
-    }
-};
-
-// 評価関数
-const evaluateBoard = (gameState: GameState, aiPlayer: Player): number => {
-    if (gameState.winner === aiPlayer) return 10000;
-    if (gameState.winner && gameState.winner !== aiPlayer) return -10000;
-
-    let score = 0;
-
-    // 1. 駒の価値 (盤上)
-    gameState.board.forEach((row, y) => {
-        row.forEach((cell, x) => {
-            if (cell) {
-                let value = getPieceValue(cell.type);
-                if (cell.isPromoted) value *= 1.5;
-
-                // 位置評価 (中央に近いほど少しプラス)
-                const centerX = 4;
-                const centerY = 4;
-                const dist = Math.abs(x - centerX) + Math.abs(y - centerY);
-                const posBonus = (10 - dist) * 2;
-
-                if (cell.owner === aiPlayer) {
-                    score += value + posBonus;
-                } else {
-                    score -= value + posBonus;
-                }
-            }
-        });
-    });
-
-    // 2. 持ち駒の価値
-    gameState.hands[aiPlayer].forEach(p => score += getPieceValue(p.type) * 1.1); // 持ち駒は少し価値高く
-    const opponent = aiPlayer === 'sente' ? 'gote' : 'sente';
-    gameState.hands[opponent].forEach(p => score -= getPieceValue(p.type) * 1.1);
-
-    return score;
-};
-
-const getPieceValue = (type: Piece['type']): number => {
-    switch (type) {
-        case 'king': return 1000;
-        case 'rook': return 100;
-        case 'bishop': return 100;
-        case 'gold': return 60;
-        case 'silver': return 50;
-        case 'knight': return 40;
-        case 'lance': return 30;
-        case 'pawn': return 10;
-        default: return 0;
     }
 };

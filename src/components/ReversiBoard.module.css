@@ -11,12 +11,12 @@
     background-position: 0 0, 2px 2px;
 
     padding: 16px;
-    border-radius: 4px;
+    border-radius: 8px;
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.5),
         inset 0 0 30px rgba(0, 0, 0, 0.3);
-    border: 12px solid #5d4037;
-    /* Wood color */
+    border: 16px solid #5d4037;
+    /* Richer wood border */
     position: relative;
 }
 
@@ -57,11 +57,13 @@
     height: 50px;
     border-radius: 50%;
     box-shadow:
-        2px 4px 8px rgba(0, 0, 0, 0.5),
-        inset -2px -2px 6px rgba(0, 0, 0, 0.6),
-        inset 2px 2px 6px rgba(255, 255, 255, 0.4);
+        2px 2px 4px rgba(0, 0, 0, 0.4),
+        inset -3px -3px 8px rgba(0, 0, 0, 0.6),
+        inset 3px 3px 8px rgba(255, 255, 255, 0.3);
+    /* Improved 3D lighting */
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
+    cursor: default;
 }
 
 .stone::after {
