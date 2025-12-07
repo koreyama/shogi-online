@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePlagueEngine } from '@/lib/plague/engine';
-import { Globe3D } from './Globe3D';
+import dynamic from 'next/dynamic';
+const Globe3D = dynamic(() => import('./Globe3D').then(mod => mod.Globe3D), {
+    ssr: false,
+    loading: () => <div style={{ width: '100%', height: '100%', background: '#000' }} />
+});
 import { TechTree } from './TechTree';
 import { THEME } from './styles';
 import { PageOverlay } from './PageOverlay';
