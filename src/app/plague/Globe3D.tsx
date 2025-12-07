@@ -32,7 +32,7 @@ function latLongToVector3(lat: number, lon: number, radius: number): THREE.Vecto
 // --- Animated Vehicle Component ---
 // Moves along a Bezier Curve
 const Vehicle = ({ start, end, type, isInfected, speed = 0.5 }: { start: string, end: string, type: 'plane' | 'ship', isInfected: boolean, speed?: number }) => {
-    const meshRef = useRef<THREE.Mesh>(null);
+    const groupRef = useRef<THREE.Group>(null);
     const [offset, setOffset] = useState(Math.random()); // Random start position
 
     const startCoord = REGION_COORDS[start];
@@ -46,7 +46,7 @@ const Vehicle = ({ start, end, type, isInfected, speed = 0.5 }: { start: string,
     const curve = useMemo(() => new THREE.QuadraticBezierCurve3(startPos, mid, endPos), [startPos, mid, endPos]);
 
     useFrame((state, delta) => {
-        if (meshRef.current) {
+        if (groupRef.current) {
             // Move offset
             let nextOffset = offset + (delta * speed * 0.2); // Slower movement
             if (nextOffset > 1) nextOffset = 0;
@@ -55,21 +55,30 @@ const Vehicle = ({ start, end, type, isInfected, speed = 0.5 }: { start: string,
             const pos = curve.getPoint(nextOffset);
             const tangent = curve.getTangent(nextOffset).normalize();
 
-            meshRef.current.position.copy(pos);
-            meshRef.current.lookAt(pos.clone().add(tangent));
+            groupRef.current.position.copy(pos);
+            groupRef.current.lookAt(pos.clone().add(tangent));
         }
     });
 
     const color = isInfected ? '#ff0000' : (type === 'plane' ? '#00ff00' : '#00aaff');
 
     return (
-        <mesh ref={meshRef}>
+        <group ref={groupRef}>
             {type === 'plane'
-                ? <coneGeometry args={[0.02, 0.08, 8]} rotation={[Math.PI / 2, 0, 0]} /> // Simple Plane
-                : <boxGeometry args={[0.03, 0.03, 0.08]} /> // Simple Ship
+                ? (
+                    <mesh rotation={[Math.PI / 2, 0, 0]}>
+                        <coneGeometry args={[0.02, 0.08, 8]} />
+                        <meshBasicMaterial color={color} />
+                    </mesh>
+                )
+                : (
+                    <mesh>
+                        <boxGeometry args={[0.03, 0.03, 0.08]} />
+                        <meshBasicMaterial color={color} />
+                    </mesh>
+                )
             }
-            <meshBasicMaterial color={color} />
-        </mesh>
+        </group>
     );
 };
 
