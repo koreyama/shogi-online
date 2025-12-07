@@ -195,7 +195,9 @@ export default function HitAndBlowPage() {
                     <div className={menuStyles.joinSection}>
                         {gameMode === 'random' ? (
                             <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <IconDice size={48} style={{ marginBottom: '1rem', animation: 'spin 1s linear infinite' }} />
+                                <div style={{ marginBottom: '1rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>
+                                    <IconDice size={48} />
+                                </div>
                                 <p className={menuStyles.joinDesc}>マッチング中...</p>
                             </div>
                         ) : (
