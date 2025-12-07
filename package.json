@@ -12,7 +12,7 @@
   "dependencies": {
     "@formspree/react": "^3.0.0",
     "@react-three/drei": "^9.100.0",
-    "@react-three/fiber": "^9.4.2",
+    "@react-three/fiber": "^8.17.10",
     "@types/canvas-confetti": "^1.9.0",
     "@types/three": "^0.181.0",
     "canvas-confetti": "^1.9.4",
