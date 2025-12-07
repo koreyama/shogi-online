@@ -40,7 +40,7 @@ export interface Trait {
 
 export interface Bubble {
     id: string;
-    type: 'dna' | 'biohazard' | 'cure'; // Added 'cure' bubble type (blue)
+    type: 'dna' | 'biohazard' | 'cure' | 'orange' | 'info'; // Updated types
     regionId: string;
     value: number;
     createdAt: number;
