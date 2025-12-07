@@ -48,7 +48,7 @@ export const GameEndScreen = ({ status, onReset }: GameEndScreenProps) => {
                 fontSize: '2rem',
                 color: '#fff',
                 marginBottom: '4rem',
-                fontFamily: THEME.fonts.main,
+                fontFamily: THEME.fonts.sans,
                 letterSpacing: '10px',
                 textAlign: 'center',
                 opacity: 0.8
