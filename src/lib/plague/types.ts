@@ -31,6 +31,10 @@ export interface Trait {
         heatResist?: number;
         aridResist?: number;
         drugResist?: number;
+        waterTransmission?: number;
+        airTransmission?: number;
+        landTransmission?: number;
+        cureSlow?: number;
     };
 }
 
