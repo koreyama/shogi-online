@@ -67,5 +67,13 @@ export interface GameState {
 
     bubbles: Bubble[];
     news: NewsItem[];
+    history: HistoryEntry[];
+}
+
+export interface HistoryEntry {
+    date: number;
+    infected: number;
+    dead: number;
+    cure: number;
 }
 
