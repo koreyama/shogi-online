@@ -355,6 +355,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     letter-spacing: 0.05em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
 .roll_btn:hover:not(:disabled) {
@@ -379,7 +380,9 @@
 /* Score Card */
 .score_card {
     width: 100%;
-    max-width: 440px;
+    width: 100%;
+    max-width: 800px;
+    background: #ffffff;
     background: #ffffff;
     border-radius: 1.5rem;
     overflow: hidden;
@@ -535,4 +538,41 @@
 .restart_btn:hover {
     transform: translateY(-2px);
     background: #16a34a;
+}
+
+/* Waiting Overlay */
+.waiting_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    border-radius: 2rem;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

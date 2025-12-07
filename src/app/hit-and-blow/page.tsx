@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import HitAndBlowGame from './HitAndBlowGame';
+import { generateSecret } from './utils';
 import menuStyles from '@/styles/GameMenu.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import Link from 'next/link';
@@ -82,7 +83,9 @@ export default function HitAndBlowPage() {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
                 turn: 'P1',
-                history: []
+                history: [],
+                secret: generateSecret(4, false),
+                allowDuplicates: false
             });
             setRoomId(newRef.key);
             setMyRole('P1');
@@ -105,7 +108,9 @@ export default function HitAndBlowPage() {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
                 turn: 'P1',
-                history: []
+                history: [],
+                secret: generateSecret(4, false),
+                allowDuplicates: false
             });
             setRoomId(rid);
             setMyRole('P1');

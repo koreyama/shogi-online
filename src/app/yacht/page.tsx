@@ -46,53 +46,76 @@ export default function YachtPage() {
     };
 
     const joinRandomGame = async () => {
-        setGameMode('random'); // Waiting screen
+        setGameMode('random');
         const roomsRef = ref(db, 'yacht_rooms');
         const snap = await get(roomsRef);
         const rooms = snap.val();
-        let found = null;
+        let foundRoomId: string | null = null;
 
+        // 1. Cleanup & Search
         if (rooms) {
-            for (const [rid, r] of Object.entries(rooms) as [string, any][]) {
-                if (r.state === 'waiting' && ((r.P1 && !r.P2) || (!r.P1 && r.P2))) {
-                    found = rid;
+            for (const [id, room] of Object.entries(rooms) as [string, any][]) {
+                // Garbage collection: If room is empty or invalid, delete it
+                if (!room.P1 && !room.P2) {
+                    set(ref(db, `yacht_rooms/${id}`), null);
+                    continue;
+                }
+
+                if (room.state === 'waiting' && ((room.P1 && !room.P2) || (!room.P1 && room.P2))) {
+                    foundRoomId = id;
                     break;
                 }
             }
         }
 
-        if (found) {
-            const role = rooms[found].P1 ? 'P2' : 'P1';
-            await update(ref(db, `yacht_rooms/${found}/${role}`), { name: playerName, status: 'waiting' });
-            if (role === 'P2') {
-                await update(ref(db, `yacht_rooms/${found}`), { state: 'playing' });
-            }
-            setRoomId(found);
-            setMyRole(role);
+        // 2. Join or Create
+        if (foundRoomId) {
+            const room = rooms[foundRoomId];
+            const myRole = room.P1 ? 'P2' : 'P1';
+
+            // Optimistic Update
+            setRoomId(foundRoomId);
+            setMyRole(myRole);
             setGameMode('playing');
+
+            // DB Update
+            const updates: any = {};
+            updates[`yacht_rooms/${foundRoomId}/${myRole}`] = {
+                name: playerName,
+                status: 'waiting'
+            };
+            updates[`yacht_rooms/${foundRoomId}/state`] = 'playing';
+
+            // Ensure P1 re-inits or P2 triggers sync?
+            // Actually, if we just join, Game component syncs.
+
+            await update(ref(db), updates);
+
         } else {
+            // Create new
             const newRef = push(roomsRef);
+            const rid = newRef.key!;
+
+            const initialState = {
+                dice: [1, 1, 1, 1, 1],
+                held: [false, false, false, false, false],
+                rollsLeft: 3,
+                scoresP1: {},
+                scoresP2: {},
+                turn: 'P1',
+                isRolling: false,
+                winner: null
+            };
+
+            setRoomId(rid);
+            setMyRole('P1');
+            setGameMode('playing');
+
             await set(newRef, {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
-                // GameState Init will occur in YachtGame or we do it here?
-                // YachtGame does local init. But for consistency, let's init basic wrapper.
-                // Actually easier to let YachtGame handle syncing null state to init.
-                // Or init here:
-                gameState: {
-                    dice: [1, 1, 1, 1, 1],
-                    held: [false, false, false, false, false],
-                    rollsLeft: 3,
-                    scoresP1: {},
-                    scoresP2: {},
-                    turn: 'P1',
-                    isRolling: false,
-                    winner: null
-                }
+                gameState: initialState
             });
-            setRoomId(newRef.key);
-            setMyRole('P1');
-            setGameMode('playing');
         }
     };
 
@@ -114,24 +137,42 @@ export default function YachtPage() {
                 isRolling: false,
                 winner: null
             };
+
+            setRoomId(rid);
+            setMyRole('P1');
+            setGameMode('playing');
+
             await set(roomRef, {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
                 gameState: initialState
             });
-            setRoomId(rid);
-            setMyRole('P1');
-            setGameMode('playing');
-        } else if (!room.P2) {
-            await update(ref(db, `yacht_rooms/${rid}`), {
-                state: 'playing',
-                P2: { name: playerName, status: 'waiting' }
-            });
-            setRoomId(rid);
-            setMyRole('P2');
-            setGameMode('playing');
         } else {
-            alert('満員です');
+            if (room.state === 'playing' && room.P1 && room.P2) {
+                alert('満員です');
+                return;
+            }
+
+            // Check empty slots
+            if (!room.P1) {
+                await update(ref(db, `yacht_rooms/${rid}`), {
+                    'P1': { name: playerName, status: 'waiting' },
+                    state: room.P2 ? 'playing' : 'waiting'
+                });
+                setRoomId(rid);
+                setMyRole('P1');
+            } else if (!room.P2) {
+                await update(ref(db, `yacht_rooms/${rid}`), {
+                    'P2': { name: playerName, status: 'waiting' },
+                    state: 'playing'
+                });
+                setRoomId(rid);
+                setMyRole('P2');
+            } else {
+                alert('満員です');
+                return;
+            }
+            setGameMode('playing');
         }
     };
 

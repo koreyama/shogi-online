@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styles from './DotsAndBoxes.module.css';
 import { IconRobot, IconUser } from '@/components/Icons';
 import { db } from '@/lib/firebase';
-import { ref, onValue, update, set } from 'firebase/database';
+import { ref, onValue, update, set, onDisconnect } from 'firebase/database';
 
 type Player = 1 | 2;
 const ROWS = 6;
@@ -34,14 +34,20 @@ export default function DotsAndBoxesGame({ roomId, myRole }: DotsAndBoxesGamePro
             startNewGame();
         } else {
             setIsCpuMode(false); // Force PvP
+            // For P1/P2 in online mode, we wait for Firebase sync (gameState initialized in page.tsx)
         }
-    }, [roomId]);
+    }, [roomId, myRole]);
 
     // Multiplayer Sync
     useEffect(() => {
         if (!roomId || !myRole) return;
 
         const roomRef = ref(db, `dots_and_boxes_rooms/${roomId}`);
+
+        // Presence logic: remove self on disconnect to avoid ghost players
+        const myRef = ref(db, `dots_and_boxes_rooms/${roomId}/${myRole}`);
+        onDisconnect(myRef).remove();
+
         const unsubscribe = onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
@@ -52,10 +58,19 @@ export default function DotsAndBoxesGame({ roomId, myRole }: DotsAndBoxesGamePro
 
             // Sync opponent name
             const oppRole = myRole === 'P1' ? 'P2' : 'P1';
-            if (data[oppRole]?.name) setOpponentName(data[oppRole].name);
+            // If data[oppRole] is missing, it means opponent left or hasn't joined.
+            if (data[oppRole]?.name) {
+                setOpponentName(data[oppRole].name);
+            } else {
+                setOpponentName('Opponent'); // Reset if left
+            }
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            onDisconnect(myRef).cancel(); // Cancel server-side disconnect handler
+            set(myRef, null); // Remove self immediately on unmount (navigation/refresh)
+        };
     }, [roomId, myRole]);
 
     // CPU Turn Effect (Only if offline)
@@ -74,7 +89,7 @@ export default function DotsAndBoxesGame({ roomId, myRole }: DotsAndBoxesGamePro
 
     const startNewGame = async () => {
         const hLines = Array(ROWS).fill(null).map(() => Array(COLS - 1).fill(false));
-        const vLines = Array(ROWS - 1).fill(null).map(() => Array(COLS).fill(false));
+        const vLines = Array(ROWS - 1).fill(null).map(() => Array(COLS - 1).fill(false));
         const boxes = Array(ROWS - 1).fill(null).map(() => Array(COLS - 1).fill(null));
 
         const newGame: GameState = {
@@ -282,7 +297,14 @@ export default function DotsAndBoxesGame({ roomId, myRole }: DotsAndBoxesGamePro
         executeMove(type, r, c);
     };
 
-    if (!gameState) return <div>Loading...</div>;
+    if (!gameState || !gameState.boxes) {
+        return (
+            <div className={styles.loader_container}>
+                <div className={styles.spinner}></div>
+                <p>接続中...</p>
+            </div>
+        );
+    }
 
     const DOT_SPACING = 50;
     const DOT_RADIUS = 6;

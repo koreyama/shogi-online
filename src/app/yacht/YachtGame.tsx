@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CATEGORIES, Category, calculateScore } from './scoring';
 import styles from './Yacht.module.css';
 import { db } from '@/lib/firebase';
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update, onDisconnect, set } from 'firebase/database';
 
 const MAX_ROLLS = 3;
 
@@ -105,21 +105,43 @@ export default function YachtGame({ roomId, myRole }: YachtGameProps) {
     useEffect(() => {
         if (!roomId || !myRole) return;
 
+        // Initialize game for P1
+        if (myRole === 'P1') {
+            startNewGame();
+        }
+
         const roomRef = ref(db, `yacht_rooms/${roomId}`);
+
+        // Presence Logic
+        const myRef = ref(db, `yacht_rooms/${roomId}/${myRole}`);
+        onDisconnect(myRef).remove();
+
         const unsubscribe = onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
             if (data.gameState) {
-                setGameState(data.gameState);
+                setGameState({
+                    ...data.gameState,
+                    scoresP1: data.gameState.scoresP1 || {},
+                    scoresP2: data.gameState.scoresP2 || {}
+                });
             }
 
             // Sync opponent name
             const oppRole = myRole === 'P1' ? 'P2' : 'P1';
-            if (data[oppRole]?.name) setOpponentName(data[oppRole].name);
+            if (data[oppRole]?.name) {
+                setOpponentName(data[oppRole].name);
+            } else {
+                setOpponentName('Opponent'); // Reset if left
+            }
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            onDisconnect(myRef).cancel(); // Cancel server handling
+            set(myRef, null); // Remove immediately on unmount
+        };
     }, [roomId, myRole]);
 
     const updateGameState = async (newState: Partial<GameState>) => {
@@ -255,6 +277,7 @@ export default function YachtGame({ roomId, myRole }: YachtGameProps) {
     };
 
     const calculateTotal = (scores: Partial<Record<Category, number>>) => {
+        if (!scores) return 0;
         const upperSectionCategories: Category[] = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'];
         const upperSectionScore = upperSectionCategories.reduce((acc, cat) => acc + (scores[cat] || 0), 0);
         const bonus = upperSectionScore >= 63 ? 35 : 0;
@@ -262,7 +285,8 @@ export default function YachtGame({ roomId, myRole }: YachtGameProps) {
     };
 
     // Helpers for rendering
-    const renderScoreColumn = (player: 'P1' | 'P2', scores: Partial<Record<Category, number>>, isMe: boolean) => {
+    const renderScoreColumn = (player: 'P1' | 'P2', scores: Partial<Record<Category, number>> | undefined, isMe: boolean) => {
+        if (!scores) scores = {}; // Safety fallback
         const upperSectionCategories: Category[] = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'];
         const upperSectionScore = upperSectionCategories.reduce((acc, cat) => acc + (scores[cat] || 0), 0);
         const bonus = upperSectionScore >= 63 ? 35 : 0;
@@ -331,6 +355,13 @@ export default function YachtGame({ roomId, myRole }: YachtGameProps) {
             <div className={styles.game_area}>
                 {/* Dice */}
                 <div className={`${styles.dice_stage} ${gameState.isRolling ? styles.rolling : ''}`}>
+                    {roomId && opponentName === 'Opponent' && (
+                        <div className={styles.waiting_overlay}>
+                            <div className={styles.spinner}></div>
+                            <p>対戦相手を待っています...</p>
+                            <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Room ID: {roomId}</p>
+                        </div>
+                    )}
                     {gameState.dice.map((value, i) => (
                         <Die
                             key={i}

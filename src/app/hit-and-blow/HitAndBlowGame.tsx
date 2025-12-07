@@ -167,6 +167,14 @@ export default function HitAndBlowGame({ roomId, myRole, onLeave }: HitAndBlowGa
                 </div>
             )}
 
+            {roomId && opponentName === 'Opponent' && (
+                <div className={styles.waiting_overlay}>
+                    <div className={styles.spinner}></div>
+                    <p>対戦相手を待っています...</p>
+                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Room ID: {roomId}</p>
+                </div>
+            )}
+
             {/* Mode Toggle (Only P1 or Single) */}
             {(!roomId || myRole === 'P1') && (
                 <div className={styles.mode_toggle_container}>

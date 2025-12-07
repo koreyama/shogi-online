@@ -50,33 +50,78 @@ export default function DotsAndBoxesPage() {
         const roomsRef = ref(db, 'dots_and_boxes_rooms');
         const snap = await get(roomsRef);
         const rooms = snap.val();
-        let found = null;
+        let foundId = null;
 
         if (rooms) {
+            // Shogi-style: Active Cleanup & Search
             for (const [rid, r] of Object.entries(rooms) as [string, any][]) {
-                if (r.state === 'waiting' && ((r.P1 && !r.P2) || (!r.P1 && r.P2))) {
-                    found = rid;
-                    break;
+                // 1. Cleanup empty/broken rooms
+                if (!r.P1 && !r.P2) {
+                    set(ref(db, `dots_and_boxes_rooms/${rid}`), null);
+                    continue;
+                }
+
+                // 2. Find valid room
+                if (r.state === 'waiting') {
+                    if ((r.P1 && !r.P2) || (!r.P1 && r.P2)) {
+                        foundId = rid;
+                        break;
+                    }
                 }
             }
         }
 
-        if (found) {
-            const role = rooms[found].P1 ? 'P2' : 'P1';
-            await update(ref(db, `dots_and_boxes_rooms/${found}/${role}`), { name: playerName, status: 'waiting' });
-            if (role === 'P2') {
-                await update(ref(db, `dots_and_boxes_rooms/${found}`), { state: 'playing' });
+        if (foundId) {
+            // Found a room: Join "Optimistically" (Simple Update)
+            const room = rooms[foundId];
+            let role: 'P1' | 'P2' = 'P1';
+
+            if (!room.P1) {
+                role = 'P1';
+                await update(ref(db, `dots_and_boxes_rooms/${foundId}/P1`), {
+                    name: playerName,
+                    status: 'waiting'
+                });
+                await update(ref(db, `dots_and_boxes_rooms/${foundId}`), {
+                    state: 'playing'
+                });
+            } else {
+                role = 'P2';
+                await update(ref(db, `dots_and_boxes_rooms/${foundId}/P2`), {
+                    name: playerName,
+                    status: 'waiting'
+                });
+                await update(ref(db, `dots_and_boxes_rooms/${foundId}`), {
+                    state: 'playing'
+                });
             }
-            setRoomId(found);
+
+            setRoomId(foundId);
             setMyRole(role);
             setGameMode('playing');
         } else {
+            // Create New Room
             const newRef = push(roomsRef);
+
+            // Initial Game State
+            const ROWS = 6;
+            const COLS = 6;
+            const hLines = Array(ROWS).fill(null).map(() => Array(COLS - 1).fill(false));
+            const vLines = Array(ROWS - 1).fill(null).map(() => Array(COLS).fill(false));
+            const boxes = Array(ROWS - 1).fill(null).map(() => Array(COLS - 1).fill(null));
+
             await set(newRef, {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
-                scores: { 1: 0, 2: 0 },
-                currentPlayer: 1
+                gameState: {
+                    hLines,
+                    vLines,
+                    boxes,
+                    currentPlayer: 1,
+                    scores: { 1: 0, 2: 0 },
+                    winner: null,
+                    lastCompletedBoxes: []
+                }
             });
             setRoomId(newRef.key);
             setMyRole('P1');
@@ -92,25 +137,55 @@ export default function DotsAndBoxesPage() {
         const room = snapshot.val();
 
         if (!room) {
+            // Create New Room
+            // Initial Game State
+            const ROWS = 6;
+            const COLS = 6;
+            const hLines = Array(ROWS).fill(null).map(() => Array(COLS - 1).fill(false));
+            const vLines = Array(ROWS - 1).fill(null).map(() => Array(COLS).fill(false));
+            const boxes = Array(ROWS - 1).fill(null).map(() => Array(COLS - 1).fill(null));
+
             await set(roomRef, {
                 P1: { name: playerName, status: 'waiting' },
                 state: 'waiting',
-                scores: { 1: 0, 2: 0 },
-                currentPlayer: 1
+                gameState: {
+                    hLines, vLines, boxes,
+                    currentPlayer: 1,
+                    scores: { 1: 0, 2: 0 },
+                    winner: null,
+                    lastCompletedBoxes: []
+                }
             });
             setRoomId(rid);
             setMyRole('P1');
             setGameMode('playing');
-        } else if (!room.P2) {
-            await update(ref(db, `dots_and_boxes_rooms/${rid}`), {
-                state: 'playing',
-                P2: { name: playerName, status: 'waiting' }
-            });
-            setRoomId(rid);
-            setMyRole('P2');
-            setGameMode('playing');
         } else {
-            alert('満員です');
+            // Join Existing
+            if (!room.P2 && room.P1) {
+                await update(ref(db, `dots_and_boxes_rooms/${rid}/P2`), {
+                    name: playerName,
+                    status: 'waiting'
+                });
+                await update(ref(db, `dots_and_boxes_rooms/${rid}`), {
+                    state: 'playing'
+                });
+                setRoomId(rid);
+                setMyRole('P2');
+                setGameMode('playing');
+            } else if (!room.P1 && room.P2) {
+                await update(ref(db, `dots_and_boxes_rooms/${rid}/P1`), {
+                    name: playerName,
+                    status: 'waiting'
+                });
+                await update(ref(db, `dots_and_boxes_rooms/${rid}`), {
+                    state: 'playing'
+                });
+                setRoomId(rid);
+                setMyRole('P1');
+                setGameMode('playing');
+            } else {
+                alert('満員です');
+            }
         }
     };
 
