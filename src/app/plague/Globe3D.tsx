@@ -140,8 +140,23 @@ const TrafficArc = ({ start, end, color }: { start: string, end: string, color: 
     const startCoord = REGION_COORDS[start]; const endCoord = REGION_COORDS[end]; if (!startCoord || !endCoord) return null;
     const startPos = latLongToVector3(startCoord.lat, startCoord.lon, 2); const endPos = latLongToVector3(endCoord.lat, endCoord.lon, 2);
     const mid = startPos.clone().add(endPos).multiplyScalar(0.5).normalize().multiplyScalar(2.5);
-    const curve = new THREE.QuadraticBezierCurve3(startPos, mid, endPos); const points = curve.getPoints(20); const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    return (<line geometry={geometry}><lineBasicMaterial color={color} opacity={0.2} transparent linewidth={1} /></line>);
+    const lineObject = useMemo(() => {
+        const curve = new THREE.QuadraticBezierCurve3(startPos, mid, endPos);
+        const points = curve.getPoints(20);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({ color, opacity: 0.2, transparent: true, linewidth: 1 });
+        return new THREE.Line(geometry, material);
+    }, [startPos, mid, endPos, color]);
+
+    // Dispose on unmount
+    React.useEffect(() => {
+        return () => {
+            lineObject.geometry.dispose();
+            (lineObject.material as THREE.Material).dispose();
+        };
+    }, [lineObject]);
+
+    return <primitive object={lineObject} />;
 };
 
 const Earth = ({ regions, gameState, onPop, onSelectRegion }: { regions: Record<string, Region>, gameState: GameState, onPop: (id: string) => void, onSelectRegion?: (id: string) => void }) => {
