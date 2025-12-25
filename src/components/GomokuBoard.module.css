@@ -1,155 +1,108 @@
-.board {
-    display: flex;
-    flex-direction: column;
-    background-color: #e6c270;
-    /* 榧（かや）色 */
-    padding: 30px;
+.boardContainer {
+    padding: 20px;
+    background-color: #dcb35c;
+    /* Wood color */
     border-radius: 4px;
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.5),
-        inset 0 0 30px rgba(0, 0, 0, 0.2);
-    border: 2px solid #5d4037;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    display: inline-block;
+}
+
+.boardGrid {
+    display: grid;
+    grid-template-columns: repeat(15, 40px);
+    /* Increased from 30px */
+    grid-template-rows: repeat(15, 40px);
+    /* Increased from 30px */
+    width: 600px;
+    /* 15 * 40 = 600 */
+    height: 600px;
     position: relative;
-
-    /* 木目テクスチャ */
-    background-image:
-        repeating-linear-gradient(90deg, rgba(139, 69, 19, 0.03) 0px, rgba(139, 69, 19, 0.03) 1px, transparent 1px, transparent 10px),
-        url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    border: 2px solid #000;
 }
 
-.row {
-    display: flex;
-}
-
-.cell {
+.intersection {
+    position: relative;
     width: 40px;
+    /* Match grid size */
     height: 40px;
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
 }
 
-/* 罫線の描画（セルの中心を通る線） */
-.cell::before {
+.intersection:hover::after {
     content: '';
+    width: 28px;
+    /* Proportional to 40px */
+    height: 28px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
     position: absolute;
-    top: 50%;
-    left: 0;
+    z-index: 5;
+}
+
+/* Lines */
+.lineHorizontal {
+    position: absolute;
     width: 100%;
     height: 1px;
     background-color: #000;
-    z-index: 0;
-}
-
-.cell::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 1px;
-    height: 100%;
-    background-color: #000;
-    z-index: 0;
-}
-
-/* 端の線の処理（飛び出しを消す） */
-/* 上端 */
-.row:first-child .cell::after {
     top: 50%;
-    height: 50%;
-}
-
-/* 下端 */
-.row:last-child .cell::after {
-    height: 50%;
-}
-
-/* 左端 */
-.cell:first-child::before {
-    left: 50%;
-    width: 50%;
-}
-
-/* 右端 */
-.cell:last-child::before {
-    width: 50%;
-}
-
-.hoshi {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background-color: #000;
-    border-radius: 50%;
+    left: 0;
     z-index: 1;
 }
 
-.stone {
-    width: 36px;
-    height: 36px;
+.lineVertical {
+    position: absolute;
+    height: 100%;
+    width: 1px;
+    background-color: #000;
+    left: 50%;
+    top: 0;
+    z-index: 1;
+}
+
+/* Dots (Hoshi) */
+.hoshi {
+    position: absolute;
+    width: 8px;
+    /* Slightly larger */
+    height: 8px;
+    background-color: #000;
     border-radius: 50%;
     z-index: 2;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Stones */
+.stone {
+    width: 32px;
+    /* Proportional to 40px */
+    height: 32px;
+    border-radius: 50%;
     position: relative;
+    z-index: 10;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .black {
+    background-color: #000;
     background: radial-gradient(circle at 30% 30%, #444, #000);
 }
 
 .white {
+    background-color: #fff;
     background: radial-gradient(circle at 30% 30%, #fff, #ddd);
 }
 
-.lastMove::before {
-    content: '';
-    position: absolute;
+/* Last Move Marker */
+.lastMoveMarker {
     width: 10px;
     height: 10px;
-    background-color: #ff3333;
-    /* 赤丸で強調 */
+    background-color: red;
     border-radius: 50%;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
-}
-
-.preview {
-    opacity: 0.5;
-    transform: scale(0.9);
-    filter: grayscale(30%);
-    display: none;
-    /* Mobile optimization: usually hover doesn't work well on touch, but we allow it. JS handles logic. */
-}
-
-/* Use media query to only show preview on devices that support hover */
-@media (hover: hover) {
-    .cell:hover .preview {
-        display: block;
-    }
-}
-
-@media (max-width: 600px) {
-    .board {
-        padding: 10px;
-    }
-
-    .cell {
-        width: 22px;
-        height: 22px;
-    }
-
-    .stone {
-        width: 20px;
-        height: 20px;
-    }
-
-    .hoshi {
-        width: 4px;
-        height: 4px;
-    }
 }

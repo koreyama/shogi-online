@@ -3,479 +3,213 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import { usePlayer } from '@/hooks/usePlayer';
+import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
+import ColyseusConnectFourGame from './ColyseusConnectFourGame';
 import Connect4Board from '@/components/Connect4Board';
-import { Chat } from '@/components/Chat';
 import { createInitialState, dropPiece, getValidMoves } from '@/lib/connect4/engine';
 import { GameState, Player } from '@/lib/connect4/types';
 import { getBestMove } from '@/lib/connect4/ai';
-import { db } from '@/lib/firebase';
-import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
-import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
-import { usePlayer } from '@/hooks/usePlayer';
 
-interface ChatMessage {
-    id: string;
-    sender: string;
-    text: string;
-    timestamp: number;
-}
-
-export default function Connect4Page() {
+export default function ConnectFourPage() {
     const router = useRouter();
-    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
-    const [mounted, setMounted] = useState(false);
-    const [gameState, setGameState] = useState<GameState | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const { playerName, playerId, isLoaded } = usePlayer();
 
-    // Online State
-    const [roomId, setRoomId] = useState<string | null>(null);
-    const [myRole, setMyRole] = useState<Player | null>(null);
-    const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
-    const [playerId, setPlayerId] = useState<string>('');
-
-    // Player State
-    const [playerName, setPlayerName] = useState('');
-    const [opponentName, setOpponentName] = useState('');
-    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | null>(null);
+    const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | 'ai' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
 
-    // Chat State
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-
-    useEffect(() => {
-        setMounted(true);
-        setPlayerId(Math.random().toString(36).substring(2, 15));
-    }, []);
-
-    useEffect(() => {
-        if (isLoaded && savedName) {
-            setPlayerName(savedName);
-            setStatus('initial');
-        }
-    }, [isLoaded, savedName]);
-
-    useEffect(() => {
-        if (roomId === 'ai-match') {
-            setGameState(createInitialState());
-            setStatus('playing');
-            setMessages([]);
-        } else if (roomId) {
-            setGameState(null);
-            setMessages([]);
-        }
-    }, [roomId]);
-
-    // Firebase Listener
-    useEffect(() => {
-        if (!roomId || !myRole || roomId === 'ai-match') return;
-
-        const roomRef = ref(db, `connect4_rooms/${roomId}`);
-
-        const unsubscribeRoom = onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            if (data.red && data.yellow) {
-                if (status !== 'playing' && status !== 'finished') {
-                    setStatus('playing');
-                    setGameState(prev => prev || createInitialState());
-                }
-                if (myRole === 'red') setOpponentName(data.yellow.name);
-                if (myRole === 'yellow') setOpponentName(data.red.name);
-            }
-
-            if (data.winner) {
-                setGameState(prev => prev ? ({ ...prev, winner: data.winner }) : null);
-                setStatus('finished');
-            } else {
-                if (status === 'finished') {
-                    setStatus('playing');
-                    setGameState(createInitialState());
-                    setMessages([]);
-                }
-            }
-        });
-
-        const movesRef = ref(db, `connect4_rooms/${roomId}/moves`);
-        const unsubscribeMoves = onChildAdded(movesRef, (snapshot) => {
-            const moveData = snapshot.val();
-            if (!moveData) return;
-
-            setGameState(prev => {
-                const currentState = prev || createInitialState();
-                return dropPiece(currentState, moveData.col);
-            });
-        });
-
-        const chatRef = ref(db, `connect4_rooms/${roomId}/chat`);
-        const unsubscribeChat = onChildAdded(chatRef, (snapshot) => {
-            const msg = snapshot.val();
-            if (msg) {
-                setMessages(prev => {
-                    if (prev.some(m => m.id === msg.id)) return prev;
-                    return [...prev, msg];
-                });
-            }
-        });
-
-        const rematchRef = ref(db, `connect4_rooms/${roomId}/rematch`);
-        const unsubscribeRematch = onValue(rematchRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.red && data.yellow) {
-                if (myRole === 'red') {
-                    set(ref(db, `connect4_rooms/${roomId}/moves`), null);
-                    set(ref(db, `connect4_rooms/${roomId}/chat`), null);
-                    set(ref(db, `connect4_rooms/${roomId}/winner`), null);
-                    set(ref(db, `connect4_rooms/${roomId}/rematch`), null);
-                }
-            }
-        });
-
-        const myPlayerRef = ref(db, `connect4_rooms/${roomId}/${myRole}`);
-        onDisconnect(myPlayerRef).remove();
-
-        return () => {
-            unsubscribeRoom();
-            unsubscribeMoves();
-            off(movesRef);
-            off(chatRef);
-            off(roomRef);
-            off(rematchRef);
-            onDisconnect(myPlayerRef).cancel();
-        };
-    }, [roomId, myRole]);
-
-    const handleNameSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (playerName.trim()) {
-            savePlayerName(playerName.trim());
-            setStatus('initial');
-        }
-    };
-
-    const joinRandomGame = async () => {
-        setIsLoading(true);
-        try {
-            const roomsRef = ref(db, 'connect4_rooms');
-            const snapshot = await get(roomsRef);
-            const rooms = snapshot.val();
-            let foundRoomId = null;
-
-            if (rooms) {
-                for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-                    if ((room.red && !room.yellow) || (!room.red && room.yellow)) {
-                        foundRoomId = id;
-                        break;
-                    }
-                }
-            }
-
-            if (foundRoomId) {
-                const room = rooms[foundRoomId];
-                if (!room.yellow) {
-                    await update(ref(db, `connect4_rooms/${foundRoomId}/yellow`), { name: playerName, id: playerId });
-                    setRoomId(foundRoomId);
-                    setMyRole('yellow');
-                } else {
-                    await update(ref(db, `connect4_rooms/${foundRoomId}/red`), { name: playerName, id: playerId });
-                    setRoomId(foundRoomId);
-                    setMyRole('red');
-                }
-            } else {
-                const newRoomRef = push(roomsRef);
-                const newRoomId = newRoomRef.key!;
-                const isRed = Math.random() < 0.5;
-
-                if (isRed) {
-                    await set(newRoomRef, { red: { name: playerName, id: playerId }, yellow: null });
-                    setMyRole('red');
-                } else {
-                    await set(newRoomRef, { red: null, yellow: { name: playerName, id: playerId } });
-                    setMyRole('yellow');
-                }
-                setRoomId(newRoomId);
-                setStatus('waiting');
-            }
-        } catch (error) {
-            console.error(error);
-            alert("エラーが発生しました");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const joinRoomGame = async () => {
-        if (!customRoomId.trim()) return;
-        setIsLoading(true);
-        try {
-            const rid = customRoomId.trim();
-            const roomRef = ref(db, `connect4_rooms/${rid}`);
-            const snapshot = await get(roomRef);
-            const room = snapshot.val();
-
-            if (!room) {
-                const isRed = Math.random() < 0.5;
-                if (isRed) {
-                    await set(roomRef, { red: { name: playerName, id: playerId }, yellow: null });
-                    setMyRole('red');
-                } else {
-                    await set(roomRef, { red: null, yellow: { name: playerName, id: playerId } });
-                    setMyRole('yellow');
-                }
-                setRoomId(rid);
-                setStatus('waiting');
-            } else if (!room.yellow) {
-                await update(ref(db, `connect4_rooms/${rid}/yellow`), { name: playerName, id: playerId });
-                setRoomId(rid);
-                setMyRole('yellow');
-            } else if (!room.red) {
-                await update(ref(db, `connect4_rooms/${rid}/red`), { name: playerName, id: playerId });
-                setRoomId(rid);
-                setMyRole('red');
-            } else {
-                alert('満員です');
-            }
-        } catch (error) {
-            console.error(error);
-            alert("エラーが発生しました");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const startAIGame = () => {
-        setMyRole('red');
-        setOpponentName('AI');
-        setRoomId('ai-match');
-    };
+    // AI/Local State
+    const [gameState, setGameState] = useState<GameState | null>(null);
+    const [aiStatus, setAiStatus] = useState<'playing' | 'finished'>('playing');
 
     // AI Logic
     useEffect(() => {
-        if (roomId !== 'ai-match' || !gameState || gameState.turn !== 'yellow' || status !== 'playing') return;
+        if (joinMode === 'ai') {
+            setGameState(createInitialState());
+            setAiStatus('playing');
+        } else {
+            setGameState(null);
+        }
+    }, [joinMode]);
+
+    useEffect(() => {
+        if (joinMode !== 'ai' || !gameState || gameState.turn !== 'yellow' || aiStatus !== 'playing') return;
 
         const timer = setTimeout(() => {
-            const bestMove = getBestMove(gameState, 'yellow');
-            if (bestMove !== -1) {
-                const newState = dropPiece(gameState, bestMove);
+            const bestCol = getBestMove(gameState, 'yellow');
+            if (bestCol !== -1) {
+                const newState = dropPiece(gameState, bestCol);
                 setGameState(newState);
-                if (newState.winner) setStatus('finished');
+                if (newState.winner) setAiStatus('finished');
             }
-        }, 1000);
+        }, 800);
         return () => clearTimeout(timer);
-    }, [gameState, roomId, status]);
+    }, [gameState, joinMode, aiStatus]);
 
-    const handleColumnClick = (col: number) => {
-        if (!gameState || !myRole || gameState.turn !== myRole || status !== 'playing') return;
+    const handleLocalClick = (col: number) => {
+        if (joinMode !== 'ai' || !gameState || gameState.turn !== 'red' || aiStatus !== 'playing') return;
 
-        // Check if move is valid
+        // Check validity (simple check)
         if (gameState.board[0][col] !== null) return;
 
-        if (roomId === 'ai-match') {
-            const newState = dropPiece(gameState, col);
+        const newState = dropPiece(gameState, col);
+        if (newState !== gameState) {
             setGameState(newState);
-            if (newState.winner) setStatus('finished');
-        } else {
-            push(ref(db, `connect4_rooms/${roomId}/moves`), { col, player: myRole });
+            if (newState.winner) setAiStatus('finished');
         }
     };
 
-    const handleSendMessage = (text: string) => {
-        if (roomId === 'ai-match') {
-            setMessages(prev => [...prev, { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() }]);
-            return;
-        }
-        if (roomId) {
-            push(ref(db, `connect4_rooms/${roomId}/chat`), { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() });
-        }
-    };
+    if (!isLoaded) return <div className={styles.main}>Loading...</div>;
 
-    const handleBackToTop = () => {
-        if (roomId && myRole && roomId !== 'ai-match') {
-            const myPlayerRef = ref(db, `connect4_rooms/${roomId}/${myRole}`);
-            set(myPlayerRef, null);
-            onDisconnect(myPlayerRef).cancel();
-        }
-        router.push('/');
-    };
-
-    const handleRematch = () => {
-        if (roomId === 'ai-match') {
-            setGameState(createInitialState());
-            setStatus('playing');
-            setMessages([]);
-        } else if (roomId && myRole) {
-            update(ref(db, `connect4_rooms/${roomId}/rematch`), { [myRole]: true });
-        }
-    };
-
-    if (!mounted) return <div className={styles.main}>Loading...</div>;
-
-    if (status === 'setup') {
+    // --- GAME VIEW: RANDOM MATCH ---
+    if (joinMode === 'colyseus_random') {
         return (
             <main className={styles.main}>
-                <div className={styles.setupContainer}>
-                    <h1 className={styles.title}>四目並べ</h1>
-                    <form onSubmit={handleNameSubmit} className={styles.setupForm}>
-                        <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="プレイヤー名" className={styles.input} required />
-                        <button type="submit" className={styles.primaryBtn}>次へ</button>
-                    </form>
-                </div>
+                <ColyseusConnectFourGame mode="random" />
             </main>
         );
     }
 
-    if (status === 'initial') {
+    // --- GAME VIEW: ROOM MATCH ---
+    if (joinMode === 'colyseus_room_active') {
         return (
             <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>四目並べ</h1>
-                    {!joinMode ? (
-                        <div className={styles.modeSelection}>
-                            <button onClick={joinRandomGame} className={styles.modeBtn}><IconDice size={48} color="#c53030" /><span className={styles.modeBtnTitle}>ランダム</span></button>
-                            <button onClick={() => setJoinMode('room')} className={styles.modeBtn}><IconKey size={48} color="#c53030" /><span className={styles.modeBtnTitle}>ルーム</span></button>
-                            <button onClick={startAIGame} className={styles.modeBtn}><IconRobot size={48} color="#c53030" /><span className={styles.modeBtnTitle}>AI対戦</span></button>
-                        </div>
-                    ) : joinMode === 'random' ? (
-                        <div className={styles.joinSection}><p>マッチング中...</p><button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>キャンセル</button></div>
-                    ) : (
-                        <div className={styles.joinSection}>
-                            <input type="text" value={customRoomId} onChange={e => setCustomRoomId(e.target.value)} placeholder="ルームID" className={styles.input} />
-                            <button onClick={joinRoomGame} className={styles.primaryBtn}>参加/作成</button>
-                            <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>戻る</button>
-                        </div>
-                    )}
+                <ColyseusConnectFourGame mode="room" roomId={customRoomId || undefined} />
+            </main>
+        );
+    }
+
+    // --- GAME VIEW: AI MATCH ---
+    if (joinMode === 'ai' && gameState) {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}>
+                    <button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button>
+                    <div className={styles.headerContent}>
+                        <h1 className={styles.title}>VS Computer</h1>
+                    </div>
                 </div>
 
-                {/* AdSense Content Section */}
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>四目並べ（コネクトフォー）の遊び方</h2>
-
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🔴</span>
-                            <h3 className={styles.sectionTitle}>シンプルだけど奥深いパズル</h3>
+                <div className={styles.gameArea}>
+                    <div className={styles.playerInfo}>
+                        <div className={`${styles.playerCard} ${gameState.turn === 'red' ? styles.active : ''}`}>
+                            <div className={`${styles.playerIcon} ${styles.redIcon}`} />
+                            <span className={styles.playerName}>あなた (赤)</span>
                         </div>
-                        <p className={styles.textBlock}>
-                            四目並べ（Connect 4）は、重力を利用した立体的な五目並べのようなゲームです。
-                            上からコインを落とし、積み上げていくというシンプルなルールですが、先を読む力と空間認識能力が試されます。
-                            1974年にMilton Bradley社（現在はHasbro傘下）から発売され、世界中で愛されています。
-                        </p>
-                    </div>
-
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>📏</span>
-                            <h3 className={styles.sectionTitle}>基本ルール</h3>
-                        </div>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>1. 勝利条件</span>
-                                <p className={styles.cardText}>自分の色のコインを縦・横・斜めのいずれかに4つ連続で並べたら勝ちです。</p>
-                            </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>2. コインを落とす</span>
-                                <p className={styles.cardText}>交互に7つの列のいずれかを選んでコインを落とします。コインは一番下の空いているマスまで落ちます。</p>
-                            </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>3. 引き分け</span>
-                                <p className={styles.cardText}>盤面（6行×7列）がすべて埋まっても勝負がつかない場合は引き分けになります。</p>
-                            </div>
+                        <div className={styles.vs}>VS</div>
+                        <div className={`${styles.playerCard} ${gameState.turn === 'yellow' ? styles.active : ''}`}>
+                            <div className={`${styles.playerIcon} ${styles.yellowIcon}`} />
+                            <span className={styles.playerName}>AI (黄)</span>
                         </div>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>💡</span>
-                            <h3 className={styles.sectionTitle}>必勝のコツ</h3>
-                        </div>
-                        <p className={styles.textBlock}>
-                            四目並べは「先手必勝」と言われることもありますが、それは完璧にプレイした場合の話です。
-                            実際の対戦では、いくつかのポイントを押さえるだけで勝率が上がります。
-                        </p>
-                        <div className={styles.highlightBox}>
-                            <span className={styles.highlightTitle}>中央の列（センター）を取る</span>
-                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
-                                7列あるうちの真ん中の列は、最も多くの「4つ並び」に絡む重要な列です。
-                                ここを制する者がゲームを制すると言っても過言ではありません。初手は必ず真ん中に落としましょう。
-                            </p>
-                        </div>
-                        <ul className={styles.list}>
-                            <li className={styles.listItem}>
-                                <strong>「7」の形を作る</strong><br />
-                                数字の「7」のように、3つのコインを配置すると、相手は2方向を同時に防ぐことが難しくなります。
-                            </li>
-                            <li className={styles.listItem}>
-                                <strong>相手の「3連」を阻止する</strong><br />
-                                相手が3つ並べたら、すぐにその両端を塞ぎましょう。ただし、塞ぐことで相手の上の段を助けてしまわないか注意が必要です。
-                            </li>
-                        </ul>
+                    <Connect4Board
+                        board={gameState.board}
+                        onColumnClick={handleLocalClick}
+                        turn={gameState.turn}
+                        isMyTurn={gameState.turn === 'red' && aiStatus === 'playing'}
+                        myRole="red"
+                        winner={gameState.winner}
+                        winningLine={gameState.winningLine}
+                    />
+
+                    <div className={styles.statusDisplay}>
+                        {aiStatus === 'playing' ? (gameState.turn === 'red' ? "あなたの番です" : "AIが思考中...") :
+                            (gameState.winner === 'draw' ? "引き分け！" : `${gameState.winner === 'red' ? 'あなたの勝ち！' : 'AIの勝ち！'}`)}
                     </div>
                 </div>
             </main>
         );
     }
 
-    if (status === 'waiting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    <div className={styles.waitingAnimation}><IconHourglass size={64} color="#c53030" /></div>
-                    <p>ルームID: <span className={styles.roomId}>{roomId}</span></p>
-                </div>
-            </main>
-        );
-    }
-
+    // --- MENU VIEW (Default) ---
     return (
         <main className={styles.main}>
-            <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-            <div className={styles.gameLayout}>
-                <div className={styles.leftPanel}>
-                    <div className={styles.playersSection}>
-                        <div className={styles.playerInfo}>
-                            <p>{opponentName || '相手'}</p>
-                            <p>{myRole === 'red' ? '黄 (後攻)' : '赤 (先攻)'}</p>
+            <div className={styles.header}>
+                <button onClick={() => router.push('/')} className={styles.backButton}>
+                    <IconBack size={18} /> トップへ戻る
+                </button>
+            </div>
+
+            <div className={styles.gameContainer}>
+                <h1 className={styles.title}>Connect Four</h1>
+                <p className={styles.subtitle}>4つ並べたら勝ち！</p>
+
+                {!joinMode ? (
+                    <div className={styles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                        </button>
+                        <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        </button>
+                        <button onClick={() => setJoinMode('ai')} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnTitle}>AI対戦</span>
+                            <span className={styles.modeBtnDesc}>練習モード</span>
+                        </button>
+                    </div>
+                ) : joinMode === 'colyseus_room' ? (
+                    <div className={styles.joinSection}>
+                        <div style={{ textAlign: 'center', width: '100%' }}>
+                            <p className={styles.subtitle} style={{ marginBottom: '1rem' }}>新しい部屋を作る</p>
+                            <button onClick={() => setJoinMode('colyseus_room_active')} className={styles.primaryBtn} style={{ width: '100%' }}>
+                                ルーム作成
+                            </button>
                         </div>
-                        <div className={styles.playerInfo}>
-                            <p>{playerName} (自分)</p>
-                            <p>{myRole === 'red' ? '赤 (先攻)' : '黄 (後攻)'}</p>
+
+                        <div style={{ borderTop: '1px solid #ddd', width: '100%', margin: '1rem 0' }}></div>
+
+                        <div style={{ textAlign: 'center', width: '100%' }}>
+                            <p className={styles.subtitle} style={{ marginBottom: '1rem' }}>部屋に参加する</p>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input
+                                    className={styles.input}
+                                    placeholder="ルームIDを入力"
+                                    value={customRoomId}
+                                    onChange={e => setCustomRoomId(e.target.value)}
+                                />
+                                <button onClick={() => {
+                                    if (customRoomId) setJoinMode('colyseus_room_active');
+                                }} className={styles.primaryBtn}>
+                                    参加
+                                </button>
+                            </div>
                         </div>
+                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>戻る</button>
                     </div>
-                    <div className={styles.chatSection}>
-                        <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
+                ) : null}
+            </div>
+
+            {/* Content Section (SEO/Info) */}
+            <div className={styles.contentSection}>
+                <h2 className={styles.contentTitle}>Connect Four (四目並べ) とは？</h2>
+
+                <div className={styles.sectionBlock}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>🔵</span>
+                        <h3 className={styles.sectionTitle}>ルールは簡単、奥が深い</h3>
                     </div>
-                </div>
-                <div className={styles.centerPanel}>
-                    <div className={styles.turnIndicator}>
-                        {gameState?.turn === 'red' ? '赤の番' : '黄の番'}
-                        {gameState?.turn === myRole && ' (あなた)'}
-                    </div>
-                    <Connect4Board
-                        board={gameState!.board}
-                        onColumnClick={handleColumnClick}
-                        turn={gameState!.turn}
-                        isMyTurn={gameState!.turn === myRole}
-                        winner={gameState!.winner}
-                        winningLine={gameState!.winningLine}
-                        myRole={myRole}
-                    />
+                    <p className={styles.textBlock}>
+                        重力に従って駒を落とし、<strong>縦・横・斜め</strong>のいずれかに自分の色の駒を4つ並べた方が勝ちとなるシンプルなゲームです。
+                        子供から大人まで楽しめる定番の頭脳ゲームですが、先を読む力と空間認識能力が試されます。
+                    </p>
+                    <ul className={styles.list}>
+                        <li className={styles.listItem}>
+                            <strong>「重力」がカギ</strong><br />
+                            駒は下から積み上がっていきます。空中に浮くことはできません。この制約が独特の戦略を生み出します。
+                        </li>
+                        <li className={styles.listItem}>
+                            <strong>「攻防一体」</strong><br />
+                            自分の4連を狙いつつ、相手の3連を阻止しなければなりません。一手のミスが命取りになります。
+                        </li>
+                    </ul>
                 </div>
             </div>
-            {gameState?.winner && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h2>勝負あり！</h2>
-                        <p>勝者: {gameState.winner === 'red' ? '赤' : gameState.winner === 'yellow' ? '黄' : '引き分け'}</p>
-                        <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
-                        <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
-                    </div>
-                </div>
-            )}
-
-
         </main>
     );
 }

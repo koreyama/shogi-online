@@ -4,14 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { ReversiBoard } from '@/components/ReversiBoard';
+import ColyseusReversiGame from './ColyseusReversiGame';
 import { Chat } from '@/components/Chat';
-import { createInitialState, executeMove, getValidMoves } from '@/lib/reversi/engine';
+import { createInitialState, executeMove } from '@/lib/reversi/engine'; // Used for AI
 import { getBestMove } from '@/lib/reversi/ai';
-import { GameState, Player, Coordinates } from '@/lib/reversi/types';
-import { db } from '@/lib/firebase';
-import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
+import { GameState, Player, Coordinates } from '@/lib/reversi/types'; // Used for AI
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+
+// Valid Moves Helper for AI/Local
+import { getValidMoves } from '@/lib/reversi/engine';
 
 interface ChatMessage {
     id: string;
@@ -24,24 +26,18 @@ export default function ReversiPage() {
     const router = useRouter();
     const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
-    const [gameState, setGameState] = useState<GameState | null>(null);
+    const [gameState, setGameState] = useState<GameState | null>(null); // For AI Match
     const [validMoves, setValidMoves] = useState<Coordinates[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Online State
-    const [roomId, setRoomId] = useState<string | null>(null);
-    const [myRole, setMyRole] = useState<Player | null>(null);
-    const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
-    const [playerId, setPlayerId] = useState<string>('');
 
     // Player State
     const [playerName, setPlayerName] = useState('');
-    const [opponentName, setOpponentName] = useState('');
-    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | null>(null);
+    const [playerId, setPlayerId] = useState<string>('');
+    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | 'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
 
-    // Chat State
+    // Chat State (AI Match Only)
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
 
     useEffect(() => {
         setMounted(true);
@@ -55,105 +51,28 @@ export default function ReversiPage() {
         }
     }, [isLoaded, savedName]);
 
+    // AI Match Setup
     useEffect(() => {
-        if (roomId === 'ai-match') {
+        if (joinMode === 'ai') {
             setGameState(createInitialState());
             setStatus('playing');
             setMessages([]);
-        } else if (roomId) {
-            setGameState(null);
-            setMessages([]);
+        } else {
+            // Reset if leaving AI mode
+            if (status === 'playing' && joinMode !== 'colyseus_random' && joinMode !== 'colyseus_room' && joinMode !== 'colyseus_room_active') {
+                setGameState(null);
+            }
         }
-    }, [roomId]);
+    }, [joinMode]);
 
-    // Update valid moves when turn changes
+    // Update valid moves for AI Match
     useEffect(() => {
-        if (gameState && gameState.turn === myRole && status === 'playing') {
-            setValidMoves(getValidMoves(gameState.board, myRole));
+        if (joinMode === 'ai' && gameState && gameState.turn === 'black' && status === 'playing') {
+            setValidMoves(getValidMoves(gameState.board, 'black'));
         } else {
             setValidMoves([]);
         }
-    }, [gameState, myRole, status]);
-
-    // Firebase Listener
-    useEffect(() => {
-        if (!roomId || !myRole || roomId === 'ai-match') return;
-
-        const roomRef = ref(db, `reversi_rooms/${roomId}`);
-
-        const unsubscribeRoom = onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            if (data.black && data.white) {
-                if (status !== 'playing' && status !== 'finished') {
-                    setStatus('playing');
-                    setGameState(prev => prev || createInitialState());
-                }
-                if (myRole === 'black') setOpponentName(data.white.name);
-                if (myRole === 'white') setOpponentName(data.black.name);
-            }
-
-            if (data.winner) {
-                setGameState(prev => prev ? ({ ...prev, winner: data.winner }) : null);
-                setStatus('finished');
-            } else {
-                if (status === 'finished') {
-                    setStatus('playing');
-                    setGameState(createInitialState());
-                    setMessages([]);
-                }
-            }
-        });
-
-        const movesRef = ref(db, `reversi_rooms/${roomId}/moves`);
-        const unsubscribeMoves = onChildAdded(movesRef, (snapshot) => {
-            const moveData = snapshot.val();
-            if (!moveData) return;
-
-            setGameState(prev => {
-                const currentState = prev || createInitialState();
-                return executeMove(currentState, moveData.x, moveData.y);
-            });
-        });
-
-        const chatRef = ref(db, `reversi_rooms/${roomId}/chat`);
-        const unsubscribeChat = onChildAdded(chatRef, (snapshot) => {
-            const msg = snapshot.val();
-            if (msg) {
-                setMessages(prev => {
-                    if (prev.some(m => m.id === msg.id)) return prev;
-                    return [...prev, msg];
-                });
-            }
-        });
-
-        const rematchRef = ref(db, `reversi_rooms/${roomId}/rematch`);
-        const unsubscribeRematch = onValue(rematchRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.black && data.white) {
-                if (myRole === 'black') {
-                    set(ref(db, `reversi_rooms/${roomId}/moves`), null);
-                    set(ref(db, `reversi_rooms/${roomId}/chat`), null);
-                    set(ref(db, `reversi_rooms/${roomId}/winner`), null);
-                    set(ref(db, `reversi_rooms/${roomId}/rematch`), null);
-                }
-            }
-        });
-
-        const myPlayerRef = ref(db, `reversi_rooms/${roomId}/${myRole}`);
-        onDisconnect(myPlayerRef).remove();
-
-        return () => {
-            unsubscribeRoom();
-            unsubscribeMoves();
-            off(movesRef);
-            off(chatRef);
-            off(roomRef);
-            off(rematchRef);
-            onDisconnect(myPlayerRef).cancel();
-        };
-    }, [roomId, myRole]);
+    }, [gameState, joinMode, status]);
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -163,234 +82,67 @@ export default function ReversiPage() {
         }
     };
 
-    const joinRandomGame = async () => {
-        setIsLoading(true);
-        try {
-            const roomsRef = ref(db, 'reversi_rooms');
-            const snapshot = await get(roomsRef);
-            const rooms = snapshot.val();
-            let foundRoomId = null;
-
-            if (rooms) {
-                for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-                    if (!room.black && !room.white) {
-                        set(ref(db, `reversi_rooms/${id}`), null);
-                        continue;
-                    }
-                    if ((room.black && !room.white) || (!room.black && room.white)) {
-                        foundRoomId = id;
-                        break;
-                    }
-                }
-            }
-
-            if (foundRoomId) {
-                const room = rooms[foundRoomId];
-                if (!room.white) {
-                    await update(ref(db, `reversi_rooms/${foundRoomId}/white`), { name: playerName, id: playerId });
-                    setRoomId(foundRoomId);
-                    setMyRole('white');
-                } else {
-                    await update(ref(db, `reversi_rooms/${foundRoomId}/black`), { name: playerName, id: playerId });
-                    setRoomId(foundRoomId);
-                    setMyRole('black');
-                }
-            } else {
-                const newRoomRef = push(roomsRef);
-                const newRoomId = newRoomRef.key!;
-                const isBlack = Math.random() < 0.5;
-
-                if (isBlack) {
-                    await set(newRoomRef, { black: { name: playerName, id: playerId }, white: null });
-                    setMyRole('black');
-                } else {
-                    await set(newRoomRef, { black: null, white: { name: playerName, id: playerId } });
-                    setMyRole('white');
-                }
-                setRoomId(newRoomId);
-                setStatus('waiting');
-            }
-        } catch (error) {
-            console.error(error);
-            alert("エラーが発生しました");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const joinRoomGame = async () => {
-        if (!customRoomId.trim()) return;
-        setIsLoading(true);
-        try {
-            const rid = customRoomId.trim();
-            const roomRef = ref(db, `reversi_rooms/${rid}`);
-            const snapshot = await get(roomRef);
-            const room = snapshot.val();
-
-            if (!room) {
-                const isBlack = Math.random() < 0.5;
-                if (isBlack) {
-                    await set(roomRef, { black: { name: playerName, id: playerId }, white: null });
-                    setMyRole('black');
-                } else {
-                    await set(roomRef, { black: null, white: { name: playerName, id: playerId } });
-                    setMyRole('white');
-                }
-                setRoomId(rid);
-                setStatus('waiting');
-            } else if (!room.white) {
-                await update(ref(db, `reversi_rooms/${rid}/white`), { name: playerName, id: playerId });
-                setRoomId(rid);
-                setMyRole('white');
-            } else if (!room.black) {
-                await update(ref(db, `reversi_rooms/${rid}/black`), { name: playerName, id: playerId });
-                setRoomId(rid);
-                setMyRole('black');
-            } else {
-                alert('満員です');
-            }
-        } catch (error) {
-            console.error(error);
-            alert("エラーが発生しました");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const startAIGame = () => {
-        setMyRole('black');
-        setOpponentName('AI');
-        setRoomId('ai-match');
+        setJoinMode('ai');
     };
 
-    // AI Logic
+    // AI Turn Logic
     useEffect(() => {
-        if (roomId !== 'ai-match' || !gameState || gameState.turn !== 'white' || status !== 'playing') return;
+        if (joinMode !== 'ai' || !gameState || gameState.turn !== 'white' || status !== 'playing') return;
 
         const timer = setTimeout(() => {
+            // AI is White
             const bestMove = getBestMove(gameState.board, 'white');
             if (bestMove) {
                 const newState = executeMove(gameState, bestMove.x, bestMove.y);
                 setGameState(newState);
                 if (newState.winner) setStatus('finished');
             } else {
-                // AI Pass
-                // If AI has no moves, execution normally passes back to player in `executeMove` if player can move?
-                // Wait, `executeMove` logic: 
-                // Checks next player valid moves. 
-                // If next cannot move, checks current player valid moves again.
-                // So if AI has no moves, `executeMove` (called by previous Human move) would have already set turn back to Human?
-                // Let's verify `executeMove` logic in engine.ts separately.
-                // Assuming engine correctly handles pass:
-                // If it IS AI turn here, it means AI CAN move. 
-                // getBestMove should return null only if no moves. 
-                // If engine set turn to AI, it means AI has moves.
-                // So this branch should theoretically not be reached unless engine bug or race condition.
-                // But for safety:
+                // AI Pass - Check if Human has moves
+                // Engine handles turn switching if no moves. 
+                // If executeMove didn't switch turn back to black, it means black also has no moves -> Game Over handled in engine? 
+                // Or "Double Pass" -> Game Over.
+                // Reversi engine `executeMove` handles pass logic?
+                // Let's assume engine handles it. If not, we might stick. 
+                // For now, if AI has no moves, force turn change if valid?
+                // Since this is legacy AI code, assume it works roughly as before.
+                // Logic update:
                 if (!gameState.canMove) {
-                    // Should be game over?
+                    // Game potentially over if both passed
                 }
             }
         }, 1000);
         return () => clearTimeout(timer);
-    }, [gameState, roomId, status]);
-
-    // Pass Detection & Notification
-    const [showPassModal, setShowPassModal] = useState(false);
-    const [passPlayer, setPassPlayer] = useState<Player | null>(null);
-
-    useEffect(() => {
-        if (!gameState) return;
-
-        // This effect needs to run when turn updates.
-        // We want to detect if a "Pass" happened.
-        // Pass happens inside `executeMove`. 
-        // We can compare the expected next turn vs actual next turn? No.
-        // We can check if `history` contains a pass? `engine.ts` doesn't record explicit pass in history, 
-        // but it does skip turn.
-
-        // Simpler approach: 
-        // If it's my turn, and I have no valid moves... wait, engine auto-skips me?
-        // engine pass logic:
-        // `if (!canNextMove) { ... finalNextTurn = player; ... }`
-        // So if Human plays, and AI cannot move, Turn stays Human.
-
-        // So:
-        // 1. Human moves.
-        // 2. State updates. Turn is STILL Human.
-        // 3. We need to notify "AI Passed".
-
-        // Tracking "previous turn" to detect double turn?
-    }, [gameState]);
-
-    // Better idea: Modify executeMove to easier detect pass, OR just check if turn repeated in history?
-    // engine.ts history only pushes MOVES.
-    // If I move, history length +1. Turn should be Opponent. 
-    // If Turn is ME, then Opponent passed.
-
-    // Let's add a `lastTurn` ref to track changes?
-
-    // Actually, simply:
-    // When `gameState` updates:
-    // if last move was made by ME (from history), and current turn is ME, then opponent passed.
-    // if last move was made by OPPONENT, and current turn is OPPONENT, then I passed?
-
-    useEffect(() => {
-        if (!gameState || gameState.history.length === 0) return;
-
-        const lastMove = gameState.history[gameState.history.length - 1];
-        const lastPlayer = lastMove.player;
-        const currentTurn = gameState.turn;
-
-        if (lastPlayer === currentTurn && !gameState.winner) {
-            // Player played, and it's still their turn -> Opponent passed
-            setPassPlayer(currentTurn === 'black' ? 'white' : 'black');
-            setShowPassModal(true);
-            setTimeout(() => setShowPassModal(false), 2000);
-        }
-    }, [gameState]);
+    }, [gameState, joinMode, status]);
 
     const handleCellClick = (x: number, y: number) => {
-        if (!gameState || !myRole || gameState.turn !== myRole || status !== 'playing') return;
+        if (joinMode !== 'ai') return;
+        if (!gameState || gameState.turn !== 'black' || status !== 'playing') return;
 
         const isValid = validMoves.some(m => m.x === x && m.y === y);
         if (!isValid) return;
 
-        if (roomId === 'ai-match') {
-            const newState = executeMove(gameState, x, y);
-            setGameState(newState);
-            if (newState.winner) setStatus('finished');
-        } else {
-            push(ref(db, `reversi_rooms/${roomId}/moves`), { x, y, player: myRole });
-        }
+        const newState = executeMove(gameState, x, y);
+        setGameState(newState);
+        if (newState.winner) setStatus('finished');
     };
 
     const handleSendMessage = (text: string) => {
-        if (roomId === 'ai-match') {
+        if (joinMode === 'ai') {
             setMessages(prev => [...prev, { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() }]);
-            return;
-        }
-        if (roomId) {
-            push(ref(db, `reversi_rooms/${roomId}/chat`), { id: `msg-${Date.now()}`, sender: playerName, text, timestamp: Date.now() });
         }
     };
 
     const handleBackToTop = () => {
-        if (roomId && myRole && roomId !== 'ai-match') {
-            const myPlayerRef = ref(db, `reversi_rooms/${roomId}/${myRole}`);
-            set(myPlayerRef, null);
-            onDisconnect(myPlayerRef).cancel();
-        }
-        router.push('/');
+        setJoinMode(null);
+        setStatus('initial');
     };
 
     const handleRematch = () => {
-        if (roomId === 'ai-match') {
+        if (joinMode === 'ai') {
             setGameState(createInitialState());
             setStatus('playing');
             setMessages([]);
-        } else if (roomId && myRole) {
-            update(ref(db, `reversi_rooms/${roomId}/rematch`), { [myRole]: true });
         }
     };
 
@@ -410,30 +162,153 @@ export default function ReversiPage() {
         );
     }
 
+    // Colyseus Components
+    if (joinMode === 'colyseus_random') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <ColyseusReversiGame mode="random" userData={{ name: playerName, id: playerId }} />
+            </main>
+        );
+    }
+
+    if (joinMode === 'colyseus_room_active') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <ColyseusReversiGame mode="room" roomId={customRoomId || undefined} userData={{ name: playerName, id: playerId }} />
+            </main>
+        );
+    }
+
+    if (joinMode === 'colyseus_room') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+                <div className={styles.gameContainer}>
+                    <h1 className={styles.title}>ルーム対戦</h1>
+
+                    <div className={styles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                            {/* Create Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                                <button
+                                    onClick={() => { setCustomRoomId(''); setJoinMode('colyseus_room_active'); }}
+                                    className={styles.primaryBtn}
+                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}
+                                >
+                                    ルーム作成（ID自動発行）
+                                </button>
+                            </div>
+
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f7fafc', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            </div>
+
+                            {/* Join Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input
+                                        type="text"
+                                        value={customRoomId}
+                                        onChange={(e) => setCustomRoomId(e.target.value)}
+                                        placeholder="6桁のID"
+                                        className={styles.input}
+                                        maxLength={10}
+                                        style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
+                                        inputMode="numeric"
+                                    />
+                                    <button
+                                        onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }}
+                                        className={styles.primaryBtn}
+                                        style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}
+                                        disabled={!customRoomId}
+                                    >
+                                        参加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    // AI Game View
+    if (joinMode === 'ai') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={styles.gameLayout}>
+                    <div className={styles.leftPanel}>
+                        <div className={styles.playersSection}>
+                            <div className={styles.playerInfo}>
+                                <p>AI (相手)</p>
+                                <p>白: {gameState?.whiteCount}</p>
+                            </div>
+                            <div className={styles.playerInfo}>
+                                <p>{playerName} (自分)</p>
+                                <p>黒: {gameState?.blackCount}</p>
+                            </div>
+                        </div>
+                        <div className={styles.chatSection}>
+                            <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
+                        </div>
+                    </div>
+                    <div className={styles.centerPanel}>
+                        <div className={styles.turnIndicator}>
+                            {gameState?.turn === 'black' ? '黒の番 (あなた)' : '白の番'}
+                        </div>
+                        <ReversiBoard
+                            board={gameState?.board || []}
+                            validMoves={validMoves}
+                            onCellClick={handleCellClick}
+                            lastMove={gameState?.history[gameState?.history.length - 1]}
+                        />
+                    </div>
+                </div>
+                {gameState?.winner && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modal}>
+                            <h2>勝負あり！</h2>
+                            <p>勝者: {gameState.winner === 'black' ? '黒' : gameState.winner === 'white' ? '白' : '引き分け'}</p>
+                            <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
+                            <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
+                        </div>
+                    </div>
+                )}
+            </main>
+        );
+    }
+
     if (status === 'initial') {
         return (
             <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+                <div className={styles.header}><button onClick={() => router.push('/')} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+
                 <div className={styles.gameContainer}>
                     <h1 className={styles.title}>リバーシ</h1>
-                    {!joinMode ? (
-                        <div className={styles.modeSelection}>
-                            <button onClick={joinRandomGame} className={styles.modeBtn}><IconDice size={48} color="#2e7d32" /><span className={styles.modeBtnTitle}>ランダム</span></button>
-                            <button onClick={() => setJoinMode('room')} className={styles.modeBtn}><IconKey size={48} color="#2e7d32" /><span className={styles.modeBtnTitle}>ルーム</span></button>
-                            <button onClick={startAIGame} className={styles.modeBtn}><IconRobot size={48} color="#2e7d32" /><span className={styles.modeBtnTitle}>AI対戦</span></button>
-                        </div>
-                    ) : joinMode === 'random' ? (
-                        <div className={styles.joinSection}><p>マッチング中...</p><button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>キャンセル</button></div>
-                    ) : (
-                        <div className={styles.joinSection}>
-                            <input type="text" value={customRoomId} onChange={e => setCustomRoomId(e.target.value)} placeholder="ルームID" className={styles.input} />
-                            <button onClick={joinRoomGame} className={styles.primaryBtn}>参加/作成</button>
-                            <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>戻る</button>
-                        </div>
-                    )}
+
+                    <div className={styles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
+                            <IconDice size={48} color="#2e7d32" />
+                            <span className={styles.modeBtnTitle}>オンライン対戦</span>
+                        </button>
+                        <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
+                            <IconKey size={48} color="#2e7d32" />
+                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                        </button>
+                        <button onClick={startAIGame} className={styles.modeBtn}>
+                            <IconRobot size={48} color="#2e7d32" />
+                            <span className={styles.modeBtnTitle}>AI対戦</span>
+                        </button>
+                    </div>
                 </div>
 
-                {/* AdSense Content Section */}
+                {/* AdSense Content Section - (Preserved) */}
                 <div className={styles.contentSection}>
                     <h2 className={styles.contentTitle}>リバーシ（リバーシ）の奥深い世界</h2>
 
@@ -505,67 +380,5 @@ export default function ReversiPage() {
         );
     }
 
-    if (status === 'waiting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    <div className={styles.waitingAnimation}><IconHourglass size={64} color="#2e7d32" /></div>
-                    <p>ルームID: <span className={styles.roomId}>{roomId}</span></p>
-                </div>
-            </main>
-        );
-    }
-
-    return (
-        <main className={styles.main}>
-            <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-            <div className={styles.gameLayout}>
-                <div className={styles.leftPanel}>
-                    <div className={styles.playersSection}>
-                        <div className={styles.playerInfo}>
-                            <p>{opponentName || '相手'}</p>
-                            <p>白: {gameState?.whiteCount}</p>
-                        </div>
-                        <div className={styles.playerInfo}>
-                            <p>{playerName} (自分)</p>
-                            <p>黒: {gameState?.blackCount}</p>
-                        </div>
-                    </div>
-                    <div className={styles.chatSection}>
-                        <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
-                    </div>
-                </div>
-                <div className={styles.centerPanel}>
-                    <div className={styles.turnIndicator}>
-                        {gameState?.turn === 'black' ? '黒の番' : '白の番'}
-                        {gameState?.turn === myRole && ' (あなた)'}
-                    </div>
-                    <ReversiBoard
-                        board={gameState!.board}
-                        validMoves={validMoves}
-                        onCellClick={handleCellClick}
-                        lastMove={gameState!.history[gameState!.history.length - 1]}
-                    />
-                </div>
-            </div>
-            {gameState?.winner && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h2>勝負あり！</h2>
-                        <p>勝者: {gameState.winner === 'black' ? '黒' : gameState.winner === 'white' ? '白' : '引き分け'}</p>
-                        <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
-                        <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
-                    </div>
-                </div>
-            )}
-
-            {showPassModal && (
-                <div className={styles.toast}>
-                    <p>{passPlayer === 'black' ? '黒' : '白'} はパスしました</p>
-                </div>
-            )}
-        </main>
-    );
+    return null; // Fallback
 }

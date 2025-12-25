@@ -61,6 +61,13 @@
     transition: all 0.2s;
 }
 
+.pieceWrapper {
+    /* Container for piece to handle combined transforms */
+    pointer-events: none;
+    /* Let clicks pass through to cell, or handle on wrapper? */
+    /* Actually we handle click on cell. Wrapper is just visual. */
+}
+
 .piece {
     transition: transform 0.2s;
     filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.6));
@@ -69,9 +76,9 @@
 }
 
 .piece:hover {
-    transform: scale(1.15) !important;
-    /* !important to override inline rotate if needed, but we handle it manually */
+    transform: scale(1.15);
     filter: drop-shadow(3px 6px 5px rgba(0, 0, 0, 0.7));
+    cursor: pointer;
 }
 
 .whitePiece {

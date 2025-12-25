@@ -29,5 +29,5 @@ export interface GameState {
     activePiece: Position | null; // If set, only this piece can move (multi-jump in progress)
 }
 
-export const ROWS = 8;
-export const COLS = 8;
+export const ROWS = 10;
+export const COLS = 10;

@@ -58,14 +58,21 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
                 onClick={() => onCellClick(x, y)}
             >
                 {piece && (
-                    <span
-                        className={`${styles.piece} ${piece.player === 'white' ? styles.whitePiece : styles.blackPiece}`}
+                    <div
+                        className={styles.pieceWrapper}
                         style={{
-                            transform: myRole === 'black' ? 'rotate(180deg)' : 'none'
+                            transform: myRole === 'black' ? 'rotate(180deg)' : 'none',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '100%',
+                            height: '100%'
                         }}
                     >
-                        {PIECE_ICONS[piece.type]}
-                    </span>
+                        <span className={`${styles.piece} ${piece.player === 'white' ? styles.whitePiece : styles.blackPiece}`}>
+                            {PIECE_ICONS[piece.type]}
+                        </span>
+                    </div>
                 )}
             </div>
         );

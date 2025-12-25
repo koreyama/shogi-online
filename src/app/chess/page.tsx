@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import ChessBoard from '@/components/ChessBoard';
+import ColyseusChessGame from './ColyseusChessGame'; // Refresh
 import { Chat } from '@/components/Chat';
 import { createInitialState, executeMove, isValidMove } from '@/lib/chess/engine';
 import { GameState, Player, Coordinates } from '@/lib/chess/types';
@@ -38,7 +39,7 @@ export default function ChessPage() {
     // Player State
     const [playerName, setPlayerName] = useState('');
     const [opponentName, setOpponentName] = useState('');
-    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | null>(null);
+    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | 'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
 
     // Chat State
@@ -357,17 +358,101 @@ export default function ChessPage() {
         );
     }
 
+    if (joinMode === 'colyseus_random') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <ColyseusChessGame mode="random" userData={{ name: playerName, id: playerId }} />
+            </main>
+        );
+    }
+
+    if (joinMode === 'colyseus_room_active') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <ColyseusChessGame mode="room" roomId={customRoomId || undefined} userData={{ name: playerName, id: playerId }} />
+            </main>
+        );
+    }
+
+    if (joinMode === 'colyseus_room') {
+        return (
+            <main className={styles.main}>
+                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+                <div className={styles.gameContainer}>
+                    <h1 className={styles.title}>ルーム対戦</h1>
+
+                    <div className={styles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                            {/* Create Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                                <button
+                                    onClick={() => { setCustomRoomId(''); setJoinMode('colyseus_room_active'); }}
+                                    className={styles.primaryBtn}
+                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}
+                                >
+                                    ルーム作成（ID自動発行）
+                                </button>
+                            </div>
+
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f7fafc', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            </div>
+
+                            {/* Join Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input
+                                        type="text"
+                                        value={customRoomId}
+                                        onChange={(e) => setCustomRoomId(e.target.value)}
+                                        placeholder="6桁のID"
+                                        className={styles.input}
+                                        maxLength={10}
+                                        style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
+                                        inputMode="numeric"
+                                    />
+                                    <button
+                                        onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }}
+                                        className={styles.primaryBtn}
+                                        style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}
+                                        disabled={!customRoomId}
+                                    >
+                                        参加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
     if (status === 'initial') {
         return (
             <main className={styles.main}>
                 <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+
                 <div className={styles.gameContainer}>
                     <h1 className={styles.title}>チェス</h1>
                     {!joinMode ? (
                         <div className={styles.modeSelection}>
-                            <button onClick={joinRandomGame} className={styles.modeBtn}><IconDice size={48} color="#2b6cb0" /><span className={styles.modeBtnTitle}>ランダム</span></button>
-                            <button onClick={() => setJoinMode('room')} className={styles.modeBtn}><IconKey size={48} color="#2b6cb0" /><span className={styles.modeBtnTitle}>ルーム</span></button>
-                            <button onClick={startAIGame} className={styles.modeBtn}><IconRobot size={48} color="#2b6cb0" /><span className={styles.modeBtnTitle}>AI対戦</span></button>
+                            <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
+                                <IconDice size={48} color="#2b6cb0" />
+                                <span className={styles.modeBtnTitle}>オンライン対戦</span>
+                            </button>
+                            <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
+                                <IconKey size={48} color="#2b6cb0" />
+                                <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                            </button>
+                            <button onClick={startAIGame} className={styles.modeBtn}>
+                                <IconRobot size={48} color="#2b6cb0" />
+                                <span className={styles.modeBtnTitle}>AI対戦</span>
+                            </button>
                         </div>
                     ) : joinMode === 'random' ? (
                         <div className={styles.joinSection}><p>マッチング中...</p><button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>キャンセル</button></div>
@@ -464,6 +549,7 @@ export default function ChessPage() {
             </main>
         );
     }
+
 
     return (
         <main className={styles.main}>

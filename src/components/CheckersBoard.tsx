@@ -54,12 +54,12 @@ export default function CheckersBoard({
 
     const renderBoard = () => {
         const rows = [];
-        for (let r = 0; r < 8; r++) {
+        for (let r = 0; r < 10; r++) {
             const cols = [];
-            for (let c = 0; c < 8; c++) {
+            for (let c = 0; c < 10; c++) {
                 // Adjust coords for view
-                const actualR = isRedView ? r : 7 - r;
-                const actualC = isRedView ? c : 7 - c;
+                const actualR = isRedView ? r : 9 - r;
+                const actualC = isRedView ? c : 9 - c;
 
                 const piece = board[actualR][actualC];
                 const isSelected = selectedPos?.r === actualR && selectedPos?.c === actualC;

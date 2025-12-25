@@ -17,6 +17,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/three": "^0.181.0",
     "canvas-confetti": "^1.9.4",
+    "chess.js": "^1.4.0",
     "colyseus.js": "^0.16.22",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",

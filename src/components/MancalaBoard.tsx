@@ -17,13 +17,15 @@ const Pit = ({
     seeds,
     isStore,
     isActive,
-    onClick
+    onClick,
+    isRotated
 }: {
     index: number;
     seeds: number;
     isStore: boolean;
     isActive: boolean;
     onClick: () => void;
+    isRotated?: boolean;
 }) => {
     const [animateClass, setAnimateClass] = useState('');
     const prevSeeds = useRef(seeds);
@@ -76,14 +78,24 @@ const Pit = ({
             onClick={isActive ? onClick : undefined}
         >
             {seeds > 0 && (
-                <div className={`${styles.seedCount} ${animateClass ? styles.bump : ''}`}>
+                <div
+                    className={`${styles.seedCount} ${animateClass ? styles.bump : ''}`}
+                    style={{ transform: isRotated ? 'rotate(180deg)' : 'none' }}
+                >
                     {seeds}
                 </div>
             )}
             <div className={styles.seedsContainer}>
                 {seedElements}
             </div>
-            {isStore && <span className={styles.storeLabel}>STORE</span>}
+            {isStore && (
+                <span
+                    className={styles.storeLabel}
+                    style={{ transform: isRotated ? 'rotate(180deg)' : 'none' }}
+                >
+                    STORE
+                </span>
+            )}
         </div>
     );
 };
@@ -109,67 +121,73 @@ const MancalaBoard: React.FC<MancalaBoardProps> = ({
 
     return (
         <div className={styles.boardContainer}>
-            <div className={`${styles.playerLabel} ${styles.topLabel} ${turn === 'second' ? styles.activeTurn : ''}`}>
-                {isSecondView ? 'YOU (Second)' : 'OPPONENT (Second)'}
+            <div className={`
+                ${styles.playerLabel} 
+                ${styles.topLabel} 
+                ${turn === (isSecondView ? 'first' : 'second') ? styles.activeTurn : ''}
+            `}>
+                {isSecondView ? 'OPPONENT (First)' : 'OPPONENT (Second)'}
             </div>
 
             <div
                 className={`${styles.board} ${isSecondView ? styles.rotated : ''}`}
             >
-                {/* Second Player's Store (Left) */}
-                <div style={{ transform: isSecondView ? 'rotate(180deg)' : 'none' }}>
-                    <Pit
-                        index={SECOND_STORE}
-                        seeds={board[SECOND_STORE]}
-                        isStore={true}
-                        isActive={false}
-                        onClick={() => { }}
-                    />
-                </div>
+                {/* Second Player's Store (Left side on default) */}
+                <Pit
+                    index={SECOND_STORE}
+                    seeds={board[SECOND_STORE]}
+                    isStore={true}
+                    isActive={false}
+                    onClick={() => { }}
+                    isRotated={isSecondView}
+                />
 
                 <div className={styles.pitsContainer}>
                     <div className={styles.row}>
                         {topRowIndices.map(i => (
-                            <div key={i} style={{ transform: isSecondView ? 'rotate(180deg)' : 'none' }}>
-                                <Pit
-                                    index={i}
-                                    seeds={board[i]}
-                                    isStore={false}
-                                    isActive={getIsPitActive(i)}
-                                    onClick={() => onPitClick(i)}
-                                />
-                            </div>
+                            <Pit
+                                key={i}
+                                index={i}
+                                seeds={board[i]}
+                                isStore={false}
+                                isActive={getIsPitActive(i)}
+                                onClick={() => onPitClick(i)}
+                                isRotated={isSecondView}
+                            />
                         ))}
                     </div>
                     <div className={styles.row}>
                         {bottomRowIndices.map(i => (
-                            <div key={i} style={{ transform: isSecondView ? 'rotate(180deg)' : 'none' }}>
-                                <Pit
-                                    index={i}
-                                    seeds={board[i]}
-                                    isStore={false}
-                                    isActive={getIsPitActive(i)}
-                                    onClick={() => onPitClick(i)}
-                                />
-                            </div>
+                            <Pit
+                                key={i}
+                                index={i}
+                                seeds={board[i]}
+                                isStore={false}
+                                isActive={getIsPitActive(i)}
+                                onClick={() => onPitClick(i)}
+                                isRotated={isSecondView}
+                            />
                         ))}
                     </div>
                 </div>
 
-                {/* First Player's Store (Right) */}
-                <div style={{ transform: isSecondView ? 'rotate(180deg)' : 'none' }}>
-                    <Pit
-                        index={FIRST_STORE}
-                        seeds={board[FIRST_STORE]}
-                        isStore={true}
-                        isActive={false}
-                        onClick={() => { }}
-                    />
-                </div>
+                {/* First Player's Store (Right side on default) */}
+                <Pit
+                    index={FIRST_STORE}
+                    seeds={board[FIRST_STORE]}
+                    isStore={true}
+                    isActive={false}
+                    onClick={() => { }}
+                    isRotated={isSecondView}
+                />
             </div>
 
-            <div className={`${styles.playerLabel} ${styles.bottomLabel} ${turn === 'first' ? styles.activeTurn : ''}`}>
-                {isSecondView ? 'OPPONENT (First)' : 'YOU (First)'}
+            <div className={`
+                ${styles.playerLabel} 
+                ${styles.bottomLabel} 
+                ${turn === (isSecondView ? 'second' : 'first') ? styles.activeTurn : ''}
+            `}>
+                {isSecondView ? 'YOU (Second)' : 'YOU (First)'}
             </div>
         </div>
     );

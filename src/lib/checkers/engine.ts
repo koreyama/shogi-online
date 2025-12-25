@@ -3,8 +3,8 @@ import { Board, GameState, Move, Piece, PieceType, Player, Position, ROWS, COLS 
 export function createInitialState(): GameState {
     const board: Board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
 
-    // Black (Top) - Rows 0, 1, 2
-    for (let r = 0; r < 3; r++) {
+    // Black (Top) - Rows 0, 1, 2, 3
+    for (let r = 0; r < 4; r++) {
         for (let c = 0; c < COLS; c++) {
             if ((r + c) % 2 === 1) {
                 board[r][c] = { type: 'man', owner: 'black' };
@@ -12,8 +12,8 @@ export function createInitialState(): GameState {
         }
     }
 
-    // Red (Bottom) - Rows 5, 6, 7
-    for (let r = 5; r < ROWS; r++) {
+    // Red (Bottom) - Rows 6, 7, 8, 9
+    for (let r = 6; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             if ((r + c) % 2 === 1) {
                 board[r][c] = { type: 'man', owner: 'red' };

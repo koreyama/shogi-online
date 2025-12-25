@@ -1,223 +1,196 @@
-import { BoardState, Player, Move, BOARD_SIZE } from './types';
-import { isValidMove } from './engine';
+import { GameState } from './engine';
 
-const MAX_DEPTH = 2; // Performance consideration
+const BOARD_SIZE = 15;
+const EMPTY = 0;
 
-// Evaluation Scores
+// Patterns scores
 const SCORES = {
     WIN: 1000000,
-    LIVE_FOUR: 100000, // 011110 - Unstoppable unless immediate block
-    DEAD_FOUR: 10000,  // x11110 - Must block
-    LIVE_THREE: 10000, // 01110 - Major threat
-    DEAD_THREE: 1000,
-    LIVE_TWO: 100,
-    DEAD_TWO: 10
+    OPEN_4: 100000,  // Guaranteed win next turn
+    CLOSED_4: 10000, // Threat to win
+    OPEN_3: 10000,   // Can become OPEN_4
+    CLOSED_3: 1000,
+    OPEN_2: 1000,
+    CLOSED_2: 100,
+    OPEN_1: 10,
+    CLOSED_1: 1
 };
 
-export const getBestMove = (board: BoardState, player: Player): Move | null => {
-    // 1. If board is empty, play center
-    let stoneCount = 0;
+export function getBestMove(state: GameState, aiColor: 'black' | 'white'): { x: number, y: number } | null {
+    const board = state.board;
+    const myColorCode = aiColor === 'black' ? 1 : 2;
+    const oppColorCode = aiColor === 'black' ? 2 : 1;
+
+    // 1. Gather Candidate Moves (Empty cells within distance 2 of existing stones)
+    let candidates: { x: number, y: number }[] = [];
+    let hasStones = false;
+
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
-            if (board[y][x] !== null) stoneCount++;
+            if (board[y * BOARD_SIZE + x] !== EMPTY) {
+                hasStones = true;
+            } else if (isNearStone(board, x, y, 2)) {
+                candidates.push({ x, y });
+            }
         }
     }
-    if (stoneCount === 0) {
-        return { x: Math.floor(BOARD_SIZE / 2), y: Math.floor(BOARD_SIZE / 2), player };
+
+    // First move policy: Center
+    if (!hasStones) return { x: 7, y: 7 };
+    if (candidates.length === 0) { // Should be rare if board not empty
+        // Fallback to all empty
+        for (let y = 0; y < BOARD_SIZE; y++) {
+            for (let x = 0; x < BOARD_SIZE; x++) {
+                if (board[y * BOARD_SIZE + x] === EMPTY) candidates.push({ x, y });
+            }
+        }
     }
 
-    // 2. Candidate generation (nearby stones)
-    const candidates = getCandidateMoves(board);
-    if (candidates.length === 0) return null;
+    let bestScore = -1;
+    let bestMoves: { x: number, y: number }[] = [];
 
-    let bestScore = -Infinity;
-    let bestMove: Move | null = null;
-    let alpha = -Infinity;
-    let beta = Infinity;
-
-    // 3. Simple Minimax with Alpha-Beta
+    // 2. Evaluate each candidate
     for (const move of candidates) {
-        const newBoard = board.map(row => [...row]);
-        newBoard[move.y][move.x] = player;
+        // Attack Score (My potnetial)
+        const attackScore = evaluatePoint(board, move.x, move.y, myColorCode);
 
-        // Check instant win
-        if (evaluateBoard(newBoard, player) >= SCORES.WIN) {
-            return { x: move.x, y: move.y, player };
+        // Defense Score (Opponent's potential if I don't block)
+        const defenseScore = evaluatePoint(board, move.x, move.y, oppColorCode);
+
+        // Weighted Sum (Attack is slightly preferred to break ties, but defense is critical)
+        // If I have a win, take it. If opponent has a win, block it. 
+        // Logic: specific critical values override sum.
+
+        let score = 0;
+
+        // Critical forcing moves logic
+        if (attackScore >= SCORES.WIN) score = 2000000; // Win immediately
+        else if (defenseScore >= SCORES.WIN) score = 1000000; // Block immediate win (unless I can win myself)
+        else if (attackScore >= SCORES.OPEN_4) score = 500000; // Guaranteed win
+        else if (defenseScore >= SCORES.OPEN_4) score = 400000; // Block guaranteed win
+        else {
+            score = attackScore + defenseScore;
         }
-
-        const score = minimax(newBoard, MAX_DEPTH - 1, false, alpha, beta, player);
 
         if (score > bestScore) {
             bestScore = score;
-            bestMove = { x: move.x, y: move.y, player };
-        }
-        alpha = Math.max(alpha, bestScore);
-    }
-
-    return bestMove || { x: candidates[0].x, y: candidates[0].y, player };
-};
-
-const getCandidateMoves = (board: BoardState): { x: number, y: number }[] => {
-    const candidates: { x: number, y: number }[] = [];
-    const visited = new Set<string>();
-
-    // Optimization: Only check cells within 2 steps of existing stones
-    for (let y = 0; y < BOARD_SIZE; y++) {
-        for (let x = 0; x < BOARD_SIZE; x++) {
-            if (board[y][x] !== null) {
-                for (let dy = -2; dy <= 2; dy++) {
-                    for (let dx = -2; dx <= 2; dx++) {
-                        const ny = y + dy;
-                        const nx = x + dx;
-                        if (ny >= 0 && ny < BOARD_SIZE && nx >= 0 && nx < BOARD_SIZE && board[ny][nx] === null) {
-                            const key = `${nx},${ny}`;
-                            if (!visited.has(key)) {
-                                candidates.push({ x: nx, y: ny });
-                                visited.add(key);
-                            }
-                        }
-                    }
-                }
-            }
+            bestMoves = [move];
+        } else if (score === bestScore) {
+            bestMoves.push(move);
         }
     }
-    // If no candidates found (shouldn't happen if board not empty), pick center of empty
-    if (candidates.length === 0) {
-        if (board[7][7] === null) candidates.push({ x: 7, y: 7 });
-    }
 
-    return candidates;
-};
+    if (bestMoves.length === 0) return null;
+    return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+}
 
-const minimax = (
-    board: BoardState,
-    depth: number,
-    isMaximizing: boolean,
-    alpha: number,
-    beta: number,
-    player: Player
-): number => {
-    const opponent = player === 'black' ? 'white' : 'black';
-    const currentScore = evaluateBoard(board, player);
+function isNearStone(board: number[], x: number, y: number, dist: number): boolean {
+    const minX = Math.max(0, x - dist);
+    const maxX = Math.min(BOARD_SIZE - 1, x + dist);
+    const minY = Math.max(0, y - dist);
+    const maxY = Math.min(BOARD_SIZE - 1, y + dist);
 
-    if (Math.abs(currentScore) >= SCORES.WIN / 2) return currentScore;
-    if (depth === 0) return currentScore;
-
-    const candidates = getCandidateMoves(board);
-    if (candidates.length === 0) return 0;
-
-    if (isMaximizing) {
-        let maxEval = -Infinity;
-        for (const move of candidates) {
-            const newBoard = board.map(row => [...row]);
-            newBoard[move.y][move.x] = player;
-            const evalScore = minimax(newBoard, depth - 1, false, alpha, beta, player);
-            maxEval = Math.max(maxEval, evalScore);
-            alpha = Math.max(alpha, evalScore);
-            if (beta <= alpha) break;
-        }
-        return maxEval;
-    } else {
-        let minEval = Infinity;
-        for (const move of candidates) {
-            const newBoard = board.map(row => [...row]);
-            newBoard[move.y][move.x] = opponent;
-            const evalScore = minimax(newBoard, depth - 1, true, alpha, beta, player);
-            minEval = Math.min(minEval, evalScore);
-            beta = Math.min(beta, evalScore);
-            if (beta <= alpha) break;
-        }
-        return minEval;
-    }
-};
-
-// --- Evaluation Logic ---
-
-const evaluateBoard = (board: BoardState, player: Player): number => {
-    const opponent = player === 'black' ? 'white' : 'black';
-    let myScore = evaluatePlayer(board, player);
-    let oppScore = evaluatePlayer(board, opponent);
-
-    // Defense is slightly more important if opponent has high threat
-    if (oppScore >= SCORES.LIVE_FOUR) oppScore *= 1.2;
-    if (oppScore >= SCORES.LIVE_THREE) oppScore *= 1.1;
-
-    return myScore - oppScore;
-};
-
-const evaluatePlayer = (board: BoardState, player: Player): number => {
-    let score = 0;
-    const directions = [
-        { dx: 1, dy: 0 },
-        { dx: 0, dy: 1 },
-        { dx: 1, dy: 1 },
-        { dx: 1, dy: -1 },
-    ];
-
-    // Scan all 4 directions for every cell to identify sequences
-    for (let y = 0; y < BOARD_SIZE; y++) {
-        for (let x = 0; x < BOARD_SIZE; x++) {
-            if (board[y][x] === player) {
-                for (const { dx, dy } of directions) {
-                    // Check if this stone is the start of a sequence (previous is not player)
-                    // This avoids double counting 1-1-1-1-1 as 5 separate things
-                    const px = x - dx;
-                    const py = y - dy;
-                    if (px >= 0 && px < BOARD_SIZE && py >= 0 && py < BOARD_SIZE && board[py][px] === player) {
-                        continue;
-                    }
-
-                    score += evaluateSequence(board, x, y, dx, dy, player);
-                }
-            }
+    for (let cy = minY; cy <= maxY; cy++) {
+        for (let cx = minX; cx <= maxX; cx++) {
+            if (board[cy * BOARD_SIZE + cx] !== EMPTY) return true;
         }
     }
-    return score;
-};
+    return false;
+}
 
-const evaluateSequence = (board: BoardState, x: number, y: number, dx: number, dy: number, player: Player): number => {
-    let count = 0;
-    let openEnds = 0;
+// Evaluate a point for a specific color (how good is this spot for 'color')
+function evaluatePoint(board: number[], x: number, y: number, color: number): number {
+    let totalScore = 0;
 
-    // Scan forward to find length
-    let i = 0;
+    // Check all 4 directions
+    // Horizontal, Vertical, Diagonal 1 (\), Diagonal 2 (/)
+    const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+    for (const [dx, dy] of directions) {
+        totalScore += evaluateDirection(board, x, y, dx, dy, color);
+    }
+
+    return totalScore;
+}
+
+function evaluateDirection(board: number[], x: number, y: number, dx: number, dy: number, color: number): number {
+    // We look at the line formed by placing stone at (x,y)
+    // We look 4 steps back and 4 steps forward to see the pattern formed
+
+    let count = 1; // The stone itself
+    let blockStart = false; // Is the "start" side blocked?
+    let blockEnd = false;   // Is the "end" side blocked?
+
+    // Check Forward
+    let i = 1;
     while (true) {
-        const nx = x + dx * i;
-        const ny = y + dy * i;
-        if (nx < 0 || nx >= BOARD_SIZE || ny < 0 || ny >= BOARD_SIZE || board[ny][nx] !== player) {
+        const cx = x + dx * i;
+        const cy = y + dy * i;
+        if (cx < 0 || cx >= BOARD_SIZE || cy < 0 || cy >= BOARD_SIZE) {
+            blockEnd = true;
             break;
         }
-        count++;
+        const cell = board[cy * BOARD_SIZE + cx];
+        if (cell === color) {
+            count++;
+        } else if (cell === EMPTY) {
+            break; // Stop at empty (but remember it's open)
+        } else {
+            blockEnd = true; // Blocked by opponent
+            break;
+        }
         i++;
     }
 
-    // Check ends
-    // Start side (x-dx, y-dy)
-    const sx = x - dx;
-    const sy = y - dy;
-    if (sx >= 0 && sx < BOARD_SIZE && sy >= 0 && sy < BOARD_SIZE && board[sy][sx] === null) {
-        openEnds++;
+    // Check Backward
+    let j = 1;
+    while (true) {
+        const cx = x - dx * j;
+        const cy = y - dy * j;
+        if (cx < 0 || cx >= BOARD_SIZE || cy < 0 || cy >= BOARD_SIZE) {
+            blockStart = true;
+            break;
+        }
+        const cell = board[cy * BOARD_SIZE + cx];
+        if (cell === color) {
+            count++;
+        } else if (cell === EMPTY) {
+            break;
+        } else {
+            blockStart = true;
+            break;
+        }
+        j++;
     }
 
-    // End side (x + dx*count, y + dy*count)
-    const ex = x + dx * count;
-    const ey = y + dy * count;
-    if (ex >= 0 && ex < BOARD_SIZE && ey >= 0 && ey < BOARD_SIZE && board[ey][ex] === null) {
-        openEnds++;
-    }
-
+    // Score based on count and blocks
     if (count >= 5) return SCORES.WIN;
+
     if (count === 4) {
-        if (openEnds === 2) return SCORES.LIVE_FOUR;
-        if (openEnds === 1) return SCORES.DEAD_FOUR;
+        if (!blockStart && !blockEnd) return SCORES.OPEN_4;
+        if (!blockStart || !blockEnd) return SCORES.CLOSED_4;
+        return 0; // Completely blocked 4 is useless (unless >5 wins, but usually standard gomoku)
     }
+
     if (count === 3) {
-        if (openEnds === 2) return SCORES.LIVE_THREE;
-        if (openEnds === 1) return SCORES.DEAD_THREE;
+        if (!blockStart && !blockEnd) {
+            // Need to check if next to empty is truly playable for Open 3?
+            // Simple heuristic: yes.
+            return SCORES.OPEN_3;
+        }
+        if (!blockStart || !blockEnd) return SCORES.CLOSED_3;
+        return 0;
     }
+
     if (count === 2) {
-        if (openEnds === 2) return SCORES.LIVE_TWO;
+        if (!blockStart && !blockEnd) return SCORES.OPEN_2;
+        if (!blockStart || !blockEnd) return SCORES.CLOSED_2;
+        return 0;
+    }
+
+    if (count === 1) {
+        return 0; // Single stone usually negligible unless advanced spacing check
     }
 
     return 0;
-};
+}

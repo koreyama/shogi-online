@@ -359,20 +359,16 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
     return (
         <div className={styles.main}>
             <div className={styles.header}>
+                <button onClick={() => window.location.reload()} className={styles.backButton}><IconBack size={18} /> 終了</button>
                 <h1 className={styles.compactTitle}>将棋オンライン</h1>
-                <div className="text-xs bg-black/20 p-2 rounded">
-                    ルームID: <span className="font-mono">{room?.roomId}</span> <br />
-                    状態: <span className="font-bold">{status === 'playing' ? '対局中' : status === 'waiting' ? '待機中' : '終了'}</span> |
-                    あなた: <span className="font-bold">{myRole === 'sente' ? '先手' : myRole === 'gote' ? '後手' : '観戦'}</span> |
-                    手番: <span className="font-bold">{gameState.turn === 'sente' ? '先手' : '後手'}</span>
+                <div className="text-xs bg-black/20 p-2 rounded ml-4">
+                    ID: <span className="font-mono font-bold">{room?.roomId}</span>
                 </div>
-                <div className="flex gap-2 ml-4">
-                    {status === 'playing' && (
-                        <button onClick={handleResign} className={styles.resignBtn}>
-                            投了
-                        </button>
-                    )}
-                </div>
+                {status === 'playing' && (
+                    <button onClick={handleResign} className={styles.resignBtn}>
+                        投了
+                    </button>
+                )}
             </div>
 
             <div className={styles.gameLayout}>

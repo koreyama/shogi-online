@@ -1,84 +1,94 @@
-import { BoardState, GameState, Player, Move, BOARD_SIZE } from './types';
+export type PlayerColor = 'black' | 'white';
+export type CellState = PlayerColor | null; // null=Empty
+export type BoardState = CellState[]; // 1D Array, size 225
 
-export const createInitialState = (): GameState => {
-    const board: BoardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+export interface GameState {
+    board: number[]; // 0=Empty, 1=Black, 2=White
+    turn: PlayerColor;
+    winner: PlayerColor | 'draw' | null;
+    isGameOver: boolean;
+    lastMove?: { x: number, y: number };
+}
+
+const BOARD_SIZE = 15;
+
+export function createInitialState(): GameState {
     return {
-        board,
+        board: Array(BOARD_SIZE * BOARD_SIZE).fill(0),
         turn: 'black',
         winner: null,
-        history: [],
-        isGameOver: false,
+        isGameOver: false
     };
-};
+}
 
-export const isValidMove = (board: BoardState, x: number, y: number): boolean => {
-    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
-        return false;
-    }
-    return board[y][x] === null;
-};
+export function isValidMove(state: GameState, x: number, y: number): boolean {
+    if (state.isGameOver) return false;
+    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return false;
+    const index = y * BOARD_SIZE + x;
+    return state.board[index] === 0;
+}
 
-export const executeMove = (currentState: GameState, x: number, y: number): GameState => {
-    if (currentState.isGameOver || !isValidMove(currentState.board, x, y)) {
-        return currentState;
-    }
+export function executeMove(state: GameState, x: number, y: number): GameState {
+    if (!isValidMove(state, x, y)) return state;
 
-    const newBoard = currentState.board.map(row => [...row]);
-    newBoard[y][x] = currentState.turn;
+    const newBoard = [...state.board];
+    const index = y * BOARD_SIZE + x;
+    const colorCode = state.turn === 'black' ? 1 : 2;
+    newBoard[index] = colorCode;
 
-    const newHistory = [...currentState.history, { x, y, player: currentState.turn }];
-    const winner = checkWinner(newBoard, x, y, currentState.turn);
-
-    // Check for draw (board full)
-    let isDraw = false;
-    if (!winner) {
-        isDraw = newBoard.every(row => row.every(cell => cell !== null));
-    }
-
-    const nextTurn = currentState.turn === 'black' ? 'white' : 'black';
-
-    return {
+    const newState: GameState = {
+        ...state,
         board: newBoard,
-        turn: nextTurn,
-        winner: winner ? winner : (isDraw ? 'draw' : null),
-        history: newHistory,
-        isGameOver: !!winner || isDraw,
+        lastMove: { x, y },
+        turn: state.turn === 'black' ? 'white' : 'black', // Tentative, will be overridden if game over
+        winner: state.winner,
+        isGameOver: state.isGameOver
     };
-};
 
-export const checkWinner = (board: BoardState, lastX: number, lastY: number, player: Player): Player | null => {
+    // Check Win
+    if (checkWin(newBoard, x, y, colorCode)) {
+        newState.winner = state.turn;
+        newState.isGameOver = true;
+    } else if (newBoard.every(c => c !== 0)) {
+        newState.winner = 'draw';
+        newState.isGameOver = true;
+    } else {
+        // Turn already switched above
+    }
+
+    return newState;
+}
+
+function checkWin(board: number[], x: number, y: number, color: number): boolean {
     const directions = [
-        { dx: 1, dy: 0 },  // Horizontal
-        { dx: 0, dy: 1 },  // Vertical
-        { dx: 1, dy: 1 },  // Diagonal \
-        { dx: 1, dy: -1 }, // Diagonal /
+        [1, 0],  // Horizontal
+        [0, 1],  // Vertical
+        [1, 1],  // Diagonal \
+        [1, -1]  // Diagonal /
     ];
 
-    for (const { dx, dy } of directions) {
+    for (const [dx, dy] of directions) {
         let count = 1;
 
         // Check forward
-        let x = lastX + dx;
-        let y = lastY + dy;
-        while (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE && board[y][x] === player) {
+        let cx = x + dx;
+        let cy = y + dy;
+        while (cx >= 0 && cx < BOARD_SIZE && cy >= 0 && cy < BOARD_SIZE && board[cy * BOARD_SIZE + cx] === color) {
             count++;
-            x += dx;
-            y += dy;
+            cx += dx;
+            cy += dy;
         }
 
         // Check backward
-        x = lastX - dx;
-        y = lastY - dy;
-        while (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE && board[y][x] === player) {
+        cx = x - dx;
+        cy = y - dy;
+        while (cx >= 0 && cx < BOARD_SIZE && cy >= 0 && cy < BOARD_SIZE && board[cy * BOARD_SIZE + cx] === color) {
             count++;
-            x -= dx;
-            y -= dy;
+            cx -= dx;
+            cy -= dy;
         }
 
-        if (count >= 5) {
-            return player;
-        }
+        if (count >= 5) return true;
     }
-
-    return null;
-};
+    return false;
+}

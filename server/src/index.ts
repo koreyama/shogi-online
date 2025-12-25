@@ -6,6 +6,14 @@ import { monitor } from "@colyseus/monitor";
 
 import { DotsAndBoxesRoom } from "./rooms/DotsAndBoxesRoom";
 import { ShogiRoom } from "./rooms/ShogiRoom";
+import { ChessRoom } from "./rooms/ChessRoom";
+import { ReversiRoom } from "./rooms/ReversiRoom";
+import { GomokuRoom } from "./rooms/GomokuRoom";
+import { ConnectFourRoom } from "./rooms/ConnectFourRoom";
+import { SimpleShogiRoom } from "./rooms/SimpleShogiRoom";
+import { HoneycombRoom } from "./rooms/HoneycombRoom";
+import { CheckersRoom } from "./rooms/CheckersRoom";
+import { MancalaRoom } from "./rooms/MancalaRoom";
 
 const port = Number(process.env.PORT || 2567);
 const app = express();
@@ -28,6 +36,14 @@ const gameServer = new Server({
 // Define Rooms
 gameServer.define("dots_and_boxes", DotsAndBoxesRoom);
 gameServer.define("shogi", ShogiRoom);
+gameServer.define("chess", ChessRoom);
+gameServer.define("reversi", ReversiRoom);
+gameServer.define("gomoku", GomokuRoom);
+gameServer.define("connectfour", ConnectFourRoom);
+gameServer.define("simpleshogi", SimpleShogiRoom);
+gameServer.define("honeycomb", HoneycombRoom);
+gameServer.define("checkers", CheckersRoom);
+gameServer.define("mancala", MancalaRoom);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

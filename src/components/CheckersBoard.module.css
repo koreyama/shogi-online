@@ -17,8 +17,8 @@
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(8, 1fr);
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
   width: 100%;
   aspect-ratio: 1;
   border: 12px solid #5d4037;

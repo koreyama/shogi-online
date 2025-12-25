@@ -134,3 +134,42 @@
     font-weight: bold;
     font-size: 1.1rem;
 }
+
+@media (min-width: 768px) {
+    .boardContainer {
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .playerArea {
+        width: 120px;
+        flex-direction: column;
+        justify-content: flex-end;
+        /* Default for self (Right side) using flex-column? No, alignment. */
+    }
+
+    /* Opponent is first child */
+    .playerArea:first-child {
+        justify-content: flex-start;
+        align-self: flex-start;
+    }
+
+    /* Me is last child */
+    .playerArea:last-child {
+        justify-content: flex-end;
+        align-self: flex-end;
+    }
+
+    .hand {
+        flex-direction: column;
+        width: 100%;
+        min-height: 200px;
+    }
+
+    .handPiece {
+        width: 60px;
+        height: 60px;
+    }
+}
