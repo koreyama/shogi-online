@@ -359,10 +359,12 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
     return (
         <div className={styles.main}>
             <div className={styles.header}>
-                <h1 className={styles.compactTitle}>Shogi Colyseus (Beta)</h1>
+                <h1 className={styles.compactTitle}>将棋オンライン</h1>
                 <div className="text-xs bg-black/20 p-2 rounded">
-                    Room ID: <span className="font-mono">{room?.roomId}</span> <br />
-                    Status: <span className="font-bold">{status}</span> | Role: <span className="font-bold">{myRole}</span> | Turn: <span className="font-bold">{gameState.turn}</span>
+                    ルームID: <span className="font-mono">{room?.roomId}</span> <br />
+                    状態: <span className="font-bold">{status === 'playing' ? '対局中' : status === 'waiting' ? '待機中' : '終了'}</span> |
+                    あなた: <span className="font-bold">{myRole === 'sente' ? '先手' : myRole === 'gote' ? '後手' : '観戦'}</span> |
+                    手番: <span className="font-bold">{gameState.turn === 'sente' ? '先手' : '後手'}</span>
                 </div>
                 <div className="flex gap-2 ml-4">
                     {status === 'playing' && (
