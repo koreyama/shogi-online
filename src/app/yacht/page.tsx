@@ -1,280 +1,170 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import YachtGame from './YachtGame';
-import menuStyles from '@/styles/GameMenu.module.css';
-import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
-import Link from 'next/link';
-import { db } from '@/lib/firebase';
-import { ref, set, push, get, update, onDisconnect } from 'firebase/database';
-import { usePlayer } from '@/hooks/usePlayer';
 import { useRouter } from 'next/navigation';
+import styles from '@/styles/GameMenu.module.css';
+import { usePlayer } from '@/hooks/usePlayer';
+import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
+import YachtGame from './YachtGame';
+import ColyseusYachtGame from './ColyseusYachtGame';
 
 export default function YachtPage() {
     const router = useRouter();
-    const { playerName, savePlayerName, isLoaded: nameLoaded } = usePlayer();
-    const [gameMode, setGameMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'playing' | 'setup'>('setup');
-    const [customRoomId, setCustomRoomId] = useState('');
-    const [roomId, setRoomId] = useState<string | null>(null);
-    const [myRole, setMyRole] = useState<'P1' | 'P2' | null>(null);
+    const { playerName, playerId, savePlayerName, isLoaded: nameLoaded } = usePlayer();
+
+    // Mode Selection: 'menu', 'ai', 'random', 'room', 'create', 'join'
+    const [joinMode, setJoinMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'create' | 'join'>('menu');
+    const [targetRoomId, setTargetRoomId] = useState('');
+    const [tempPlayerName, setTempPlayerName] = useState('');
 
     useEffect(() => {
         if (nameLoaded && playerName) {
-            setGameMode('menu');
-        } else if (nameLoaded && !playerName) {
-            setGameMode('setup');
+            setTempPlayerName(playerName);
         }
     }, [nameLoaded, playerName]);
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const name = (e.target as any).playerName.value;
-        if (name) {
-            savePlayerName(name);
-            setGameMode('menu');
+        if (tempPlayerName.trim()) {
+            savePlayerName(tempPlayerName.trim());
         }
     };
 
     const handleBackToMenu = () => {
-        setGameMode('menu');
-        setRoomId(null);
-        setMyRole(null);
+        setJoinMode('menu');
+        setTargetRoomId('');
     };
 
-    const handleStartAI = () => {
-        setGameMode('ai');
+    const handleBackToTop = () => {
+        router.push('/');
     };
 
-    const joinRandomGame = async () => {
-        setGameMode('random');
-        const roomsRef = ref(db, 'yacht_rooms');
-        const snap = await get(roomsRef);
-        const rooms = snap.val();
-        let foundRoomId: string | null = null;
+    if (!nameLoaded) return null;
 
-        // 1. Cleanup & Search
-        if (rooms) {
-            for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-                // Garbage collection: If room is empty or invalid, delete it
-                if (!room.P1 && !room.P2) {
-                    set(ref(db, `yacht_rooms/${id}`), null);
-                    continue;
-                }
-
-                if (room.state === 'waiting' && ((room.P1 && !room.P2) || (!room.P1 && room.P2))) {
-                    foundRoomId = id;
-                    break;
-                }
-            }
-        }
-
-        // 2. Join or Create
-        if (foundRoomId) {
-            const room = rooms[foundRoomId];
-            const myRole = room.P1 ? 'P2' : 'P1';
-
-            // Optimistic Update
-            setRoomId(foundRoomId);
-            setMyRole(myRole);
-            setGameMode('playing');
-
-            // DB Update
-            const updates: any = {};
-            updates[`yacht_rooms/${foundRoomId}/${myRole}`] = {
-                name: playerName,
-                status: 'waiting'
-            };
-            updates[`yacht_rooms/${foundRoomId}/state`] = 'playing';
-
-            // Ensure P1 re-inits or P2 triggers sync?
-            // Actually, if we just join, Game component syncs.
-
-            await update(ref(db), updates);
-
-        } else {
-            // Create new
-            const newRef = push(roomsRef);
-            const rid = newRef.key!;
-
-            const initialState = {
-                dice: [1, 1, 1, 1, 1],
-                held: [false, false, false, false, false],
-                rollsLeft: 3,
-                scoresP1: {},
-                scoresP2: {},
-                turn: 'P1',
-                isRolling: false,
-                winner: null
-            };
-
-            setRoomId(rid);
-            setMyRole('P1');
-            setGameMode('playing');
-
-            await set(newRef, {
-                P1: { name: playerName, status: 'waiting' },
-                state: 'waiting',
-                gameState: initialState
-            });
-        }
-    };
-
-    const joinRoomGame = async () => {
-        if (!customRoomId.trim()) return;
-        const rid = customRoomId.trim();
-        const roomRef = ref(db, `yacht_rooms/${rid}`);
-        const snapshot = await get(roomRef);
-        const room = snapshot.val();
-
-        if (!room) {
-            const initialState = {
-                dice: [1, 1, 1, 1, 1],
-                held: [false, false, false, false, false],
-                rollsLeft: 3,
-                scoresP1: {},
-                scoresP2: {},
-                turn: 'P1',
-                isRolling: false,
-                winner: null
-            };
-
-            setRoomId(rid);
-            setMyRole('P1');
-            setGameMode('playing');
-
-            await set(roomRef, {
-                P1: { name: playerName, status: 'waiting' },
-                state: 'waiting',
-                gameState: initialState
-            });
-        } else {
-            if (room.state === 'playing' && room.P1 && room.P2) {
-                alert('満員です');
-                return;
-            }
-
-            // Check empty slots
-            if (!room.P1) {
-                await update(ref(db, `yacht_rooms/${rid}`), {
-                    'P1': { name: playerName, status: 'waiting' },
-                    state: room.P2 ? 'playing' : 'waiting'
-                });
-                setRoomId(rid);
-                setMyRole('P1');
-            } else if (!room.P2) {
-                await update(ref(db, `yacht_rooms/${rid}`), {
-                    'P2': { name: playerName, status: 'waiting' },
-                    state: 'playing'
-                });
-                setRoomId(rid);
-                setMyRole('P2');
-            } else {
-                alert('満員です');
-                return;
-            }
-            setGameMode('playing');
-        }
-    };
-
-    // Render Setup
-    if (gameMode === 'setup') {
+    if (!playerName) {
         return (
-            <main className={menuStyles.container}>
-                <div className={menuStyles.header}>
-                    <h1 className={menuStyles.title}>Yacht Setup</h1>
+            <main className={styles.container}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Yacht (ヨット)</h1>
+                    <p className={styles.subtitle}>名前を入力して開始</p>
                 </div>
-                <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-                    <form onSubmit={handleNameSubmit} className={menuStyles.setupForm}>
-                        <input name="playerName" defaultValue={playerName} placeholder="プレイヤー名" className={menuStyles.input} required />
-                        <button type="submit" className={menuStyles.primaryBtn} style={{ width: '100%' }}>次へ</button>
+                <div style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
+                    <form onSubmit={handleNameSubmit} className={styles.setupForm}>
+                        <input
+                            value={tempPlayerName}
+                            onChange={(e) => setTempPlayerName(e.target.value)}
+                            placeholder="プレイヤー名"
+                            className={styles.input}
+                            required
+                        />
+                        <button type="submit" className={styles.primaryBtn} style={{ width: '100%' }}>次へ</button>
                     </form>
                 </div>
             </main>
         );
     }
 
-    // Render Game (AI or Multiplayer)
-    if (gameMode === 'ai' || gameMode === 'playing') {
+    // --- GAME VIEWS ---
+    if (joinMode === 'ai') {
         return (
-            <main className={menuStyles.container}>
-                <div style={{ width: '100%', maxWidth: '1000px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ padding: '0 0 1rem', width: '100%' }}>
-                        <button onClick={handleBackToMenu} className={menuStyles.backButton} style={{}}>
-                            <IconBack size={20} /> メニューへ戻る (退出)
-                        </button>
-                    </div>
-                    {/* Render Game */}
-                    <YachtGame
-                        roomId={roomId}
-                        myRole={myRole}
-                    />
+            <main className={styles.main}>
+                <div className={styles.header}>
+                    <button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <YachtGame onBack={handleBackToMenu} />
                 </div>
             </main>
         );
     }
 
-    return (
-        <main className={menuStyles.container}>
-            <>
-                <div className={menuStyles.header}>
-                    <Link href="/" className={menuStyles.backButton}>
-                        <IconBack size={20} /> トップへ戻る
-                    </Link>
-                    <h1 className={menuStyles.title}>Yacht</h1>
-                    <p className={menuStyles.subtitle}>運と戦略のダイスゲーム！</p>
-                </div>
+    if (joinMode === 'random') {
+        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} />;
+    }
 
-                {gameMode === 'menu' ? (
-                    <div className={menuStyles.modeSelection}>
-                        <button onClick={() => setGameMode('ai')} className={menuStyles.modeBtn}>
-                            <span className={menuStyles.modeBtnIcon}><IconRobot size={48} /></span>
-                            <span className={menuStyles.modeBtnTitle}>ソロプレイ</span>
-                            <span className={menuStyles.modeBtnDesc}>ハイスコアを目指せ</span>
+    if (joinMode === 'create') {
+        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} />;
+    }
+
+    if (joinMode === 'join') {
+        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} />;
+    }
+
+    return (
+        <main className={styles.main}>
+            <div className={styles.header}>
+                <button onClick={handleBackToTop} className={styles.backButton}>
+                    <IconBack size={18} /> トップへ戻る
+                </button>
+            </div>
+
+            <div className={styles.gameContainer}>
+                <h1 className={styles.title}>Yacht</h1>
+                <p className={styles.subtitle}>運と戦略のダイスゲーム！</p>
+
+                {joinMode === 'menu' && (
+                    <div className={styles.modeSelection}>
+                        <button onClick={() => setJoinMode('ai')} className={styles.modeBtn}>
+                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
+                            <span className={styles.modeBtnTitle}>ソロプレイ</span>
+                            <span className={styles.modeBtnDesc}>1人でハイスコアを目指す</span>
                         </button>
-                        <button onClick={joinRandomGame} className={menuStyles.modeBtn}>
-                            <span className={menuStyles.modeBtnIcon}><IconDice size={48} /></span>
-                            <span className={menuStyles.modeBtnTitle}>ランダム対戦</span>
-                            <span className={menuStyles.modeBtnDesc}>オンラインで対戦</span>
+                        <button onClick={() => setJoinMode('random')} className={styles.modeBtn}>
+                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
+                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={styles.modeBtnDesc}>誰かとオンライン対戦</span>
                         </button>
-                        <button onClick={() => setGameMode('room')} className={menuStyles.modeBtn}>
-                            <span className={menuStyles.modeBtnIcon}><IconKey size={48} /></span>
-                            <span className={menuStyles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={menuStyles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('room')} className={styles.modeBtn}>
+                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
+                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={styles.modeBtnDesc}>友達と合言葉で対戦</span>
                         </button>
-                    </div>
-                ) : (
-                    // Join Section (Random or Room)
-                    <div className={menuStyles.joinSection}>
-                        {gameMode === 'random' ? (
-                            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <div style={{ marginBottom: '1rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>
-                                    <IconDice size={48} />
-                                </div>
-                                <p className={menuStyles.joinDesc}>マッチング中...</p>
-                            </div>
-                        ) : (
-                            // Room Mode
-                            <>
-                                <p className={menuStyles.joinDesc}>
-                                    ルームIDを入力して参加・作成
-                                </p>
-                                <input
-                                    type="text"
-                                    placeholder="ルームID (例: 1234)"
-                                    className={menuStyles.input}
-                                    value={customRoomId}
-                                    onChange={(e) => setCustomRoomId(e.target.value)}
-                                    style={{ marginBottom: '1rem' }}
-                                />
-                                <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'center' }}>
-                                    <button onClick={joinRoomGame} className={menuStyles.primaryBtn} disabled={!customRoomId}>参加 / 作成</button>
-                                    <button onClick={() => setGameMode('menu')} className={menuStyles.secondaryBtn}>戻る</button>
-                                </div>
-                            </>
-                        )}
                     </div>
                 )}
-            </>
+
+                {joinMode === 'room' && (
+                    <div className={styles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                                <button onClick={() => setJoinMode('create')} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', color: '#fff' }}>
+                                    ルーム作成
+                                </button>
+                            </div>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f3f4f6', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input
+                                        className={styles.input}
+                                        placeholder="ルームID (6桁)"
+                                        value={targetRoomId}
+                                        onChange={e => setTargetRoomId(e.target.value)}
+                                        style={{ flex: 1, textAlign: 'center' }}
+                                    />
+                                    <button onClick={() => setJoinMode('join')} className={styles.primaryBtn} style={{ width: 'auto' }}>
+                                        参加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={handleBackToMenu} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>戻る</button>
+                    </div>
+                )}
+            </div>
+
+            <div className={styles.contentSection}>
+                <h2 className={styles.contentTitle}>Yacht (ヨット) の遊び方</h2>
+                <div className={styles.sectionBlock}>
+                    <p className={styles.textBlock}>
+                        5つのダイスを振り、特定の「役」を作って点数を競うゲームです。
+                        各ターンでは最大3回までダイスを振ることができ、残したいダイスを「ホールド（保持）」することができます。
+                        最終的にスコアシートをすべて埋め、合計点数が高いプレイヤーの勝利です。
+                    </p>
+                </div>
+            </div>
         </main>
     );
 }

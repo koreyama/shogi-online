@@ -8,7 +8,7 @@ export class ChessRoom extends Room<ChessState> {
     onCreate(options: any) {
         // Generate a simple 6-digit Room ID
         this.roomId = Math.floor(100000 + Math.random() * 900000).toString();
-        this.maxClients = 2; // Explicitly set max clients
+        this.maxClients = 4; // Headroom for zombies
 
         console.log(`[ChessRoom] Created! RoomId: ${this.roomId}`, options);
         if (options.isPrivate) {

@@ -58,16 +58,10 @@ export class ReversiRoom extends Room<ReversiState> {
     }
 
     onLeave(client: Client, consented: boolean) {
-        console.log("ReversiRoom left:", client.sessionId);
-        const player = this.state.players.get(client.sessionId);
-        if (player) {
-            this.state.players.delete(client.sessionId);
-            // If game was in progress, remaining player wins? 
-            // For now, just broadcast dissolution similar to Shogi/Chess
-            if (!this.state.isGameOver && this.state.players.size < 2) {
-                this.broadcast("roomDissolved", { leaver: client.sessionId });
-                this.disconnect();
-            }
+        this.state.players.delete(client.sessionId);
+        if (!this.state.winner && !this.state.isGameOver) {
+            this.broadcast("roomDissolved");
+            this.disconnect();
         }
     }
 

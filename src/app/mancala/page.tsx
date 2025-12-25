@@ -8,7 +8,7 @@ import { GameState } from '@/lib/mancala/types';
 import { getBestMove } from '@/lib/mancala/ai';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import MancalaBoard from '@/components/MancalaBoard';
-import styles from './page.module.css';
+import styles from '@/styles/GameMenu.module.css';
 import ColyseusMancalaGame from './ColyseusMancalaGame';
 
 export default function MancalaPage() {
@@ -127,17 +127,17 @@ export default function MancalaPage() {
                 {!joinMode && (
                     <div className={styles.modeSelection}>
                         <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="#d69e2e" /></span>
+                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>ランダムマッチ</span>
                             <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
                         <button onClick={() => setJoinMode('room_menu')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="#d69e2e" /></span>
+                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>ルーム対戦</span>
                             <span className={styles.modeBtnDesc}>友達と対戦</span>
                         </button>
                         <button onClick={startAIGame} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="#d69e2e" /></span>
+                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>AI対戦</span>
                             <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>

@@ -79,11 +79,9 @@ export class CheckersRoom extends Room<CheckersState> {
     }
 
     onLeave(client: Client, consented: boolean) {
+        console.log(client.sessionId, "left!");
         this.state.players.delete(client.sessionId);
-        if (this.state.gameStarted && this.state.winner === "") {
-            this.broadcast("roomDissolved");
-            this.disconnect();
-        }
+        this.unlock();
     }
 
     handleMove(client: Client, moveAction: any) {

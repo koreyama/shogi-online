@@ -2,10 +2,11 @@ import { Room, Client } from "colyseus";
 import { DotsAndBoxesState, Player } from "./schema/DotsAndBoxesState";
 
 export class DotsAndBoxesRoom extends Room<DotsAndBoxesState> {
-    maxClients = 2;
+    maxClients = 4;
 
     onCreate(options: any) {
         console.log("DotsAndBoxesRoom created!", options);
+        this.roomId = Math.floor(100000 + Math.random() * 900000).toString();
         this.setState(new DotsAndBoxesState());
 
         this.onMessage("placeLine", (client, message) => {
@@ -30,8 +31,8 @@ export class DotsAndBoxesRoom extends Room<DotsAndBoxesState> {
                 // Colyseus handles it, but let's reset values.
 
                 // Clear lines
-                for (let i = 0; i < this.state.hLines.length; i++) this.state.hLines[i] = false;
-                for (let i = 0; i < this.state.vLines.length; i++) this.state.vLines[i] = false;
+                for (let i = 0; i < this.state.hLines.length; i++) this.state.hLines[i] = 0;
+                for (let i = 0; i < this.state.vLines.length; i++) this.state.vLines[i] = 0;
 
                 // Clear boxes
                 for (let i = 0; i < this.state.boxes.length; i++) this.state.boxes[i] = 0;
@@ -49,25 +50,75 @@ export class DotsAndBoxesRoom extends Room<DotsAndBoxesState> {
     }
 
     onJoin(client: Client, options: any) {
-        console.log(client.sessionId, "joined!");
+        console.log(`[DotsAndBoxesRoom] ${client.sessionId} joining...`, options);
+
+        // 1. Zombie Purge & Duplicate Purge (by persistent playerId)
+        const activeSessionIds = new Set(this.clients.map(c => c.sessionId));
+        const incomingPlayerId = options.playerId;
+
+        const toRemove: string[] = [];
+        this.state.players.forEach((p, key) => {
+            // Remove if session is dead OR if it's the same user (playerId)
+            if (!activeSessionIds.has(key) || (incomingPlayerId && p.playerId === incomingPlayerId)) {
+                console.log(`[DotsAndBoxesRoom] Purging session ${key} (PlayerId: ${p.playerId})`);
+                toRemove.push(key);
+            }
+        });
+        toRemove.forEach(key => this.state.players.delete(key));
 
         const player = new Player();
         player.id = client.sessionId;
-        player.name = options.name || `Player ${this.clients.length}`;
+        player.playerId = incomingPlayerId || "";
+        player.name = options.name || `Player ${this.state.players.size + 1}`;
+
+        // Explicit role assignment
+        if (this.state.players.size === 0) {
+            player.role = "P1";
+        } else if (this.state.players.size === 1) {
+            player.role = "P2";
+        } else {
+            player.role = "spectator";
+        }
 
         this.state.players.set(client.sessionId, player);
 
-        if (this.clients.length === 2) {
+        if (this.state.players.size === 2) {
             this.state.gameStarted = true;
-            this.lock(); // Lock room when full
+            this.lock(); // Lock room when full (now that we have headcount)
         }
     }
 
     onLeave(client: Client, consented: boolean) {
-        console.log(client.sessionId, "left!");
+        console.log(`[DotsAndBoxesRoom] ${client.sessionId} left.`);
+
+        const player = this.state.players.get(client.sessionId);
+        const isParticipant = player && (player.role === 'P1' || player.role === 'P2');
+
+        if (player) {
+            this.broadcast("chat", {
+                id: `system-${Date.now()}`,
+                sender: "System",
+                text: `${player.name}さんが退出しました。`,
+                timestamp: Date.now()
+            });
+        }
+
         this.state.players.delete(client.sessionId);
-        this.state.gameStarted = false;
-        // Optional: Declare winner by forfeit?
+
+        if (isParticipant) {
+            this.state.gameStarted = false;
+            this.broadcast("roomDissolved", { reason: "Opponent left the game." });
+            this.unlock();
+
+            // Give remaining clients a moment to see the message before closing the room
+            this.clock.setTimeout(() => {
+                this.clients.forEach(c => {
+                    if (c.sessionId !== client.sessionId) {
+                        c.leave();
+                    }
+                });
+            }, 1000);
+        }
     }
 
     onDispose() {
@@ -78,8 +129,11 @@ export class DotsAndBoxesRoom extends Room<DotsAndBoxesState> {
         if (!this.state.gameStarted || this.state.winner !== 0) return;
 
         // Verify it is this client's turn
-        const playerIndex = this.clients.findIndex(c => c.sessionId === client.sessionId) + 1; // 1 or 2
-        if (this.state.currentPlayer !== playerIndex) return;
+        const player = this.state.players.get(client.sessionId);
+        if (!player) return;
+
+        const myPlayerNum = player.role === "P1" ? 1 : 2;
+        if (this.state.currentPlayer !== myPlayerNum) return;
 
         const { type, r, c } = message;
 
@@ -90,15 +144,15 @@ export class DotsAndBoxesRoom extends Room<DotsAndBoxesState> {
         if (type === 'h') {
             // Horizontal line
             const index = r * (this.state.cols - 1) + c;
-            if (index >= 0 && index < this.state.hLines.length && !this.state.hLines[index]) {
-                this.state.hLines[index] = true;
+            if (index >= 0 && index < this.state.hLines.length && this.state.hLines[index] === 0) {
+                this.state.hLines[index] = myPlayerNum;
                 lineValid = true;
             }
         } else if (type === 'v') {
             // Vertical line
             const index = r * (this.state.cols) + c;
-            if (index >= 0 && index < this.state.vLines.length && !this.state.vLines[index]) {
-                this.state.vLines[index] = true;
+            if (index >= 0 && index < this.state.vLines.length && this.state.vLines[index] === 0) {
+                this.state.vLines[index] = myPlayerNum;
                 lineValid = true;
             }
         }

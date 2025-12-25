@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import styles from '@/styles/GameMenu.module.css';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusConnectFourGame from './ColyseusConnectFourGame';
@@ -138,49 +138,57 @@ export default function ConnectFourPage() {
                 {!joinMode ? (
                     <div className={styles.modeSelection}>
                         <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <div className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>ランダムマッチ</span>
                             <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
                         <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
-                            <div className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>ルーム対戦</span>
                             <span className={styles.modeBtnDesc}>友達と対戦</span>
                         </button>
                         <button onClick={() => setJoinMode('ai')} className={styles.modeBtn}>
-                            <div className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></div>
+                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>AI対戦</span>
-                            <span className={styles.modeBtnDesc}>練習モード</span>
+                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>
                     </div>
                 ) : joinMode === 'colyseus_room' ? (
                     <div className={styles.joinSection}>
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                            <p className={styles.subtitle} style={{ marginBottom: '1rem' }}>新しい部屋を作る</p>
-                            <button onClick={() => setJoinMode('colyseus_room_active')} className={styles.primaryBtn} style={{ width: '100%' }}>
-                                ルーム作成
-                            </button>
-                        </div>
-
-                        <div style={{ borderTop: '1px solid #ddd', width: '100%', margin: '1rem 0' }}></div>
-
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                            <p className={styles.subtitle} style={{ marginBottom: '1rem' }}>部屋に参加する</p>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <input
-                                    className={styles.input}
-                                    placeholder="ルームIDを入力"
-                                    value={customRoomId}
-                                    onChange={e => setCustomRoomId(e.target.value)}
-                                />
-                                <button onClick={() => {
-                                    if (customRoomId) setJoinMode('colyseus_room_active');
-                                }} className={styles.primaryBtn}>
-                                    参加
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
+                            {/* Create Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                                <button onClick={() => setJoinMode('colyseus_room_active')} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}>
+                                    ルーム作成（ID自動発行）
                                 </button>
                             </div>
+
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f3f4f6', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            </div>
+
+                            {/* Join Section */}
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input
+                                        className={styles.input}
+                                        placeholder="ルームID (6桁)"
+                                        value={customRoomId}
+                                        onChange={e => setCustomRoomId(e.target.value)}
+                                        style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
+                                    />
+                                    <button onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem', whiteSpace: 'nowrap' }}>
+                                        参加
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>戻る</button>
+
+                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>
+                            戻る
+                        </button>
                     </div>
                 ) : null}
             </div>

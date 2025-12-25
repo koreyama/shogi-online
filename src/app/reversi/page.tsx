@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import styles from '@/styles/GameMenu.module.css';
 import { ReversiBoard } from '@/components/ReversiBoard';
 import ColyseusReversiGame from './ColyseusReversiGame';
 import { Chat } from '@/components/Chat';
@@ -294,16 +294,19 @@ export default function ReversiPage() {
 
                     <div className={styles.modeSelection}>
                         <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <IconDice size={48} color="#2e7d32" />
-                            <span className={styles.modeBtnTitle}>オンライン対戦</span>
+                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
+                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
                         <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
-                            <IconKey size={48} color="#2e7d32" />
+                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={styles.modeBtnDesc}>友達と対戦</span>
                         </button>
                         <button onClick={startAIGame} className={styles.modeBtn}>
-                            <IconRobot size={48} color="#2e7d32" />
+                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
                             <span className={styles.modeBtnTitle}>AI対戦</span>
+                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>
                     </div>
                 </div>

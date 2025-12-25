@@ -2,8 +2,10 @@ import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
 
 export class Player extends Schema {
     @type("string") id: string = "";
+    @type("string") playerId: string = "";
     @type("string") name: string = "Guest";
     @type("number") score: number = 0;
+    @type("string") role: string = "";
 }
 
 export class DotsAndBoxesState extends Schema {
@@ -22,8 +24,8 @@ export class DotsAndBoxesState extends Schema {
     // hLines: (ROWS) x (COLS-1)
     // vLines: (ROWS-1) x (COLS)
     // boxes:  (ROWS-1) x (COLS-1)
-    @type(["boolean"]) hLines = new ArraySchema<boolean>();
-    @type(["boolean"]) vLines = new ArraySchema<boolean>();
+    @type(["number"]) hLines = new ArraySchema<number>();
+    @type(["number"]) vLines = new ArraySchema<number>();
     @type(["number"]) boxes = new ArraySchema<number>();
 
     constructor(rows: number = 6, cols: number = 6) {
@@ -34,12 +36,12 @@ export class DotsAndBoxesState extends Schema {
         // Initialize Arrays
         // Horizontal Lines: rows * (cols - 1)
         for (let i = 0; i < rows * (cols - 1); i++) {
-            this.hLines.push(false);
+            this.hLines.push(0);
         }
 
         // Vertical Lines: (rows - 1) * cols
         for (let i = 0; i < (rows - 1) * cols; i++) {
-            this.vLines.push(false);
+            this.vLines.push(0);
         }
 
         // Boxes: (rows - 1) * (cols - 1)

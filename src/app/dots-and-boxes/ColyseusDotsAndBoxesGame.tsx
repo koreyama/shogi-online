@@ -1,292 +1,287 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './DotsAndBoxes.module.css';
 import { client } from '@/lib/colyseus';
 import { Room } from 'colyseus.js';
+import { IconBack, IconCopy, IconCheck } from '@/components/Icons';
+import { Chat } from '@/components/Chat';
 
-type Player = 1 | 2;
+type PlayerRole = 'P1' | 'P2';
 const ROWS = 6;
 const COLS = 6;
 
 // Helper to convert flat array to 2D
-function to2D<T>(arr: T[], rows: number, cols: number): T[][] {
+function to2D<T>(arr: any, rows: number, cols: number): T[][] {
     if (!arr) return [];
     const res: T[][] = [];
+    const flat = Array.from(arr);
     for (let i = 0; i < rows; i++) {
-        res.push(arr.slice(i * cols, (i + 1) * cols));
+        res.push(flat.slice(i * cols, (i + 1) * cols) as T[]);
     }
     return res;
 }
 
-export default function ColyseusDotsAndBoxesGame({ playerName, onBack }: { playerName: string, onBack: () => void }) {
+interface Props {
+    playerName: string;
+    playerId: string;
+    onBack: () => void;
+    mode: 'random' | 'room';
+    roomId?: string;
+}
+
+export default function ColyseusDotsAndBoxesGame({ playerName, playerId, onBack, mode, roomId: targetRoomId }: Props) {
     const [room, setRoom] = useState<Room | null>(null);
+    const [status, setStatus] = useState<'connecting' | 'waiting' | 'playing' | 'finished'>('connecting');
     const [error, setError] = useState<string | null>(null);
-    const [gameState, setGameState] = useState<any>(null); // Simplified state mapping
-    const [mySessionId, setMySessionId] = useState<string>("");
+    const [gameState, setGameState] = useState<any>(null);
+    const [myRole, setMyRole] = useState<PlayerRole | null>(null);
+    const [playersInfo, setPlayersInfo] = useState<{ P1: string, P2: string }>({ P1: '対戦相手を待っています...', P2: '対戦相手を待っています...' });
+    const [messages, setMessages] = useState<{ id: string, sender: string, text: string, timestamp: number }[]>([]);
+    const [showCopyTooltip, setShowCopyTooltip] = useState(false);
+    const [showDissolvedDialog, setShowDissolvedDialog] = useState(false);
+
+    // Refs to prevent double connection in development
+    const dataEffectCalled = useRef(false);
+    const roomRef = useRef<Room | null>(null);
 
     useEffect(() => {
-        let currentRoom: Room;
+        if (dataEffectCalled.current) return;
+        dataEffectCalled.current = true;
 
         const connect = async () => {
+            let currentRoom: Room;
             try {
-                // Join "dots_and_boxes" room
-                currentRoom = await client.joinOrCreate("dots_and_boxes", {
-                    name: playerName
-                });
+                if (mode === 'random') {
+                    currentRoom = await client.joinOrCreate("dots_and_boxes", { name: playerName, playerId });
+                } else {
+                    if (targetRoomId) {
+                        currentRoom = await client.joinById(targetRoomId, { name: playerName, playerId });
+                    } else {
+                        currentRoom = await client.create("dots_and_boxes", { name: playerName, playerId, isPrivate: true });
+                    }
+                }
+
                 setRoom(currentRoom);
-                setMySessionId(currentRoom.sessionId);
+                roomRef.current = currentRoom;
+                console.log("Joined room:", currentRoom.roomId);
 
-                console.log("Connected to room", currentRoom.roomId);
-
-                // Initial State
-                updateLocalState(currentRoom.state);
-
-                // Listen for changes
                 currentRoom.onStateChange((state) => {
-                    console.log("State changed", state);
-                    updateLocalState(state);
+                    const players: any = {};
+                    let p1Nick = '対戦相手を待っています...';
+                    let p2Nick = '対戦相手を待っています...';
+                    let myR: PlayerRole | null = null;
+
+                    state.players.forEach((p: any, sessionId: string) => {
+                        if (p.role === 'P1') p1Nick = p.name;
+                        if (p.role === 'P2') p2Nick = p.name;
+                        if (sessionId === currentRoom.sessionId) myR = p.role as PlayerRole;
+                    });
+
+                    setPlayersInfo({ P1: p1Nick, P2: p2Nick });
+                    setMyRole(myR);
+
+                    const json = state.toJSON();
+                    setGameState({
+                        hLines: to2D<number>(json.hLines, ROWS, COLS - 1),
+                        vLines: to2D<number>(json.vLines, ROWS - 1, COLS),
+                        boxes: to2D<number>(json.boxes, ROWS - 1, COLS - 1),
+                        currentPlayer: json.currentPlayer,
+                        winner: json.winner,
+                        scores: { 1: 0, 2: 0 }, // Will calculate below
+                        gameStarted: json.gameStarted
+                    });
+
+                    // Calculate scores from players map
+                    const scores = { 1: 0, 2: 0 };
+                    state.players.forEach((p: any) => {
+                        if (p.role === 'P1') scores[1] = p.score;
+                        if (p.role === 'P2') scores[2] = p.score;
+                    });
+                    setGameState((prev: any) => prev ? { ...prev, scores } : null);
+
+                    if (json.winner !== 0) setStatus('finished');
+                    else if (json.gameStarted) setStatus('playing');
+                    else setStatus('waiting');
                 });
 
-                currentRoom.onMessage("gameRestarted", () => {
-                    console.log("Game Restarted");
+                currentRoom.onMessage("roomDissolved", () => {
+                    setShowDissolvedDialog(true);
+                });
+
+                currentRoom.onMessage("chat", (message: any) => {
+                    setMessages((prev) => [...prev, message]);
                 });
 
             } catch (e: any) {
-                console.error("Colyseus Error:", e);
-                setError("サーバーへの接続に失敗しました: " + (e.message || JSON.stringify(e)));
+                console.error(e);
+                setError("接続に失敗しました。");
             }
         };
 
         connect();
-
         return () => {
-            if (currentRoom) {
-                currentRoom.leave();
+            if (roomRef.current) {
+                roomRef.current.leave();
+                roomRef.current = null;
             }
         };
-    }, []);
-
-    const updateLocalState = (serverState: any) => {
-        // Convert Colyseus schema state to local friendly format
-        // NOTE: schema arrays are Proxy objects in colyseus.js? 
-        // We might need to access them carefully. .toJSON() helps.
-
-        const json = serverState.toJSON ? serverState.toJSON() : serverState;
-        console.log("RX State:", json);
-
-        // hLines: flat array of boolean. size: ROWS * (COLS-1)
-        // vLines: flat array of boolean. size: (ROWS-1) * COLS
-        // boxes: flat array of number. size: (ROWS-1) * (COLS-1)
-
-        setGameState({
-            hLines: to2D(json.hLines, ROWS, COLS - 1),
-            vLines: to2D(json.vLines, ROWS - 1, COLS),
-            boxes: to2D(json.boxes, ROWS - 1, COLS - 1),
-            currentPlayer: json.currentPlayer,
-            winner: json.winner,
-            scores: calculateScores(json.players),
-            players: json.players // Map of sessionId -> Player Data
-        });
-    };
-
-    const calculateScores = (playersMap: any) => {
-        // Players is a Map or Object. 
-        // We need to map sessionIds to Player 1 / Player 2 logic?
-        // Actually the server determines P1/P2 order based on join order (clients array).
-        // But the state.players map doesn't explicitly say "P1" or "P2".
-        // Wait, the Schema defines: @type({ map: Player }) players = new MapSchema<Player>();
-        // We need to know WHICH player corresponds to 1 or 2 for score display.
-
-        // Implementation Detail: In the server Room code, we used this.clients[0] as P1.
-        // But how does the client know?
-        // Let's assume the client can deduce it from the server's explicit "currentPlayer" logic?
-        // Or better: server state should probably map 1 -> score, 2 -> score.
-        // My server code accumulates score on the Player object.
-        // But I don't know if Player object corresponds to P1 or P2.
-
-        // Hack for now: First player in map is P1? Map order is insertion order usually.
-        // Let's just create a generic score object.
-
-        const scores: { 1: number, 2: number } = { 1: 0, 2: 0 };
-        const pArray = Object.values(playersMap || {});
-        if (pArray[0]) scores[1] = (pArray[0] as any).score;
-        if (pArray[1]) scores[2] = (pArray[1] as any).score;
-
-        return scores;
-    };
+    }, [mode, targetRoomId, playerName]);
 
     const handleLineClick = (type: 'h' | 'v', r: number, c: number) => {
-        if (!room || !gameState) return;
-        // Optimistic check? Or just send.
+        if (!room || status !== 'playing') return;
+        const myNum = myRole === 'P1' ? 1 : 2;
+        if (gameState.currentPlayer !== myNum) return;
         room.send("placeLine", { type, r, c });
     };
 
-    const handleRestart = () => {
-        room?.send("restart");
+    const handleRestart = () => { room?.send("restart"); };
+
+    const copyRoomId = () => {
+        if (room) {
+            navigator.clipboard.writeText(room.roomId);
+            setShowCopyTooltip(true);
+            setTimeout(() => setShowCopyTooltip(false), 2000);
+        }
     };
 
     if (error) {
         return (
             <div className={styles.container}>
-                <p style={{ color: 'red' }}>{error}</p>
+                <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</p>
                 <button onClick={onBack} className={styles.backButton}>戻る</button>
             </div>
         );
     }
 
-    if (!room || !gameState) {
+    const dissolvedModal = showDissolvedDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+            <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>対戦が終了しました</h3>
+                <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>相手が退出したため、ルームを解散します。</p>
+                <button onClick={onBack} className={styles.primaryBtn} style={{ width: '100%' }}>メニューへ戻る</button>
+            </div>
+        </div>
+    );
+
+    if (status === 'connecting' || !gameState) {
         return (
             <div className={styles.loader_container}>
+                {dissolvedModal}
                 <div className={styles.spinner}></div>
                 <p>サーバーに接続中...</p>
-                <p style={{ fontSize: '0.8rem', color: '#666' }}>(初回は起動に時間がかかる場合があります)</p>
             </div>
         );
     }
 
-    const { hLines, vLines, boxes, currentPlayer, winner, scores, players } = gameState;
-    const isGameOver = winner !== 0; // 0 is playing, 1/2/3 is finished
+    if (status === 'waiting') {
+        return (
+            <div className={styles.loader_container}>
+                {dissolvedModal}
+                <div className={styles.spinner}></div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#1f2937' }}>対戦相手を待っています...</h2>
+                {mode === 'room' && room && (
+                    <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>ルームIDを友達に教えてください</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
+                            <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#3b82f6', letterSpacing: '0.1em' }}>{room.roomId}</span>
+                            <button onClick={copyRoomId} style={{ background: 'white', border: '1px solid #cbd5e1', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer', position: 'relative' }}>
+                                {showCopyTooltip ? <IconCheck size={20} color="#22c55e" /> : <IconCopy size={20} color="#64748b" />}
+                                {showCopyTooltip && <span style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', background: '#333', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem' }}>コピーしました</span>}
+                            </button>
+                        </div>
+                    </div>
+                )}
+                <button onClick={onBack} className={styles.backButton} style={{ marginTop: '2rem' }}>キャンセル</button>
+            </div>
+        );
+    }
 
-    // Identify who is P1 and P2 for display
-    // We need room.sessionId to know "Me".
-    // We need to map sessionIds to P1/P2.
-    // The server doesn't expose "clients list" directly in state, only players map.
-    // Assuming keys in players map are sessionIds.
-    // We need a stable way to know P1/P2.
-
-    // Updated Server Plan: Add `seat` to Player schema to know if they are 1 or 2?
-    // For now, let's assume keys are sorted or we rely on some other hint.
-    // Actually, `room.state.players` keys iterate in insertion order.
-    const playerKeys = Object.keys(players || {});
-    const p1Id = playerKeys[0];
-    const p2Id = playerKeys[1];
-
-    const isMeP1 = p1Id ? mySessionId === p1Id : false;
-    const isMeP2 = p2Id ? mySessionId === p2Id : false;
-    const myPlayerNum = isMeP1 ? 1 : (isMeP2 ? 2 : 0); // 0 = Spectator
-
-    const safePlayers = players || {};
-    const p1Name = (safePlayers[p1Id]?.name || "Waiting...") + (isMeP1 ? " (You)" : "");
-    const p2Name = (safePlayers[p2Id]?.name || "Waiting...") + (isMeP2 ? " (You)" : "");
+    const { hLines, vLines, boxes, currentPlayer, winner, scores } = gameState;
+    const isGameOver = status === 'finished';
+    const isMyTurn = !isGameOver && ((myRole === 'P1' && currentPlayer === 1) || (myRole === 'P2' && currentPlayer === 2));
 
     const DOT_SPACING = 50;
     const DOT_RADIUS = 6;
     const PADDING = 20;
 
     return (
-        <div className={styles.container}>
-            <button onClick={onBack} style={{ marginBottom: '1rem', padding: '0.5rem' }}>退出する</button>
+        <div className={styles.game_layout_wrapper}>
+            {dissolvedModal}
 
-            {/* Score Board */}
-            <div className={styles.score_board}>
-                <div className={`${styles.player_card} ${currentPlayer === 1 && !isGameOver ? styles.player_card_active + ' ' + styles.p1_active : ''}`}>
-                    {currentPlayer === 1 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p1_turn}`}>TURN</div>}
-                    <span className={`${styles.player_name} ${styles.p1_name}`}>{p1Name}</span>
-                    <span className={styles.player_score}>{scores[1]}</span>
+            {/* Left Panel */}
+            <div className={styles.side_panel}>
+                <div className={styles.status_panel}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
+                        <div className={`${styles.player_card} ${currentPlayer === 1 && !isGameOver ? styles.player_card_active + ' ' + styles.p1_active : ''}`} style={{ opacity: !isGameOver && currentPlayer !== 1 ? 0.7 : 1 }}>
+                            <span className={`${styles.player_name} ${styles.p1_name}`}>{playersInfo.P1} {myRole === 'P1' && '(あなた)'}</span>
+                            <span className={styles.player_score}>{scores[1]}</span>
+                        </div>
+                        <div className={`${styles.player_card} ${currentPlayer === 2 && !isGameOver ? styles.player_card_active + ' ' + styles.p2_active : ''}`} style={{ opacity: !isGameOver && currentPlayer !== 2 ? 0.7 : 1 }}>
+                            <span className={`${styles.player_name} ${styles.p2_name}`}>{playersInfo.P2} {myRole === 'P2' && '(あなた)'}</span>
+                            <span className={styles.player_score}>{scores[2]}</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.current_turn} style={{
+                        background: currentPlayer === 1 ? '#eff6ff' : '#fff1f2',
+                        color: currentPlayer === 1 ? '#2563eb' : '#e11d48',
+                        border: `1px solid ${currentPlayer === 1 ? '#2563eb' : '#e11d48'}`,
+                        padding: '0.4rem 1rem', borderRadius: '9999px', fontSize: '0.9rem', fontWeight: 'bold'
+                    }}>
+                        {currentPlayer === 1 ? playersInfo.P1 : playersInfo.P2}の番
+                    </div>
+
+                    {isGameOver && (
+                        <div className={styles.game_over} style={{ marginTop: '1rem' }}>
+                            <h2 className={styles.winner_text} style={{ fontSize: '1.5rem' }}>
+                                {winner === 3 ? "引き分け!" : `${winner === 1 ? playersInfo.P1 : playersInfo.P2} の勝ち!`}
+                            </h2>
+                            <button onClick={handleRestart} className={styles.play_again_btn}>もう一度遊ぶ</button>
+                        </div>
+                    )}
                 </div>
-                <div className={`${styles.player_card} ${currentPlayer === 2 && !isGameOver ? styles.player_card_active + ' ' + styles.p2_active : ''}`}>
-                    {currentPlayer === 2 && !isGameOver && <div className={`${styles.turn_indicator} ${styles.p2_turn}`}>TURN</div>}
-                    <span className={`${styles.player_name} ${styles.p2_name}`}>{p2Name}</span>
-                    <span className={styles.player_score}>{scores[2]}</span>
-                </div>
+                {room && <Chat messages={messages} onSendMessage={(txt: string) => room.send("chat", { sender: playerName, text: txt })} myName={playerName} />}
+                <button onClick={onBack} className={styles.backButton} style={{ marginTop: '0.5rem', width: '100%' }}>退会する</button>
             </div>
 
-            {isGameOver && (
-                <div className={styles.game_over}>
-                    <h2 className={styles.winner_text}>
-                        {winner === 3
-                            ? "Draw!"
-                            : winner === 1 ? `Player 1 Wins!` : `Player 2 Wins!`
-                        }
-                    </h2>
-                    <button onClick={handleRestart} className={styles.play_again_btn}>
-                        もう一度遊ぶ
-                    </button>
-                </div>
-            )}
-
-            {/* Game Board (SVG) */}
-            <div className={styles.board_wrapper}>
-                <svg
-                    width={(COLS - 1) * DOT_SPACING + PADDING * 2}
-                    height={(ROWS - 1) * DOT_SPACING + PADDING * 2}
-                    style={{ display: 'block' }}
-                >
-                    <g transform={`translate(${PADDING}, ${PADDING})`}>
-                        {/* Boxes (Fill) */}
-                        {boxes.map((row: any[], r: number) =>
-                            row.map((owner: number, c: number) => {
-                                if (owner === 0) return null;
-                                return (
-                                    <rect
-                                        key={`box-${r}-${c}`}
-                                        x={c * DOT_SPACING}
-                                        y={r * DOT_SPACING}
-                                        width={DOT_SPACING}
-                                        height={DOT_SPACING}
-                                        className={owner === 1 ? styles.box_p1 : styles.box_p2}
-                                    />
-                                );
-                            })
-                        )}
-
-                        {/* Horizontal Lines */}
-                        {hLines.map((row: any[], r: number) =>
-                            row.map((isActive: boolean, c: number) => (
-                                <rect
-                                    key={`h-${r}-${c}`}
-                                    x={c * DOT_SPACING}
-                                    y={r * DOT_SPACING - 5}
-                                    width={DOT_SPACING}
-                                    height={10}
-                                    rx={4}
-                                    className={`
-                                        ${styles.line}
-                                        ${isActive ? styles.line_active : (isGameOver ? '' : styles.line_inactive)}
-                                    `}
-                                    fill={isActive ? undefined : 'transparent'}
+            {/* Center Panel */}
+            <div className={styles.center_panel}>
+                <div className={styles.board_wrapper}>
+                    <svg width={(COLS - 1) * DOT_SPACING + PADDING * 2} height={(ROWS - 1) * DOT_SPACING + PADDING * 2}>
+                        <g transform={`translate(${PADDING}, ${PADDING})`}>
+                            {boxes.map((row: any[], r: number) => row.map((owner: number, c: number) => owner > 0 && (
+                                <rect key={`box-${r}-${c}`} x={c * DOT_SPACING} y={r * DOT_SPACING} width={DOT_SPACING} height={DOT_SPACING} className={owner === 1 ? styles.box_p1 : styles.box_p2} />
+                            )))}
+                            {hLines.map((row: any[], r: number) => row.map((owner: number, c: number) => (
+                                <rect key={`h-${r}-${c}`} x={c * DOT_SPACING} y={r * DOT_SPACING - 5} width={DOT_SPACING} height={10} rx={4}
+                                    className={`${styles.line} 
+                                        ${owner === 1 ? styles.line_p1 : ''} 
+                                        ${owner === 2 ? styles.line_p2 : ''} 
+                                        ${owner === 0 && !isGameOver ? styles.line_inactive : ''}`}
+                                    fill={owner !== 0 ? undefined : 'transparent'}
                                     onClick={() => handleLineClick('h', r, c)}
                                 />
-                            ))
-                        )}
-
-                        {/* Vertical Lines */}
-                        {vLines.map((row: any[], r: number) =>
-                            row.map((isActive: boolean, c: number) => (
-                                <rect
-                                    key={`v-${r}-${c}`}
-                                    x={c * DOT_SPACING - 5}
-                                    y={r * DOT_SPACING}
-                                    width={10}
-                                    height={DOT_SPACING}
-                                    rx={4}
-                                    className={`
-                                        ${styles.line}
-                                        ${isActive ? styles.line_active : (isGameOver ? '' : styles.line_inactive)}
-                                    `}
-                                    fill={isActive ? undefined : 'transparent'}
+                            )))}
+                            {vLines.map((row: any[], r: number) => row.map((owner: number, c: number) => (
+                                <rect key={`v-${r}-${c}`} x={c * DOT_SPACING - 5} y={r * DOT_SPACING} width={10} height={DOT_SPACING} rx={4}
+                                    className={`${styles.line} 
+                                        ${owner === 1 ? styles.line_p1 : ''} 
+                                        ${owner === 2 ? styles.line_p2 : ''} 
+                                        ${owner === 0 && !isGameOver ? styles.line_inactive : ''}`}
+                                    fill={owner !== 0 ? undefined : 'transparent'}
                                     onClick={() => handleLineClick('v', r, c)}
                                 />
-                            ))
-                        )}
-
-                        {/* Dots */}
-                        {Array(ROWS).fill(0).map((_, r) =>
-                            Array(COLS).fill(0).map((_, c) => (
-                                <circle
-                                    key={`dot-${r}-${c}`}
-                                    cx={c * DOT_SPACING}
-                                    cy={r * DOT_SPACING}
-                                    r={DOT_RADIUS}
-                                    className={styles.dot}
-                                />
-                            ))
-                        )}
-                    </g>
-                </svg>
-            </div>
-
-            <div style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#aaa' }}>
-                Using Colyseus Server
+                            )))}
+                            {Array(ROWS).fill(0).map((_, r) => Array(COLS).fill(0).map((_, c) => (
+                                <circle key={`dot-${r}-${c}`} cx={c * DOT_SPACING} cy={r * DOT_SPACING} r={DOT_RADIUS} className={styles.dot} />
+                            )))}
+                        </g>
+                    </svg>
+                </div>
+                <div className={styles.instructions}>
+                    <p>点と点の間をクリックして線を引きます。四角形を完成させるとポイント獲得＆もう一度行動できます。</p>
+                </div>
             </div>
         </div>
     );

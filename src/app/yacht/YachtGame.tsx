@@ -1,8 +1,8 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { CATEGORIES, Category, calculateScore } from './scoring';
 import styles from './Yacht.module.css';
-import { db } from '@/lib/firebase';
-import { ref, onValue, update, onDisconnect, set } from 'firebase/database';
 
 const MAX_ROLLS = 3;
 
@@ -21,9 +21,7 @@ const CATEGORY_LABELS: Record<Category, string> = {
     'Yacht': 'Yacht'
 };
 
-// 3D Dice Component
 const Die = ({ value, held, rolling, onClick, disabled }: { value: number, held: boolean, rolling: boolean, onClick: () => void, disabled: boolean }) => {
-    // Required rotation to bring Face N to Front:
     const rotations: Record<number, string> = {
         1: 'rotateX(0deg) rotateY(0deg)',
         6: 'rotateX(0deg) rotateY(180deg)',
@@ -43,7 +41,6 @@ const Die = ({ value, held, rolling, onClick, disabled }: { value: number, held:
                 className={styles.die}
                 style={{ transform: rotations[value] }}
             >
-                {/* Construct all 6 faces */}
                 {[1, 6, 3, 4, 5, 2].map((faceVal) => {
                     let faceClass = '';
                     if (faceVal === 1) faceClass = styles.front;
@@ -54,7 +51,6 @@ const Die = ({ value, held, rolling, onClick, disabled }: { value: number, held:
                     if (faceVal === 2) faceClass = styles.bottom;
 
                     const pips = Array(faceVal).fill(0);
-
                     return (
                         <div key={faceVal} className={`${styles.face} ${faceClass}`} data-value={faceVal}>
                             <div className={styles.face_inner}>
@@ -74,318 +70,110 @@ interface GameState {
     dice: number[];
     held: boolean[];
     rollsLeft: number;
-    scoresP1: Partial<Record<Category, number>>;
-    scoresP2: Partial<Record<Category, number>>;
-    turn: 'P1' | 'P2';
+    scores: Partial<Record<Category, number>>;
     isRolling: boolean;
-    winner: 'P1' | 'P2' | 'Draw' | null;
+    winner: boolean;
 }
 
-interface YachtGameProps {
-    roomId?: string | null;
-    myRole?: 'P1' | 'P2' | null;
-}
-
-export default function YachtGame({ roomId, myRole }: YachtGameProps) {
-    // Local State (mirrors Firebase in MP)
+export default function YachtGame({ onBack }: { onBack?: () => void }) {
     const [gameState, setGameState] = useState<GameState>({
         dice: [1, 1, 1, 1, 1],
         held: [false, false, false, false, false],
         rollsLeft: MAX_ROLLS,
-        scoresP1: {},
-        scoresP2: {},
-        turn: 'P1',
+        scores: {},
         isRolling: false,
-        winner: null
+        winner: false
     });
 
-    // Opponent Name Sync
-    const [opponentName, setOpponentName] = useState('Opponent');
-
-    useEffect(() => {
-        if (!roomId || !myRole) return;
-
-        // Initialize game for P1
-        if (myRole === 'P1') {
-            startNewGame();
-        }
-
-        const roomRef = ref(db, `yacht_rooms/${roomId}`);
-
-        // Presence Logic
-        const myRef = ref(db, `yacht_rooms/${roomId}/${myRole}`);
-        onDisconnect(myRef).remove();
-
-        const unsubscribe = onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            if (data.gameState) {
-                setGameState({
-                    ...data.gameState,
-                    scoresP1: data.gameState.scoresP1 || {},
-                    scoresP2: data.gameState.scoresP2 || {}
-                });
-            }
-
-            // Sync opponent name
-            const oppRole = myRole === 'P1' ? 'P2' : 'P1';
-            if (data[oppRole]?.name) {
-                setOpponentName(data[oppRole].name);
-            } else {
-                setOpponentName('Opponent'); // Reset if left
-            }
-        });
-
-        return () => {
-            unsubscribe();
-            onDisconnect(myRef).cancel(); // Cancel server handling
-            set(myRef, null); // Remove immediately on unmount
-        };
-    }, [roomId, myRole]);
-
-    const updateGameState = async (newState: Partial<GameState>) => {
-        // Optimistic update
-        setGameState(prev => ({ ...prev, ...newState }));
-
-        if (roomId) {
-            // Push to Firebase
-            await update(ref(db, `yacht_rooms/${roomId}/gameState`), newState);
-        }
-    };
-
-    const startNewGame = async () => {
-        const initialState: GameState = {
+    const startNewGame = () => {
+        setGameState({
             dice: [1, 1, 1, 1, 1],
             held: [false, false, false, false, false],
             rollsLeft: MAX_ROLLS,
-            scoresP1: {},
-            scoresP2: {},
-            turn: 'P1',
+            scores: {},
             isRolling: false,
-            winner: null
-        };
-
-        if (roomId) {
-            // Only P1 can restart in MP usually, or simplistic restart overwrites
-            if (myRole === 'P1') {
-                await update(ref(db, `yacht_rooms/${roomId}`), { gameState: initialState });
-            }
-        } else {
-            setGameState(initialState);
-            // resetTurn is implied in initial state
-            // But we might want to auto-roll initially? No, wait for user.
-            rollDice([false, false, false, false, false], initialState); // Auto roll first? standard is user clicks.
-            // Actually, resetTurn does roll.
-            // Let's NOT auto roll here, user clicks 'Roll'.
-            // But existing code called resetTurn which called rollDice. 
-            // Let's align with existing: resetTurn calls rollDice.
-            // Wait, if I call resetTurn, it updates state.
-            // Just set initial state and let user click Roll. 
-        }
+            winner: false
+        });
     };
 
-    const rollDice = (currentHeld: boolean[], stateToUse = gameState) => {
-        updateGameState({ isRolling: true });
+    const rollDice = () => {
+        if (gameState.rollsLeft <= 0 || gameState.isRolling || gameState.winner) return;
 
-        // Force delay for animation
-        setTimeout(async () => {
-            const newDice = stateToUse.dice.map((d, i) => currentHeld[i] ? d : Math.floor(Math.random() * 6) + 1);
-            const newRollsLeft = stateToUse.rollsLeft - 1;
+        setGameState(prev => ({ ...prev, isRolling: true }));
 
-            // In MP, we must do this calculation locally then push result
-            // (If we rely on server, we need Cloud Functions, but here P2P style logic via Client is fine)
-
-            await updateGameState({
-                dice: newDice,
-                rollsLeft: newRollsLeft,
-                isRolling: false
+        setTimeout(() => {
+            setGameState(prev => {
+                const newDice = prev.dice.map((d, i) => prev.held[i] ? d : Math.floor(Math.random() * 6) + 1);
+                return {
+                    ...prev,
+                    dice: newDice,
+                    rollsLeft: prev.rollsLeft - 1,
+                    isRolling: false
+                };
             });
         }, 600);
     };
 
-    const handleRollClick = () => {
-        if (gameState.winner || gameState.rollsLeft <= 0 || gameState.isRolling) return;
-        if (roomId && myRole && gameState.turn !== myRole) return; // Not my turn
-
-        rollDice(gameState.held);
-    };
-
     const toggleHold = (index: number) => {
-        if (gameState.winner || gameState.rollsLeft === MAX_ROLLS && !gameState.isRolling) return;
-        if (roomId && myRole && gameState.turn !== myRole) return;
-
+        if (gameState.rollsLeft === MAX_ROLLS || gameState.isRolling || gameState.winner) return;
         const newHeld = [...gameState.held];
         newHeld[index] = !newHeld[index];
-        updateGameState({ held: newHeld });
+        setGameState(prev => ({ ...prev, held: newHeld }));
     };
 
-    const handleCategoryClick = async (category: Category) => {
-        if (gameState.winner || gameState.isRolling) return;
-        if (roomId && myRole && gameState.turn !== myRole) return;
-
-        const currentScores = gameState.turn === 'P1' ? gameState.scoresP1 : gameState.scoresP2;
-        if (currentScores[category] !== undefined) return; // Already taken
+    const selectCategory = (category: Category) => {
+        if (gameState.rollsLeft === MAX_ROLLS || gameState.isRolling || gameState.winner) return;
+        if (gameState.scores[category] !== undefined) return;
 
         const score = calculateScore(category, gameState.dice);
-        const newScores = { ...currentScores, [category]: score };
+        const newScores = { ...gameState.scores, [category]: score };
 
-        // Update scores
-        const newState: Partial<GameState> = {
-            [gameState.turn === 'P1' ? 'scoresP1' : 'scoresP2']: newScores
-        };
+        const isGameOver = Object.keys(newScores).length === CATEGORIES.length;
 
-        // Check Game Over (Both players full? or just me full?)
-        // In SP: if P1 full -> Over.
-        // In MP: if P2 full -> Over. (Assuming P1 went first)
-
-        let nextTurn = gameState.turn === 'P1' ? 'P2' : 'P1';
-        if (!roomId) nextTurn = 'P1'; // SP always P1
-
-        const p1Full = Object.keys(gameState.turn === 'P1' ? newScores : gameState.scoresP1).length === CATEGORIES.length;
-        const p2Full = Object.keys(gameState.turn === 'P2' ? newScores : gameState.scoresP2).length === CATEGORIES.length;
-
-        if (roomId) {
-            if (p1Full && p2Full) {
-                // Game Over
-                const s1 = calculateTotal(gameState.turn === 'P1' ? newScores : gameState.scoresP1);
-                const s2 = calculateTotal(gameState.turn === 'P2' ? newScores : gameState.scoresP2);
-                let w: 'P1' | 'P2' | 'Draw' = 'Draw';
-                if (s1 > s2) w = 'P1';
-                if (s2 > s1) w = 'P2';
-                newState.winner = w;
-            } else {
-                // Next Turn
-                newState.turn = nextTurn as 'P1' | 'P2';
-                newState.dice = [1, 1, 1, 1, 1];
-                newState.held = [false, false, false, false, false];
-                newState.rollsLeft = MAX_ROLLS;
-                // We do NOT auto roll.
-            }
-        } else {
-            // SP Logic
-            if (p1Full) {
-                newState.winner = 'P1'; // Just a flag
-            } else {
-                newState.dice = [1, 1, 1, 1, 1];
-                newState.held = [false, false, false, false, false];
-                newState.rollsLeft = MAX_ROLLS;
-            }
-        }
-
-        await updateGameState(newState);
+        setGameState(prev => ({
+            ...prev,
+            scores: newScores,
+            dice: [1, 1, 1, 1, 1],
+            held: [false, false, false, false, false],
+            rollsLeft: MAX_ROLLS,
+            winner: isGameOver
+        }));
     };
 
     const calculateTotal = (scores: Partial<Record<Category, number>>) => {
-        if (!scores) return 0;
-        const upperSectionCategories: Category[] = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'];
-        const upperSectionScore = upperSectionCategories.reduce((acc, cat) => acc + (scores[cat] || 0), 0);
-        const bonus = upperSectionScore >= 63 ? 35 : 0;
-        return Object.values(scores).reduce((a, b) => (a || 0) + (b || 0), 0) + bonus;
+        let total = 0;
+        let upperSum = 0;
+        const upperCats = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'];
+        Object.entries(scores).forEach(([key, val]) => {
+            total += (val as number);
+            if (upperCats.includes(key)) upperSum += (val as number);
+        });
+        if (upperSum >= 63) total += 35;
+        return total;
     };
 
-    // Helpers for rendering
-    const renderScoreColumn = (player: 'P1' | 'P2', scores: Partial<Record<Category, number>> | undefined, isMe: boolean) => {
-        if (!scores) scores = {}; // Safety fallback
-        const upperSectionCategories: Category[] = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'];
-        const upperSectionScore = upperSectionCategories.reduce((acc, cat) => acc + (scores[cat] || 0), 0);
-        const bonus = upperSectionScore >= 63 ? 35 : 0;
-        const totalScore = calculateTotal(scores);
-        const isUpperSectionComplete = upperSectionCategories.every(cat => scores[cat] !== undefined);
-
-        // Highlight logic
-        const canPick = !gameState.winner && !gameState.isRolling && gameState.rollsLeft < MAX_ROLLS &&
-            (roomId ? gameState.turn === player && isMe : true);
-
-        return (
-            <div className={styles.score_column} style={{ flex: 1, opacity: (roomId && gameState.turn !== player) ? 0.6 : 1 }}>
-                <div className={styles.score_header_small}>
-                    {player === 'P1' ? (roomId && myRole === 'P1' ? 'あなた' : (roomId ? opponentName : 'Player')) : (roomId && myRole === 'P2' ? 'あなた' : opponentName)}
-                    <span style={{ float: 'right' }}>{totalScore}</span>
-                </div>
-
-                {CATEGORIES.map((cat, index) => {
-                    const isTaken = scores[cat] !== undefined;
-                    const potentialScore = calculateScore(cat, gameState.dice);
-
-                    return (
-                        <React.Fragment key={cat}>
-                            {index === 6 && (
-                                <div className={styles.bonus_row_small}>
-                                    <span>Bonus</span>
-                                    <span>{isUpperSectionComplete ? (bonus > 0 ? '+35' : '0') : `${upperSectionScore}/63`}</span>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={() => isMe && canPick ? handleCategoryClick(cat) : undefined}
-                                disabled={!isMe || !canPick || isTaken}
-                                className={`
-                                        ${styles.category_row}
-                                        ${isTaken ? styles.category_row_taken : ''}
-                                        ${(isMe && canPick && !isTaken) ? styles.category_row_active : ''}
-                                    `}
-                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.9rem' }} // Compact
-                            >
-                                <span className={styles.category_name}>{CATEGORY_LABELS[cat]}</span>
-                                <span className={styles.category_points}>
-                                    {isTaken ? scores[cat] : (isMe && canPick ? potentialScore : '-')}
-                                </span>
-                            </button>
-                        </React.Fragment>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    const hasRolledAtLeastOnce = gameState.rollsLeft < MAX_ROLLS;
-    const isMyTurn = roomId ? gameState.turn === myRole : true;
+    const upperScore = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].reduce((acc, cat) => acc + (gameState.scores[cat as Category] || 0), 0);
+    const totalScore = calculateTotal(gameState.scores);
 
     return (
         <div className={styles.container}>
-            {/* Turn Indicator */}
-            {roomId && (
-                <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: isMyTurn ? '#3b82f6' : '#9ca3af' }}>
-                    {isMyTurn ? "あなたの番です" : `${opponentName}の番です`}
-                </div>
-            )}
-
-            {/* Game Area */}
             <div className={styles.game_area}>
-                {/* Dice */}
                 <div className={`${styles.dice_stage} ${gameState.isRolling ? styles.rolling : ''}`}>
-                    {roomId && opponentName === 'Opponent' && (
-                        <div className={styles.waiting_overlay}>
-                            <div className={styles.spinner}></div>
-                            <p>対戦相手を待っています...</p>
-                            <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Room ID: {roomId}</p>
-                        </div>
-                    )}
-                    {gameState.dice.map((value, i) => (
+                    {gameState.dice.map((val, i) => (
                         <Die
                             key={i}
-                            value={value}
+                            value={val}
                             held={gameState.held[i]}
                             rolling={gameState.isRolling && !gameState.held[i]}
-                            onClick={() => isMyTurn ? toggleHold(i) : undefined}
-                            disabled={!isMyTurn || gameState.winner !== null || gameState.isRolling || !hasRolledAtLeastOnce}
+                            onClick={() => toggleHold(i)}
+                            disabled={gameState.winner || gameState.isRolling || gameState.rollsLeft === MAX_ROLLS}
                         />
                     ))}
                 </div>
-
                 <div className={styles.controls}>
-                    <p className={styles.instruction_text}>
-                        {gameState.winner ? "ゲーム終了" :
-                            (isMyTurn
-                                ? (gameState.rollsLeft === 3 ? "ロールして開始" : (gameState.held.includes(true) ? "クリックでホールド解除" : "ダイスをクリックしてホールド"))
-                                : `${opponentName}が思考中...`
-                            )
-                        }
-                    </p>
                     <button
-                        onClick={handleRollClick}
-                        disabled={!isMyTurn || gameState.winner !== null || gameState.rollsLeft <= 0 || gameState.isRolling}
+                        onClick={rollDice}
+                        disabled={gameState.winner || gameState.rollsLeft <= 0 || gameState.isRolling}
                         className={styles.roll_btn}
                     >
                         {gameState.rollsLeft > 0 ? `ロール (${gameState.rollsLeft})` : '役を選択'}
@@ -393,37 +181,46 @@ export default function YachtGame({ roomId, myRole }: YachtGameProps) {
                 </div>
             </div>
 
-            {/* Score Card Container */}
-            <div className={styles.score_card} style={{ display: 'flex', gap: '1rem', flexDirection: 'row', minWidth: roomId ? '600px' : '300px' }}>
-                {renderScoreColumn('P1', gameState.scoresP1, roomId ? myRole === 'P1' : true)}
+            <div className={styles.score_card} style={{ maxWidth: '400px', margin: '0 auto' }}>
+                <div className={styles.score_header_small}>
+                    スコアシート <span style={{ float: 'right' }}>Total: {totalScore}</span>
+                </div>
+                {CATEGORIES.map((cat, idx) => {
+                    const isTaken = gameState.scores[cat] !== undefined;
+                    const canPick = !isTaken && gameState.rollsLeft < MAX_ROLLS && !gameState.isRolling && !gameState.winner;
+                    const potential = calculateScore(cat, gameState.dice);
 
-                {roomId && (
-                    <>
-                        <div style={{ width: '1px', background: '#ccc' }}></div>
-                        {renderScoreColumn('P2', gameState.scoresP2, myRole === 'P2')}
-                    </>
-                )}
+                    return (
+                        <React.Fragment key={cat}>
+                            {idx === 6 && (
+                                <div className={styles.bonus_row_small}>
+                                    <span>Bonus</span>
+                                    <span>{upperScore >= 63 ? '+35' : `${upperScore}/63`}</span>
+                                </div>
+                            )}
+                            <button
+                                onClick={() => canPick && selectCategory(cat)}
+                                disabled={!canPick}
+                                className={`${styles.category_row} ${isTaken ? styles.category_row_taken : ''} ${canPick ? styles.category_row_active : ''}`}
+                            >
+                                <span className={styles.category_name}>{CATEGORY_LABELS[cat]}</span>
+                                <span className={styles.category_points}>
+                                    {isTaken ? gameState.scores[cat] : (canPick ? potential : '-')}
+                                </span>
+                            </button>
+                        </React.Fragment>
+                    );
+                })}
             </div>
 
             {gameState.winner && (
                 <div className={styles.game_over_panel}>
-                    <p className={styles.game_over_title}>ゲームセット！</p>
-                    {roomId ? (
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                            {gameState.winner === 'Draw' ? '引き分け' :
-                                (gameState.winner === myRole ? 'あなたの勝ち！' : `${opponentName}の勝ち`)}
-                        </div>
-                    ) : (
-                        <div style={{ fontSize: '3rem', fontWeight: '900', color: '#3b82f6', marginBottom: '1rem' }}>
-                            {calculateTotal(gameState.scoresP1)}点
-                        </div>
-                    )}
-
-                    {(roomId ? myRole === 'P1' : true) && (
-                        <button onClick={startNewGame} className={styles.restart_btn}>
-                            もう一度遊ぶ
-                        </button>
-                    )}
+                    <p className={styles.game_over_title}>ゲーム盤面</p>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                        {totalScore}点
+                    </div>
+                    <button onClick={startNewGame} className={styles.restart_btn}>もう一度遊ぶ</button>
+                    {onBack && <button onClick={onBack} className={styles.restart_btn} style={{ background: '#666', marginTop: '0.5rem' }}>メニューへ戻る</button>}
                 </div>
             )}
         </div>

@@ -14,6 +14,9 @@ import { SimpleShogiRoom } from "./rooms/SimpleShogiRoom";
 import { HoneycombRoom } from "./rooms/HoneycombRoom";
 import { CheckersRoom } from "./rooms/CheckersRoom";
 import { MancalaRoom } from "./rooms/MancalaRoom";
+import { PolyominoRoom } from "./rooms/PolyominoRoom";
+import { HitBlowRoom } from "./rooms/HitBlowRoom";
+import { YachtRoom } from "./rooms/YachtRoom";
 
 const port = Number(process.env.PORT || 2567);
 const app = express();
@@ -44,6 +47,9 @@ gameServer.define("simpleshogi", SimpleShogiRoom);
 gameServer.define("honeycomb", HoneycombRoom);
 gameServer.define("checkers", CheckersRoom);
 gameServer.define("mancala", MancalaRoom);
+gameServer.define("polyomino", PolyominoRoom);
+gameServer.define("hitblow", HitBlowRoom);
+gameServer.define("yacht", YachtRoom);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);
