@@ -76,7 +76,7 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
             for (let c = 0; c < COLS; c++) {
                 if (board[r][c] !== player) continue;
                 for (const { r: dr, c: dc } of directions) {
-                    const line = [{ r, c }];
+                    const line = [{ row: r, col: c }];
                     for (let i = 1; i < 4; i++) {
                         const nr = r + dr * i;
                         const nc = c + dc * i;
