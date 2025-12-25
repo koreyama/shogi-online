@@ -6,7 +6,7 @@ import * as Colyseus from "colyseus.js";
 const protocol = (typeof window !== "undefined" && window.location.protocol === "https:") ? "wss" : "ws";
 const host = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
     ? "localhost:2567"
-    : "shogi-online-server.onrender.com";
+    : "shogi-server.onrender.com";
 
 export const client = new Colyseus.Client(`${protocol}://${host}`);
 
