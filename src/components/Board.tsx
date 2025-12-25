@@ -57,7 +57,10 @@ export const Board: React.FC<BoardProps> = ({
                     ${isTarget ? styles.validMove : ''}
                     ${isLastMoveTo(x, y) ? styles.lastMove : ''}
                   `}
-                                onClick={() => onCellClick(x, y)}
+                                onClick={() => {
+                                    console.log(`[Board] Internal cell click: ${x},${y}`);
+                                    onCellClick(x, y);
+                                }}
                                 data-hoshi={isHoshi}
                             >
 

@@ -10,12 +10,14 @@
     "pages:build": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
+    "@colyseus/schema": "^3.0.70",
     "@formspree/react": "^3.0.0",
     "@react-three/drei": "^9.100.0",
     "@react-three/fiber": "^8.17.10",
     "@types/canvas-confetti": "^1.9.0",
     "@types/three": "^0.181.0",
     "canvas-confetti": "^1.9.4",
+    "colyseus.js": "^0.16.22",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",
     "next": "15.0.3",

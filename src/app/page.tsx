@@ -60,7 +60,7 @@ export default function Home() {
   const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
 
-  useRoomJanitor();
+  // useRoomJanitor();
 
   useEffect(() => {
     setMounted(true);

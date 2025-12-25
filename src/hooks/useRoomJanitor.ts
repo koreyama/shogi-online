@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ref, get, remove } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
-type GameType = 'shogi' | 'reversi' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing';
+type GameType = 'reversi' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing';
 
 interface RoomConfig {
     path: string;
@@ -10,10 +10,7 @@ interface RoomConfig {
 }
 
 const CONFIGS: Record<GameType, RoomConfig> = {
-    shogi: {
-        path: 'rooms',
-        isEmpty: (room) => !room.sente && !room.gote
-    },
+    // Shogi removed
     reversi: {
         path: 'reversi_rooms',
         isEmpty: (room) => !room.black && !room.white
@@ -45,6 +42,8 @@ export const useRoomJanitor = (targetGames: GameType[] = Object.keys(CONFIGS) as
         const cleanup = async () => {
             for (const game of targetGames) {
                 const config = CONFIGS[game];
+                if (!config) continue;
+
                 try {
                     const rootRef = ref(db, config.path);
                     const snapshot = await get(rootRef);

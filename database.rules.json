@@ -1,25 +1,154 @@
 {
     "rules": {
-        ".read": "now < 1766415600000",
-        ".write": "now < 1766415600000",
         "minesweeper_scores": {
-            "初級": {
+            ".read": true,
+            "$difficulty": {
+                "$scoreId": {
+                    ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid) && (newData.child('userId').val() === auth.uid)",
+                    ".validate": "newData.hasChildren(['userId', 'userName', 'time', 'timestamp'])"
+                },
                 ".indexOn": [
                     "time",
                     "userId"
                 ]
-            },
-            "中級": {
-                ".indexOn": [
-                    "time",
-                    "userId"
-                ]
-            },
-            "上級": {
-                ".indexOn": [
-                    "time",
-                    "userId"
-                ]
+            }
+        },
+        "stock_portfolios": {
+            "$userId": {
+                ".read": "auth != null && auth.uid === $userId",
+                ".write": "auth != null && auth.uid === $userId"
+            }
+        },
+        "stock_leaderboard": {
+            ".read": true,
+            "$userId": {
+                ".write": "auth != null && auth.uid === $userId"
+            }
+        },
+        "rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "reversi_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "gomoku_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "mancala_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "chess_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "trump_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "drawing_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "yacht_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "connect4_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "checkers_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "dots_and_boxes_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "hit_and_blow_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "honeycomb_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "polyomino_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "poker_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "blackjack_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "simple_shogi_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
+        "minesweeper_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
             }
         }
     }

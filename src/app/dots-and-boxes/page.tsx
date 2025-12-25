@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DotsAndBoxesGame from './DotsAndBoxesGame';
+import ColyseusDotsAndBoxesGame from './ColyseusDotsAndBoxesGame';
 import menuStyles from '@/styles/GameMenu.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import Link from 'next/link';
@@ -13,7 +14,7 @@ import { useRouter } from 'next/navigation';
 export default function DotsAndBoxesPage() {
     const router = useRouter();
     const { playerName, savePlayerName, isLoaded: nameLoaded } = usePlayer();
-    const [gameMode, setGameMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'playing' | 'setup'>('setup');
+    const [gameMode, setGameMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'playing' | 'setup' | 'colyseus'>('setup');
     const [customRoomId, setCustomRoomId] = useState('');
     const [roomId, setRoomId] = useState<string | null>(null);
     const [myRole, setMyRole] = useState<'P1' | 'P2' | null>(null);
@@ -217,9 +218,24 @@ export default function DotsAndBoxesPage() {
                         </button>
                     </div>
                     {/* Render Game */}
+                    {/* Render Game */}
                     <DotsAndBoxesGame
                         roomId={roomId}
                         myRole={myRole}
+                    />
+                </div>
+            </main>
+        );
+    }
+
+    // Render Colyseus Test
+    if (gameMode === 'colyseus') {
+        return (
+            <main className={menuStyles.container}>
+                <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <ColyseusDotsAndBoxesGame
+                        playerName={playerName}
+                        onBack={handleBackToMenu}
                     />
                 </div>
             </main>
@@ -253,6 +269,11 @@ export default function DotsAndBoxesPage() {
                             <span className={menuStyles.modeBtnIcon}><IconKey size={48} /></span>
                             <span className={menuStyles.modeBtnTitle}>ルーム対戦</span>
                             <span className={menuStyles.modeBtnDesc}>友達と対戦</span>
+                        </button>
+                        <button onClick={() => setGameMode('colyseus')} className={menuStyles.modeBtn} style={{ border: '2px dashed #48bb78', background: '#f0fff4' }}>
+                            <span className={menuStyles.modeBtnIcon}>⚡</span>
+                            <span className={menuStyles.modeBtnTitle}>高速対戦(Beta)</span>
+                            <span className={menuStyles.modeBtnDesc}>Colyseus版テスト</span>
                         </button>
                     </div>
                 ) : (

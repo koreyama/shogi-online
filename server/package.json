@@ -1,0 +1,33 @@
+{
+    "name": "shogi-online-server",
+    "version": "1.0.0",
+    "description": "Colyseus game server for Shogi Online",
+    "main": "index.js",
+    "scripts": {
+        "start": "ts-node src/index.ts",
+        "dev": "nodemon src/index.ts",
+        "build": "tsc"
+    },
+    "keywords": [
+        "colyseus",
+        "shogi",
+        "multiplayer"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@colyseus/monitor": "^0.15.0",
+        "@colyseus/schema": "^3.0.70",
+        "colyseus": "^0.16.5",
+        "cors": "^2.8.5",
+        "express": "^4.18.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.13",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.1.0",
+        "nodemon": "^2.0.22",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.0.4"
+    }
+}

@@ -16,6 +16,7 @@ import { getBestMove } from '@/lib/shogi/ai';
 import { soundManager } from '@/utils/sound';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import ColyseusShogiGame from './ColyseusShogiGame';
 
 interface ChatMessage {
   id: string;
@@ -66,11 +67,24 @@ export default function ShogiPage() {
   // Player State
   const [playerName, setPlayerName] = useState('');
   const [opponentName, setOpponentName] = useState('');
-  const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | null>(null);
+  const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | 'colyseus' | 'colyseus_random' | 'colyseus_room' | null>(null);
   const [customRoomId, setCustomRoomId] = useState('');
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  const joinRoomCreate = async () => {
+    setCustomRoomId(''); // Ensure empty
+    setJoinMode('colyseus_room');
+  };
+
+  const joinRoomJoin = async () => {
+    if (!customRoomId.trim()) {
+      alert("ルームIDを入力してください");
+      return;
+    }
+    setJoinMode('colyseus_room');
+  };
 
   // Prevent hydration errors
   useEffect(() => {
@@ -79,7 +93,7 @@ export default function ShogiPage() {
 
   // Firebase Room Listener
   useEffect(() => {
-    if (!roomId || !myRole || roomId === 'ai-match') return;
+    if (!roomId || !myRole || roomId === 'ai-match' || joinMode === 'colyseus') return;
 
     // Reset chat messages when joining a new room
     setMessages([]);
@@ -276,137 +290,13 @@ export default function ShogiPage() {
   }, [isLoaded, savedName]);
 
   const joinRandomGame = async () => {
-    setIsLoading(true);
-    try {
-      const roomsRef = ref(db, 'rooms');
-      const snapshot = await get(roomsRef);
-      const rooms = snapshot.val();
-
-      let foundRoomId = null;
-
-      if (rooms) {
-        // Find a room with only sente
-        // Also clean up invalid rooms (no sente)
-        for (const [id, room] of Object.entries(rooms) as [string, any][]) {
-          // Clean up empty or invalid rooms
-          if (!room.sente && !room.gote) {
-            set(ref(db, `rooms/${id}`), null);
-            continue;
-          }
-          // If sente is missing but gote is there, it's broken.
-          if (!room.sente && room.gote) {
-            set(ref(db, `rooms/${id}`), null);
-            continue;
-          }
-
-          if ((room.sente && !room.gote) || (!room.sente && room.gote)) {
-            foundRoomId = id;
-            break;
-          }
-        }
-      }
-
-      if (foundRoomId) {
-        const room = rooms[foundRoomId];
-        if (!room.gote) {
-          // Join as gote
-          await update(ref(db, `rooms/${foundRoomId}/gote`), {
-            name: playerName,
-            id: playerId
-          });
-          setRoomId(foundRoomId);
-          setMyRole('gote');
-        } else {
-          // Join as sente
-          await update(ref(db, `rooms/${foundRoomId}/sente`), {
-            name: playerName,
-            id: playerId
-          });
-          setRoomId(foundRoomId);
-          setMyRole('sente');
-        }
-      } else {
-        // Create new room with random role
-        const newRoomRef = push(roomsRef);
-        const newRoomId = newRoomRef.key!;
-        const isSente = Math.random() < 0.5;
-
-        if (isSente) {
-          await set(newRoomRef, {
-            sente: { name: playerName, id: playerId },
-            gote: null
-          });
-          setMyRole('sente');
-        } else {
-          await set(newRoomRef, {
-            sente: null,
-            gote: { name: playerName, id: playerId }
-          });
-          setMyRole('gote');
-        }
-        setRoomId(newRoomId);
-        setStatus('waiting');
-      }
-    } catch (error) {
-      console.error("Join failed:", error);
-      alert("エラーが発生しました。もう一度お試しください。");
-    } finally {
-      setIsLoading(false);
-    }
+    setJoinMode('colyseus_random');
   };
 
   const joinRoomGame = async () => {
-    if (!customRoomId.trim()) return;
-    setIsLoading(true);
-    try {
-      const rid = customRoomId.trim();
-      const roomRef = ref(db, `rooms/${rid}`);
-      const snapshot = await get(roomRef);
-      const room = snapshot.val();
-
-      if (!room) {
-        // Create with random role
-        const isSente = Math.random() < 0.5;
-        if (isSente) {
-          await set(roomRef, {
-            sente: { name: playerName, id: playerId },
-            gote: null
-          });
-          setMyRole('sente');
-        } else {
-          await set(roomRef, {
-            sente: null,
-            gote: { name: playerName, id: playerId }
-          });
-          setMyRole('gote');
-        }
-        setRoomId(rid);
-        setStatus('waiting');
-      } else if (!room.gote) {
-        // Join as gote
-        await update(ref(db, `rooms/${rid}/gote`), {
-          name: playerName,
-          id: playerId
-        });
-        setRoomId(rid);
-        setMyRole('gote');
-      } else if (!room.sente) {
-        // Join as sente (if created by gote)
-        await update(ref(db, `rooms/${rid}/sente`), {
-          name: playerName,
-          id: playerId
-        });
-        setRoomId(rid);
-        setMyRole('sente');
-      } else {
-        alert('満員です');
-      }
-    } catch (error) {
-      console.error("Join room failed:", error);
-      alert("エラーが発生しました。");
-    } finally {
-      setIsLoading(false);
-    }
+    // Treat empty input as "Create New Room"
+    // If input exists, it's "Join Room"
+    setJoinMode('colyseus_room');
   };
 
   const startAIGame = () => {
@@ -690,6 +580,14 @@ export default function ShogiPage() {
     );
   }
 
+  if (joinMode === 'colyseus' || joinMode === 'colyseus_random') {
+    return <ColyseusShogiGame mode="random" />;
+  }
+
+  if (joinMode === 'colyseus_room') {
+    return <ColyseusShogiGame mode="room" roomId={customRoomId || undefined} />;
+  }
+
   // Initial Screen - Join Mode Selection
   if (status === 'initial') {
     return (
@@ -722,6 +620,9 @@ export default function ShogiPage() {
                 <span className={styles.modeBtnTitle}>AI対戦</span>
                 <span className={styles.modeBtnDesc}>練習モード (Lv.1-3)</span>
               </button>
+
+
+              {/* Beta Button Removed */}
             </div>
           ) : joinMode === 'random' ? (
             <div className={styles.joinSection}>
@@ -735,19 +636,41 @@ export default function ShogiPage() {
             </div>
           ) : (
             <div className={styles.joinSection}>
-              <p className={styles.joinDesc}>ルームIDを入力して参加</p>
-              <input
-                type="text"
-                value={customRoomId}
-                onChange={(e) => setCustomRoomId(e.target.value)}
-                placeholder="ルームID (空白で新規作成)"
-                className={styles.input}
-                maxLength={20}
-              />
-              <button onClick={joinRoomGame} className={styles.primaryBtn}>
-                参加 / 作成
-              </button>
-              <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                {/* Create Section */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                  <button onClick={joinRoomCreate} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #e6b422 0%, #b8860b 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}>
+                    ルーム作成（ID自動発行）
+                  </button>
+                </div>
+
+                <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
+                  <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#121212', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                </div>
+
+                {/* Join Section */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                      type="text"
+                      value={customRoomId}
+                      onChange={(e) => setCustomRoomId(e.target.value)}
+                      placeholder="6桁のID"
+                      className={styles.input}
+                      maxLength={10}
+                      style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
+                      inputMode="numeric"
+                    />
+                    <button onClick={joinRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                      参加
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '3rem', fontSize: '0.9rem', opacity: 0.8 }}>
                 戻る
               </button>
             </div>
