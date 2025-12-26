@@ -517,9 +517,23 @@ export default function MinesweeperPage() {
                                 {gameState.status === 'won' && user && <p className={gameStyles.saveMsg}>ランキングに登録されました！</p>}
                             </>
                         )}
-                        <button onClick={() => { setRoomId(null); setStatus('menu'); setWinner(null); }} className={styles.primaryBtn}>
-                            メニューへ戻る
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                            <button onClick={() => {
+                                if (isMultiplayer) {
+                                    setRoomId(null);
+                                    setStatus('menu');
+                                    setWinner(null);
+                                    setJoinMode(null);
+                                } else {
+                                    startGameSingle(difficulty);
+                                }
+                            }} className={styles.primaryBtn}>
+                                {isMultiplayer ? '別の対戦を探す' : 'もう一度プレイ'}
+                            </button>
+                            <button onClick={() => { setRoomId(null); setStatus('menu'); setWinner(null); setJoinMode(null); }} className={styles.secondaryBtn}>
+                                メニューへ戻る
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
