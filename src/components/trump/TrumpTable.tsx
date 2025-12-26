@@ -11,7 +11,8 @@ interface TrumpTableProps {
     fieldCards: CardType[];
     turnPlayerId: string;
     onCardClick?: (card: CardType, index: number) => void;
-    selectedIndices?: number[]; // Changed from selectedCards
+    selectedIndices?: number[];
+    selectedCards?: CardType[]; // Added support for Card object selection
     playableCards?: CardType[];
     isRevolution: boolean;
 }
@@ -24,6 +25,7 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
     turnPlayerId,
     onCardClick,
     selectedIndices = [],
+    selectedCards = [], // Default empty
     playableCards = [],
     isRevolution
 }) => {
@@ -128,7 +130,11 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                         <div className={`${styles.hand} ${!isMe ? styles.opponent : ''}`}>
                             <AnimatePresence>
                                 {hand.map((card, i) => {
-                                    const isSelected = isMe && selectedIndices.includes(i);
+                                    // Check selection by index OR by card object content
+                                    const isSelected = isMe && (
+                                        selectedIndices.includes(i) ||
+                                        selectedCards.some(sc => sc.suit === card.suit && sc.rank === card.rank)
+                                    );
 
                                     const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
 
