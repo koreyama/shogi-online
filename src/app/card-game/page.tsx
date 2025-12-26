@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { STARTER_DECKS } from '@/lib/card-game/data/decks';
 import {
@@ -21,6 +21,13 @@ import styles from './page.module.css';
 import { useAuth } from '@/hooks/useAuth';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase';
+import dynamic from 'next/dynamic';
+
+// Dynamically import ColyseusCardGame with SSR disabled to prevent server-side issues with colyseus.js
+const ColyseusCardGame = dynamic(
+    () => import('./ColyseusCardGame').then(mod => mod.ColyseusCardGame),
+    { ssr: false, loading: () => <div>Loading Multiplayer...</div> }
+);
 
 // Simple WebSocket client for demo purposes
 // In production, use a library like Socket.io or Pusher
@@ -28,141 +35,147 @@ let ws: WebSocket | null = null;
 
 function CardGameContent() {
     const searchParams = useSearchParams();
+    const router = useRouter(); // Import useRouter
     const { user, loading: authLoading } = useAuth();
-    const mode = searchParams.get('mode') || 'local'; // 'local' or 'multiplayer'
+
+    const mode = searchParams.get('mode') || 'local'; // 'local', 'cpu', 'random', 'room'
     const deckId = searchParams.get('deck') || 'warrior_starter';
     const deckType = searchParams.get('deckType') || 'starter';
     const avatarId = searchParams.get('avatar') || 'warrior_god';
-    const roomId = searchParams.get('room') || 'demo-room';
+    const roomId = searchParams.get('roomId'); // Standardized param name
+    const create = searchParams.get('create') === 'true';
 
-    // Determine Player ID: Prefer User UID, fallback to params or localStorage
-    const paramPlayerId = searchParams.get('player');
+    // Determine Player ID
+    const paramPlayerId = searchParams.get('playerId');
     const [playerId, setPlayerId] = useState(paramPlayerId || (typeof window !== 'undefined' ? localStorage.getItem('playerId') || `player-${Math.random().toString(36).substr(2, 9)}` : 'player-1'));
 
     // Update Player ID when user logs in
     useEffect(() => {
-        if (user) {
-            setPlayerId(user.uid);
-        }
+        if (user) setPlayerId(user.uid);
     }, [user]);
 
-    // Persist playerId (only if not user uid to avoid overwriting with temp id)
+    // Persist playerId
     useEffect(() => {
-        if (typeof window !== 'undefined' && !user) {
-            localStorage.setItem('playerId', playerId);
-        }
+        if (typeof window !== 'undefined' && !user) localStorage.setItem('playerId', playerId);
     }, [playerId, user]);
 
-    const [gameState, setGameState] = useState<GameState | null>(null);
-    const [isMultiplayer, setIsMultiplayer] = useState(mode === 'multiplayer');
+    // PREPARE DECK (Shared Logic)
+    const [myDeck, setMyDeck] = useState<string[]>([]);
+    const [deckLoaded, setDeckLoaded] = useState(false);
 
-    // Initialize Game
     useEffect(() => {
-        const initGame = async () => {
-            if (authLoading) return; // Wait for auth check
+        const loadDeck = async () => {
+            if (authLoading) return;
+            let deck: string[] = [];
 
-            let myDeck: string[] = [];
-            let playerName = user?.displayName || 'You';
-
-            // Load Deck
             if (deckType === 'starter') {
-                myDeck = STARTER_DECKS[deckId as keyof typeof STARTER_DECKS]?.cards || STARTER_DECKS['warrior_starter'].cards;
+                deck = STARTER_DECKS[deckId as keyof typeof STARTER_DECKS]?.cards || STARTER_DECKS['warrior_starter'].cards;
             } else {
-                // Custom Deck
+                // Custom Deck (Logic condensed for brevity, similar to existing)
                 if (user) {
-                    // Load from Firebase for logged-in user
                     try {
                         const deckRef = ref(db, `users/${user.uid}/decks/${deckId}`);
                         const snapshot = await get(deckRef);
-                        if (snapshot.exists()) {
-                            myDeck = snapshot.val().cards || [];
-                        } else {
-                            console.warn("Deck not found in Firebase, falling back to starter");
-                            myDeck = STARTER_DECKS['warrior_starter'].cards;
-                        }
-                    } catch (e) {
-                        console.error("Error fetching deck from Firebase", e);
-                        myDeck = STARTER_DECKS['warrior_starter'].cards;
-                    }
+                        if (snapshot.exists()) deck = snapshot.val().cards || [];
+                        else deck = STARTER_DECKS['warrior_starter'].cards;
+                    } catch { deck = STARTER_DECKS['warrior_starter'].cards; }
                 } else {
-                    // Load from LocalStorage for guest
                     if (typeof window !== 'undefined') {
-                        const savedDeck = localStorage.getItem(deckId);
-                        if (savedDeck) {
-                            try {
-                                const parsed = JSON.parse(savedDeck);
-                                myDeck = parsed.cards || [];
-                            } catch (e) {
-                                console.error('Failed to parse deck', e);
-                            }
+                        const saved = localStorage.getItem(deckId);
+                        if (saved) {
+                            try { deck = JSON.parse(saved).cards || []; } catch { }
                         }
                     }
-                    if (myDeck.length === 0) myDeck = STARTER_DECKS['warrior_starter'].cards;
+                    if (deck.length === 0) deck = STARTER_DECKS['warrior_starter'].cards;
                 }
             }
-
-            if (mode === 'local' || mode === 'cpu') {
-                // Use Trickster deck for Trickster CPU
-                const cpuDeckKey = 'trickster_starter';
-
-                // Robust Fallback: Hardcoded Trickster Deck
-                const FALLBACK_CPU_DECK = [
-                    'w025', 'w025', 'w025', // Combo Dagger
-                    'm035', 'm035', // Chain Lightning
-                    'm036', // Finishing Move
-                    'w005', 'w005', // Dagger
-                    'w014', // Gale Dagger
-                    'w021', // Ninja Sword
-                    'm025', // Gamble
-                    'm022', // Haste
-                    'm038', 'm038', // Regen Slime
-                    'm032', // Necromancy
-                    'm033', // Soul Burst
-                    'm039', // Offering to Dead
-                    'm023', // Blood Ritual
-                    'm024', // Lifesteal
-                    'w020', // Vampire Sword
-                    'i005', // Smoke Bomb
-                    'i010', // Bomb
-                    't001', // Counter Stance
-                    't003', // Explosive Rune
-                    'e005', // Gale Boots
-                    'e006', // Poison Enchant
-                    'i003', 'i003', // Mana Water
-                    'a013'  // Phantom Cloak
-                ];
-
-                let cpuDeck = STARTER_DECKS?.[cpuDeckKey]?.cards;
-
-                if (!cpuDeck || cpuDeck.length === 0) {
-                    console.warn('STARTER_DECKS failed. Using hardcoded fallback deck for CPU.');
-                    cpuDeck = FALLBACK_CPU_DECK;
-                }
-
-                const initial = createInitialState(
-                    'local-room',
-                    { id: playerId, name: playerName, avatarId: avatarId, deck: myDeck },
-                    { id: 'cpu', name: 'CPU', avatarId: 'trickster_god', deck: cpuDeck }
-                );
-                setGameState(initial);
-            } else {
-                // Multiplayer setup (simplified)
-                const initial = createInitialState(
-                    roomId,
-                    { id: playerId, name: playerName, avatarId: avatarId, deck: myDeck },
-                    { id: 'opponent', name: 'Player 2', avatarId: 'mage_god', deck: [] }
-                );
-                setGameState(initial);
-            }
+            setMyDeck(deck);
+            setDeckLoaded(true);
         };
+        loadDeck();
+    }, [deckId, deckType, user, authLoading]);
 
+
+    // RENDER COLYSEUS GAME FOR MULTIPLAYER
+    if (mode === 'random' || mode === 'room') {
+        if (!deckLoaded || authLoading) return <div>Loading Deck...</div>;
+
+        return (
+            <div className={styles.main}>
+                <ColyseusCardGame
+                    roomId={roomId || undefined}
+                    options={{ create, mode }} // Pass mode to server if needed for matchmaking? 
+                    // Actually Colyseus "room" mode logic is usually handled by `joinById` vs `create`.
+                    // For "random", we use `joinOrCreate`.
+                    // My `ColyseusCardGame` handles `roomId` vs `options.create`.
+                    // If mode='random', we pass neither `roomId` nor `create:true` (or create:false), so it does `joinOrCreate`.
+                    playerId={playerId}
+                    playerName={user?.displayName || 'Player'}
+                    avatarId={avatarId}
+                    deck={myDeck}
+                    onLeave={() => router.push('/card-game/lobby')}
+                />
+            </div>
+        );
+    }
+
+    // LOCAL / CPU MODE LOGIC (Existing)
+    const [gameState, setGameState] = useState<GameState | null>(null);
+    const [isMultiplayer, setIsMultiplayer] = useState(false); // Force false for local/cpu
+
+    // Initialize Game (Local/CPU)
+    useEffect(() => {
+        if (!deckLoaded) return;
+
+        const initGame = async () => {
+            // ... existing CPU deck logic ...
+            // Use Trickster deck for Trickster CPU
+            const cpuDeckKey = 'trickster_starter';
+            // Robust Fallback: Hardcoded Trickster Deck
+            const FALLBACK_CPU_DECK = [
+                'w025', 'w025', 'w025', // Combo Dagger
+                'm035', 'm035', // Chain Lightning
+                'm036', // Finishing Move
+                'w005', 'w005', // Dagger
+                'w014', // Gale Dagger
+                'w021', // Ninja Sword
+                'm025', // Gamble
+                'm022', // Haste
+                'm038', 'm038', // Regen Slime
+                'm032', // Necromancy
+                'm033', // Soul Burst
+                'm039', // Offering to Dead
+                'm023', // Blood Ritual
+                'm024', // Lifesteal
+                'w020', // Vampire Sword
+                'i005', // Smoke Bomb
+                'i010', // Bomb
+                't001', // Counter Stance
+                't003', // Explosive Rune
+                'e005', // Gale Boots
+                'e006', // Poison Enchant
+                'i003', 'i003', // Mana Water
+                'a013'  // Phantom Cloak
+            ];
+
+            let cpuDeck = STARTER_DECKS?.[cpuDeckKey]?.cards;
+            if (!cpuDeck || cpuDeck.length === 0) cpuDeck = FALLBACK_CPU_DECK;
+
+            const initial = createInitialState(
+                roomId || 'local-room',
+                { id: playerId, name: user?.displayName || 'You', avatarId: avatarId, deck: myDeck },
+                { id: 'opponent', name: 'Player 2', avatarId: 'mage_god', deck: cpuDeck }
+            );
+            setGameState(initial);
+        };
         initGame();
-    }, [mode, playerId, roomId, deckId, deckType, avatarId, user, authLoading]);
+    }, [mode, playerId, avatarId, user, authLoading, deckLoaded, myDeck]);
 
     // WebSocket Sync (Mock)
-    const syncGameState = (roomId: string, newState: GameState) => {
+    const syncGameState = (roomId: string | null, newState: GameState) => {
+        const finalRoomId = roomId || 'local-room';
         // In real app, send newState to server
-        console.log('Syncing state:', newState);
+        console.log('Syncing state:', newState, 'to', finalRoomId);
     };
 
     const handleEndTurn = () => {
@@ -247,7 +260,7 @@ function CardGameContent() {
             if (handIndex !== undefined) {
                 const newState = selectCardForCharge(gameState, playerId, handIndex);
                 setGameState(newState);
-                if (isMultiplayer) syncGameState(roomId, newState);
+                if (isMultiplayer) syncGameState(roomId || 'local-room', newState);
             }
         } else {
             // Normal play
@@ -277,9 +290,7 @@ function CardGameContent() {
         const newState = useUltimate(gameState, playerId);
         setGameState(newState);
 
-        if (isMultiplayer) {
-            syncGameState(roomId, newState);
-        }
+        if (isMultiplayer) syncGameState(roomId || 'local-room', newState);
     };
 
     const handleToggleManaCharge = () => {

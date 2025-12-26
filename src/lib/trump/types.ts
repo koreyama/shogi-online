@@ -17,6 +17,7 @@ export interface TrumpPlayer {
     isReady?: boolean;
     rank?: number; // For sorting
     finishedRank?: number; // 1st, 2nd, etc.
+    sessionId?: string; // Colyseus session ID (unique per connection)
 }
 
 export interface GameState {

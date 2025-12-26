@@ -6,8 +6,6 @@ import { AVATAR_LIST } from '@/lib/card-game/data/avatars';
 import { STARTER_DECKS } from '@/lib/card-game/data/decks';
 import { CARDS } from '@/lib/card-game/data/cards';
 import { DeckBuilder } from '@/components/card-game/DeckBuilder';
-import { createRoom, joinRoom, findRandomRoom } from '@/lib/card-game/firebase-utils';
-import { createPlayerState } from '@/lib/card-game/engine';
 import styles from './page.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,17 +30,25 @@ export default function LobbyPage() {
         const loadDecks = async () => {
             if (user) {
                 // Load from Firebase
-                const userDecksRef = ref(db, `users/${user.uid}/decks`);
-                const snapshot = await get(userDecksRef);
-                if (snapshot.exists()) {
-                    const decksData = snapshot.val();
-                    const decks = Object.values(decksData) as { id: string, name: string, cards: string[] }[];
-                    setMyDecks(decks);
-                    if (decks.length > 0) {
-                        setDeckType('custom');
-                        setSelectedDeckId(decks[0].id);
+                try {
+                    const userDecksRef = ref(db, `users/${user.uid}/decks`);
+                    const snapshot = await get(userDecksRef);
+                    if (snapshot.exists()) {
+                        const decksData = snapshot.val();
+                        const decks = Object.values(decksData) as { id: string, name: string, cards: string[] }[];
+                        setMyDecks(decks);
+                        if (decks.length > 0) {
+                            setDeckType('custom');
+                            setSelectedDeckId(decks[0].id);
+                        }
+                    } else {
+                        setMyDecks([]);
+                        setDeckType('starter');
+                        setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
                     }
-                } else {
+                } catch (error) {
+                    console.error("Error loading decks from Firebase:", error);
+                    // Fallback to empty/starter if permission denied
                     setMyDecks([]);
                     setDeckType('starter');
                     setSelectedDeckId(Object.keys(STARTER_DECKS)[0]);
@@ -130,75 +136,95 @@ export default function LobbyPage() {
     };
 
     const handleCreateRoom = async () => {
-        if (!selectedDeckId) {
-            alert('デッキを選択してください');
-            return;
+        console.log("Create room clicked", { selectedDeckId });
+        try {
+            if (!selectedDeckId) {
+                alert('デッキを選択してください');
+                return;
+            }
+            setIsCreatingRoom(true);
+            const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
+            const playerId = user ? user.uid : `p-${Date.now()}`;
+
+            const params = new URLSearchParams();
+            params.set('mode', 'room');
+            params.set('create', 'true');
+            params.set('avatar', selectedAvatarId);
+            params.set('deck', selectedDeckId);
+            params.set('deckType', deckType);
+            params.set('playerId', playerId);
+
+            const url = `/card-game?${params.toString()}`;
+            console.log("Navigating to", url);
+            router.push(url);
+        } catch (e: any) {
+            console.error("Error in handleCreateRoom:", e);
+            alert(`エラーが発生しました: ${e.message}`);
         }
-        setIsCreatingRoom(true);
-        const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
-        const playerId = user ? user.uid : `p-${Date.now()}`;
-        const deckCards = getSelectedDeckCards();
-
-        const playerState = createPlayerState(playerId, playerName, selectedAvatarId, deckCards);
-        const roomId = await createRoom(playerState);
-
-        router.push(`/card-game?mode=room&roomId=${roomId}&playerId=${playerId}`);
     };
 
     const handleJoinRoom = async () => {
-        if (!joinRoomId) {
-            alert('ルームIDを入力してください');
-            return;
-        }
-        if (!selectedDeckId) {
-            alert('デッキを選択してください');
-            return;
-        }
+        console.log("Join room clicked", { joinRoomId, selectedDeckId });
+        try {
+            if (!joinRoomId) {
+                alert('ルームIDを入力してください');
+                return;
+            }
+            if (!selectedDeckId) {
+                alert('デッキを選択してください');
+                return;
+            }
 
-        const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
-        const playerId = user ? user.uid : `p-${Date.now()}`;
-        const deckCards = getSelectedDeckCards();
+            const playerName = user?.displayName || localStorage.getItem('card_game_player_name') || 'Player';
+            const playerId = user ? user.uid : `p-${Date.now()}`;
 
-        const playerState = createPlayerState(playerId, playerName, selectedAvatarId, deckCards);
-        const success = await joinRoom(joinRoomId, playerState);
+            const params = new URLSearchParams();
+            params.set('mode', 'room');
+            params.set('roomId', joinRoomId);
+            params.set('avatar', selectedAvatarId);
+            params.set('deck', selectedDeckId);
+            params.set('deckType', deckType);
+            params.set('playerId', playerId);
 
-        if (success) {
-            router.push(`/card-game?mode=room&roomId=${joinRoomId}&playerId=${playerId}`);
-        } else {
-            alert('ルームが見つからないか、満員です');
+            const url = `/card-game?${params.toString()}`;
+            console.log("Navigating to", url);
+            router.push(url);
+        } catch (e: any) {
+            console.error("Error in handleJoinRoom:", e);
+            alert(`エラーが発生しました: ${e.message}`);
         }
     };
 
     const handleStartGame = async (mode: 'random' | 'room' | 'cpu', roomId?: string) => {
-        if (!selectedDeckId) {
-            alert('デッキを選択してください');
-            return;
+        console.log("Start game clicked", { mode, selectedDeckId });
+        try {
+            if (!selectedDeckId) {
+                alert('デッキを選択してください');
+                return;
+            }
+
+            // Default name
+            if (!user) {
+                localStorage.setItem('card_game_player_name', 'Player');
+            }
+            const playerName = user?.displayName || 'Player';
+            const playerId = user ? user.uid : `p-${Date.now()}`;
+
+            const params = new URLSearchParams();
+            params.set('mode', mode);
+            if (roomId) params.set('roomId', roomId);
+            params.set('avatar', selectedAvatarId);
+            params.set('deck', selectedDeckId);
+            params.set('deckType', deckType);
+            params.set('playerId', playerId);
+
+            const url = `/card-game?${params.toString()}`;
+            console.log("Navigating to", url);
+            router.push(url);
+        } catch (e: any) {
+            console.error("Error in handleStartGame:", e);
+            alert(`エラーが発生しました: ${e.message}`);
         }
-
-        // Default name
-        if (!user) {
-            localStorage.setItem('card_game_player_name', 'Player');
-        }
-        const playerName = user?.displayName || 'Player';
-        const playerId = user ? user.uid : `p-${Date.now()}`;
-        const deckCards = getSelectedDeckCards();
-
-        if (mode === 'random') {
-            const playerState = createPlayerState(playerId, playerName, selectedAvatarId, deckCards);
-            const rId = await findRandomRoom(playerState);
-            router.push(`/card-game?mode=room&roomId=${rId}&playerId=${playerId}`);
-            return;
-        }
-
-        const params = new URLSearchParams();
-        params.set('mode', mode);
-        if (roomId) params.set('roomId', roomId);
-        params.set('avatar', selectedAvatarId);
-        params.set('deck', selectedDeckId);
-        params.set('deckType', deckType);
-        params.set('playerId', playerId);
-
-        router.push(`/card-game?${params.toString()}`);
     };
 
     if (showDeckBuilder) {

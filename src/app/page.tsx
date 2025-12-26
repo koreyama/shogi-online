@@ -40,12 +40,6 @@ const IconStock = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const IconVirus = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="12" cy="12" r="5" />
-    <path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10l2.1 2.1M4.9 19.1l2.1-2.1m10-10l2.1-2.1" />
-  </svg>
-);
 
 const IconBlocks = ({ size = 24, color }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="1.5">
@@ -458,12 +452,6 @@ export default function Home() {
               <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Virtual Piano リリース</span>
             </div>
           </Link>
-          <Link href="/plague" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Bio-Hazard Simulator リリース</span>
-            </div>
-          </Link>
           <Link href="/clicker" style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
@@ -515,14 +503,6 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/plague" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', border: '2px solid #e53e3e', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
-                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#e53e3e', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
-                <IconVirus size={40} />
-                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Bio-Hazard</div>
-                <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>感染拡大シミュレータ</div>
-              </div>
-            </Link>
           </div>
         </section>
 

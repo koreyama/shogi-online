@@ -17,6 +17,7 @@ import { MancalaRoom } from "./rooms/MancalaRoom";
 import { PolyominoRoom } from "./rooms/PolyominoRoom";
 import { HitBlowRoom } from "./rooms/HitBlowRoom";
 import { YachtRoom } from "./rooms/YachtRoom";
+import { CardGameRoom } from "./rooms/CardGameRoom";
 
 const port = Number(process.env.PORT || 2567);
 const app = express();
@@ -37,6 +38,8 @@ const gameServer = new Server({
 });
 
 // Define Rooms
+import { DaifugoRoom } from "./rooms/DaifugoRoom";
+
 gameServer.define("dots_and_boxes", DotsAndBoxesRoom);
 gameServer.define("shogi", ShogiRoom);
 gameServer.define("chess", ChessRoom);
@@ -50,6 +53,9 @@ gameServer.define("mancala", MancalaRoom);
 gameServer.define("polyomino", PolyominoRoom);
 gameServer.define("hitblow", HitBlowRoom);
 gameServer.define("yacht", YachtRoom);
+gameServer.define("card_game", CardGameRoom)
+    .filterBy(['mode']);
+gameServer.define("daifugo_room", DaifugoRoom);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

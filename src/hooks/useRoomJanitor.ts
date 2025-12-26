@@ -29,7 +29,7 @@ const CONFIGS: Record<GameType, RoomConfig> = {
     },
     trump: {
         path: 'trump_rooms',
-        isEmpty: (room) => !room.players || Object.keys(room.players).length === 0
+        isEmpty: (room) => !room || !room.players || Object.keys(room.players).length === 0
     },
     drawing: {
         path: 'drawing_rooms',
@@ -49,7 +49,7 @@ export const useRoomJanitor = (targetGames: GameType[] = Object.keys(CONFIGS) as
                     const snapshot = await get(rootRef);
                     const data = snapshot.val();
 
-                    if (!data) continue;
+                    if (!data || typeof data !== 'object') continue;
 
                     for (const [key, room] of Object.entries(data)) {
                         if (config.isEmpty(room)) {
