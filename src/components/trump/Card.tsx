@@ -54,33 +54,35 @@ export const Card: React.FC<CardProps> = ({ card, isSelected, isPlayable = true,
                 filter: isPlayable ? 'none' : 'grayscale(100%)',
                 cursor: isPlayable ? 'pointer' : 'not-allowed'
             }}
-            whileHover={isPlayable ? { scale: 1.05, y: -10, boxShadow: "0 10px 20px rgba(0,0,0,0.2)" } : {}}
+            whileHover={isPlayable ? { scale: 1.05, boxShadow: "0 10px 20px rgba(0,0,0,0.2)" } : {}} // Removed y: -10
             whileTap={isPlayable ? { scale: 0.95 } : {}}
             initial={{ opacity: 0, y: 20 }}
             animate={{
                 opacity: isPlayable ? 1 : 0.5,
-                y: isSelected ? -20 : 0,
-                scale: isSelected ? 1.05 : 1
+                // Removed y and scale based on isSelected, parent handles it
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-            <div className={styles.top} style={fontSizeStyle}>
-                <span>{rankSymbol}</span>
-                <span>{suitSymbol}</span>
-            </div>
+            {card.suit !== 'joker' && (
+                <div className={styles.top} style={fontSizeStyle}>
+                    <span>{rankSymbol}</span>
+                    <span>{suitSymbol}</span>
+                </div>
+            )}
 
             <div className={styles.center} style={centerFontSizeStyle}>
                 {card.suit === 'joker' ? (
-                    <span className={styles.joker}>JOKER</span>
+                    <span className={styles.jokerIcon}>🃏</span>
                 ) : (
                     suitSymbol
                 )}
             </div>
-
-            <div className={styles.bottom} style={fontSizeStyle}>
-                <span>{rankSymbol}</span>
-                <span>{suitSymbol}</span>
-            </div>
+            {card.suit !== 'joker' && (
+                <div className={styles.bottom} style={fontSizeStyle}>
+                    <span>{rankSymbol}</span>
+                    <span>{suitSymbol}</span>
+                </div>
+            )}
         </motion.div>
     );
 };

@@ -22,6 +22,8 @@ interface Props {
     myPlayerName: string;
 }
 
+// ... imports unchanged
+
 export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPlayerName }: Props) {
     const [room, setRoom] = useState<Room | null>(null);
     const [players, setPlayers] = useState<TrumpPlayer[]>([]);
@@ -44,73 +46,112 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     });
 
     // Local State
-    const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+    const [selectedIndices, setSelectedIndices] = useState<number[]>([]); // Changed to indices
+    const [exchangePendingCount, setExchangePendingCount] = useState<number>(0);
+    const [gameState, setGameState] = useState<string>('waiting');
+    const [finishedPlayers, setFinishedPlayers] = useState<string[]>([]);
     const [engine] = useState(() => new DaifugoEngine());
 
     const clientRef = useRef<Client | null>(null);
 
+    const roomRef = useRef<Room | null>(null);
+
     // Initial Connection
     useEffect(() => {
+        let isMounted = true;
         const client = new Client(process.env.NEXT_PUBLIC_COLYSEUS_URL || "ws://localhost:2567");
         clientRef.current = client;
 
         const connect = async () => {
             try {
+                // If we already have a room, don't join again
+                if (roomRef.current) return;
+
                 let r: Room;
                 if (roomId) {
-                    // Try to join specified room
                     r = await client.joinById(roomId, { playerId: myPlayerId, name: myPlayerName });
                 } else if (options?.roomId) {
-                    // Join via options (from page.tsx input)
                     r = await client.joinById(options.roomId, { playerId: myPlayerId, name: myPlayerName });
                 } else {
-                    // Create new room
                     r = await client.create("daifugo_room", { ...options, playerId: myPlayerId, name: myPlayerName });
                 }
+
+                if (!isMounted) {
+                    console.log("Component unmounted before connection established. Leaving room.");
+                    r.leave();
+                    return;
+                }
+
+                roomRef.current = r;
                 setRoom(r);
                 setupRoomListeners(r);
 
-                // --- Firebase Integration for Room Listing ---
-                updateFirebaseRoom(r, myPlayerId, players);
-
             } catch (e: any) {
-                console.error("Colyseus Join/Create Error:", e);
-                if (e instanceof Error) {
-                    console.error("Error details:", e.message, e.stack);
+                if (!isMounted) return;
+
+                const isNotFound = e?.message?.includes('not found') || e?.code === 404;
+
+                if (isNotFound) {
+                    console.warn("Colyseus Join Error (Room Not Found):", e);
+                    alert("指定されたルームが見つかりませんでした。\nすでに解散している可能性があります。");
+                } else if (e instanceof ProgressEvent || e.type === 'error') {
+                    console.warn("Colyseus Connection Error:", e);
+                    alert("サーバーへの接続に失敗しました。\nサーバーが再起動中か、ネットワークに問題があります。");
+                } else {
+                    console.warn("Colyseus Join/Create Error:", e);
+                    alert(`ルームに参加できませんでした。\nエラー: ${e?.message || '不明なエラー'}\nサーバーの状態を確認してください。`);
                 }
-                alert(`ルームに参加できませんでした。\nエラー: ${e?.message || e}\nサーバーの状態を確認してください。`);
                 onLeave();
             }
         };
         connect();
 
         return () => {
-            if (clientRef.current && room) {
-                room.leave();
+            isMounted = false;
+            if (roomRef.current) {
+                console.log("Cleaning up Colyseus connection...");
+                roomRef.current.leave();
+                roomRef.current = null;
             }
         };
     }, []); // eslint-disable-line
 
-    // Firebase Sync Effect (Keep this separate or integrate? Keep separate for specific updates)
+    // Refs for Cleanup
+    const cleanupRef = useRef<{ roomId: string, isHost: boolean } | null>(null);
+
+    // Firebase Sync Effect
     useEffect(() => {
         if (!room || players.length === 0) return;
+
+        const amHost = players.find(p => p.id === myPlayerId)?.role === 'host';
+        const rId = room.roomId;
+
+        // Update Cleanup Ref
+        cleanupRef.current = { roomId: rId, isHost: amHost };
+
         updateFirebaseRoom(room, myPlayerId, players);
 
-        const rId = room.roomId;
-        const amHost = players.find(p => p.id === myPlayerId)?.role === 'host';
 
+        // We do NOT remove the room here. Cleanup happens on unmount or explicit leave.
+    }, [room, players, rules, myPlayerId, options]);
+
+    // Unmount Cleanup Effect
+    useEffect(() => {
         return () => {
-            if (amHost && rId) {
-                const refToRemove = ref(db, `trump_rooms/${rId}`);
-                remove(refToRemove).catch(() => { });
+            const current = cleanupRef.current;
+            if (current && current.isHost && current.roomId) {
+                console.log("Unmounting: removing room from Firebase", current.roomId);
+                const refToRemove = ref(db, `trump_rooms/${current.roomId}`);
+                remove(refToRemove).catch(err => console.warn("Failed to remove room on unmount:", err));
             }
         };
-    }, [room, players, rules, myPlayerId]);
+    }, []);
+
 
     const updateFirebaseRoom = (r: Room, mId: string, currentPlayers: TrumpPlayer[]) => {
         const amHost = currentPlayers.find(p => p.id === mId)?.role === 'host';
         const rId = r.roomId;
-        console.log("Firebase Update: attempting...", { rId, mId, amHost });
+        console.log("Firebase Update Attempt:", { rId, mId, amHost, status: r.state.status, playerCount: currentPlayers.length }); // DEBUG
 
         if (amHost && rId) {
             const roomRef = ref(db, `trump_rooms/${rId}`);
@@ -121,20 +162,29 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 status: r.state.status || 'waiting',
                 players: currentPlayers.reduce((acc, p) => ({ ...acc, [p.id]: p }), {}),
                 createdAt: Date.now(),
-                rules: rules
+                rules: rules,
+                isLocked: !!(options?.password)
             };
+            console.log("Writing to Firebase:", roomData); // DEBUG
             set(roomRef, roomData).catch(err => console.warn("Firebase update failed (Permissions?):", err));
             onDisconnect(roomRef).remove().catch(err => console.warn("onDisconnect failed:", err));
         }
     };
 
     const setupRoomListeners = (r: Room) => {
-        // Use central onStateChange for all data to avoid "listen is not a function" errors
         r.onStateChange((state: any) => {
             // 1. Primitives
             setTurnPlayerId(state.turnPlayerId);
             setIsRevolution(state.isRevolution);
             setIs11Back(state.is11Back);
+            setGameState(state.status);
+            setFinishedPlayers(state.finishedPlayers || []);
+
+            // Exchange State
+            if (state.exchangePending) {
+                const myPending = state.exchangePending[myPlayerId] ?? 0;
+                setExchangePendingCount(myPending);
+            }
 
             // 2. Rules
             setRules({
@@ -172,18 +222,18 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     role: p.role,
                     isReady: p.isReady,
                     isAi: p.isAi,
-                    sessionId: key, // Use Colyseus session ID as unique key
+                    sessionId: key,
                     hand: []
                 });
 
                 const pHand: Card[] = [];
-                // ... (rest of hand parsing)
                 p.hand.forEach((c: any) => pHand.push({ suit: c.suit, rank: c.rank }));
-                newHands[p.id] = pHand;
+
+                // Sort hand using engine
+                const sortedHand = engine.sortHand(pHand, state.isRevolution, state.is11Back);
+                newHands[p.id] = sortedHand;
             });
 
-            // Sort players optionally? Or keep order from map? 
-            // MapSchema order is insertion order usually.
             setPlayers(pList);
             setHands(newHands);
         });
@@ -192,36 +242,61 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     };
 
     // Game Logic Wrappers
-    const handleCardClick = (card: Card) => {
-        setSelectedCards(prev => {
-            const exists = prev.some(c => c.suit === card.suit && c.rank === card.rank);
-            if (exists) {
-                return prev.filter(c => !(c.suit === card.suit && c.rank === card.rank));
+    const handleCardClick = (card: Card, index: number) => {
+        setSelectedIndices(prev => {
+            if (prev.includes(index)) {
+                return prev.filter(i => i !== index);
             } else {
-                return [...prev, card];
+                return [...prev, index];
             }
         });
     };
 
+    const getSelectedCardsObjects = () => {
+        const myHand = hands[myPlayerId] || [];
+        return selectedIndices.map(i => myHand[i]).filter(c => c !== undefined);
+    };
+
     const executePlay = () => {
-        room?.send("playCard", { cards: selectedCards });
-        setSelectedCards([]);
+        room?.send("playCard", { cards: getSelectedCardsObjects() });
+        setSelectedIndices([]);
     };
 
     const executePass = () => {
         room?.send("pass");
-        setSelectedCards([]);
+        setSelectedIndices([]);
     };
 
     const startGame = () => {
         room?.send("startGame");
     };
 
+    const handleExchangeSubmit = () => {
+        if (selectedIndices.length !== exchangePendingCount) {
+            alert(`${exchangePendingCount}枚選択してください`);
+            return;
+        }
+        room?.send("exchangeCards", { cards: getSelectedCardsObjects() });
+        setSelectedIndices([]);
+    };
+
+    const handleNextGame = () => {
+        room?.send("startNextGame");
+        setSelectedIndices([]);
+    };
+
     // Calculate Playable Cards
     const playableCards = React.useMemo(() => {
-        if (!room || turnPlayerId !== myPlayerId) return [];
-
         const myHand = hands[myPlayerId] || [];
+
+        // Allow selection during exchange phase
+        if (gameState === 'exchanging') {
+            return myHand; // All cards are selectable/playable for exchange UI
+        }
+
+        // Allow checking playable status even when it's not my turn
+        if (!room) return [];
+
         const currentRules = { // Use local synced rules or server state
             isShibari: room.state.ruleShibari,
             isSpade3: room.state.ruleSpade3,
@@ -233,7 +308,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         return myHand.filter(card =>
             engine.isCardPlayable(card, myHand, isRevolution, is11Back, lastMove, currentRules, isShibariActive)
         );
-    }, [hands, myPlayerId, turnPlayerId, lastMove, isRevolution, is11Back, room?.state?.isShibari, room?.state?.ruleShibari]);
+    }, [hands, myPlayerId, turnPlayerId, lastMove, isRevolution, is11Back, room?.state?.isShibari, room?.state?.ruleShibari, gameState]);
 
     // Render
     if (!room) return <div className={styles.loading}>接続中...</div>;
@@ -348,7 +423,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     const isMyTurn = turnPlayerId === myPlayerId;
 
     return (
-        <main className={styles.main}>
+        <main className={styles.gameMain}>
             <div className={styles.gameHeader}>
                 <button onClick={() => { room.leave(); onLeave(); }} className={styles.backButton}>
                     <IconBack size={20} /> 終了
@@ -358,7 +433,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 </div>
             </div>
 
-            <div className={styles.tableContainer}>
+            <div className={styles.gameBody}>
                 <TrumpTable
                     players={players}
                     myId={myPlayerId}
@@ -366,16 +441,75 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     fieldCards={fieldCards}
                     turnPlayerId={turnPlayerId}
                     onCardClick={handleCardClick}
-                    selectedCards={selectedCards}
+                    selectedIndices={selectedIndices} // Pass indices correctly
                     playableCards={playableCards}
                     isRevolution={isRevolution}
                 />
+
+                {/* Exchange Overlay */}
+                {gameState === 'exchanging' && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 100
+                    }}>
+                        <h2>カード交換タイム</h2>
+                        {exchangePendingCount > 0 ? (
+                            <>
+                                <p>指定された枚数の不要なカードを選択してください</p>
+                                <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>残り: {exchangePendingCount - selectedIndices.length}枚</p>
+                                <button
+                                    onClick={handleExchangeSubmit}
+                                    disabled={selectedIndices.length !== exchangePendingCount}
+                                    className={styles.actionBtn}
+                                    style={{ marginTop: '20px' }}
+                                >
+                                    交換する
+                                </button>
+                            </>
+                        ) : (
+                            <p>相手の選択を待っています...</p>
+                        )}
+                    </div>
+                )}
+
+                {/* Result Overlay */}
+                {gameState === 'finished' && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 150
+                    }}>
+                        <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>ゲーム終了</h1>
+                        <div style={{ display: 'grid', gap: '1rem', width: '100%', maxWidth: '400px' }}>
+                            {players
+                                .sort((a, b) => {
+                                    // Sort by Rank Logic (Daifugo -> Daihinmin)
+                                    const rankOrder = ['daifugo', 'fugou', 'heimin', 'binbou', 'daihinmin'];
+                                    return rankOrder.indexOf(a.rank || '') - rankOrder.indexOf(b.rank || '');
+                                })
+                                .map(p => (
+                                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                        <span style={{ fontWeight: 'bold' }}>{p.rank?.toUpperCase() || 'ー'}</span>
+                                        <span>{p.name}</span>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        {amHost && (
+                            <button onClick={handleNextGame} className={styles.actionBtn} style={{ marginTop: '30px' }}>
+                                次のゲームへ
+                            </button>
+                        )}
+                        {!amHost && <p style={{ marginTop: '20px' }}>ホストの操作を待っています...</p>}
+                    </div>
+                )}
             </div>
 
             <div className={styles.actionControls}>
                 {isMyTurn && (
                     <>
-                        <button onClick={executePlay} className={styles.actionBtn} disabled={selectedCards.length === 0}>
+                        <button onClick={executePlay} className={styles.actionBtn} disabled={selectedIndices.length === 0}>
                             出す
                         </button>
                         <button onClick={executePass} className={`${styles.actionBtn} ${styles.passBtn}`}>

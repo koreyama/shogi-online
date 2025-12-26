@@ -75,6 +75,18 @@ export class DaifugoEngine {
 
 
 
+    public sortHand(hand: Card[], isRevolution: boolean, is11Back: boolean = false): Card[] {
+        return [...hand].sort((a, b) => {
+            const strengthA = this.getStrength(a, isRevolution, is11Back);
+            const strengthB = this.getStrength(b, isRevolution, is11Back);
+            if (strengthA !== strengthB) {
+                return strengthA - strengthB; // Weakest to Strongest
+            }
+            const suitOrder: Record<string, number> = { 'diamond': 0, 'club': 1, 'heart': 2, 'spade': 3, 'joker': 4 };
+            return (suitOrder[a.suit] || 0) - (suitOrder[b.suit] || 0);
+        });
+    }
+
     public validateMove(
         cards: Card[],
         hand: Card[],

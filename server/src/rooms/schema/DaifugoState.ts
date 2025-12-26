@@ -42,6 +42,11 @@ export class DaifugoState extends Schema {
     // Finished Players (Order of finish)
     @type(["string"]) finishedPlayers = new ArraySchema<string>();
 
-    @type("string") status: string = "waiting"; // 'waiting', 'playing', 'finished'
+    @type("string") status: string = "waiting"; // 'waiting', 'playing', 'finished', 'exchanging'
     @type("string") winner: string = ""; // ID of first place
+
+    // Exchange Logic
+    // Map of PlayerID -> Number of cards strictly needed to give
+    // If > 0, player must select cards to give.
+    @type({ map: "number" }) exchangePending = new MapSchema<number>();
 }

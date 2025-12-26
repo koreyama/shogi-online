@@ -39,6 +39,7 @@ const gameServer = new Server({
 
 // Define Rooms
 import { DaifugoRoom } from "./rooms/DaifugoRoom";
+import { MinesweeperRoom } from "./rooms/MinesweeperRoom";
 
 gameServer.define("dots_and_boxes", DotsAndBoxesRoom);
 gameServer.define("shogi", ShogiRoom);
@@ -56,6 +57,8 @@ gameServer.define("yacht", YachtRoom);
 gameServer.define("card_game", CardGameRoom)
     .filterBy(['mode']);
 gameServer.define("daifugo_room", DaifugoRoom);
+gameServer.define("minesweeper_room", MinesweeperRoom)
+    .filterBy(['difficulty']);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

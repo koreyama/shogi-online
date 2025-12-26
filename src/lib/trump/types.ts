@@ -15,7 +15,7 @@ export interface TrumpPlayer {
     role: PlayerRole;
     isAi: boolean;
     isReady?: boolean;
-    rank?: number; // For sorting
+    rank?: string; // 'daifugo', 'heimin', etc.
     finishedRank?: number; // 1st, 2nd, etc.
     sessionId?: string; // Colyseus session ID (unique per connection)
 }
@@ -62,6 +62,7 @@ export interface TrumpRoom {
     rules: TrumpRules;
     gameType: TrumpGameType; // Added
     createdAt: number;
+    isLocked?: boolean;
 }
 
 export type TrumpGameType = 'daifugo' | 'poker' | 'speed' | 'blackjack';

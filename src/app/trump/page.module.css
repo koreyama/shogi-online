@@ -6,6 +6,31 @@
     color: #2d3748;
 }
 
+.gameMain {
+    height: 100vh;
+    /* Changed from min-height to strict height */
+    width: 100vw;
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    /* Darker background for game */
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+    /* Prevent scroll */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.gameBody {
+    flex: 1;
+    display: flex;
+    /* Ensure child fills this container */
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 /* --- Header --- */
 .header {
     display: flex;
@@ -83,6 +108,72 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.leftPanel,
+.rightPanel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.subTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #718096;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1.5rem 0;
+    position: relative;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0 1rem;
+}
+
+.roomHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lockedBadge {
+    font-size: 0.7rem;
+    background: #e53e3e;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 /* --- Game Selection Cards --- */
@@ -494,4 +585,167 @@
     .leaveBtn {
         width: 100%;
     }
+}
+
+/* --- Game Action Controls --- */
+.actionControls {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    left: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    z-index: 200;
+}
+
+.actionBtn {
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.1em;
+    min-width: 160px;
+    text-transform: uppercase;
+}
+
+.actionBtn:hover:not(:disabled) {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(66, 153, 225, 0.6);
+    filter: brightness(1.1);
+}
+
+.actionBtn:active:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.actionBtn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.passBtn {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
+}
+
+.passBtn:hover:not(:disabled) {
+    box-shadow: 0 8px 25px rgba(229, 62, 62, 0.6);
+}
+
+@media (max-width: 768px) {
+    .actionControls {
+        bottom: 280px;
+        /* High enough to clear hand/name on mobile */
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        flex-direction: row;
+    }
+
+    .actionBtn {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        min-width: 120px;
+    }
+}
+
+/* --- Description Section --- */
+.descriptionSection {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.contentTitle {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #2b6cb0, #4299e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sectionBlock {
+    margin-bottom: 3rem;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.sectionIcon {
+    font-size: 1.8rem;
+    background: white;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+}
+
+.textBlock {
+    line-height: 1.8;
+    color: #4a5568;
+    font-size: 1.05rem;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 1.5rem;
+    border-radius: 16px;
+}
+
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.infoCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.infoCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+    display: block;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2b6cb0;
+    margin-bottom: 0.5rem;
+}
+
+.cardText {
+    font-size: 0.95rem;
+    color: #718096;
+    line-height: 1.6;
+    margin: 0;
 }

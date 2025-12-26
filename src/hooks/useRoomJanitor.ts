@@ -57,8 +57,13 @@ export const useRoomJanitor = (targetGames: GameType[] = Object.keys(CONFIGS) as
                             await remove(ref(db, `${config.path}/${key}`));
                         }
                     }
-                } catch (error) {
-                    console.error(`Janitor error for ${game}:`, error);
+                } catch (error: any) {
+                    // Suppress permission errors to avoid dev overlay
+                    if (error?.message?.includes('Permission denied') || error?.code === 'PERMISSION_DENIED') {
+                        console.warn(`Janitor permission warning for ${game} (non-fatal):`, error);
+                    } else {
+                        console.warn(`Janitor error for ${game}:`, error);
+                    }
                 }
             }
         };

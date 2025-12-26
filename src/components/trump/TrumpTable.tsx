@@ -10,9 +10,9 @@ interface TrumpTableProps {
     hands: Record<string, CardType[]>; // playerId -> cards
     fieldCards: CardType[];
     turnPlayerId: string;
-    onCardClick?: (card: CardType) => void;
-    selectedCards?: CardType[];
-    playableCards?: CardType[]; // Added
+    onCardClick?: (card: CardType, index: number) => void;
+    selectedIndices?: number[]; // Changed from selectedCards
+    playableCards?: CardType[];
     isRevolution: boolean;
 }
 
@@ -23,8 +23,8 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
     fieldCards,
     turnPlayerId,
     onCardClick,
-    selectedCards = [],
-    playableCards = [], // Added
+    selectedIndices = [],
+    playableCards = [],
     isRevolution
 }) => {
     // Determine positions relative to "me" (bottom)
@@ -45,6 +45,19 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
             if (index === 1) return styles.left;
             if (index === 2) return styles.top;
             if (index === 3) return styles.right;
+        }
+        if (total === 5) {
+            if (index === 1) return styles.left;
+            if (index === 2) return styles.topLeft;
+            if (index === 3) return styles.topRight;
+            if (index === 4) return styles.right;
+        }
+        if (total >= 6) {
+            if (index === 1) return styles.leftBottom;
+            if (index === 2) return styles.leftTop;
+            if (index === 3) return styles.top;
+            if (index === 4) return styles.rightTop;
+            if (index === 5) return styles.rightBottom;
         }
         return styles.top; // Fallback
     };
@@ -68,7 +81,7 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
             {/* Center Field */}
             <div className={styles.centerArea}>
                 <div className={styles.fieldCards}>
-                    <AnimatePresence mode='popLayout'>
+                    <AnimatePresence>
                         {fieldCards.map((card, i) => (
                             <motion.div
                                 key={`${card.suit}-${card.rank}-${i}`}
@@ -113,42 +126,45 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                         </motion.div>
 
                         <div className={`${styles.hand} ${!isMe ? styles.opponent : ''}`}>
-                            <AnimatePresence mode='popLayout'>
+                            <AnimatePresence>
                                 {hand.map((card, i) => {
-                                    const isSelected = selectedCards.some(c => c.suit === card.suit && c.rank === card.rank);
-                                    // Check if playable (only for me)
-                                    // If playableCards is empty (e.g. not my turn), maybe show all as disabled? 
-                                    // Or if it's not my turn, playableCards might be empty.
-                                    // Let's assume if playableCards is passed, we use it.
-                                    // If it's not my turn, maybe we shouldn't dim them? Or dim all?
-                                    // User wants "only playable cards selectable".
-                                    // So if it's my turn, dim unplayable.
-                                    // If not my turn, maybe dim all or just disable interaction.
-                                    // Let's rely on the passed playableCards array.
+                                    const isSelected = isMe && selectedIndices.includes(i);
 
                                     const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
 
-                                    // Wait, if playableCards is empty, it means NO cards are playable? Or feature not used?
-                                    // If I pass [] when it's not my turn, then all cards become unplayable. That's correct.
-                                    // But if I pass [] when it IS my turn (e.g. no valid moves), then all unplayable. Correct.
-                                    // But what if I haven't implemented logic yet?
-                                    // I should make sure I pass a valid list in page.tsx.
+                                    // Dynamic overlap calculation for large hands
+                                    let marginLeft = -50; // Default overlap from CSS
+                                    if (hand.length > 8) marginLeft = -60;
+                                    if (hand.length > 12) marginLeft = -70;
+                                    if (hand.length > 20) marginLeft = -80;
+
+                                    const cardStyle = i === 0 ? {} : { marginLeft: marginLeft };
 
                                     return (
                                         <motion.div
-                                            key={isMe ? `${card.suit}-${card.rank}` : `opponent-card-${i}`}
+                                            key={isMe ? `${card.suit}-${card.rank}-${i}` : `opponent-card-${i}`}
                                             className={styles.cardWrapper}
-                                            layout
+                                            // Removing 'layout' prop
                                             initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
+                                            animate={{
+                                                opacity: 1,
+                                                scale: 1,
+                                                y: isSelected ? -30 : 0 // Parent controls lift
+                                            }}
                                             exit={{ opacity: 0, scale: 0, y: -50 }}
+                                            // No movement on hover
                                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                            style={{
+                                                ...cardStyle,
+                                                zIndex: i, // Fixed z-index
+                                                position: 'relative'
+                                            }}
                                         >
                                             <Card
                                                 card={isMe ? card : null}
                                                 isSelected={isSelected}
                                                 isPlayable={isPlayable}
-                                                onClick={() => isMe && isPlayable && onCardClick && onCardClick(card)}
+                                                onClick={() => isMe && isPlayable && onCardClick && onCardClick(card, i)}
                                             />
                                         </motion.div>
                                     );
