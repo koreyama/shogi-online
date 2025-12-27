@@ -9,8 +9,7 @@
         "target": "es2016",
         "esModuleInterop": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "rootDir": "./src"
+        "emitDecoratorMetadata": true
     },
     "include": [
         "src/**/*"
