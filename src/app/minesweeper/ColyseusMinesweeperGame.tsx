@@ -17,9 +17,10 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
     const [room, setRoom] = useState<Room | null>(null);
     const [board, setBoard] = useState<Board>([]);
     const [players, setPlayers] = useState<any[]>([]);
-    const [myStatus, setMyStatus] = useState<string>('waiting'); // waiting, playing, frozen, finished
+    const [myStatus, setMyStatus] = useState<string>('waiting');
     const [gameStatus, setGameStatus] = useState<string>('waiting');
     const [winnerId, setWinnerId] = useState<string | null>(null);
+    const [amIReady, setAmIReady] = useState(false);
 
     // Timer
     const [startTime, setStartTime] = useState<number>(0);
@@ -53,7 +54,16 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
                 } else {
                     // Random / Auto Match
                     console.log("Joining/Creating Random Room with options:", options);
-                    r = await client.joinOrCreate("minesweeper_room", { ...options, playerId: myPlayerId, name: myPlayerName });
+                    try {
+                        r = await client.joinOrCreate("minesweeper_room", { ...options, playerId: myPlayerId, name: myPlayerName });
+                    } catch (e: any) {
+                        if (e.message && e.message.includes("locked")) {
+                            console.log("Random match found locked room, creating new one...");
+                            r = await client.create("minesweeper_room", { ...options, playerId: myPlayerId, name: myPlayerName });
+                        } else {
+                            throw e;
+                        }
+                    }
                 }
 
                 roomRef.current = r;
@@ -63,7 +73,6 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
             } catch (e: any) {
                 console.error("Join Error:", e);
                 const errorMsg = e.message || JSON.stringify(e);
-                // Only alert if we really failed and it wasn't a cleanup/cancel
                 if (connectingRef.current) {
                     alert("ルームに参加できませんでした: " + errorMsg);
                     onLeave();
@@ -89,7 +98,6 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
         let interval: NodeJS.Timeout;
         if (gameStatus === 'playing') {
             interval = setInterval(() => {
-                // Approximate time sync
                 const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
                 setTime(elapsed);
             }, 1000);
@@ -114,39 +122,52 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
                     name: p.name,
                     status: p.status,
                     progress: p.progress,
-                    items: p.cellStates, // Schema array
-                    mines: p.mines // Independent Board
+                    isReady: p.isReady,
+                    items: p.cellStates,
+                    mines: p.mines
                 };
                 pList.push(playerObj);
 
                 if (sessionId === r.sessionId) {
                     myP = playerObj;
                     setMyStatus(p.status);
+                    setAmIReady(p.isReady);
 
                     // Reconstruct Board for ME
-                    // Only if game started
-                    if (p.mines && p.mines.length > 0) {
+                    if (state.status === 'playing' || state.status === 'finished') {
                         const w = state.width;
                         const h = state.height;
                         const newBoard: Board = [];
+
+                        // If mines not generated yet (e.g. before first click), mines array might be empty or all 0
+                        // Client should render "Empty" board in that case.
+                        // But p.cellStates is initialized.
+
+                        const hasMines = p.mines && p.mines.length > 0;
 
                         for (let y = 0; y < h; y++) {
                             const row: Cell[] = [];
                             for (let x = 0; x < w; x++) {
                                 const idx = y * w + x;
                                 const cellState = p.cellStates[idx]; // 0:Hidden, 1:Revealed, 2:Flagged
-                                const isMine = p.mines[idx] === 1;
 
-                                // Neighbor count calculation (Client Side)
+                                // Caution: before generation, mines is all 0.
+                                // We trust 'isMine' only if generated? 
+                                // Actually server logic handles consistency. 
+                                // Ideally we trust p.mines[idx] === 1.
+                                const isMine = hasMines ? (p.mines[idx] === 1) : false;
+
                                 let neighbors = 0;
-                                for (let dy = -1; dy <= 1; dy++) {
-                                    for (let dx = -1; dx <= 1; dx++) {
-                                        if (dx === 0 && dy === 0) continue;
-                                        const nx = x + dx;
-                                        const ny = y + dy;
-                                        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                                            const nid = ny * w + nx;
-                                            if (p.mines[nid] === 1) neighbors++;
+                                if (hasMines) {
+                                    for (let dy = -1; dy <= 1; dy++) {
+                                        for (let dx = -1; dx <= 1; dx++) {
+                                            if (dx === 0 && dy === 0) continue;
+                                            const nx = x + dx;
+                                            const ny = y + dy;
+                                            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                                const nid = ny * w + nx;
+                                                if (p.mines[nid] === 1) neighbors++;
+                                            }
                                         }
                                     }
                                 }
@@ -172,6 +193,10 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
         r.onMessage("winner", (msg: any) => {
             setWinnerId(msg.winnerId);
         });
+
+        r.onMessage("notification", (msg: any) => {
+            alert(msg.message);
+        });
     };
 
     const handleCellClick = (r: number, c: number) => {
@@ -189,31 +214,14 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
         room.send("flag", { index: idx });
     };
 
-    const startGame = () => {
-        room?.send("startGame");
+    const toggleReady = () => {
+        room?.send("ready");
     };
 
     if (!room) return <div className={styles.loading}>接続中...</div>;
 
     // Waiting Lobby
-    if (gameStatus === 'waiting' || gameStatus === 'finished') {
-        const isRandom = !roomId && !options?.roomId && !options?.create;
-
-        if (isRandom && gameStatus === 'waiting') {
-            return (
-                <main className={styles.main}>
-                    <div className={styles.header}>
-                        <button onClick={() => { room.leave(); onLeave(); }} className={styles.backButton}>キャンセル</button>
-                    </div>
-                    <div className={styles.waitingScreen}>
-                        <h2>対戦相手を探しています...</h2>
-                        <div className={styles.waitingSpinner}></div>
-                        <p>マッチング中 (Room: {room.roomId})</p>
-                    </div>
-                </main>
-            );
-        }
-
+    if (gameStatus === 'waiting') {
         return (
             <main className={styles.main}>
                 <div className={styles.lobbyContainer}>
@@ -230,7 +238,7 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
                             {players.map(p => (
                                 <div key={p.sessionId} className={styles.playerCard}>
                                     <IconUser size={20} /> {p.name}
-                                    {p.id === winnerId && " 👑 WINNER"}
+                                    {p.isReady ? <span style={{ color: '#22c55e', marginLeft: '10px' }}>READY!</span> : <span style={{ color: '#94a3b8', marginLeft: '10px' }}>...</span>}
                                 </div>
                             ))}
                             {players.length < 2 && (
@@ -241,11 +249,18 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
                         </div>
                     </div>
                     <div className={styles.controls}>
-                        <button onClick={startGame} className={styles.startBtn} disabled={players.length < 2}>
-                            {gameStatus === 'finished' ? 'もう一度' : 'ゲーム開始'}
+                        <button
+                            onClick={toggleReady}
+                            className={`${styles.startBtn} ${amIReady ? styles.readyActive : ''}`}
+                            style={{ background: amIReady ? '#22c55e' : '#3b82f6' }}
+                        >
+                            {amIReady ? '準備完了！' : '準備する'}
                         </button>
                         <button onClick={() => { room.leave(); onLeave(); }} className={styles.leaveBtn}>退出</button>
                     </div>
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
+                        両方のプレイヤーが「準備完了」になるとゲームが開始します
+                    </p>
                 </div>
             </main>
         );
@@ -285,6 +300,23 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
                         color: 'white', fontSize: '2rem', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                     }}>
                         ❄️ FROZEN! (Penalty) ❄️
+                    </div>
+                )}
+
+                {/* Victory/Defeat Overlay */}
+                {gameStatus === 'finished' && winnerId && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20,
+                        background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+                        color: 'white'
+                    }}>
+                        <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+                            {winnerId === myPlayerId ? '🏆 VICTORY! 🏆' : '💀 DEFEAT...'}
+                        </h1>
+                        <button onClick={() => { room.leave(); onLeave(); }} className={styles.startBtn}>
+                            ロビーに戻る
+                        </button>
                     </div>
                 )}
 

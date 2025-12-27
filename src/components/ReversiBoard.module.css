@@ -1,32 +1,39 @@
+/* PC / Default: Fixed High-Quality Size */
 .board {
     display: flex;
     flex-direction: column;
     background-color: #006400;
-    /* Deep Green */
-    /* Felt texture effect */
+
     background-image:
         radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
         radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 4px 4px, 8px 8px;
     background-position: 0 0, 2px 2px;
 
+    /* PC: Fixed ~550px (64px * 8 + border/pad) */
+    width: 550px;
+    height: 550px;
     padding: 16px;
     border-radius: 8px;
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.5),
         inset 0 0 30px rgba(0, 0, 0, 0.3);
     border: 16px solid #5d4037;
-    /* Richer wood border */
     position: relative;
+    margin: 0 auto;
 }
 
 .row {
     display: flex;
+    height: 64px;
+    /* Fixed Height on PC */
+    width: 100%;
 }
 
 .cell {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    /* Fixed Width on PC */
+    height: 64px;
     border: 1px solid rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: center;
@@ -45,22 +52,21 @@
 }
 
 .hint {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     background-color: rgba(0, 0, 0, 0.3);
     border-radius: 50%;
     box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .stone {
-    width: 50px;
-    height: 50px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     box-shadow:
         2px 2px 4px rgba(0, 0, 0, 0.4),
         inset -3px -3px 8px rgba(0, 0, 0, 0.6),
         inset 3px 3px 8px rgba(255, 255, 255, 0.3);
-    /* Improved 3D lighting */
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     cursor: default;
@@ -105,19 +111,49 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
+
+/* Mobile Optimization */
 @media (max-width: 600px) {
+    .board {
+        width: 100%;
+        /* Fill screen width */
+        height: auto;
+        /* Allow height to adjust */
+        aspect-ratio: 1 / 1;
+        /* Keep square */
+        border-width: 8px;
+        /* Thinner border */
+        max-width: none;
+        padding: 1%;
+    }
+
+    .row {
+        height: auto;
+        /* Flex height */
+        flex: 1;
+    }
+
     .cell {
-        width: 40px;
-        height: 40px;
+        width: auto;
+        /* Flex width */
+        height: auto;
+        /* Flex Height */
+        flex: 1;
     }
 
     .stone {
-        width: 34px;
-        height: 34px;
+        width: 85%;
+        /* Relative stone size */
+        height: 85%;
     }
 
-    .board {
-        padding: 8px;
-        border-width: 8px;
+    .hint {
+        width: 30%;
+        height: 30%;
+    }
+
+    .lastMove::after {
+        width: 15%;
+        height: 15%;
     }
 }

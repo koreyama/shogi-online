@@ -2,39 +2,31 @@ import { Room, Client } from "colyseus";
 import { MinesweeperState, MinesweeperPlayer } from "./schema/MinesweeperState";
 
 export class MinesweeperRoom extends Room<MinesweeperState> {
-    // Strictly limit to 2.
-    // However, to handle the "Swap" (Zombie purge), if we are at 2, the 3rd connection is rejected before onJoin.
-    // So we effectively become full if a ghost is there.
-    // But since Strict Mode connects virtually simultaneously, usually the first one connects, then second.
-    // Ideally we'd set maxClients higher (e.g. 4) and manually lock, so the 2nd connection can enter 'onJoin' and kill the first.
-    // If we set maxClients=2, the 2nd connection might be rejected immediately if the 1st is still active.
-    // BUT, the User said "Limit to 2".
-    // I will set 2. If strict mode is fast enough, the first one might disconnect before 2nd joins? No, usually overlap.
-    // Let's stick to the "Soft Limit" pattern: maxClients=4, manual lock at 2.
-    // This allows the "cleanup" connection to get in, clean up, and stabilise the count at 1.
     maxClients = 4;
 
     onCreate(options: any) {
         console.log("MinesweeperRoom created!", options);
         this.setMetadata({
             mode: options.mode,
-            roomId: this.roomId // Explicitly expose
+            roomId: this.roomId
         });
 
         this.setState(new MinesweeperState());
 
         // Handle options
         if (options && options.difficulty) {
-            if (options.difficulty === 'MEDIUM') {
+            // Check formatted string OR direct name (Japanese)
+            if (options.difficulty === 'MEDIUM' || options.difficulty === '中級') {
                 this.state.width = 16;
                 this.state.height = 16;
                 this.state.mineCount = 40;
-            } else if (options.difficulty === 'HARD') {
-                this.state.width = 30;
+            } else if (options.difficulty === 'HARD' || options.difficulty === '上級') {
+                // HARD: 30x16
+                this.state.width = 30; // Note: In types.ts it says cols=30, here width=30. Matches.
                 this.state.height = 16;
                 this.state.mineCount = 99;
             } else {
-                // EASY
+                // EASY / 初級
                 this.state.width = 9;
                 this.state.height = 9;
                 this.state.mineCount = 10;
@@ -49,13 +41,17 @@ export class MinesweeperRoom extends Room<MinesweeperState> {
             this.handleFlag(client, message.index);
         });
 
-        this.onMessage("startGame", (client) => {
-            if (this.state.players.size >= 2) {
-                this.startGame();
+        this.onMessage("ready", (client) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player) {
+                player.isReady = !player.isReady;
+                // If all ready, start
+                this.checkStartGame();
             }
         });
 
-        this.onMessage("restart", (client) => {
+        // Debug start
+        this.onMessage("forceStart", (client) => {
             this.startGame();
         });
     }
@@ -63,51 +59,56 @@ export class MinesweeperRoom extends Room<MinesweeperState> {
     onJoin(client: Client, options: any) {
         console.log(client.sessionId, "joined Minesweeper!");
 
-        // --- ZOMBIE PURGE / DUPLICATE CHECK ---
+        // --- ZOMBIE PURGE ---
         const incomingPlayerId = options.playerId;
         if (incomingPlayerId) {
-            // Find existing player with same ID
             let sameUserSessionId: string | null = null;
             this.state.players.forEach((p, sessionId) => {
                 if (p.id === incomingPlayerId) sameUserSessionId = sessionId;
             });
 
             if (sameUserSessionId) {
-                console.log(`Duplicate player detected (${incomingPlayerId}). Removing old session ${sameUserSessionId}.`);
-                // Remove from state immediately
                 this.state.players.delete(sameUserSessionId);
-                // Force disconnect duplicate client
                 const duplicateClient = this.clients.find(c => c.sessionId === sameUserSessionId);
-                if (duplicateClient) {
-                    duplicateClient.leave();
-                }
+                if (duplicateClient) duplicateClient.leave();
             }
         }
-        // ---------------------------------------
+        // --------------------
 
         const player = new MinesweeperPlayer();
         player.id = incomingPlayerId || client.sessionId;
         player.name = (options && options.name) ? options.name : "Guest";
+        player.isReady = false;
         this.state.players.set(client.sessionId, player);
-
-        // Check Logic: IF we now have > 2 players (e.g. spectators?), kick logic?
-        // User asked "Limit to 2".
-        // With maxClients=4, we might get 3 people.
-        // We should kick the 3rd one if they are not "replacing" someone.
-        // But for now, let's just Rely on Lock.
 
         if (this.state.players.size >= 2) {
             this.lock();
-            this.startGame();
+            // Do NOT auto start. Wait for Ready.
         }
     }
 
     onLeave(client: Client, consented: boolean) {
-        console.log(client.sessionId, "left!");
         this.state.players.delete(client.sessionId);
-
         if (this.state.players.size < 2) {
             this.unlock();
+            // Reset game state if someone leaves mid-game?
+            if (this.state.status === "playing") {
+                this.state.status = "finished"; // or waiting?
+                this.broadcast("notification", { message: "Opponent left." });
+            }
+        }
+    }
+
+    checkStartGame() {
+        if (this.state.players.size < 2) return;
+
+        let allReady = true;
+        this.state.players.forEach(p => {
+            if (!p.isReady) allReady = false;
+        });
+
+        if (allReady) {
+            this.startGame();
         }
     }
 
@@ -120,30 +121,49 @@ export class MinesweeperRoom extends Room<MinesweeperState> {
             player.progress = 0;
             player.finishTime = 0;
             player.cellStates.clear();
+            player.mines.clear(); // Clear mines, generate on first click
 
-            // 1. Generate Independent Board
-            this.generateBoard(player);
-
-            // 2. Init Cell States (0: Hidden)
+            // Init Cell States (0: Hidden)
             for (let i = 0; i < this.state.width * this.state.height; i++) {
                 player.cellStates.push(0);
             }
         });
     }
 
-    generateBoard(player: MinesweeperPlayer) {
+    generateBoard(player: MinesweeperPlayer, safeIndex: number) {
         const size = this.state.width * this.state.height;
+        const w = this.state.width;
+
         player.mines.clear();
         for (let i = 0; i < size; i++) player.mines.push(0);
+
+        // Determine safe zone (clicked cell + neighbors)
+        const safeZone = new Set<number>();
+        safeZone.add(safeIndex);
+
+        const sy = Math.floor(safeIndex / w);
+        const sx = safeIndex % w;
+
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const nx = sx + dx;
+                const ny = sy + dy;
+                if (nx >= 0 && nx < w && ny >= 0 && ny < this.state.height) {
+                    safeZone.add(ny * w + nx);
+                }
+            }
+        }
 
         let placed = 0;
         while (placed < this.state.mineCount) {
             const idx = Math.floor(Math.random() * size);
-            if (player.mines[idx] === 0) {
+            // Must not be in safe zone and not already a mine
+            if (!safeZone.has(idx) && player.mines[idx] === 0) {
                 player.mines[idx] = 1;
                 placed++;
             }
         }
+        console.log(`Generated board for ${player.name} with safe index ${safeIndex}`);
     }
 
     handleReveal(client: Client, index: number) {
@@ -151,14 +171,20 @@ export class MinesweeperRoom extends Room<MinesweeperState> {
         if (!player || this.state.status !== "playing") return;
         if (player.status === "frozen" || player.status === "finished") return;
 
-        if (index < 0 || index >= player.mines.length) return;
+        // --- LAZY GENERATION (Safe Start) ---
+        if (player.mines.length === 0) {
+            this.generateBoard(player, index);
+        }
+        // ------------------------------------
 
-        if (player.cellStates[index] !== 0) return;
+        if (index < 0 || index >= this.state.width * this.state.height) return; // FIX: use calculated size
+        if (player.cellStates[index] !== 0) return; // 0 is Hidden
 
+        // Check Mine
         if (player.mines[index] === 1) {
             // BOOM
             player.status = "frozen";
-            player.cellStates[index] = 1;
+            player.cellStates[index] = 1; // Reveal
 
             this.clock.setTimeout(() => {
                 if (player && player.status === "frozen") {
