@@ -37,13 +37,25 @@ export class DaifugoState extends Schema {
     @type("boolean") ruleStaircase: boolean = false;
     @type("boolean") ruleShibari: boolean = false;
     @type("boolean") ruleSpade3: boolean = false;
-    @type("number") jokerCount: number = 2; // Added jokerCount
+    @type("number") jokerCount: number = 2;
+
+    // Local Rules
+    @type("boolean") ruleRokurokubi: boolean = false; // 6-6 Revolution/Cut
+    @type("boolean") ruleKyukyusha: boolean = false; // 9-9 Revolution/Cut
+    @type("boolean") rule5Skip: boolean = false; // 5 Skip
+    @type("boolean") rule7Watashi: boolean = false; // 7 Pass
+    @type("boolean") ruleQBomber: boolean = false; // Q Bomber
 
     // Finished Players (Order of finish)
     @type(["string"]) finishedPlayers = new ArraySchema<string>();
 
     @type("string") status: string = "waiting"; // 'waiting', 'playing', 'finished', 'exchanging'
     @type("string") winner: string = ""; // ID of first place
+
+    // Interaction State (for 7 Watashi / Q Bomber)
+    @type("string") pendingAction: string = ""; // '7watashi' | 'qbomber' | ''
+    @type("string") pendingActionPlayerId: string = "";
+    @type("number") pendingActionCount: number = 0; // Number of cards to pass (for 7)
 
     // Exchange Logic
     // Map of PlayerID -> Number of cards strictly needed to give

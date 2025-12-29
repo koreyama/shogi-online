@@ -148,21 +148,24 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
 
                                     return (
                                         <motion.div
-                                            key={isMe ? `${card.suit}-${card.rank}-${i}` : `opponent-card-${i}`}
+                                            // KEY FIX: Ensure uniqueness for multiple Jokers.
+                                            key={isMe ? `${card.suit}-${card.rank}-${hand.slice(0, i).filter(c => c.suit === card.suit && c.rank === card.rank).length}` : `opponent-${i}`}
                                             className={styles.cardWrapper}
-                                            // Removing 'layout' prop
-                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            layout // ADDING layout prop back for smooth reordering
+                                            initial={{ opacity: 0, scale: 0.8, y: 50 }}
                                             animate={{
                                                 opacity: 1,
                                                 scale: 1,
-                                                y: isSelected ? -30 : 0 // Parent controls lift
+                                                y: isSelected ? -30 : 0
                                             }}
-                                            exit={{ opacity: 0, scale: 0, y: -50 }}
-                                            // No movement on hover
-                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                                            transition={{
+                                                layout: { type: "spring", stiffness: 300, damping: 30 },
+                                                opacity: { duration: 0.2 }
+                                            }}
                                             style={{
                                                 ...cardStyle,
-                                                zIndex: i, // Fixed z-index
+                                                zIndex: i,
                                                 position: 'relative'
                                             }}
                                         >

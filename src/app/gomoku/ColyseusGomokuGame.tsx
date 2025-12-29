@@ -196,18 +196,26 @@ export default function ColyseusGomokuGame({ mode, roomId: propRoomId, userData 
             <div className={styles.gameLayout}>
                 <div className={styles.leftPanel}>
                     <div className={styles.playersSection}>
-                        {/* Similar UI to Reversi/Chess */}
-                        <div className={styles.playerInfo}>
-                            <p>相手</p>
-                            <p className="font-bold text-lg">
-                                {myRole === 'black' ? `${playersInfo.white} (白)` : `${playersInfo.black} (黒)`}
-                            </p>
+                        {/* Opponent Card Logic (Display Top/Bottom based on perspective? Or just fixed Black/White?) 
+                            Fixed Black/White is easier to understand in Gomoku.
+                        */}
+
+                        {/* Black Player */}
+                        <div className={`${styles.playerCard} ${styles.black} ${turn === 'black' ? styles.playerCardActive : ''}`}>
+                            <div className={styles.playerName}>{playersInfo.black}</div>
+                            <div className={styles.playerRole}>
+                                黒 (先手) {myRole === 'black' ? '(あなた)' : ''}
+                            </div>
+                            {turn === 'black' && <div className={styles.turnBadge}>TURN</div>}
                         </div>
-                        <div className={styles.playerInfo}>
-                            <p>自分</p>
-                            <p className="font-bold text-lg">
-                                {myRole === 'black' ? `${playersInfo.black} (黒)` : `${playersInfo.white} (白)`}
-                            </p>
+
+                        {/* White Player */}
+                        <div className={`${styles.playerCard} ${styles.white} ${turn === 'white' ? styles.playerCardActive : ''}`}>
+                            <div className={styles.playerName}>{playersInfo.white}</div>
+                            <div className={styles.playerRole}>
+                                白 (後手) {myRole === 'white' ? '(あなた)' : ''}
+                            </div>
+                            {turn === 'white' && <div className={styles.turnBadge}>TURN</div>}
                         </div>
                     </div>
                     <div className={styles.chatSection}>
@@ -216,7 +224,7 @@ export default function ColyseusGomokuGame({ mode, roomId: propRoomId, userData 
                 </div>
 
                 <div className={styles.centerPanel}>
-                    <div className={styles.turnIndicator}>
+                    <div className={`${styles.turnIndicator} ${turn === 'black' ? styles.turnBlack : styles.turnWhite}`}>
                         {turn === 'black' ? '黒の番' : '白の番'}
                         {turn === myRole && ' (あなた)'}
                     </div>

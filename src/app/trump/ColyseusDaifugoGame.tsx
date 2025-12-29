@@ -22,8 +22,6 @@ interface Props {
     myPlayerName: string;
 }
 
-// ... imports unchanged
-
 export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPlayerName }: Props) {
     const [room, setRoom] = useState<Room | null>(null);
     const [players, setPlayers] = useState<TrumpPlayer[]>([]);
@@ -42,18 +40,28 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         isStaircase: false,
         isShibari: false,
         isSpade3: false,
-        jokerCount: 2
+        jokerCount: 2,
+        isRokurokubi: false,
+        isKyukyusha: false,
+        is5Skip: false,
+        is7Watashi: false,
+        isQBomber: false
     });
 
     // Local State
-    const [selectedIndices, setSelectedIndices] = useState<number[]>([]); // Changed to indices
+    const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+    const [selectedRanks, setSelectedRanks] = useState<string[]>([]); // ADDED for Q Bomber
     const [exchangePendingCount, setExchangePendingCount] = useState<number>(0);
     const [gameState, setGameState] = useState<string>('waiting');
     const [finishedPlayers, setFinishedPlayers] = useState<string[]>([]);
     const [engine] = useState(() => new DaifugoEngine());
 
-    const clientRef = useRef<Client | null>(null);
+    // Pending Actions State
+    const [pendingAction, setPendingAction] = useState<string>('');
+    const [pendingActionPlayerId, setPendingActionPlayerId] = useState<string>('');
+    const [pendingActionCount, setPendingActionCount] = useState<number>(0);
 
+    const clientRef = useRef<Client | null>(null);
     const roomRef = useRef<Room | null>(null);
 
     // Initial Connection
@@ -180,6 +188,11 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
             setGameState(state.status);
             setFinishedPlayers(state.finishedPlayers || []);
 
+            // Pending Actions
+            setPendingAction(state.pendingAction || '');
+            setPendingActionPlayerId(state.pendingActionPlayerId || '');
+            setPendingActionCount(state.pendingActionCount || 0);
+
             // Exchange State
             if (state.exchangePending) {
                 const myPending = state.exchangePending[myPlayerId] ?? 0;
@@ -194,7 +207,12 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 isStaircase: state.ruleStaircase,
                 isShibari: state.ruleShibari,
                 isSpade3: state.ruleSpade3,
-                jokerCount: state.jokerCount
+                jokerCount: state.jokerCount,
+                isRokurokubi: state.ruleRokurokubi,
+                isKyukyusha: state.ruleKyukyusha,
+                is5Skip: state.rule5Skip,
+                is7Watashi: state.rule7Watashi,
+                isQBomber: state.ruleQBomber
             });
 
             // 3. Last Move
@@ -285,6 +303,32 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         setSelectedIndices([]);
     };
 
+    const handle7WatashiSubmit = () => {
+        if (selectedIndices.length !== pendingActionCount) {
+            alert(`${pendingActionCount}枚選択してください`);
+            return;
+        }
+        room?.send("7watashiPass", { cards: getSelectedCardsObjects() });
+        setSelectedIndices([]);
+    };
+
+    const handleQBomberRankToggle = (rank: string) => {
+        setSelectedRanks(prev => {
+            const current = prev || [];
+            if (current.includes(rank)) return current.filter(r => r !== rank);
+            if (current.length < pendingActionCount) return [...current, rank];
+            return current;
+        });
+    };
+
+    const handleQBomberSubmit = () => {
+        if (selectedRanks.length !== pendingActionCount) return;
+        room?.send("qBomberSelect", { ranks: selectedRanks });
+        setSelectedRanks([]);
+    };
+
+    const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+
     // Calculate Playable Cards
     const playableCards = React.useMemo(() => {
         const myHand = hands[myPlayerId] || [];
@@ -292,6 +336,11 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         // Allow selection during exchange phase
         if (gameState === 'exchanging') {
             return myHand; // All cards are selectable/playable for exchange UI
+        }
+
+        // Allow selection for 7 watashi (pending action)
+        if (pendingAction === '7watashi' && pendingActionPlayerId === myPlayerId) {
+            return myHand; // Any card can be selected for passing
         }
 
         // Allow checking playable status even when it's not my turn
@@ -308,12 +357,14 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         return myHand.filter(card =>
             engine.isCardPlayable(card, myHand, isRevolution, is11Back, lastMove, currentRules, isShibariActive)
         );
-    }, [hands, myPlayerId, turnPlayerId, lastMove, isRevolution, is11Back, room?.state?.isShibari, room?.state?.ruleShibari, gameState]);
+    }, [hands, myPlayerId, turnPlayerId, lastMove, isRevolution, is11Back, room?.state?.ruleShibari, gameState, pendingAction, pendingActionPlayerId]);
 
     // Render
     if (!room) return <div className={styles.loading}>接続中...</div>;
 
     const amHost = players.find(p => p.id === myPlayerId)?.role === 'host';
+    // Hide Play/Pass controls if pending action exists
+    const isMyTurn = turnPlayerId === myPlayerId && !pendingAction;
 
     // Lobby State Rendering (Waiting Room)
     if (room.state.status === 'waiting') {
@@ -384,6 +435,32 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                                         onChange={e => room.send('updateRules', { isSpade3: e.target.checked })} />
                                     スペ3返し
                                 </label>
+                                {/* Local Rules */}
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.isRokurokubi} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { isRokurokubi: e.target.checked })} />
+                                    ろくろ首 (66)
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.isKyukyusha} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { isKyukyusha: e.target.checked })} />
+                                    救急車 (99)
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.is5Skip} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { is5Skip: e.target.checked })} />
+                                    5スキップ
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.is7Watashi} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { is7Watashi: e.target.checked })} />
+                                    7渡し
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.isQBomber} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { isQBomber: e.target.checked })} />
+                                    Qボンバー
+                                </label>
                             </div>
                             <div className={styles.rulesRow} style={{ marginTop: '10px' }}>
                                 <label className={styles.inputLabel}>
@@ -420,8 +497,6 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         );
     }
 
-    const isMyTurn = turnPlayerId === myPlayerId;
-
     return (
         <main className={styles.gameMain}>
             <div className={styles.gameHeader}>
@@ -448,60 +523,125 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
 
                 {/* Exchange Overlay */}
                 {gameState === 'exchanging' && (
-                    <div style={{
-                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 100
-                    }}>
-                        <h2>カード交換タイム</h2>
-                        {exchangePendingCount > 0 ? (
-                            <>
-                                <p>指定された枚数の不要なカードを選択してください</p>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>残り: {exchangePendingCount - selectedIndices.length}枚</p>
-                                <button
-                                    onClick={handleExchangeSubmit}
-                                    disabled={selectedIndices.length !== exchangePendingCount}
-                                    className={styles.actionBtn}
-                                    style={{ marginTop: '20px' }}
-                                >
-                                    交換する
-                                </button>
-                            </>
-                        ) : (
-                            <p>相手の選択を待っています...</p>
-                        )}
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent}>
+                            <h2>カード交換タイム</h2>
+                            {exchangePendingCount > 0 ? (
+                                <>
+                                    <p>指定された枚数の不要なカードを選択してください</p>
+                                    <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>残り: {exchangePendingCount - selectedIndices.length}枚</p>
+                                    <button
+                                        onClick={handleExchangeSubmit}
+                                        disabled={selectedIndices.length !== exchangePendingCount}
+                                        className={styles.actionBtn}
+                                        style={{ marginTop: '20px' }}
+                                    >
+                                        交換する
+                                    </button>
+                                </>
+                            ) : (
+                                <p>相手の選択を待っています...</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 7 Watashi: Non-blocking Notification Bar */}
+                {pendingAction === '7watashi' && pendingActionPlayerId === myPlayerId && (
+                    <div className={styles.notificationBar}>
+                        <div className={styles.notificationContent}>
+                            <h2>7渡し</h2>
+                            <p>次のプレイヤーに渡すカードを選んでください ({selectedIndices.length}/{pendingActionCount})</p>
+                            <button
+                                onClick={handle7WatashiSubmit}
+                                className={styles.actionBtn}
+                                disabled={selectedIndices.length !== pendingActionCount}
+                            >
+                                渡す
+                            </button>
+                        </div>
+                    </div>
+                )}
+                {/* 7 Watashi Waiting Message (for others) */}
+                {pendingAction === '7watashi' && pendingActionPlayerId !== myPlayerId && (
+                    <div className={styles.notificationBar}>
+                        <p>他のプレイヤーが7渡しを行っています...</p>
+                    </div>
+                )}
+
+                {/* Q Bomber Modal (Improved) */}
+                {pendingAction === 'qbomber' && (
+                    <div className={styles.modalOverlay}>
+                        <div className={`${styles.modalContent} ${styles.qBomberContent}`}>
+                            {pendingActionPlayerId === myPlayerId ? (
+                                <>
+                                    <h2 className={styles.modalTitle}>Qボンバー発動</h2>
+                                    <p className={styles.modalInstruction}>
+                                        指定する数字を <strong>{pendingActionCount}つ</strong> 選んでください
+                                    </p>
+                                    <div className={styles.rankGrid}>
+                                        {ranks.map(r => {
+                                            const isSelected = selectedRanks?.includes(r);
+                                            return (
+                                                <button
+                                                    key={r}
+                                                    onClick={() => handleQBomberRankToggle(r)}
+                                                    className={`${styles.rankBtn} ${isSelected ? styles.rankBtnSelected : ''}`}
+                                                >
+                                                    {r}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className={styles.modalActions}>
+                                        <div className={styles.selectionCount}>
+                                            選択中: {selectedRanks?.map(r => <span key={r} className={styles.selectedBadge}>{r}</span>)}
+                                        </div>
+                                        <button
+                                            onClick={handleQBomberSubmit}
+                                            className={`${styles.actionBtn} ${styles.confirmBtn}`}
+                                            disabled={selectedRanks?.length !== pendingActionCount}
+                                        >
+                                            決定する
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className={styles.waitingMessage}>
+                                    <p>他のプレイヤーがQボンバーの対象を選択中...</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 {/* Result Overlay */}
                 {gameState === 'finished' && (
-                    <div style={{
-                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 150
-                    }}>
-                        <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>ゲーム終了</h1>
-                        <div style={{ display: 'grid', gap: '1rem', width: '100%', maxWidth: '400px' }}>
-                            {players
-                                .sort((a, b) => {
-                                    // Sort by Rank Logic (Daifugo -> Daihinmin)
-                                    const rankOrder = ['daifugo', 'fugou', 'heimin', 'binbou', 'daihinmin'];
-                                    return rankOrder.indexOf(a.rank || '') - rankOrder.indexOf(b.rank || '');
-                                })
-                                .map(p => (
-                                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
-                                        <span style={{ fontWeight: 'bold' }}>{p.rank?.toUpperCase() || 'ー'}</span>
-                                        <span>{p.name}</span>
-                                    </div>
-                                ))
-                            }
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent}>
+                            <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>ゲーム終了</h1>
+                            <div style={{ display: 'grid', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
+                                {players
+                                    .sort((a, b) => {
+                                        // Sort by Rank Logic (Daifugo -> Daihinmin)
+                                        const rankOrder = ['daifugo', 'fugou', 'heimin', 'binbou', 'daihinmin'];
+                                        return rankOrder.indexOf(a.rank || '') - rankOrder.indexOf(b.rank || '');
+                                    })
+                                    .map(p => (
+                                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+                                            <span style={{ fontWeight: 'bold' }}>{p.rank?.toUpperCase() || 'ー'}</span>
+                                            <span>{p.name}</span>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                            {amHost && (
+                                <button onClick={handleNextGame} className={styles.actionBtn} style={{ marginTop: '30px' }}>
+                                    次のゲームへ
+                                </button>
+                            )}
+                            {!amHost && <p style={{ marginTop: '20px' }}>ホストの操作を待っています...</p>}
                         </div>
-                        {amHost && (
-                            <button onClick={handleNextGame} className={styles.actionBtn} style={{ marginTop: '30px' }}>
-                                次のゲームへ
-                            </button>
-                        )}
-                        {!amHost && <p style={{ marginTop: '20px' }}>ホストの操作を待っています...</p>}
                     </div>
                 )}
             </div>

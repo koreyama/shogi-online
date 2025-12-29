@@ -114,24 +114,22 @@
     max-width: 400px;
 }
 
-/* Game Layout (Matched to Reversi/Shogi) */
+/* Game Layout */
 .gameLayout {
     display: flex;
-    gap: var(--spacing-xl);
-    max-width: 1600px;
+    gap: 2rem;
     width: 100%;
-    flex-wrap: wrap;
+    max-width: 1200px;
     justify-content: center;
     align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .leftPanel {
+    flex: 0 0 300px;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    min-width: 300px;
-    max-width: 350px;
-    flex: 0 0 auto;
+    gap: 1.5rem;
 }
 
 .centerPanel {
@@ -139,78 +137,115 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    min-width: 300px;
 }
 
+/* Player Cards */
 .playersSection {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1rem;
 }
 
-.chatSection {
-    flex: 1;
-    min-height: 300px;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: var(--spacing-md);
-    width: 100%;
-    position: relative;
-}
-
-.backButton {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem 1rem;
+.playerCard {
     background: white;
-    border: 1px solid #ddd;
-    color: var(--color-text);
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 2px solid #cbd5e0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    z-index: 9999;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    width: 100%;
 }
 
-.backButton:hover {
-    background: #f5f5f5;
-    border-color: var(--color-text);
+/* Active State Highlighting */
+.playerCardActive {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-.resignButton {
-    /* Style from ColyseusReversiGame inline, moved to standard class if desired, or keep inline there. 
-       But here we define standard button styles */
+.playerCardActive.black {
+    border: 2px solid #1a202c;
+    background: linear-gradient(to bottom, #ffffff, #f7fafc);
 }
 
-.title {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
+.playerCardActive.white {
+    border: 2px solid #a0aec0;
+    background: linear-gradient(to bottom, #ffffff, #edf2f7);
+}
+
+.playerName {
+    font-weight: 800;
+    font-size: 1.25rem;
     color: var(--color-text);
-    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
 }
 
-.turnIndicator {
-    font-size: 1.5rem;
-    font-weight: bold;
+.playerRole {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 600;
+    background: #edf2f7;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+
+
+.turnBadge {
+    background: #4CAF50;
     color: white;
-    background-color: #333;
-    padding: 0.5rem 2rem;
-    border-radius: 30px;
-    display: flex;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Turn Indicator Pill */
+.turnIndicator {
+    font-size: 1.25rem;
+    font-weight: 800;
+    padding: 0.75rem 3rem;
+    border-radius: 50px;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
-    min-width: 300px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border: 2px solid #555;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    min-width: 280px;
+}
+
+.turnBlack {
+    background: #2d3748;
+    color: white;
+}
+
+.turnWhite {
+    background: #f7fafc;
+    color: #2d3748;
+    border-color: #cbd5e0;
 }
 
 /* Modal */
@@ -243,40 +278,61 @@
     margin-bottom: 1rem;
 }
 
+.modalBtnGroup {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
 .primaryBtn {
-    background: var(--color-primary);
+    background: #2e7d32;
+    /* Gomoku Green */
     color: white;
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(46, 125, 50, 0.2);
     transition: all 0.2s;
+    letter-spacing: 0.05em;
 }
 
 .primaryBtn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 12px rgba(46, 125, 50, 0.3);
+    background: #388e3c;
 }
 
 .primaryBtn:disabled {
     background: #ccc;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 .secondaryBtn {
     background: white;
-    color: var(--color-text);
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+    color: #666;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    border: 2px solid #e2e8f0;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-left: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+}
+
+.secondaryBtn:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+    /* Hover to Red for Exit/Danger feel */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Media Queries */
@@ -299,6 +355,35 @@
 
     .centerPanel {
         order: 1;
+    }
+
+    /* Added responsive fixes */
+    .contentSection {
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .contentTitle {
+        font-size: 1.5rem;
+    }
+
+    .modeBtn {
+        min-width: 100%;
+        flex: 1 1 100%;
+        padding: 1.5rem;
+    }
+
+    .input {
+        width: 100%;
+    }
+
+    .joinSection {
+        padding: 0 1rem;
+    }
+
+    .setupContainer {
+        padding: 1.5rem;
+        margin-top: 2rem;
     }
 }
 
@@ -341,6 +426,9 @@
 .textBlock {
     line-height: 1.8;
     color: #4a5568;
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+    text-align: left;
 }
 
 /* Waiting Animation */
@@ -365,9 +453,36 @@
     }
 }
 
-.playerInfo {
+
+/* Back Button (Fixed Position) */
+.backButton {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    padding: 0.75rem 1.5rem;
     background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e2e8f0;
+    color: var(--color-text);
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    z-index: 9999;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.backButton:hover {
+    background: #f8fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:active {
+    transform: translateY(0);
 }

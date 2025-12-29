@@ -50,8 +50,23 @@ const IconBlocks = ({ size = 24, color }: { size?: number, color?: string }) => 
   </svg>
 );
 
+const IconBackgammon = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
+    <path d="M3 13h18M12 3v18" strokeWidth="1" />
+    <path d="M7 3v5l2.5 4L12 8" fill="currentColor" stroke="none" opacity="0.5" />
+    <path d="M17 21v-5l-2.5-4L12 16" fill="currentColor" stroke="none" opacity="0.5" />
+    <circle cx="15" cy="16" r="1.5" fill="currentColor" />
+    <circle cx="9" cy="8" r="1.5" fill="currentColor" />
+  </svg>
+);
+
 export default function Home() {
+
+
   const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+
+
   const [mounted, setMounted] = useState(false);
 
   // useRoomJanitor();
@@ -271,7 +286,7 @@ export default function Home() {
         </section>
 
         {/* Game Categories */}
-        <section style={{ padding: '2.5rem 1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
+        <section style={{ padding: '2.5rem 1rem', maxWidth: '1000px', margin: '0 auto' }}>
           <h2 style={{
             fontSize: '1.25rem',
             fontWeight: 700,
@@ -473,7 +488,7 @@ export default function Home() {
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
             gap: '1rem'
           }}>
             <Link href="/stock" style={{ textDecoration: 'none' }}>
@@ -514,7 +529,7 @@ export default function Home() {
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
             gap: '0.75rem'
           }}>
             <Link href="/polyomino" style={{ textDecoration: 'none' }}>
@@ -593,7 +608,7 @@ export default function Home() {
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
             gap: '0.75rem'
           }}>
             <Link href="/shogi" style={{ textDecoration: 'none' }}>
@@ -648,6 +663,12 @@ export default function Home() {
               <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
                 <div style={{ marginBottom: '0.3rem' }}><IconMancala size={32} color="#d69e2e" /></div>
                 <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>マンカラ</div>
+              </div>
+            </Link>
+            <Link href="/backgammon" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem' }}><IconBackgammon size={32} /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>バックギャモン</div>
               </div>
             </Link>
           </div>

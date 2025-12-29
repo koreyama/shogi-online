@@ -574,6 +574,43 @@
   }
 }
 
+@media (max-width: 768px) {
+  .contentSection {
+    padding: 1.5rem;
+    /* Reduce padding on mobile */
+    margin-top: 2rem;
+  }
+
+  .contentTitle {
+    font-size: 1.5rem;
+  }
+
+  .modeBtn {
+    min-width: 100%;
+    /* Full width buttons on mobile */
+    flex: 1 1 100%;
+    padding: 1.5rem;
+  }
+
+  .inputGroup {
+    width: 100%;
+  }
+
+  .input {
+    width: 100%;
+    /* Ensure inputs don't overflow */
+  }
+
+  .joinSection {
+    padding: 0 1rem;
+  }
+
+  .setupContainer {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+}
+
 /* Check Effect */
 .checkEffect {
   position: fixed;
@@ -704,7 +741,7 @@
   color: #4a5568;
   margin-bottom: 1.5rem;
   font-size: 1.05rem;
-  text-align: justify;
+  text-align: left;
 }
 
 .highlightBox {

@@ -31,11 +31,23 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: -1rem;
+}
+
 .setupForm {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
     width: 100%;
+}
+
+.label {
+    font-size: 1.1rem;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
 }
 
 .input {
@@ -54,7 +66,17 @@
     box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
 }
 
+.input::placeholder {
+    color: #999;
+}
+
 /* Mode Selection */
+.welcomeText {
+    font-size: 1.3rem;
+    color: var(--color-text);
+    margin-bottom: -1rem;
+}
+
 .modeSelection {
     display: flex;
     gap: var(--spacing-lg);
@@ -82,10 +104,22 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.modeBtnIcon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
 .modeBtnTitle {
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--color-text);
+}
+
+.modeBtnDesc {
+    font-size: 0.9rem;
+    color: #666;
 }
 
 .joinSection {
@@ -95,6 +129,11 @@
     align-items: center;
     width: 100%;
     max-width: 400px;
+}
+
+.joinDesc {
+    color: #666;
+    text-align: center;
 }
 
 /* Waiting Screen */
@@ -119,12 +158,34 @@
     }
 }
 
+.roomInfo {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 2px dashed var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.roomLabel {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
 .roomId {
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--color-primary);
     font-family: 'Courier New', monospace;
     letter-spacing: 0.1em;
+}
+
+.roomHint {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.5rem;
+    font-style: italic;
 }
 
 /* Game Layout */
@@ -150,9 +211,15 @@
 .centerPanel {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
     width: 100%;
+}
+
+.compactTitle {
+    font-size: 1.5rem;
+    color: var(--color-text);
+    letter-spacing: 0.2em;
+    text-align: center;
 }
 
 .playersSection {
@@ -167,14 +234,20 @@
 }
 
 .header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Centered title */
     margin-bottom: var(--spacing-md);
+    width: 100%;
+    position: relative;
+    padding: 0 1rem;
 }
 
 .backButton {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
+    position: absolute;
+    /* Left aligned absolute */
+    left: 0;
     padding: 0.5rem 1rem;
     background: white;
     border: 1px solid #ddd;
@@ -187,7 +260,6 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    z-index: 9999;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -203,20 +275,79 @@
     letter-spacing: 0.2em;
 }
 
-.turnIndicator {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: white;
-    background-color: #333;
-    padding: 0.5rem 2rem;
-    border-radius: 30px;
+/* Board Area Layout */
+.boardArea {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    min-width: 300px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border: 2px solid #555;
+    gap: var(--spacing-md);
+}
+
+/* PC向けレイアウト */
+@media (min-width: 768px) {
+    .boardArea {
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+    }
+}
+
+/* スマホ向け調整 */
+@media (max-width: 767px) {
+    .main {
+        padding: var(--spacing-sm);
+    }
+
+    .gameLayout {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .leftPanel {
+        width: 100%;
+        max-width: 100%;
+        min-width: auto;
+        order: 2;
+        /* 盤の下に配置 */
+    }
+
+    .centerPanel {
+        order: 1;
+        /* 盤を上に配置 */
+    }
+
+    .chatSection {
+        min-height: 200px;
+    }
+
+    .contentSection {
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .contentTitle {
+        font-size: 1.5rem;
+    }
+
+    .modeBtn {
+        min-width: 100%;
+        flex: 1 1 100%;
+        padding: 1.5rem;
+    }
+
+    .input {
+        width: 100%;
+    }
+
+    .joinSection {
+        padding: 0 1rem;
+    }
+
+    .setupContainer {
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
 }
 
 /* Modal */
@@ -244,6 +375,18 @@
     min-width: 300px;
 }
 
+.modal h2 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+}
+
+.modal p {
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-text);
+}
+
 .primaryBtn,
 .secondaryBtn {
     padding: var(--spacing-sm) var(--spacing-lg);
@@ -262,45 +405,29 @@
     box-shadow: 0 2px 8px rgba(30, 58, 95, 0.2);
 }
 
+.primaryBtn:hover:not(:disabled) {
+    background: #163252;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(30, 58, 95, 0.3);
+}
+
+.primaryBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .secondaryBtn {
     background: white;
     color: var(--color-text);
     border: 2px solid #ddd;
 }
 
-.playerInfo {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-    text-align: center;
-    font-weight: bold;
-    color: var(--color-text);
+.secondaryBtn:hover {
+    background: #f5f5f5;
+    border-color: var(--color-primary);
 }
 
-@media (max-width: 767px) {
-    .main {
-        padding: var(--spacing-sm);
-    }
-
-    .gameLayout {
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-md);
-    }
-
-    .leftPanel {
-        width: 100%;
-        order: 2;
-    }
-
-    .centerPanel {
-        order: 1;
-    }
-}
-
-/* Content Section Styles for AdSense */
+/* Content Section (Game Description) */
 .contentSection {
     margin-top: 4rem;
     padding: 3rem;
@@ -355,43 +482,7 @@
     margin-bottom: 1.5rem;
     font-size: 1.05rem;
     text-align: left;
-}
-
-.highlightBox {
-    background-color: #ebf8ff;
-    border: 1px solid #bee3f8;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-}
-
-.highlightTitle {
-    font-weight: bold;
-    color: #2b6cb0;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.list {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: 1rem;
-}
-
-.listItem {
-    position: relative;
-    padding-left: 1.5rem;
-    line-height: 1.6;
-    color: #4a5568;
-}
-
-.listItem::before {
-    content: "✔";
-    position: absolute;
-    left: 0;
-    color: var(--color-primary);
-    font-weight: bold;
+    /* Fixed for mobile readability */
 }
 
 .cardGrid {

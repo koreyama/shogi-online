@@ -1,0 +1,675 @@
+.boardContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.board {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 4/3;
+    background-color: #5d4037;
+    /* Wood dark brown */
+    border: 15px solid #3e2723;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.quadrant {
+    flex: 1;
+    display: flex;
+    /* Top quadrants: flex-direction row-reverse (to order 18-23 right-to-left?? No, usually rendered L-R or R-L depending on setup) */
+    /* Let's configure point rendering order manually */
+    background-color: #fce8db;
+    /* Light wood */
+    position: relative;
+}
+
+.bar {
+    width: 50px;
+    background-color: #3e2723;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.offBoard {
+    width: 60px;
+    background-color: #3e2723;
+    /* Or lighter? */
+    border-left: 5px solid #281815;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.offSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    /* Stack upwards */
+    align-items: center;
+    gap: 2px;
+    padding: 5px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.innerTable {
+    flex: 6;
+    display: flex;
+}
+
+.outerTable {
+    flex: 6;
+    display: flex;
+}
+
+/* Layout: 
+   Top Left: 12-17
+   Top Right: 18-23
+   Bottom Left: 11-6
+   Bottom Right: 5-0 
+   
+   We need a main container splitting left/right tables by bar.
+*/
+
+.mainArea {
+    flex: 1;
+    display: flex;
+}
+
+.leftTable {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.rightTable {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.row {
+    flex: 1;
+    display: flex;
+    /* Top row needs triangles pointing DOWN. Bottom row triangles pointing UP */
+    position: relative;
+}
+
+.topRow {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bottomRow {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.point {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    /* For top row */
+    cursor: pointer;
+}
+
+.pointBottom {
+    justify-content: flex-end;
+    /* For bottom row */
+}
+
+/* Triangles via CSS gradients or Borders? Borders are easier for triangles */
+/* But we need checkers On Top. So Absolute positioning? */
+/* Let's simple background color for now? No, triangles are key. */
+/* Alternating colors */
+.pointEven {
+    background-color: #e5b98f;
+    /* Light Point */
+}
+
+.pointOdd {
+    background-color: #8d6e63;
+    /* Dark Point */
+}
+
+/* Better Triangle Approach: SVG Background or CSS Clip Path */
+.pointBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+
+.topPointBg {
+    /* Triangle pointing down */
+    clip-path: polygon(0 0, 100% 0, 50% 85%);
+    height: 100%;
+    /* Or fixed px? */
+}
+
+.bottomPointBg {
+    /* Triangle pointing up */
+    clip-path: polygon(0 100%, 100% 100%, 50% 15%);
+    height: 100%;
+}
+
+.colorDark {
+    background-color: #795548;
+}
+
+.colorLight {
+    background-color: #d7ccc8;
+}
+
+.checker {
+    width: 80%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    /* border: 2px solid rgba(0,0,0,0.3); */
+    margin: 1px 0;
+    /* Overlap? Usually they stack */
+    z-index: 1;
+    box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.3), 0 2px 3px rgba(0, 0, 0, 0.4);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.checkerWhite {
+    background: radial-gradient(#fff, #eee);
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+.checkerBlack {
+    background: radial-gradient(#444, #222);
+    border: 1px solid #000;
+    color: #fff;
+}
+
+/* Selection Highlight */
+.selected .checker {
+    box-shadow: 0 0 10px 4px rgba(255, 255, 0, 0.7);
+    border: 2px solid gold;
+}
+
+.validMsg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 255, 0, 0.5);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Control Panel */
+.controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.diceContainer {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.die {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.turnIndicator {
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    color: white;
+}
+
+.turnWhite {
+    background-color: #aaa;
+    color: #000;
+    border: 2px solid #fff;
+}
+
+.turnBlack {
+    background-color: #333;
+    border: 2px solid #000;
+}
+
+.btn {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .board {
+        aspect-ratio: 1/1.5;
+        /* Taller on mobile? Or keep ratio and stick to small size? */
+        font-size: 0.8rem;
+    }
+
+    .checker {
+        width: 90%;
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+}
+
+.board {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 1.5;
+    /* Traditional Backgammon is oblong */
+    background: #5d4037;
+    /* Rich Wood Frame */
+    background-image:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 50%, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%);
+    background-size: 20px 20px;
+    box-shadow:
+        inset 0 0 50px rgba(0, 0, 0, 0.8),
+        0 20px 40px rgba(0, 0, 0, 0.5);
+    border: 20px solid #3e2723;
+    border-radius: 12px;
+    position: relative;
+    padding: 10px;
+}
+
+/* Felt Playing Surface for Quadrants */
+.quadrant {
+    flex: 1;
+    display: flex;
+    /* Felt Green or Red? Let's go with Classic Green Felt */
+    background-color: #1b5e20;
+    background-image: radial-gradient(circle at center, #2e7d32 0%, #1b5e20 100%);
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.bar {
+    width: 60px;
+    background: #3e2723;
+    /* Wood Bar */
+    background-image: linear-gradient(to right, #2d1b18, #4e342e, #2d1b18);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    border-left: 2px solid #1a0f0d;
+    border-right: 2px solid #1a0f0d;
+}
+
+.offBoard {
+    width: 70px;
+    background: #3e2723;
+    background-image: linear-gradient(to left, #2d1b18, #4e342e);
+    border-left: 5px solid #281815;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 0;
+    margin-left: 5px;
+    /* Separation */
+    border-radius: 0 8px 8px 0;
+}
+
+.offSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: -5px;
+    /* Stack tightly */
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    margin: 5px;
+    border-radius: 4px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.innerTable {
+    flex: 6;
+    display: flex;
+}
+
+.outerTable {
+    flex: 6;
+    display: flex;
+}
+
+.mainArea {
+    flex: 1;
+    display: flex;
+    border: 2px solid #2d1b18;
+}
+
+.leftTable,
+.rightTable {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.leftTable {
+    border-right: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.rightTable {
+    border-left: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.row {
+    flex: 1;
+    display: flex;
+    position: relative;
+}
+
+.topRow {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bottomRow {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.point {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.pointBottom {
+    justify-content: flex-end;
+}
+
+/* Triangles */
+.pointBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    /* Use clip-path for shape */
+}
+
+.topPointBg {
+    clip-path: polygon(50% 85%, 0 0, 100% 0);
+}
+
+.bottomPointBg {
+    clip-path: polygon(50% 15%, 0 100%, 100% 100%);
+}
+
+.colorDark {
+    background: linear-gradient(180deg, #d84315 0%, #bf360c 100%);
+    /* Deep Red/Orange */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.bottomPointBg .colorDark {
+    background: linear-gradient(0deg, #d84315 0%, #bf360c 100%);
+}
+
+.colorLight {
+    background: linear-gradient(180deg, #bdbdbd 0%, #9e9e9e 100%);
+    /* Silver/Grey */
+}
+
+.bottomPointBg .colorLight {
+    background: linear-gradient(0deg, #bdbdbd 0%, #9e9e9e 100%);
+}
+
+/* 3D Checkers */
+.checker {
+    width: 85%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    margin: -10% 0;
+    /* Overlap stack */
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    position: relative;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkerWhite {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #bdbdbd);
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.4),
+        inset 0 -4px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid #9e9e9e;
+    color: #424242;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.checkerBlack {
+    background: radial-gradient(circle at 30% 30%, #424242, #212121, #000000);
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.4),
+        inset 0 -4px 4px rgba(255, 255, 255, 0.1);
+    border: 1px solid #000;
+    color: #e0e0e0;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Hover/Active states */
+.point:hover .checker:last-child {
+    transform: translateY(-5px) scale(1.05);
+}
+
+/* Selection Highlight */
+.selected .checker:last-child {
+    box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.8);
+    /* Golden Glow */
+    border: 2px solid gold;
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+/* Helper Dot for valid moves */
+.validMoveIndicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(0, 255, 0, 0.6);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    position: absolute;
+    top: 50%;
+    /* Adjust based on top/bottom */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 1s infinite;
+    pointer-events: none;
+    z-index: 50;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+}
+
+
+/* Controls & Dice */
+.controls {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    background: linear-gradient(180deg, #4e342e, #3e2723);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    border: 2px solid #5d4037;
+}
+
+.diceContainer {
+    display: flex;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+}
+
+.die {
+    width: 44px;
+    height: 44px;
+    background: white;
+    /* Standard dice */
+    background: radial-gradient(circle at 30% 30%, #fff, #eee);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    box-shadow:
+        0 4px 5px rgba(0, 0, 0, 0.3),
+        inset 0 -2px 2px rgba(0, 0, 0, 0.1);
+    transform: rotate(var(--angle, 0deg));
+    /* Dynamic rotation? */
+}
+
+.turnIndicator {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.turnWhite {
+    background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+    color: #333;
+    border: 2px solid #fff;
+}
+
+.turnBlack {
+    background: linear-gradient(135deg, #424242, #212121);
+    color: #fff;
+    border: 2px solid #000;
+}
+
+.btn {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #1e3a5f, #163252);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .board {
+        aspect-ratio: 1/1.6;
+        /* Portrait on mobile */
+        border-width: 10px;
+        padding: 5px;
+    }
+
+    .checker {
+        width: 90%;
+        margin: -15% 0;
+    }
+
+    .controls {
+        flex-direction: column;
+        border-radius: 20px;
+        padding: 1rem;
+        gap: 1rem;
+    }
+}

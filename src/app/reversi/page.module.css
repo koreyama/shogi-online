@@ -549,6 +549,35 @@
   .chatSection {
     min-height: 200px;
   }
+
+  /* Added responsive fixes for Mode Selection and Content */
+  .contentSection {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .contentTitle {
+    font-size: 1.5rem;
+  }
+
+  .modeBtn {
+    min-width: 100%;
+    flex: 1 1 100%;
+    padding: 1.5rem;
+  }
+
+  .input {
+    width: 100%;
+  }
+
+  .joinSection {
+    padding: 0 1rem;
+  }
+
+  .setupContainer {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
 }
 
 /* Check Effect */
@@ -692,7 +721,7 @@
   color: #4a5568;
   margin-bottom: 1.5rem;
   font-size: 1.05rem;
-  text-align: justify;
+  text-align: left;
 }
 
 .highlightBox {

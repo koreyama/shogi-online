@@ -60,5 +60,8 @@ gameServer.define("daifugo_room", DaifugoRoom);
 gameServer.define("minesweeper_room", MinesweeperRoom)
     .filterBy(['difficulty']);
 
+import { BackgammonRoom } from "./rooms/BackgammonRoom";
+gameServer.define("backgammon", BackgammonRoom);
+
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

@@ -749,3 +749,140 @@
     line-height: 1.6;
     margin: 0;
 }
+
+/* Notification Bar */
+.notificationBar {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.notificationContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notificationContent h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #2b6cb0;
+}
+
+.notificationContent p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+/* Q Bomber Styles */
+.qBomberContent {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border: 1px solid #4a5568;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    max-width: 500px;
+    padding: 2.5rem;
+}
+
+.rankGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 1.5rem 0;
+}
+
+.rankBtn {
+    aspect-ratio: 1;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d3748;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.rankBtn:hover {
+    background: #edf2f7;
+    transform: translateY(-2px);
+}
+
+.rankBtnSelected {
+    background: #e53e3e;
+    color: white;
+    border-color: #e53e3e;
+    box-shadow: 0 4px 10px rgba(229, 62, 62, 0.4);
+    transform: scale(1.05);
+}
+
+.modalTitle {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #fc8181;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.modalInstruction {
+    font-size: 1.1rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+}
+
+.modalInstruction strong {
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+.modalActions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.selectionCount {
+    display: flex;
+    gap: 0.5rem;
+    min-height: 2rem;
+}
+
+.selectedBadge {
+    background: #fc8181;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.confirmBtn {
+    background: linear-gradient(to right, #e53e3e, #c53030);
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.2rem;
+}
+
+.confirmBtn:disabled {
+    background: #4a5568;
+    opacity: 0.6;
+    cursor: not-allowed;
+}

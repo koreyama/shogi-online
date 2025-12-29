@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from '@/styles/GameMenu.module.css';
+import styles from './page.module.css';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusGomokuGame from './ColyseusGomokuGame';
@@ -89,18 +89,23 @@ export default function GomokuPage() {
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>
                         <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
-                                <p>AI (相手)</p>
-                                <p className="font-bold text-lg">白</p>
+                            {/* Opponent (AI - White) */}
+                            <div className={`${styles.playerCard} ${styles.white} ${gameState.turn === 'white' ? styles.playerCardActive : ''}`}>
+                                <div className={styles.playerName}>AI (相手)</div>
+                                <div className={styles.playerRole}>後手 (白)</div>
+                                {gameState.turn === 'white' && <div className={styles.turnBadge}>THINKING...</div>}
                             </div>
-                            <div className={styles.playerInfo}>
-                                <p>{playerName} (自分)</p>
-                                <p className="font-bold text-lg">黒</p>
+
+                            {/* Self (Player - Black) */}
+                            <div className={`${styles.playerCard} ${styles.black} ${gameState.turn === 'black' ? styles.playerCardActive : ''}`}>
+                                <div className={styles.playerName}>{playerName}</div>
+                                <div className={styles.playerRole}>先手 (黒)</div>
+                                {gameState.turn === 'black' && <div className={styles.turnBadge}>YOUR TURN</div>}
                             </div>
                         </div>
                     </div>
                     <div className={styles.centerPanel}>
-                        <div className={styles.turnIndicator}>
+                        <div className={`${styles.turnIndicator} ${gameState.turn === 'black' ? styles.turnBlack : styles.turnWhite}`}>
                             {gameState.turn === 'black' ? '黒の番 (あなた)' : '白の番 (AI)'}
                         </div>
                         <GomokuBoard
@@ -112,11 +117,46 @@ export default function GomokuPage() {
                 </div>
                 {aiStatus === 'finished' && (
                     <div className={styles.modalOverlay}>
-                        <div className={styles.modal}>
-                            <h2>勝負あり！</h2>
-                            <p>勝者: {gameState.winner === 'black' ? '黒 (あなた)' : gameState.winner === 'white' ? '白 (AI)' : '引き分け'}</p>
-                            <button onClick={() => setGameState(createInitialState())} className={styles.primaryBtn}>再戦</button>
-                            <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>終了</button>
+                        <div className={`${styles.modal} fade-in`} style={{
+                            borderTop: gameState.winner === 'black' ? '8px solid #4CAF50' :
+                                gameState.winner === 'white' ? '8px solid #f44336' : '8px solid #999',
+                            textAlign: 'center',
+                            padding: '2rem'
+                        }}>
+                            {gameState.winner === 'black' ? (
+                                <>
+                                    <h2 style={{ fontSize: '2.5rem', color: '#4CAF50', margin: '0 0 1rem 0', fontWeight: '900' }}>YOU WIN!</h2>
+                                    <p style={{ fontSize: '1.2rem', color: '#666' }}>おめでとうございます！あなたの勝利です。</p>
+                                </>
+                            ) : gameState.winner === 'white' ? (
+                                <>
+                                    <h2 style={{ fontSize: '2.5rem', color: '#f44336', margin: '0 0 1rem 0', fontWeight: '900' }}>YOU LOSE...</h2>
+                                    <p style={{ fontSize: '1.2rem', color: '#666' }}>残念... AIの勝利です。</p>
+                                </>
+                            ) : (
+                                <>
+                                    <h2 style={{ fontSize: '2.5rem', color: '#999', margin: '0 0 1rem 0', fontWeight: '900' }}>DRAW</h2>
+                                    <p style={{ fontSize: '1.2rem', color: '#666' }}>引き分けです。</p>
+                                </>
+                            )}
+
+                            <div className={styles.modalBtnGroup}>
+                                <button
+                                    onClick={() => {
+                                        setGameState(createInitialState());
+                                        setAiStatus('playing');
+                                    }}
+                                    className={styles.primaryBtn}
+                                >
+                                    もう一度
+                                </button>
+                                <button
+                                    onClick={() => setJoinMode(null)}
+                                    className={styles.secondaryBtn}
+                                >
+                                    終了
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

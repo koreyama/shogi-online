@@ -157,64 +157,89 @@ export default function YachtGame({ onBack }: { onBack?: () => void }) {
 
     return (
         <div className={styles.container}>
-            <div className={styles.game_area}>
-                <div className={`${styles.dice_stage} ${gameState.isRolling ? styles.rolling : ''}`}>
-                    {gameState.dice.map((val, i) => (
-                        <Die
-                            key={i}
-                            value={val}
-                            held={gameState.held[i]}
-                            rolling={gameState.isRolling && !gameState.held[i]}
-                            onClick={() => toggleHold(i)}
-                            disabled={gameState.winner || gameState.isRolling || gameState.rollsLeft === MAX_ROLLS}
-                        />
-                    ))}
-                </div>
-                <div className={styles.controls}>
-                    <button
-                        onClick={rollDice}
-                        disabled={gameState.winner || gameState.rollsLeft <= 0 || gameState.isRolling}
-                        className={styles.roll_btn}
-                    >
-                        {gameState.rollsLeft > 0 ? `ロール (${gameState.rollsLeft})` : '役を選択'}
-                    </button>
-                </div>
-            </div>
-
-            <div className={styles.score_card} style={{ maxWidth: '400px', margin: '0 auto' }}>
-                <div className={styles.score_header_small}>
-                    スコアシート <span style={{ float: 'right' }}>Total: {totalScore}</span>
-                </div>
-                {CATEGORIES.map((cat, idx) => {
-                    const isTaken = gameState.scores[cat] !== undefined;
-                    const canPick = !isTaken && gameState.rollsLeft < MAX_ROLLS && !gameState.isRolling && !gameState.winner;
-                    const potential = calculateScore(cat, gameState.dice);
-
-                    return (
-                        <React.Fragment key={cat}>
-                            {idx === 6 && (
-                                <div className={styles.bonus_row_small}>
-                                    <span>Bonus</span>
-                                    <span>{upperScore >= 63 ? '+35' : `${upperScore}/63`}</span>
-                                </div>
-                            )}
-                            <button
-                                onClick={() => canPick && selectCategory(cat)}
-                                disabled={!canPick}
-                                className={`${styles.category_row} ${isTaken ? styles.category_row_taken : ''} ${canPick ? styles.category_row_active : ''}`}
-                            >
-                                <span className={styles.category_name}>{CATEGORY_LABELS[cat]}</span>
-                                <span className={styles.category_points}>
-                                    {isTaken ? gameState.scores[cat] : (canPick ? potential : '-')}
-                                </span>
+            <div className={styles.gameLayout}>
+                <div className={styles.leftPanel}>
+                    <div className={styles.topControls}>
+                        <div className={styles.turnIndicator} style={{ flex: 1, color: '#3b82f6' }}>
+                            ソロプレイ
+                        </div>
+                        {onBack && (
+                            <button onClick={onBack} className={styles.exit_btn}>
+                                退出
                             </button>
-                        </React.Fragment>
-                    );
-                })}
+                        )}
+                    </div>
+
+                    <div className={styles.game_area}>
+                        <div className={`${styles.dice_stage} ${gameState.isRolling ? styles.rolling : ''}`}>
+                            {gameState.dice.map((val, i) => (
+                                <Die
+                                    key={i}
+                                    value={val}
+                                    held={gameState.held[i]}
+                                    rolling={gameState.isRolling && !gameState.held[i]}
+                                    onClick={() => toggleHold(i)}
+                                    disabled={gameState.winner || gameState.isRolling || gameState.rollsLeft === MAX_ROLLS}
+                                />
+                            ))}
+                        </div>
+                        <div className={styles.controls}>
+                            <button
+                                onClick={rollDice}
+                                disabled={gameState.winner || gameState.rollsLeft <= 0 || gameState.isRolling}
+                                className={styles.roll_btn}
+                            >
+                                {gameState.rollsLeft > 0 ? `ロール (${gameState.rollsLeft})` : '役を選択'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.rightPanel}>
+                    <div className={styles.score_card} style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '1rem' }}>
+                        <div className={styles.score_header_small}>
+                            スコアシート <span style={{ float: 'right' }}>Total: {totalScore}</span>
+                        </div>
+                        <div className={styles.score_column} style={{ padding: 0 }}>
+                            {CATEGORIES.map((cat, idx) => {
+                                const isTaken = gameState.scores[cat] !== undefined;
+                                const canPick = !isTaken && gameState.rollsLeft < MAX_ROLLS && !gameState.isRolling && !gameState.winner;
+                                const potential = calculateScore(cat, gameState.dice);
+
+                                return (
+                                    <React.Fragment key={cat}>
+                                        {idx === 6 && (
+                                            <div className={styles.bonus_row_small}>
+                                                <span>Bonus</span>
+                                                <span>{upperScore >= 63 ? '+35' : `${upperScore}/63`}</span>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => canPick && selectCategory(cat)}
+                                            disabled={!canPick}
+                                            className={`${styles.category_row} ${isTaken ? styles.category_row_taken : ''} ${canPick ? styles.category_row_active : ''}`}
+                                        >
+                                            <span className={styles.category_name}>{CATEGORY_LABELS[cat]}</span>
+                                            <span className={styles.category_points}>
+                                                {isTaken ? gameState.scores[cat] : (canPick ? potential : '-')}
+                                            </span>
+                                        </button>
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {gameState.winner && (
-                <div className={styles.game_over_panel}>
+                <div style={{
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 100
+                }} className={styles.game_over_panel}>
                     <p className={styles.game_over_title}>ゲーム盤面</p>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                         {totalScore}点
