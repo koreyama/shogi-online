@@ -87,6 +87,12 @@ export const CARDS: Record<string, Card> = {
     m030: { id: 'm030', name: '絶対零度', type: 'magic', cost: 5, value: 4, element: 'water', description: '相手を凍結させる。', effectId: 'freeze_hit', rarity: 'rare' },
     m031: { id: 'm031', name: 'マインドブラスト', type: 'magic', cost: 3, value: 2, element: 'wind', description: '相手のHPとMPに2ダメージを与える。', effectId: 'mp_drain', rarity: 'rare' },
 
+    // m042 Time Warp (Rejected)
+    m043: { id: 'm043', name: 'ソウルエクスチェンジ', type: 'magic', cost: 6, value: 0, element: 'dark', description: '自分と相手のHPを入れ替える（最大HPまで）。', effectId: 'swap_hp', rarity: 'legendary' },
+    // m044 Acid Rain (Rejected)
+    m045: { id: 'm045', name: 'マインドクラッシュ', type: 'magic', cost: 3, value: 0, element: 'dark', description: '相手の手札を1枚捨てさせる。', effectId: 'hand_destruct_1', rarity: 'rare' },
+    m046: { id: 'm046', name: '神の恵み', type: 'magic', cost: 4, value: 0, element: 'holy', description: '手札が5枚になるまで引く。', effectId: 'draw_until_5', rarity: 'rare' },
+
     // Items
     i001: { id: 'i001', name: '薬草', type: 'item', cost: 1, value: 2, element: 'none', description: 'HPを2回復する。', rarity: 'common' },
     i002: { id: 'i002', name: 'ポーション', type: 'item', cost: 2, value: 5, element: 'none', description: 'HPを5回復する。', rarity: 'common' },
@@ -142,6 +148,24 @@ export const CARDS: Record<string, Card> = {
     // Retrieval Cards
     m040: { id: 'm040', name: 'ネクロサルベージ', type: 'magic', cost: 1, value: 0, element: 'dark', description: '墓地からカードを1枚選び、手札に戻す。', effectId: 'necro_salvage', rarity: 'rare' },
     m041: { id: 'm041', name: 'マナリコール', type: 'magic', cost: 1, value: 0, element: 'none', description: 'マナゾーンからカードを1枚選び、手札に戻す。', effectId: 'mana_recall', rarity: 'rare' },
+
+    // Secret Traps
+    t004: { id: 't004', name: '沈黙の仮面', type: 'trap', cost: 2, value: 0, element: 'dark', description: '【罠】相手が魔法を使用した時、それを無効化し相手のMPを5減らす。', effectId: 'trap_silence', rarity: 'rare' },
+    t005: { id: 't005', name: '落とし穴', type: 'trap', cost: 2, value: 0, element: 'earth', description: '【罠】相手が武器攻撃をした時、5ダメージを与え攻撃を無効化する。', effectId: 'trap_pitfall', rarity: 'common' },
+
+    // New Traps (Phase 2)
+    t006: { id: 't006', name: '氷の足枷', type: 'trap', cost: 3, value: 0, element: 'water', description: '【罠】相手が武器攻撃をした時、攻撃を無効化し相手を凍結させる。', effectId: 'trap_frozen_shackles', rarity: 'rare' },
+    t007: { id: 't007', name: 'マナバーン', type: 'trap', cost: 2, value: 0, element: 'fire', description: '【罠】相手が魔法を使用した時、それを無効化しコスト分のダメージを与える。', effectId: 'trap_mana_burn', rarity: 'rare' },
+    t008: { id: 't008', name: '突風の罠', type: 'trap', cost: 2, value: 0, element: 'wind', description: '【罠】相手がカードを使用した時、それを手札に戻させ、効果を無効化する。', effectId: 'trap_gale', rarity: 'rare' },
+    // Spike Pit (t005 was already added as Earth Trap earlier, let's keep it or refine it if needed. Actually t005 'falling pit' was Earth. Let's stick with these 3 new specific ones and maybe a generic one).
+    // Let's add one more generic or different element.
+    t009: { id: 't009', name: '光の封印', type: 'trap', cost: 4, value: 0, element: 'holy', description: '【罠】相手がアルティメットを使用した時、それを無効化する。', effectId: 'trap_anti_ultimate', rarity: 'legendary' },
+
+    // Resonance (Union) Weapons
+    w027: { id: 'w027', name: '共鳴の炎剣', type: 'weapon', cost: 3, value: 3, element: 'fire', description: '火属性の防具装備時、攻撃力+2。', effectId: 'union_fire_atk', rarity: 'rare' },
+    w028: { id: 'w028', name: '共鳴の氷槍', type: 'weapon', cost: 3, value: 3, element: 'water', description: '水属性の防具装備時、攻撃力+2。', effectId: 'union_water_atk', rarity: 'rare' },
+    w029: { id: 'w029', name: '疾風の双剣', type: 'weapon', cost: 3, value: 3, element: 'wind', description: '風属性の防具装備時、攻撃力+2。', effectId: 'union_wind_atk', rarity: 'rare' },
+    w030: { id: 'w030', name: '大地の戦鎚', type: 'weapon', cost: 3, value: 3, element: 'earth', description: '土属性の防具装備時、攻撃力+2。', effectId: 'union_earth_atk', rarity: 'rare' },
 
     // Special Cards
     special_stone: { id: 'special_stone', name: '石ころ', type: 'weapon', cost: 0, value: 1, element: 'none', description: 'ただの石ころ。山札が尽きた時に拾う。', rarity: 'common' },

@@ -7,10 +7,11 @@ import { STARTER_DECKS } from '@/lib/card-game/data/decks';
 import { CARDS } from '@/lib/card-game/data/cards';
 import { DeckBuilder } from '@/components/card-game/DeckBuilder';
 import styles from './page.module.css';
-import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
+import { IconBack, IconDice, IconKey, IconRobot, IconTrophy } from '@/components/Icons';
 import { useAuth } from '@/hooks/useAuth';
 import { ref, get, set, remove, child } from 'firebase/database';
 import { db } from '@/lib/firebase';
+import { getLeaderboard, RankingUser } from '@/lib/card-game/ranking';
 
 export default function LobbyPage() {
     const router = useRouter();
@@ -25,6 +26,8 @@ export default function LobbyPage() {
     const [joinRoomId, setJoinRoomId] = useState('');
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [editingDeck, setEditingDeck] = useState<{ id: string, name: string, cards: string[] } | undefined>(undefined);
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [leaderboardData, setLeaderboardData] = useState<RankingUser[]>([]);
 
     useEffect(() => {
         const loadDecks = async () => {
@@ -195,7 +198,7 @@ export default function LobbyPage() {
         }
     };
 
-    const handleStartGame = async (mode: 'random' | 'room' | 'cpu', roomId?: string) => {
+    const handleStartGame = async (mode: 'ranked' | 'casual' | 'room' | 'cpu', roomId?: string) => {
         console.log("Start game clicked", { mode, selectedDeckId });
         try {
             if (!selectedDeckId) {
@@ -227,6 +230,17 @@ export default function LobbyPage() {
         }
     };
 
+    const handleShowLeaderboard = async () => {
+        try {
+            const data = await getLeaderboard(20);
+            setLeaderboardData(data);
+            setShowLeaderboard(true);
+        } catch (e) {
+            console.error("Failed to load leaderboard:", e);
+            alert("ランキングの取得に失敗しました。");
+        }
+    };
+
     if (showDeckBuilder) {
         return <DeckBuilder onSave={handleSaveDeck} onCancel={() => { setShowDeckBuilder(false); setEditingDeck(undefined); }} initialDeck={editingDeck} />;
     }
@@ -240,7 +254,12 @@ export default function LobbyPage() {
             <div className={styles.gameContainer}>
                 <div className={styles.header}>
                     <h1 className={styles.title}>Divine Duel</h1>
-                    <button onClick={() => setShowRules(true)} className={styles.rulesBtn}>ルール説明</button>
+                    <div className={styles.headerBtnGroup}>
+                        <button onClick={handleShowLeaderboard} className={styles.leaderboardBtn}>
+                            <span style={{ marginRight: '0.4rem', display: 'flex' }}><IconTrophy size={16} /></span>ランキング
+                        </button>
+                        <button onClick={() => setShowRules(true)} className={styles.rulesBtn}>ルール説明</button>
+                    </div>
                 </div>
 
                 <div className={styles.setupSection}>
@@ -376,10 +395,18 @@ export default function LobbyPage() {
 
                 {/* Game Start */}
                 <div className={styles.modeSelection}>
-                    <button onClick={() => handleStartGame('random')} className={styles.modeBtn}>
+                    <button onClick={() => handleStartGame('ranked')} className={`${styles.modeBtn} ${styles.rankedBtn}`}>
+                        <span className={styles.modeBtnIcon} style={{ background: '#fef3c7' }}>
+                            <IconTrophy size={48} color="#d97706" />
+                        </span>
+                        <span className={styles.modeBtnTitle} style={{ color: '#b45309' }}>ランクマッチ</span>
+                        <span className={styles.modeBtnDesc}>レートを懸けて真剣勝負</span>
+                    </button>
+
+                    <button onClick={() => handleStartGame('casual')} className={styles.modeBtn}>
                         <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                        <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                        <span className={styles.modeBtnTitle}>カジュアルマッチ</span>
+                        <span className={styles.modeBtnDesc}>気軽にランダム対戦</span>
                     </button>
 
                     <div className={styles.roomModeContainer}>
@@ -495,6 +522,58 @@ export default function LobbyPage() {
                                 </div>
                             </div>
                             <button onClick={() => setShowRules(false)} className={styles.closeBtn}>閉じる</button>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Leaderboard Modal */}
+            {
+                showLeaderboard && (
+                    <div className={styles.modalOverlay} onClick={() => setShowLeaderboard(false)}>
+                        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                <IconTrophy size={28} color="#d97706" /> ランキング
+                            </h2>
+                            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
+                                            <th style={{ padding: '0.75rem', width: '60px' }}>順位</th>
+                                            <th style={{ padding: '0.75rem' }}>プレイヤー</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'right' }}>レート</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'right' }}>勝利数</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {leaderboardData.length > 0 ? (
+                                            leaderboardData.map((user, index) => (
+                                                <tr key={user.userId || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                    <td style={{ padding: '0.75rem', fontWeight: 'bold', color: index < 3 ? '#d97706' : '#64748b' }}>
+                                                        {index + 1}
+                                                    </td>
+                                                    <td style={{ padding: '0.75rem', fontWeight: 600, color: '#334155' }}>
+                                                        {user.name}
+                                                    </td>
+                                                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold' }}>
+                                                        {user.rating}
+                                                    </td>
+                                                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#64748b' }}>
+                                                        {user.wins}勝 {user.losses}敗
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                                                    データがありません
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button onClick={() => setShowLeaderboard(false)} className={styles.closeBtn}>閉じる</button>
                         </div>
                     </div>
                 )

@@ -310,7 +310,7 @@
     transform: rotateX(-90deg) translateZ(35px);
 }
 
-.rolling .die {
+.rolling .die_wrapper:not(.held) .die {
     animation: rollAnim 0.6s linear infinite;
 }
 

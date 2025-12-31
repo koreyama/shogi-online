@@ -19,6 +19,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
     const [deckName, setDeckName] = useState(initialDeck?.name || 'My Deck');
     const [selectedCards, setSelectedCards] = useState<string[]>(initialDeck?.cards || []);
     const [filterType, setFilterType] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState<string>('');
 
     const [previewCardId, setPreviewCardId] = useState<string | null>(null);
 
@@ -54,7 +55,11 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
         onSave(deckId, selectedCards, deckName);
     };
 
-    const filteredCards = CARD_LIST.filter(card => filterType === 'all' || card.type === filterType);
+    const filteredCards = CARD_LIST.filter(card => {
+        const typeMatch = filterType === 'all' || card.type === filterType;
+        const nameMatch = card.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return typeMatch && nameMatch;
+    });
 
     // Group selected cards for display
     const groupedDeck = selectedCards.reduce((acc, cardId) => {
@@ -123,6 +128,17 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
                 {/* Card Library */}
                 <div className={`${styles.library} ${mobileTab === 'deck' ? styles.mobileHidden : ''}`}>
                     <div className={styles.filters}>
+                        {/* Search Input */}
+                        <div className={styles.searchContainer}>
+                            <input
+                                type="text"
+                                placeholder="カード名で検索..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className={styles.searchInput}
+                            />
+                        </div>
+
                         {/* Mobile Filter Dropdown */}
                         <select
                             className={styles.mobileFilterSelect}
@@ -135,6 +151,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
                             <option value="magic">魔法</option>
                             <option value="item">雑貨</option>
                             <option value="enchantment">付与</option>
+                            <option value="trap">罠</option>
+                            <option value="field">フィールド</option>
                         </select>
 
                         {/* Desktop Filter Buttons */}
@@ -145,6 +163,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onSave, onCancel, init
                             <button onClick={() => setFilterType('magic')} className={filterType === 'magic' ? styles.activeFilter : ''}>魔法</button>
                             <button onClick={() => setFilterType('item')} className={filterType === 'item' ? styles.activeFilter : ''}>雑貨</button>
                             <button onClick={() => setFilterType('enchantment')} className={filterType === 'enchantment' ? styles.activeFilter : ''}>付与</button>
+                            <button onClick={() => setFilterType('trap')} className={filterType === 'trap' ? styles.activeFilter : ''}>罠</button>
+                            <button onClick={() => setFilterType('field')} className={filterType === 'field' ? styles.activeFilter : ''}>フィールド</button>
                         </div>
                     </div>
                     <div className={styles.cardGrid}>

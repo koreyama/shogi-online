@@ -97,7 +97,7 @@ function CardGameContent() {
 
 
     // RENDER COLYSEUS GAME FOR MULTIPLAYER
-    if (mode === 'random' || mode === 'room') {
+    if (mode === 'random' || mode === 'room' || mode === 'ranked' || mode === 'casual') {
         if (!deckLoaded || authLoading) return <div>Loading Deck...</div>;
 
         return (
@@ -365,6 +365,77 @@ function CardGameContent() {
                 onExecuteCharge={handleExecuteManaCharge}
                 onCancelCharge={handleCancelManaCharge}
             />
+            {gameState && gameState.phase !== 'end' && (
+                <button
+                    onClick={() => {
+                        if (confirm('本当にあきらめますか？')) {
+                            // Local Surrender Logic
+                            const endedState: GameState = {
+                                ...gameState,
+                                winner: 'opponent', // Opponent (CPU) wins
+                                phase: 'end'
+                            };
+                            setGameState(endedState);
+                            // syncGameState(roomId, endedState); // Optional if we want to sync local state somewhere
+                        }
+                    }}
+                    style={{
+                        position: 'fixed',
+                        top: '1rem',
+                        left: '1rem',
+                        padding: '0.5rem 1rem',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        zIndex: 1000
+                    }}
+                >
+                    あきらめる
+                </button>
+            )}
+            {gameState && gameState.phase === 'end' && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 2000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '2rem',
+                        borderRadius: '16px',
+                        textAlign: 'center',
+                        maxWidth: '400px',
+                        width: '90%',
+                        color: '#1e293b'
+                    }}>
+                        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                            {gameState.winner === playerId ? 'YOU WIN!' : 'LOSE...'}
+                        </h2>
+                        <button
+                            onClick={() => router.push('/card-game/lobby')}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '1rem'
+                            }}
+                        >
+                            ホームへ
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

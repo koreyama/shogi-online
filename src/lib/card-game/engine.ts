@@ -221,14 +221,37 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
 
     switch (card.type) {
         case 'weapon':
-            // Trap Check: Counter Stance
+            // Trap Check: Counter Stance, Pitfall, Frozen Shackles, Gale
             if (state.traps) {
-                const counterIndex = state.traps.findIndex(t => t.ownerId === opponentId && t.effectId === 'trap_counter_attack');
-                if (counterIndex !== -1) {
-                    const trap = state.traps[counterIndex];
-                    state.traps.splice(counterIndex, 1); // Remove trap
-                    player.hp = Math.max(0, player.hp - 3);
-                    addLog(state, `罠発動！「${trap.name}」が攻撃を無効化し、${player.name}に3ダメージを与えた！`);
+                const trapIndex = state.traps.findIndex(t => t.ownerId === opponentId && (t.effectId === 'trap_counter_attack' || t.effectId === 'trap_pitfall' || t.effectId === 'trap_frozen_shackles' || t.effectId === 'trap_gale'));
+                if (trapIndex !== -1) {
+                    const trap = state.traps[trapIndex];
+                    state.traps.splice(trapIndex, 1); // Remove trap
+
+                    if (trap.effectId === 'trap_gale') {
+                        addLog(state, `罠発動！「${trap.name}」がカードを吹き飛ばした！(手札に戻る)`);
+                        player.hand.push(cardId); // Return to hand
+                        // Refund MP? Usually 'Counter' implies cost is paid. Duel Masters rules say effect is negated but card is used?
+                        // "Return to hand" suggests valid play but no effect. 
+                        // If we push back to hand, player essentially lost MP for nothing.
+                        // Let's keep MP cost paid (punishment).
+
+                        // Stop processing (Effect negated)
+                        break;
+                    }
+
+                    if (trap.effectId === 'trap_frozen_shackles') {
+                        addLog(state, `罠発動！「${trap.name}」が攻撃を止め、${player.name}を凍りつかせた！`);
+                        if (!player.statusEffects) player.statusEffects = [];
+                        player.statusEffects.push({ id: `freeze-${Date.now()}`, type: 'freeze', name: '凍結', value: 0, duration: 1 });
+                        break;
+                    }
+
+                    let trapDmg = 3;
+                    if (trap.effectId === 'trap_pitfall') trapDmg = 5;
+
+                    player.hp = Math.max(0, player.hp - trapDmg);
+                    addLog(state, `罠発動！「${trap.name}」が攻撃を無効化し、${player.name}に${trapDmg}ダメージを与えた！`);
                     break; // Stop attack processing
                 }
             }
@@ -267,6 +290,28 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
             // Avatar Passive: Warrior Spirit
             if (AVATARS[player.avatarId].passiveId === 'warrior_spirit') {
                 damage += 1;
+            }
+
+            // Resonance (Union) Logic
+            // If card has 'union_<element>_<effect>' and player has matching equipment
+            if (card.effectId && card.effectId.startsWith('union_')) {
+                const parts = card.effectId.split('_'); // e.g. union, fire, atk
+                if (parts.length >= 3) {
+                    const reqElement = parts[1];
+                    const effectType = parts[2];
+
+                    // Check Equipment Elements
+                    const armorElem = player.equipment?.armor ? CARDS[player.equipment.armor].element : 'none';
+                    // const weaponElem = ... (Weapon is self, can't be used for requirement, usually Union requires *other* gear)
+                    // Let's assume Union checks Armor or Enchantment.
+
+                    if (armorElem === reqElement) {
+                        if (effectType === 'atk') {
+                            damage += 2; // Bonus Damage
+                            addLog(state, `共鳴(ユニオン)発動！${reqElement}の力でダメージ+2！`);
+                        }
+                    }
+                }
             }
 
 
@@ -392,24 +437,36 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
             break;
 
         case 'magic':
-            // Trap Check: Magic Mirror
+            // Trap Check: Magic Mirror, Silence, Mana Burn, Gale
             if (state.traps) {
-                const mirrorIndex = state.traps.findIndex(t => t.ownerId === opponentId && t.effectId === 'trap_reflect_magic');
-                if (mirrorIndex !== -1) {
-                    const trap = state.traps[mirrorIndex];
-                    state.traps.splice(mirrorIndex, 1); // Remove trap
+                const trapIndex = state.traps.findIndex(t => t.ownerId === opponentId && (t.effectId === 'trap_reflect_magic' || t.effectId === 'trap_silence' || t.effectId === 'trap_mana_burn' || t.effectId === 'trap_gale'));
+                if (trapIndex !== -1) {
+                    const trap = state.traps[trapIndex];
+                    state.traps.splice(trapIndex, 1); // Remove trap
+
+                    if (trap.effectId === 'trap_gale') {
+                        addLog(state, `罠発動！「${trap.name}」が魔法を吹き飛ばした！(手札に戻る)`);
+                        player.hand.push(cardId);
+                        break;
+                    }
+
+                    if (trap.effectId === 'trap_silence') {
+                        addLog(state, `罠発動！「${trap.name}」が魔法を無効化し、MPを5奪う！`);
+                        player.mp = Math.max(0, player.mp - 5);
+                        break;
+                    }
+
+                    if (trap.effectId === 'trap_mana_burn') {
+                        const burnDmg = effectiveCost; // Use calculated effective cost
+                        player.hp = Math.max(0, player.hp - burnDmg);
+                        addLog(state, `罠発動！「${trap.name}」が魔法を無効化し、コスト分(${burnDmg})のダメージ！`);
+                        break;
+                    }
+
                     addLog(state, `罠発動！「${trap.name}」が魔法を跳ね返す！`);
-
-                    // Reflect logic: Swap target to player (caster)
-                    // We need to handle this carefully. For now, let's just make the magic hit the caster.
-                    // But we need to execute the magic logic with swapped targets.
-                    // Simplification: Just deal the magic's value as damage to caster and stop processing.
-                    // This doesn't perfectly reflect complex effects, but works for damage.
-
+                    // Reflect logic...
                     let reflectDmg = card.value;
                     if (card.element === 'holy' && (card.id === 'm004' || card.id === 'm005')) {
-                        // Reflecting heal? Maybe it heals the opponent (trap owner) instead?
-                        // Let's say it heals the trap owner.
                         opponent.hp = Math.min(opponent.maxHp, opponent.hp + reflectDmg);
                         addLog(state, `魔法は反射され、${opponent.name}を回復した！`);
                     } else {
@@ -598,10 +655,42 @@ export function playCard(state: GameState, playerId: string, cardId: string, tar
                 player.statusEffects = [];
                 addLog(state, `${player.name}は浄化の光で身を清めた！(状態異常解除)`);
 
+            } else if (card.effectId === 'swap_hp') {
+                // Soul Exchange
+                // Swap HP values but clamp to their respective Max HPs
+                const myOldHp = player.hp;
+                const opOldHp = opponent.hp;
+                player.hp = Math.min(player.maxHp, opOldHp);
+                opponent.hp = Math.min(opponent.maxHp, myOldHp);
+                addLog(state, `ソウルエクスチェンジ発動！二人のHPが入れ替わった！`);
+
+            } else if (card.effectId === 'hand_destruct_1') {
+                // Mind Crush
+                if (opponent.hand && opponent.hand.length > 0) {
+                    const rndIdx = Math.floor(Math.random() * opponent.hand.length);
+                    const discarded = opponent.hand.splice(rndIdx, 1)[0];
+                    if (!opponent.discardPile) opponent.discardPile = [];
+                    opponent.discardPile.push(discarded);
+                    addLog(state, `${opponent.name}の手札「${CARDS[discarded].name}」を捨てさせた！`);
+                    // Trigger discard effects? Usually user-initiated discard triggers, forced discard might not. Keeps simple.
+                } else {
+                    addLog(state, `しかし、${opponent.name}の手札は空だった！`);
+                }
+
+            } else if (card.effectId === 'draw_until_5') {
+                // Divine Grace
+                const drawCount = 5 - player.hand.length;
+                if (drawCount > 0) {
+                    drawCards(state, playerId, drawCount);
+                    addLog(state, `${player.name}は神の恵みにより${drawCount}枚ドローした！`);
+                } else {
+                    addLog(state, `手札は既に充分だった。`);
+                }
+
             } else if (card.element === 'fire' || card.element === 'water' || card.element === 'wind' || card.element === 'earth' || card.element === 'dark') {
                 // Basic Magic Damage (if not handled by special effects)
                 // ... (existing logic)
-                const handledEffects = ['burn_all', 'freeze_hit', 'mp_drain', 'life_steal', 'def_dmg', 'buff_atk_3', 'gamble', 'bomb', 'soul_burst', 'grudge_damage', 'combo_lightning', 'combo_finisher', 'blood_ritual', 'meditate', 'cleanse', 'reshuffle_grave', 'passive_regen_slime', 'passive_dark_boost'];
+                const handledEffects = ['burn_all', 'freeze_hit', 'mp_drain', 'life_steal', 'def_dmg', 'buff_atk_3', 'gamble', 'bomb', 'soul_burst', 'grudge_damage', 'combo_lightning', 'combo_finisher', 'blood_ritual', 'meditate', 'cleanse', 'reshuffle_grave', 'passive_regen_slime', 'passive_dark_boost', 'swap_hp', 'hand_destruct_1', 'draw_until_5'];
                 if (!card.effectId || !handledEffects.includes(card.effectId)) {
                     let magicDmg = card.value + darkBoost; // Apply Dark Boost
                     if (darkBoost > 0) addLog(state, `墓地の闇の反響でダメージ+${darkBoost}！`);
@@ -734,6 +823,18 @@ export function useUltimate(state: GameState, playerId: string): GameState {
     player.ultimateUsed = true;
     addLog(state, `${player.name}はアルティメットスキル「${avatar.ultimateName}」を発動した！`);
 
+    // Trap Check: Anti-Ultimate (Light Seal)
+    if (state.traps) {
+        const trapIndex = state.traps.findIndex(t => t.ownerId === opponentId && t.effectId === 'trap_anti_ultimate');
+        if (trapIndex !== -1) {
+            const trap = state.traps[trapIndex];
+            state.traps.splice(trapIndex, 1); // Remove trap
+            addLog(state, `罠発動！「${trap.name}」がアルティメットを封じた！`);
+            checkWinCondition(state);
+            return { ...state }; // Stop processing
+        }
+    }
+
     // Execute Effect
     if (avatar.ultimateId === 'ultimate_divine_strike') {
         // Ares: 15 Damage
@@ -778,10 +879,10 @@ function getElementalMultiplier(attackElem: string, defenseElem: string, field?:
     if (atkIdx === -1 || defIdx === -1) return 1.0;
 
     // Check Strong
-    if ((atkIdx + 1) % 4 === defIdx) return 1.5; // e.g. Fire(0) vs Wind(1) -> 0+1 = 1. Match.
+    if ((atkIdx + 1) % 4 === defIdx) return 2.0; // e.g. Fire(0) vs Wind(1) -> Strong!
 
     // Check Weak (Reverse)
-    if ((defIdx + 1) % 4 === atkIdx) return 0.5; // e.g. Water(3) vs Fire(0) -> 3+1 = 4%4=0. Match.
+    if ((defIdx + 1) % 4 === atkIdx) return 0.5; // e.g. Water(3) vs Fire(0) -> Weak.
 
     return 1.0;
 }

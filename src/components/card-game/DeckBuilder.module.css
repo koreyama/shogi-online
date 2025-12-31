@@ -183,6 +183,29 @@
     box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
 }
 
+.searchContainer {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f8fafc;
+    color: #334155;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.searchInput:focus {
+    border-color: #3b82f6;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .cardGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

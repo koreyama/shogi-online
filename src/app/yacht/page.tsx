@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/GameMenu.module.css';
 import { usePlayer } from '@/hooks/usePlayer';
-import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
+import { IconBack, IconDice, IconKey, IconRobot, IconTrophy } from '@/components/Icons';
 import YachtGame from './YachtGame';
 import ColyseusYachtGame from './ColyseusYachtGame';
 
@@ -16,6 +16,17 @@ export default function YachtPage() {
     const [joinMode, setJoinMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'create' | 'join'>('menu');
     const [targetRoomId, setTargetRoomId] = useState('');
     const [tempPlayerName, setTempPlayerName] = useState('');
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (showLeaderboard) {
+            import('@/lib/yacht/ranking').then(async (mod) => {
+                const data = await mod.getYachtLeaderboard();
+                setLeaderboardData(data);
+            });
+        }
+    }, [showLeaderboard]);
 
     useEffect(() => {
         if (nameLoaded && playerName) {
@@ -92,9 +103,62 @@ export default function YachtPage() {
 
     return (
         <main className={styles.main}>
+            {showLeaderboard && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000,
+                    display: 'flex', justifyContent: 'center', alignItems: 'center'
+                }} onClick={() => setShowLeaderboard(false)}>
+                    <div style={{
+                        background: 'white', padding: '2rem', borderRadius: '16px',
+                        width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <IconTrophy size={28} color="#FFD700" />
+                            ランキング (Top 20)
+                        </h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            {leaderboardData.map((user, index) => (
+                                <div key={user.userId || index} style={{
+                                    display: 'flex', alignItems: 'center', padding: '0.8rem',
+                                    backgroundColor: index === 0 ? '#fffbeb' : '#f8fafc',
+                                    borderRadius: '8px', border: index === 0 ? '2px solid #fcd34d' : '1px solid #e2e8f0'
+                                }}>
+                                    <div style={{
+                                        width: '32px', height: '32px', borderRadius: '50%',
+                                        backgroundColor: index < 3 ? '#fbbf24' : '#e2e8f0',
+                                        color: index < 3 ? 'white' : '#64748b',
+                                        display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', marginRight: '1rem'
+                                    }}>
+                                        {index + 1}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{user.userName}</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(user.timestamp).toLocaleDateString()}</div>
+                                    </div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#3b82f6' }}>
+                                        {user.score}
+                                    </div>
+                                </div>
+                            ))}
+                            {leaderboardData.length === 0 && <p style={{ textAlign: 'center', color: '#64748b' }}>ランキングデータがありません</p>}
+                        </div>
+                        <button onClick={() => setShowLeaderboard(false)} className={styles.secondaryBtn} style={{ marginTop: '2rem', width: '100%' }}>閉じる</button>
+                    </div>
+                </div>
+            )}
+
             <div className={styles.header}>
                 <button onClick={handleBackToTop} className={styles.backButton}>
                     <IconBack size={18} /> トップへ戻る
+                </button>
+                <button
+                    onClick={() => setShowLeaderboard(true)}
+                    className={styles.backButton}
+                    style={{ left: 'auto', right: 0, background: '#fffbeb', color: '#b45309', border: '1px solid #fcd34d' }}
+                >
+                    <IconTrophy size={18} /> ランキング
                 </button>
             </div>
 

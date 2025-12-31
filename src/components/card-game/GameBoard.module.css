@@ -165,7 +165,8 @@
     background-color: white;
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
-    max-height: 350px;
+    max-height: 420px;
+    /* Increased from 350px to fit controls */
     width: 100%;
     overflow: hidden;
     box-sizing: border-box;
@@ -175,10 +176,14 @@
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    width: 200px;
+    gap: 0.5rem;
+    /* Reduced from 1rem to save space */
+    width: 220px;
+    /* Slightly wider for buttons */
     z-index: 5;
     position: relative;
+    padding-bottom: 10px;
+    /* Add padding to prevent bottom clipping */
 }
 
 .logToggleBtn {

@@ -1,8 +1,8 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { CATEGORIES, Category, calculateScore } from './scoring';
 import styles from './Yacht.module.css';
+import { auth } from '@/lib/firebase';
+import { saveYachtScore } from '@/lib/yacht/ranking';
 
 const MAX_ROLLS = 3;
 
@@ -155,6 +155,21 @@ export default function YachtGame({ onBack }: { onBack?: () => void }) {
     const upperScore = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].reduce((acc, cat) => acc + (gameState.scores[cat as Category] || 0), 0);
     const totalScore = calculateTotal(gameState.scores);
 
+    const [winner, setWinner] = useState(false); // Local state if needed, or derived
+
+    // Logic to detect game over and save score
+    useEffect(() => {
+        if (gameState.winner) {
+            const finalScore = calculateTotal(gameState.scores);
+            const user = auth.currentUser;
+            if (user) {
+                // Use a default name if display name is missing or "Player"
+                const userName = user.displayName || 'Guest Player';
+                saveYachtScore(user.uid, userName, finalScore);
+            }
+        }
+    }, [gameState.winner, gameState.scores]);
+
     return (
         <div className={styles.container}>
             <div className={styles.gameLayout}>
@@ -240,7 +255,7 @@ export default function YachtGame({ onBack }: { onBack?: () => void }) {
                     transform: 'translate(-50%, -50%)',
                     zIndex: 100
                 }} className={styles.game_over_panel}>
-                    <p className={styles.game_over_title}>ゲーム盤面</p>
+                    <p className={styles.game_over_title}>ゲーム終了</p>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                         {totalScore}点
                     </div>

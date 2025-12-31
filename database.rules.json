@@ -25,6 +25,15 @@
                 ".write": "auth != null && auth.uid === $userId"
             }
         },
+        "leaderboard": {
+            ".read": true,
+            ".indexOn": [
+                "rating"
+            ],
+            "$userId": {
+                ".write": "auth != null && auth.uid === $userId"
+            }
+        },
         "users": {
             "$uid": {
                 "decks": {

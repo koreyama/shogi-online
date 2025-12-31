@@ -476,11 +476,22 @@
     color: #dc2626;
 }
 
-.rulesBtn {
+
+
+.headerBtnGroup {
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    gap: 0.75rem;
+    z-index: 10;
+}
+
+.rulesBtn,
+.leaderboardBtn {
+    position: static;
+    transform: none;
     background: white;
     border: 1px solid #e2e8f0;
     color: #64748b;
@@ -490,11 +501,36 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
 }
 
-.rulesBtn:hover {
+.rulesBtn:hover,
+.leaderboardBtn:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
+}
+
+.leaderboardBtn {
+    background: #fffbeb;
+    border-color: #fef3c7;
+    color: #b45309;
+}
+
+.leaderboardBtn:hover {
+    background: #fef3c7;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.rankedBtn {
+    border: 2px solid #fef3c7;
+    background: linear-gradient(to bottom right, #fff, #fffbeb);
+}
+
+.rankedBtn:hover {
+    border-color: #fcd34d;
+    box-shadow: 0 20px 25px -5px rgba(217, 119, 6, 0.15), 0 10px 10px -5px rgba(217, 119, 6, 0.1);
 }
 
 /* Modals */

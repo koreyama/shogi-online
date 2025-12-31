@@ -5,6 +5,7 @@ import { Client, Room } from 'colyseus.js';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { GameState, PlayerState, GameLogEntry, StatusEffect, Trap, Field } from '@/lib/card-game/types';
 import { AVATARS } from '@/lib/card-game/data/avatars';
+import { updateUserRankingAfterMatch, getUserRanking, DEFAULT_RATING } from '@/lib/card-game/ranking';
 
 interface ColyseusCardGameProps {
     roomId?: string; // If joining existing
@@ -26,7 +27,65 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
     // Filter repeated connection attempts
     const connectingRef = useRef(false);
 
+    const [ratingResult, setRatingResult] = useState<{ old: number, new: number } | null>(null);
+    const [currentRating, setCurrentRating] = useState<number | null>(null);
+    const ratingUpdatedRef = useRef(false);
+
+    // Fetch initial rating for display
     useEffect(() => {
+        if (options?.mode === 'ranked') {
+            getUserRanking(playerId).then(u => setCurrentRating(u.rating));
+        }
+    }, [options?.mode, playerId]);
+
+    useEffect(() => {
+        // Reset ref if game restarts
+        if (gameState?.phase !== 'end') {
+            ratingUpdatedRef.current = false;
+        }
+
+        if (!gameState || gameState.phase !== 'end' || options?.mode !== 'ranked' || ratingUpdatedRef.current) return;
+
+        const handleRankingUpdate = async () => {
+            console.log("Starting Ranking Update...");
+            ratingUpdatedRef.current = true;
+            try {
+                const myPlayer = gameState.players[playerId];
+                const opponentId = Object.keys(gameState.players).find(id => id !== playerId);
+
+                if (!myPlayer || !opponentId) {
+                    console.error("Missing player or opponent ID");
+                    return;
+                }
+
+                const isWin = gameState.winner === playerId;
+
+                // Get Opponent Rating
+                const opponentRanking = await getUserRanking(opponentId);
+                const myRanking = await getUserRanking(playerId);
+                console.log(`Current Ratings - Me: ${myRanking.rating}, Opponent: ${opponentRanking.rating}`);
+
+                // Update My Rating
+                await updateUserRankingAfterMatch(playerId, playerName, opponentRanking.rating, isWin);
+
+                // Fetch new rating for display
+                const newRanking = await getUserRanking(playerId);
+                console.log(`New Rating: ${newRanking.rating}`);
+
+                setRatingResult({ old: myRanking.rating, new: newRanking.rating });
+
+            } catch (e) {
+                console.error("Error updating ranking:", e);
+            }
+        };
+
+        handleRankingUpdate();
+
+    }, [gameState?.phase, options?.mode, gameState?.winner, playerId, playerName]);
+
+    useEffect(() => {
+        // ... (existing logging logic) -> Actually client doesn't log much.
+        // Just keeping this slot for connection logic.
         if (connectingRef.current) return;
         connectingRef.current = true;
 
@@ -300,6 +359,8 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
 
     // Waiting for opponent
     if (Object.keys(gameState.players).length < 2) {
+        const isPrivateRoom = options?.mode !== 'random' && options?.mode !== 'ranked' && options?.mode !== 'casual';
+
         return (
             <div style={{
                 display: 'flex',
@@ -310,11 +371,19 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                 fontFamily: 'Inter, sans-serif',
                 gap: '1rem'
             }}>
-                <h2>対戦相手を待っています...</h2>
+                <h2>{isPrivateRoom ? '対戦相手を待っています...' : '対戦相手を探しています...'}</h2>
+
+                {options?.mode === 'ranked' && currentRating !== null && (
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#d97706' }}>
+                        現在のレート: {currentRating}
+                    </div>
+                )}
+
                 <div style={{ fontSize: '1.2rem', color: '#666' }}>
-                    現在の参加者: {Object.keys(gameState.players).length} / 2
+                    {isPrivateRoom ? `現在の参加者: ${Object.keys(gameState.players).length} / 2` : 'マッチング中...'}
                 </div>
-                {options?.mode !== 'random' && (
+
+                {isPrivateRoom && (
                     <div style={{
                         padding: '1rem 2rem',
                         backgroundColor: '#fff',
@@ -329,6 +398,18 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                         Room ID: {gameState?.roomId || room?.roomId || roomId}
                     </div>
                 )}
+
+                {!isPrivateRoom && (
+                    <div className="animate-spin" style={{
+                        width: '40px',
+                        height: '40px',
+                        border: '4px solid #cbd5e1',
+                        borderTop: '4px solid #3b82f6',
+                        borderRadius: '50%',
+                        margin: '1rem'
+                    }} />
+                )}
+
                 <div style={{ fontSize: '0.9rem', color: '#888' }}>
                     Player ID: {playerId}
                 </div>
@@ -359,7 +440,7 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
             {gameState.phase !== 'end' && (
                 <button
                     onClick={() => {
-                        if (confirm('本当に降参しますか？')) {
+                        if (confirm('本当にあきらめますか？')) {
                             room?.send("surrender");
                         }
                     }}
@@ -377,7 +458,7 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                         zIndex: 1000
                     }}
                 >
-                    降参する
+                    あきらめる
                 </button>
             )}
 
@@ -402,6 +483,22 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                         <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e293b' }}>
                             {gameState.winner === playerId ? 'YOU WIN!' : 'LOSE...'}
                         </h2>
+
+                        {ratingResult && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f1f5f9', borderRadius: '8px' }}>
+                                <div style={{ color: '#64748b', fontSize: '0.9rem' }}>RATING</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#334155' }}>
+                                    {ratingResult.old} <span style={{ color: '#94a3b8', margin: '0 0.5rem' }}>→</span>
+                                    <span style={{ color: ratingResult.new > ratingResult.old ? '#22c55e' : '#ef4444' }}>
+                                        {ratingResult.new}
+                                    </span>
+                                    <span style={{ fontSize: '0.9rem', marginLeft: '0.5rem', color: ratingResult.new > ratingResult.old ? '#22c55e' : '#ef4444' }}>
+                                        ({ratingResult.new > ratingResult.old ? '+' : ''}{ratingResult.new - ratingResult.old})
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button
                                 onClick={() => {

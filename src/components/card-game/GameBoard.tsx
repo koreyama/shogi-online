@@ -38,6 +38,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const [isMobileView, setIsMobileView] = useState(false);
     const [showGraveyard, setShowGraveyard] = useState(false);
     const [showManaZone, setShowManaZone] = useState(false);
+    const [showElementInfo, setShowElementInfo] = useState(false);
 
     // Auto-detect mobile on mount
     useEffect(() => {
@@ -187,7 +188,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     {gameState.traps && gameState.traps.some(t => t.ownerId === opponentId) && (
                         <div className={styles.opponentTraps}>
                             {gameState.traps.filter(t => t.ownerId === opponentId).map(t => (
-                                <div key={t.id} className={styles.trapCardBack} title="相手の罠">?</div>
+                                <div key={t.id} className={styles.trapCardBack} title="Secret Trap">
+                                    ?
+                                </div>
                             ))}
                         </div>
                     )}
@@ -222,6 +225,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                         </button>
                         <button className={styles.infoBtn} onClick={() => setShowManaZone(true)}>
                             マナ ({myPlayer.manaZone?.length || 0})
+                        </button>
+                        <button className={styles.infoBtn} onClick={() => setShowElementInfo(true)}>
+                            属性相性
                         </button>
                     </div>
 
@@ -272,35 +278,55 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             </div>
 
             {/* Overlays */}
-            {(showGraveyard || showManaZone) && (
-                <div className={styles.overlayContainer} onClick={() => { setShowGraveyard(false); setShowManaZone(false); }}>
+            {(showGraveyard || showManaZone || showElementInfo) && (
+                <div className={styles.overlayContainer} onClick={() => { setShowGraveyard(false); setShowManaZone(false); setShowElementInfo(false); }}>
                     <div className={styles.overlayContentWrapper} onClick={e => e.stopPropagation()}>
                         <div className={styles.overlayHeader}>
                             <div className={styles.overlayTitle}>
-                                {showGraveyard ? '墓地 (Graveyard)' : 'マナゾーン (Mana Zone)'}
+                                {showGraveyard ? '墓地 (Graveyard)' : showManaZone ? 'マナゾーン (Mana Zone)' : '属性相性 (Elements)'}
                             </div>
                             <button
                                 className={styles.closeBtn}
                                 onClick={() => {
                                     setShowGraveyard(false);
                                     setShowManaZone(false);
+                                    setShowElementInfo(false);
                                 }}
                             >
                                 閉じる
                             </button>
                         </div>
-                        <div className={styles.overlayGrid}>
-                            {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).map((cardId: string, i: number) => (
-                                <div key={i} className={styles.overlayCardWrapper}>
-                                    <CardDisplay card={CARDS[cardId]} size="medium" />
+
+                        {showElementInfo ? (
+                            <div className={styles.elementInfoContent}>
+                                <div className={styles.elementCycle}>
+                                    <span className={styles.fireText}>火</span> &gt;
+                                    <span className={styles.windText}>風</span> &gt;
+                                    <span className={styles.earthText}>土</span> &gt;
+                                    <span className={styles.waterText}>水</span> &gt;
+                                    <span className={styles.fireText}>火</span>
                                 </div>
-                            ))}
-                            {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).length === 0 && (
-                                <div style={{ width: '100%', textAlign: 'center', color: '#94a3b8', marginTop: '2rem' }}>
-                                    カードがありません
+                                <div className={styles.elementPair}>
+                                    <span className={styles.holyText}>聖</span> &lt;=&gt; <span className={styles.darkText}>闇</span>
                                 </div>
-                            )}
-                        </div>
+                                <div className={styles.elementNote}>
+                                    有利: ダメージ2.0倍 / 不利: ダメージ0.5倍
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.overlayGrid}>
+                                {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).map((cardId: string, i: number) => (
+                                    <div key={i} className={styles.overlayCardWrapper}>
+                                        <CardDisplay card={CARDS[cardId]} size="medium" />
+                                    </div>
+                                ))}
+                                {((showGraveyard ? myPlayer.discardPile : myPlayer.manaZone) || []).length === 0 && (
+                                    <div style={{ width: '100%', textAlign: 'center', color: '#94a3b8', marginTop: '2rem' }}>
+                                        カードがありません
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
