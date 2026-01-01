@@ -34,6 +34,15 @@
                 ".write": "auth != null && auth.uid === $userId"
             }
         },
+        "yacht_leaderboard": {
+            ".read": true,
+            ".indexOn": [
+                "score"
+            ],
+            "$userId": {
+                ".write": "auth != null && auth.uid === $userId"
+            }
+        },
         "users": {
             "$uid": {
                 "decks": {
