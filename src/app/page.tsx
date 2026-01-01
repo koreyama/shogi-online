@@ -576,7 +576,7 @@ export default function Home() {
           }}>
             <Link href="/stock" style={{ textDecoration: 'none' }}>
               <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
-                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+
                 <IconStock size={40} />
                 <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Stock Simulator</div>
                 <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>本格株取引シミュ</div>
@@ -585,7 +585,7 @@ export default function Home() {
 
             <Link href="/clicker" style={{ textDecoration: 'none' }}>
               <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
-                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+
                 <IconCoin size={40} color="#ecc94b" />
                 <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Civilization Builder</div>
                 <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>資源管理＆文明発展</div>
@@ -594,7 +594,7 @@ export default function Home() {
 
             <Link href="/card-game/lobby" style={{ textDecoration: 'none' }}>
               <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', position: 'relative', height: '100%', transition: 'transform 0.2s' }}>
-                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#38a169', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>CLOUD</div>
+
                 <IconSwords size={40} color="#805ad5" />
                 <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a202c', marginTop: '0.5rem' }}>Divine Duel</div>
                 <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>戦略カードバトル</div>
@@ -754,8 +754,7 @@ export default function Home() {
               </div>
             </Link>
             <Link href="/mahjong" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#e53e3e', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
                 <div style={{ marginBottom: '0.3rem', fontSize: '1.75rem' }}>🀄</div>
                 <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>麻雀</div>
               </div>
