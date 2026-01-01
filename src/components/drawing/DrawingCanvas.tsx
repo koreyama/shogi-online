@@ -600,7 +600,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                         {layers.map((layer) => (
                             <canvas
                                 key={layer.id}
-                                ref={el => layerRefs.current[layer.id] = el!}
+                                ref={el => { layerRefs.current[layer.id] = el! }}
                                 width={width} height={height}
                                 style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', opacity: layer.visible ? 1 : 0, zIndex: layer.id }}
                             />
