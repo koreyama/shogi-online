@@ -4,10 +4,13 @@ export interface Point {
 }
 
 export interface Stroke {
+    id: string;
     points: Point[];
     color: string;
     width: number;
     isEraser: boolean;
+    layer?: number;
+    type?: 'path' | 'fill';
 }
 
 export interface DrawingGameState {

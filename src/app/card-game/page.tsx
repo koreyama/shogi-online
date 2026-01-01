@@ -128,43 +128,32 @@ function CardGameContent() {
         if (!deckLoaded) return;
 
         const initGame = async () => {
-            // ... existing CPU deck logic ...
-            // Use Trickster deck for Trickster CPU
-            const cpuDeckKey = 'trickster_starter';
-            // Robust Fallback: Hardcoded Trickster Deck
+            // Randomly select a guardian god for CPU
+            const CPU_GUARDIANS = [
+                { avatarId: 'warrior_god', deckKey: 'warrior_starter', name: '戦神アレス' },
+                { avatarId: 'mage_god', deckKey: 'mage_starter', name: '魔神オーディン' },
+                { avatarId: 'trickster_god', deckKey: 'trickster_starter', name: '道化神ロキ' }
+            ];
+            const randomGuardian = CPU_GUARDIANS[Math.floor(Math.random() * CPU_GUARDIANS.length)];
+
+            // Get corresponding starter deck
+            let cpuDeck = STARTER_DECKS?.[randomGuardian.deckKey as keyof typeof STARTER_DECKS]?.cards;
+
+            // Fallback deck if starter deck not found
             const FALLBACK_CPU_DECK = [
-                'w025', 'w025', 'w025', // Combo Dagger
-                'm035', 'm035', // Chain Lightning
-                'm036', // Finishing Move
-                'w005', 'w005', // Dagger
-                'w014', // Gale Dagger
-                'w021', // Ninja Sword
-                'm025', // Gamble
-                'm022', // Haste
-                'm038', 'm038', // Regen Slime
-                'm032', // Necromancy
-                'm033', // Soul Burst
-                'm039', // Offering to Dead
-                'm023', // Blood Ritual
-                'm024', // Lifesteal
-                'w020', // Vampire Sword
-                'i005', // Smoke Bomb
-                'i010', // Bomb
-                't001', // Counter Stance
-                't003', // Explosive Rune
-                'e005', // Gale Boots
-                'e006', // Poison Enchant
-                'i003', 'i003', // Mana Water
-                'a013'  // Phantom Cloak
+                'w001', 'w001', 'w002', 'w002', 'w003', 'w003',
+                'm001', 'm001', 'm002', 'm002',
+                'a001', 'a001', 'a006', 'a006',
+                'i001', 'i001', 'i002', 'i003', 'i003',
+                'e001', 'e001', 'e002', 'e002'
             ];
 
-            let cpuDeck = STARTER_DECKS?.[cpuDeckKey]?.cards;
             if (!cpuDeck || cpuDeck.length === 0) cpuDeck = FALLBACK_CPU_DECK;
 
             const initial = createInitialState(
                 roomId || 'local-room',
                 { id: playerId, name: user?.displayName || 'You', avatarId: avatarId, deck: myDeck },
-                { id: 'opponent', name: 'Player 2', avatarId: 'mage_god', deck: cpuDeck }
+                { id: 'cpu', name: randomGuardian.name, avatarId: randomGuardian.avatarId, deck: cpuDeck }
             );
             setGameState(initial);
         };

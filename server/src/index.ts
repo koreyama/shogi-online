@@ -60,8 +60,14 @@ gameServer.define("daifugo_room", DaifugoRoom);
 gameServer.define("minesweeper_room", MinesweeperRoom)
     .filterBy(['difficulty']);
 
+import { DrawingRoom } from "./rooms/DrawingRoom";
+gameServer.define("drawing", DrawingRoom);
+
 import { BackgammonRoom } from "./rooms/BackgammonRoom";
 gameServer.define("backgammon", BackgammonRoom);
+
+import { MahjongRoom } from "./rooms/MahjongRoom";
+gameServer.define("mahjong", MahjongRoom);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

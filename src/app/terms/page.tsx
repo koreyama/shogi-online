@@ -112,25 +112,6 @@ export default function TermsPage() {
                     </p>
                 </div>
             </article>
-
-            {/* Footer */}
-            <footer style={{
-                padding: '2rem 4rem',
-                borderTop: '1px solid #edf2f7',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                color: '#718096',
-                fontSize: '0.85rem'
-            }}>
-                <div>© 2025 Asobi Lounge</div>
-                <div style={{ display: 'flex', gap: '2rem' }}>
-                    <Link href="/about" style={{ color: '#718096', textDecoration: 'none' }}>About</Link>
-                    <Link href="/terms" style={{ color: '#718096', textDecoration: 'none' }}>利用規約</Link>
-                    <Link href="/privacy" style={{ color: '#718096', textDecoration: 'none' }}>プライバシーポリシー</Link>
-                    <Link href="/contact" style={{ color: '#718096', textDecoration: 'none' }}>お問い合わせ</Link>
-                </div>
-            </footer>
         </main>
     );
 }

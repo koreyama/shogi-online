@@ -68,6 +68,27 @@ export default function Home() {
 
 
   const [mounted, setMounted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Game descriptions for hamburger menu
+  const gameDescriptions = [
+    { name: '将棋', category: 'ボードゲーム', description: '日本の伝統的な戦略ボードゲーム。取った駒を再利用できる「持ち駒」ルールが特徴。AIや友達とオンラインで対局できます。', color: '#2c5282' },
+    { name: 'チェス', category: 'ボードゲーム', description: '世界で最も人気のあるボードゲーム。6種類の駒を使い、相手のキングをチェックメイトするのが目標です。', color: '#2b6cb0' },
+    { name: 'リバーシ（オセロ）', category: 'ボードゲーム', description: '黒と白の駒を使った陣取りゲーム。相手の駒を挟んでひっくり返し、最終的に自分の色が多い方が勝ちます。', color: '#1a202c' },
+    { name: '五目並べ', category: 'ボードゲーム', description: '縦・横・斜めのいずれかに5つ連続で石を並べたら勝ち。シンプルながら奥深い戦略ゲームです。', color: '#553c9a' },
+    { name: 'マンカラ', category: 'ボードゲーム', description: 'アフリカ発祥の種まきゲーム。石を順番に穴に分配し、多くの石を獲得した方が勝ちです。', color: '#744210' },
+    { name: 'チェッカー', category: 'ボードゲーム', description: '駒を斜めに動かして相手の駒を飛び越えて取るゲーム。キングになると動きが増えます。', color: '#c53030' },
+    { name: 'コネクト4', category: 'ボードゲーム', description: '4つの駒を縦・横・斜めに並べたら勝ち。重力があるため、駒は下に落ちます。', color: '#2f855a' },
+    { name: 'Divine Duel（カードゲーム）', category: 'カードゲーム', description: '三種の守護神から一人を選び、デッキを組んで戦う本格カードバトル。戦略とデッキ構築が勝敗を分けます。', color: '#d69e2e' },
+    { name: 'お絵かきクイズ', category: 'パーティゲーム', description: '出題者が絵を描き、他のプレイヤーが何を描いているか当てるゲーム。友達と一緒に盛り上がれます。', color: '#d53f8c' },
+    { name: '株シミュレーター', category: 'シミュレーション', description: 'リアルタイムの株価変動をシミュレートした投資ゲーム。リスクなしで投資の基本を学べます。', color: '#38a169' },
+    { name: 'Civilization Builder', category: 'シミュレーション', description: 'クリッカー＆経営シミュレーションゲーム。資源を集め、建物を建て、文明を発展させましょう。', color: '#d69e2e' },
+    { name: 'マインスイーパー', category: 'パズル', description: '地雷を避けながらすべてのマスを開けるパズルゲーム。数字をヒントに論理的に推理します。', color: '#4a5568' },
+    { name: 'ヨット（サイコロ）', category: 'ダイスゲーム', description: '5つのサイコロを使って役を作るゲーム。ポーカーに似たルールで、最高得点を目指します。', color: '#ed8936' },
+    { name: 'Hit & Blow', category: 'パズル', description: '相手が設定した4桁の数字を推理するゲーム。位置も数字も合っていればヒット、数字だけならブローです。', color: '#4299e1' },
+    { name: 'Dots & Boxes', category: 'パズル', description: '点と点を線で結び、四角を完成させたら自分の陣地。戦略的な陣取りゲームです。', color: '#ed64a6' },
+    { name: 'バックギャモン', category: 'ボードゲーム', description: '5000年の歴史を持つ世界最古のボードゲーム。サイコロの運と戦略が融合した遊びです。', color: '#dd6b20' },
+  ];
 
   // useRoomJanitor();
 
@@ -86,283 +107,348 @@ export default function Home() {
   // Landing page for non-logged in users
   if (!user) {
     return (
-      <main style={{ minHeight: '100vh', background: '#ffffff' }}>
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', color: '#1a202c' }}>
         {/* Navigation */}
         <nav style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '1rem 1.5rem',
-          borderBottom: '1px solid #edf2f7'
+          padding: '1.25rem 2.5rem',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
         }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a202c' }}>Asobi Lounge</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setMenuOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}
+              aria-label="メニューを開く"
+            >
+              <span style={{ width: '20px', height: '2px', background: '#1a202c', borderRadius: '1px' }} />
+              <span style={{ width: '20px', height: '2px', background: '#1a202c', borderRadius: '1px' }} />
+              <span style={{ width: '20px', height: '2px', background: '#1a202c', borderRadius: '1px' }} />
+            </button>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1a202c', letterSpacing: '-0.03em' }}>Asobi Lounge</div>
+          </div>
           <button
             onClick={signInWithGoogle}
             style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.85rem',
-              background: '#1a202c',
+              padding: '0.625rem 1.5rem',
+              fontSize: '0.875rem',
+              background: 'linear-gradient(135deg, #1a202c 0%, #2d3748 100%)',
               color: 'white',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '10px',
               cursor: 'pointer',
-              fontWeight: 500
+              fontWeight: 600,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+              transition: 'all 0.2s ease'
             }}
           >
             ログイン
           </button>
         </nav>
 
+        {/* Slide-out Game Menu */}
+        {menuOpen && (
+          <>
+            {/* Overlay */}
+            <div
+              onClick={() => setMenuOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 200
+              }}
+            />
+            {/* Drawer */}
+            <div style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '340px',
+              maxWidth: '85vw',
+              background: 'white',
+              zIndex: 201,
+              overflowY: 'auto',
+              boxShadow: '4px 0 24px rgba(0, 0, 0, 0.15)'
+            }}>
+              <div style={{ padding: '1.5rem', borderBottom: '1px solid #edf2f7' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a202c' }}>ゲーム一覧</h2>
+                  <button
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      color: '#718096',
+                      lineHeight: 1
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <p style={{ color: '#718096', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                  16種類以上のゲームを無料で楽しめます
+                </p>
+              </div>
+              <div style={{ padding: '1rem' }}>
+                {gameDescriptions.map((game, i) => (
+                  <div key={i} style={{
+                    padding: '1rem',
+                    marginBottom: '0.75rem',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    borderLeft: `4px solid ${game.color}`
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{
+                        fontSize: '0.65rem',
+                        padding: '0.15rem 0.5rem',
+                        background: game.color,
+                        color: 'white',
+                        borderRadius: '100px',
+                        fontWeight: 600
+                      }}>
+                        {game.category}
+                      </span>
+                    </div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a202c', marginBottom: '0.35rem' }}>
+                      {game.name}
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: '#4a5568', lineHeight: 1.5 }}>
+                      {game.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #edf2f7', background: '#f8fafc' }}>
+                <button
+                  onClick={signInWithGoogle}
+                  style={{
+                    width: '100%',
+                    padding: '0.875rem',
+                    background: '#1a202c',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '0.95rem'
+                  }}
+                >
+                  ログインして遊ぶ
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Hero Section */}
         <section style={{
-          padding: '3rem 1.5rem',
-          maxWidth: '1200px',
-          margin: '0 auto'
+          padding: '3.5rem 2rem 2rem',
+          maxWidth: '700px',
+          margin: '0 auto',
+          textAlign: 'center'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
             <h1 style={{
-              fontSize: 'clamp(1.75rem, 5vw, 3rem)',
-              fontWeight: 700,
-              color: '#1a202c',
-              lineHeight: 1.3,
-              marginBottom: '1rem'
+              fontSize: 'clamp(2rem, 6vw, 3rem)',
+              fontWeight: 900,
+              color: '#0f172a',
+              lineHeight: 1.2,
+              marginBottom: '0.75rem',
+              letterSpacing: '-0.04em'
             }}>
-              ブラウザで遊べる<br />オンラインゲーム
+              遊びを、
+              <span style={{
+                background: 'linear-gradient(135deg, #3182ce 0%, #805ad5 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>はじめよう。</span>
             </h1>
             <p style={{
-              fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)',
-              color: '#4a5568',
-              lineHeight: 1.7,
-              marginBottom: '1.5rem',
-              maxWidth: '500px',
-              margin: '0 auto 1.5rem'
+              fontSize: '0.95rem',
+              color: '#64748b',
+              lineHeight: 1.5,
+              marginBottom: '1.25rem'
             }}>
-              将棋、チェス、リバーシなどの定番ボードゲームから、
-              株取引シミュレーターやカードゲームまで。
-              インストール不要でどのデバイスからでもプレイ可能。
+              ボードゲームからシミュレーションまで。ブラウザだけでOK。
             </p>
+
             <button
               onClick={signInWithGoogle}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.875rem 1.5rem',
-                fontSize: '1rem',
-                background: '#3182ce',
+                padding: '0.75rem 1.75rem',
+                fontSize: '0.95rem',
+                background: '#0f172a',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '100px',
                 cursor: 'pointer',
                 fontWeight: 600,
-                boxShadow: '0 4px 14px rgba(49, 130, 206, 0.4)'
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+                transition: 'all 0.2s ease'
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              Googleで始める
+              無料で始める
             </button>
+            <p style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#94a3b8' }}>
+              登録不要・インストール不要
+            </p>
           </div>
+        </section>
 
-          {/* Game Preview Grid */}
+        {/* Game Preview Grid */}
+        <section style={{ padding: '0 1.5rem 3rem' }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '0.75rem',
-            maxWidth: '400px',
+            maxWidth: '700px',
             margin: '0 auto'
           }}>
             {[
-              { icon: <IconShogi size={28} color="#2c5282" />, name: '将棋' },
-              { icon: <IconChess size={28} color="#2b6cb0" />, name: 'チェス' },
-              { icon: <IconReversi size={28} color="#1a202c" />, name: 'リバーシ' },
-              { icon: <IconStock size={28} />, name: '株取引' },
+              { icon: <IconShogi size={28} color="#2c5282" />, name: '将棋', color: '#ebf4ff' },
+              { icon: <IconChess size={28} color="#2b6cb0" />, name: 'チェス', color: '#ebf4ff' },
+              { icon: <IconReversi size={28} color="#1a202c" />, name: 'リバーシ', color: '#f1f5f9' },
+              { icon: <IconStock size={28} />, name: '株取引', color: '#f0fff4' },
+              { icon: <IconPalette size={28} color="#d53f8c" />, name: 'お絵かき', color: '#fdf2f8' },
+              { icon: <IconCoin size={28} color="#d69e2e" />, name: '文明育成', color: '#fffbeb' },
             ].map((item, i) => (
               <div key={i} style={{
-                background: '#f7fafc',
-                borderRadius: '10px',
-                padding: '1rem 0.5rem',
+                background: item.color,
+                borderRadius: '16px',
+                padding: '1rem',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '0.25rem'
+                gap: '0.75rem',
+                transition: 'transform 0.15s ease',
+                cursor: 'default'
               }}>
                 {item.icon}
-                <span style={{ fontSize: '0.7rem', color: '#4a5568' }}>{item.name}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1e293b' }}>{item.name}</span>
               </div>
             ))}
           </div>
+          <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem', color: '#94a3b8' }}>
+            他にも多数のゲームを収録
+          </p>
         </section>
 
         {/* Features Section */}
         <section style={{
           background: '#f7fafc',
-          padding: '2.5rem 1.5rem'
+          padding: '4rem 1.5rem',
+          borderTop: '1px solid #edf2f7'
         }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
+              fontSize: '1.5rem',
+              fontWeight: 800,
               color: '#1a202c',
               textAlign: 'center',
-              marginBottom: '1.5rem'
+              marginBottom: '3rem'
             }}>
-              特徴
+              Asobi Lounge の特徴
             </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.5rem'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '2rem'
             }}>
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', padding: '1.5rem', background: 'white', borderRadius: '16px', border: '1px solid #edf2f7', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
+                  width: '56px',
+                  height: '56px',
                   background: '#ebf4ff',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 0.75rem',
+                  margin: '0 auto 1.25rem',
                   color: '#3182ce'
                 }}>
-                  <IconCloud size={24} />
+                  <IconCloud size={28} />
                 </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: '#1a202c' }}>
-                  クラウドセーブ
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1a202c' }}>
+                  クラウド保存
                 </h3>
-                <p style={{ color: '#718096', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                  ゲームの進行状況は自動で保存。どのデバイスでも続きをプレイ可能。
+                <p style={{ color: '#718096', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  対局データや進行状況はクラウドに自動保存。<br />
+                  PCで遊んでいた続きを、移動中にスマホで楽しめます。
                 </p>
               </div>
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', padding: '1.5rem', background: 'white', borderRadius: '16px', border: '1px solid #edf2f7', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  background: '#ebf4ff',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 0.75rem',
-                  color: '#3182ce'
-                }}>
-                  <IconGames size={24} />
-                </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: '#1a202c' }}>
-                  15種類以上のゲーム
-                </h3>
-                <p style={{ color: '#718096', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                  定番から株取引シミュレーターまで豊富なラインナップ。
-                </p>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  background: '#ebf4ff',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 0.75rem',
-                  color: '#3182ce'
-                }}>
-                  <IconDevices size={24} />
-                </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: '#1a202c' }}>
-                  マルチデバイス対応
-                </h3>
-                <p style={{ color: '#718096', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                  インストール不要。PC、スマホ、タブレットで今すぐプレイ。
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Game Categories */}
-        <section style={{ padding: '2.5rem 1rem', maxWidth: '1000px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: '#1a202c',
-            marginBottom: '1.5rem'
-          }}>
-            ゲームラインナップ
-          </h2>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '0.75rem',
-              flexWrap: 'wrap'
-            }}>
-              <span style={{
-                background: '#38a169',
-                color: 'white',
-                padding: '0.2rem 0.5rem',
-                borderRadius: '4px',
-                fontSize: '0.7rem',
-                fontWeight: 600
-              }}>
-                CLOUD SAVE
-              </span>
-              <span style={{ fontWeight: 600, color: '#1a202c', fontSize: '0.9rem' }}>クラウドセーブ対応</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {['Stock Trade Simulator', 'Divine Duel', 'Civilization Builder', 'マインスイーパー'].map(name => (
-                <span key={name} style={{
+                  width: '56px',
+                  height: '56px',
                   background: '#f0fff4',
-                  border: '1px solid #c6f6d5',
-                  color: '#22543d',
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: '6px',
-                  fontSize: '0.8rem'
+                  borderRadius: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem',
+                  color: '#38a169'
                 }}>
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ fontWeight: 600, color: '#1a202c', marginBottom: '0.75rem', fontSize: '0.9rem' }}>ボードゲーム</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-              {['将棋', 'チェス', 'リバーシ', '五目並べ', '四目並べ', 'チェッカー', 'マンカラ', '蜂の陣'].map(name => (
-                <span key={name} style={{
-                  background: '#edf2f7',
-                  color: '#4a5568',
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '5px',
-                  fontSize: '0.75rem'
+                  <IconGames size={28} />
+                </div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1a202c' }}>
+                  多彩なラインナップ
+                </h3>
+                <p style={{ color: '#718096', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  将棋、チェスから経済シミュ、パズルまで。<br />
+                  飽きることのない豊富なゲームを提供します。
+                </p>
+              </div>
+              <div style={{ textAlign: 'center', padding: '1.5rem', background: 'white', borderRadius: '16px', border: '1px solid #edf2f7', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  background: '#fffaf0',
+                  borderRadius: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem',
+                  color: '#dd6b20'
                 }}>
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 600, color: '#1a202c', marginBottom: '0.75rem', fontSize: '0.9rem' }}>パーティーゲーム</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-              {['トランプ', 'お絵かきクイズ'].map(name => (
-                <span key={name} style={{
-                  background: '#edf2f7',
-                  color: '#4a5568',
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '5px',
-                  fontSize: '0.75rem'
-                }}>
-                  {name}
-                </span>
-              ))}
+                  <IconDevices size={28} />
+                </div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1a202c' }}>
+                  会員登録・設定不要
+                </h3>
+                <p style={{ color: '#718096', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Googleアカウントだけで始められます。<br />
+                  インストールは一切不要、ブラウザだけで完結。
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -370,37 +456,40 @@ export default function Home() {
         {/* CTA Section */}
         <section style={{
           background: '#1a202c',
-          padding: '2.5rem 1.5rem',
-          textAlign: 'center'
+          padding: '5rem 1.5rem',
+          textAlign: 'center',
+          color: 'white'
         }}>
           <h2 style={{
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: 'white',
-            marginBottom: '0.75rem'
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            marginBottom: '1rem'
           }}>
-            今すぐ無料で始めよう
+            さあ、対局を始めましょう。
           </h2>
-          <p style={{ color: '#a0aec0', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
-            Googleアカウントでログインするだけ
+          <p style={{ color: '#a0aec0', marginBottom: '2.5rem', fontSize: '1rem', maxWidth: '500px', margin: '0 auto 2.5rem' }}>
+            すべてのゲームが無料で解放されています。<br />
+            Googleログインでお絵かきクイズや協力プレイに参加。
           </p>
           <button
             onClick={signInWithGoogle}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.875rem 2rem',
-              fontSize: '1rem',
+              gap: '0.75rem',
+              padding: '1rem 2.5rem',
+              fontSize: '1.05rem',
               background: 'white',
               color: '#1a202c',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               cursor: 'pointer',
-              fontWeight: 600
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.2s ease'
             }}
           >
-            Googleで始める
+            Googleでログイン
           </button>
         </section>
       </main>
@@ -453,24 +542,18 @@ export default function Home() {
       <section style={{ maxWidth: '1200px', margin: '0 auto 1.5rem', padding: '0 1rem' }}>
         <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#2d3748', borderLeft: '3px solid #3182ce', paddingLeft: '0.75rem' }}>最新情報</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Link href="/blog/clicker-game-release" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
+              <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder リリース</span>
+            </div>
+          </Link>
           <Link href="/polyomino" style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
-              <span style={{ background: '#d53f8c', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Block Territory (陣取りゲーム) リリース</span>
-            </div>
-          </Link>
-          <Link href="/piano" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
               <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Virtual Piano リリース</span>
-            </div>
-          </Link>
-          <Link href="/clicker" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder リリース</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Block Territory リリース</span>
             </div>
           </Link>
         </div>
@@ -517,7 +600,6 @@ export default function Home() {
                 <div style={{ fontSize: '0.65rem', color: '#718096', marginTop: '0.2rem' }}>戦略カードバトル</div>
               </div>
             </Link>
-
           </div>
         </section>
 
@@ -671,9 +753,15 @@ export default function Home() {
                 <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>バックギャモン</div>
               </div>
             </Link>
+            <Link href="/mahjong" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '2px solid #38a169', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '0.3rem', right: '0.3rem', background: '#e53e3e', color: 'white', fontSize: '0.5rem', padding: '0.1rem 0.3rem', borderRadius: '6px', fontWeight: 'bold' }}>NEW</div>
+                <div style={{ marginBottom: '0.3rem', fontSize: '1.75rem' }}>🀄</div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>麻雀</div>
+              </div>
+            </Link>
           </div>
         </section>
-
         {/* Variety & Casual */}
         <section>
           <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#2d3748', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

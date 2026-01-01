@@ -56,7 +56,7 @@ export default function ArticlePage() {
                 <Link href="/blog" style={{ color: '#3182ce', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     &larr; コラム一覧へ戻る
                 </Link>
-                <Link href="/shogi" style={{
+                <Link href="/" style={{
                     padding: '0.8rem 2rem',
                     background: '#3182ce',
                     color: 'white',
@@ -65,7 +65,7 @@ export default function ArticlePage() {
                     fontWeight: 'bold',
                     boxShadow: '0 4px 6px rgba(49, 130, 206, 0.3)'
                 }}>
-                    将棋をプレイする &rarr;
+                    ゲームで遊ぶ &rarr;
                 </Link>
             </div>
         </main>

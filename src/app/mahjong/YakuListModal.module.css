@@ -1,0 +1,202 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: #fff;
+    width: 90%;
+    max-width: 600px;
+    height: 80vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+}
+
+.header {
+    padding: 1rem;
+    background: #2d3748;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f7fafc;
+}
+
+.tab {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: #718096;
+    transition: all 0.2s;
+}
+
+.tab.active {
+    color: #2b6cb0;
+    border-bottom: 3px solid #2b6cb0;
+    background: white;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.yakuGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.yakuCard {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.yakuHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #f0f4f8;
+    padding-bottom: 0.25rem;
+}
+
+.yakuName {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #2d3748;
+}
+
+.yakuHan {
+    font-size: 0.85rem;
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+.yakuDetail {
+    font-size: 0.85rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.conditionBadge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: #edf2f7;
+    color: #718096;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.example {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+    background: #2d3436;
+    /* ダーク背景で牌を目立たせる */
+    padding: 0.4rem;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.simpleTile {
+    width: 20px;
+    height: 28px;
+    background: linear-gradient(145deg, #fff 0%, #f5f3e8 100%);
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 0 #b8a88a;
+    font-family: "Segoe UI Emoji", sans-serif;
+    color: black;
+    cursor: default;
+    user-select: none;
+}
+
+.scoreTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    color: #333;
+    /* 文字色を明示的に指定 */
+}
+
+.scoreTable th,
+.scoreTable td {
+    border: 1px solid #cbd5e0;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.scoreTable th {
+    background: #edf2f7;
+    font-weight: bold;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

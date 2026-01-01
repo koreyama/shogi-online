@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { IconShogi, IconChess, IconReversi, IconSwords } from '@/components/Icons';
+import { IconShogi, IconChess, IconReversi, IconSwords, IconPalette } from '@/components/Icons';
 
 export default function AboutPage() {
     return (
@@ -8,7 +8,7 @@ export default function AboutPage() {
             <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#2b6cb0' }}>Asobi Lounge について</h1>
                 <p style={{ fontSize: '1.1rem', color: '#718096' }}>
-                    シンプルで美しい、誰でも楽しめるオンラインボードゲームプラットフォーム
+                    シンプルで美しい、誰でも楽しめる総合オンラインゲームプラットフォーム
                 </p>
             </header>
 
@@ -33,8 +33,8 @@ export default function AboutPage() {
                             <IconShogi size={24} color="#2b6cb0" /> 多彩なゲームラインナップ
                         </h3>
                         <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
-                            将棋、チェス、リバーシといった定番ゲームはもちろん、マンカラや五目並べなどの知育ゲーム、
-                            そしてRPG要素を取り入れたオリジナルカードゲーム「Divine Duel」など、飽きのこないラインナップを用意しています。
+                            将棋、チェス、リバーシといった定番ボードゲームはもちろん、マンカラやバックギャモンなどの古典的名作、
+                            そして「Block Territory」や「Minesweeper」などのパズルゲームまで、幅広いジャンルを網羅しています。
                         </p>
                     </div>
 
@@ -60,11 +60,11 @@ export default function AboutPage() {
 
                     <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2d3748' }}>
-                            <IconSwords size={24} color="#e53e3e" /> スマホ対応進行中
+                            <IconPalette size={24} color="#d53f8c" /> 本格的なお絵かき機能
                         </h3>
                         <p style={{ fontSize: '0.95rem', color: '#4a5568' }}>
-                            新作の「Civilization Builder」をはじめ、一部のゲームがスマートフォンでのプレイに対応しました。
-                            今後、他のゲームも順次対応していく予定です。
+                            「お絵かきクイズ」では、3000px超の高解像度キャンバス、レイヤー機能、筆圧感知に対応。
+                            さらに「Virtual Piano」や「Yacht」などのパーティーゲームも充実し、友達とわいわい楽しめます。
                         </p>
                     </div>
                 </div>

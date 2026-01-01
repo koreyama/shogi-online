@@ -4,39 +4,75 @@ import Link from 'next/link';
 export default function BlogPage() {
     const articles = [
         {
+            slug: 'history-of-shogi',
+            title: '将棋の歴史：古代インドから現代AIまで',
+            excerpt: '将棋のルーツはどこにあるのか？平安時代から現代に至るまでの進化の過程を解説します。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'backgammon-guide',
+            title: 'バックギャモン入門：5000年の歴史を持つ最古のボードゲーム',
+            excerpt: '世界最古のボードゲーム、バックギャモンの基本ルールと戦略を初心者向けに解説します。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'mancala-strategy',
+            title: 'マンカラ攻略法：アフリカ生まれの種まきゲームを極める',
+            excerpt: 'シンプルなルールながら奥深いマンカラ。連続手番やキャプチャを狙う戦略を紹介。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'drawing-game-tips',
+            title: 'お絵かきクイズを楽しむコツ：描く側も当てる側も',
+            excerpt: '描く人も当てる人も楽しめる！お絵かきクイズで盛り上がるためのテクニック集。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'stock-simulator-guide',
+            title: '株シミュレーター入門：リスクゼロで投資を学ぶ',
+            excerpt: '仮想資金で株取引を体験。初心者でも安心して投資の基本を学べます。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'yacht-rules',
+            title: 'ヨット（ヤッツィー）のルール完全ガイド',
+            excerpt: '5つのサイコロで役を作るダイスゲーム。役の種類と得点計算を詳しく解説。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'dots-boxes-strategy',
+            title: 'Dots & Boxes攻略：陣取りゲームの必勝法',
+            excerpt: '紙とペンで遊べる陣取りゲーム。チェーン理論とダブルクロス戦略をマスターしよう。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'hit-blow-tips',
+            title: 'Hit & Blow攻略：論理的思考で数字を当てる',
+            excerpt: '論理パズル好き必見！効率的に正解にたどり着く推理テクニックを紹介。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'brain-training',
+            title: 'ボードゲームで脳トレ：科学が証明する効果とおすすめゲーム',
+            excerpt: '認知機能向上に効果的なボードゲーム。目的別おすすめゲームと効果的な脳トレのコツ。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'online-gaming-benefits',
+            title: 'ブラウザゲームの魅力：いつでもどこでも始められる手軽さ',
+            excerpt: 'インストール不要、マルチデバイス対応。ブラウザゲームのメリットを解説。',
+            date: '2026-01-02'
+        },
+        {
+            slug: 'civilization-guide',
+            title: 'Civilization Builder完全攻略：効率的な文明発展の道',
+            excerpt: '放置系シミュレーションの攻略法。序盤から中盤の効率的な進め方を解説。',
+            date: '2026-01-02'
+        },
+        {
             slug: 'clicker-game-release',
             title: '新作ゲーム『Civilization Builder』リリース！',
             excerpt: 'クリックで文明を築く放置系シミュレーションが登場。技術ツリーを進めて、原始時代から現代文明を目指そう！',
-            date: '2025-12-05'
-        },
-        {
-            slug: 'mobile-support-update',
-            title: 'スマホ対応を順次開始！まずは新作から',
-            excerpt: 'ご要望の多かったスマートフォン対応を、新作「Civilization Builder」から開始しました。他のゲームも順次対応予定です。',
-            date: '2025-12-05'
-        },
-        {
-            slug: 'chess-openings',
-            title: 'チェス初心者のための定跡ガイド：最初の10手で差をつける',
-            excerpt: 'イタリアンゲーム、ロンドンシステムなど、初心者が覚えるべきオープニングの基本原則を解説します。',
-            date: '2025-12-06'
-        },
-        {
-            slug: 'connect4-strategy',
-            title: '四目並べ必勝法：中央を制する者がゲームを制する',
-            excerpt: '先手必勝と言われる四目並べ。中央支配やダブルスレットなど、勝率を上げるための戦略を紹介。',
-            date: '2025-12-06'
-        },
-        {
-            slug: 'board-game-benefits',
-            title: 'ボードゲームが脳に与える5つの効果：科学的に証明されたメリット',
-            excerpt: '論理的思考力、記憶力、集中力の向上など、ボードゲームがもたらす脳への好影響を科学的根拠とともに解説。',
-            date: '2025-12-05'
-        },
-        {
-            slug: 'checkers-history',
-            title: 'チェッカー（ドラフツ）の歴史：5000年前から愛されるゲーム',
-            excerpt: '古代エジプトで生まれ、ヨーロッパで発展したチェッカー。その長い歴史と世界のバリエーションを紹介。',
             date: '2025-12-05'
         },
         {
@@ -46,6 +82,24 @@ export default function BlogPage() {
             date: '2025-12-05'
         },
         {
+            slug: 'chess-openings',
+            title: 'チェス初心者のための定跡ガイド：最初の10手で差をつける',
+            excerpt: 'イタリアンゲーム、ロンドンシステムなど、初心者が覚えるべきオープニングの基本原則を解説します。',
+            date: '2025-12-06'
+        },
+        {
+            slug: 'mobile-support-update',
+            title: 'スマホ対応を順次開始！まずは新作から',
+            excerpt: 'ご要望の多かったスマートフォン対応を、新作「Civilization Builder」から開始しました。他のゲームも順次対応予定です。',
+            date: '2025-12-05'
+        },
+        {
+            slug: 'connect4-strategy',
+            title: '四目並べ必勝法：中央を制する者がゲームを制する',
+            excerpt: '先手必勝と言われる四目並べ。中央支配やダブルスレットなど、勝率を上げるための戦略を紹介。',
+            date: '2025-12-06'
+        },
+        {
             slug: 'minesweeper-tips',
             title: 'マインスイーパーのコツ：数字のパターンを覚えよう',
             excerpt: '運ゲーだと思っていませんか？「1-1」や「1-2-1」などの定石を覚えるだけで、クリア率は劇的に上がります。',
@@ -53,35 +107,42 @@ export default function BlogPage() {
         },
         {
             slug: 'gomoku-rules',
-            title: '五目並べの必勝法：「三三」と「四三」',
-            excerpt: 'ただ並べるだけでは勝てない。最強の形「四三」と、禁じ手「三三」について解説します。',
-            date: '2025-12-05'
-        },
-        {
-            slug: 'divine-duel-strategies',
-            title: '『Divine Duel』初心者向け攻略ガイド',
-            excerpt: 'オリジナルカードゲームで勝つためのコツを伝授。マナ管理の基本から、おすすめのアバター、デッキ構築まで。',
+            title: '五目並べ（連珠）の基本ルールと戦術',
+            excerpt: 'シンプルに見えて奥深い五目並べ。禁じ手や必勝法について解説します。',
             date: '2025-12-04'
         },
         {
-            slug: 'history-of-shogi',
-            title: '将棋の歴史：古代インドから現代AIまで',
-            excerpt: '将棋のルーツはどこにあるのか？平安時代から現代に至るまでの進化の過程を解説します。',
-            date: '2025-12-01'
+            slug: 'reversi-strategy-beginners',
+            title: 'リバーシ初心者攻略：角の重要性と序盤の定石',
+            excerpt: '角を取れば勝てる？実はそう単純ではないリバーシの戦略を初心者向けに解説。',
+            date: '2025-12-04'
         },
         {
-            slug: 'reversi-strategy-beginners',
-            title: 'リバーシ初心者必見！勝率を上げる3つのコツ',
-            excerpt: '「角を取る」だけじゃない？初心者が覚えるべき基本的な定石と、やってはいけない悪手について。',
-            date: '2025-12-02'
+            slug: 'checkers-history',
+            title: 'チェッカーの歴史と世界での人気',
+            excerpt: '古代エジプトから現代まで愛され続けるチェッカー。その歴史と文化的背景を探ります。',
+            date: '2025-12-03'
         },
         {
             slug: 'mancala-rules-explained',
-            title: '世界最古のゲーム「マンカラ」の魅力とは',
-            excerpt: 'シンプルなルールながら奥深い。子供から大人まで楽しめるマンカラの遊び方を徹底解説。',
+            title: 'マンカラのルール詳細解説',
+            excerpt: 'カラハ式マンカラのルールを図解で分かりやすく説明します。',
             date: '2025-12-03'
+        },
+        {
+            slug: 'board-game-benefits',
+            title: 'ボードゲームが子どもの発達に与える良い影響',
+            excerpt: '集中力、社会性、論理的思考…ボードゲームで育まれる能力について。',
+            date: '2025-12-02'
+        },
+        {
+            slug: 'divine-duel-strategies',
+            title: 'カードゲーム戦略ガイド：デッキ構築の基本',
+            excerpt: 'トレーディングカードゲームで勝つためのデッキ構築と戦術の基礎。',
+            date: '2025-12-02'
         }
     ];
+
 
     return (
         <main style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem', fontFamily: 'sans-serif' }}>
