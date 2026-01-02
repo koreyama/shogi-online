@@ -10,6 +10,7 @@ import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import MancalaBoard from '@/components/MancalaBoard';
 import styles from '@/styles/GameMenu.module.css';
 import ColyseusMancalaGame from './ColyseusMancalaGame';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function MancalaPage() {
     const router = useRouter();
@@ -61,15 +62,16 @@ export default function MancalaPage() {
     };
 
     if (joinMode === 'colyseus_random') {
-        return <ColyseusMancalaGame mode="random" />;
+        return <><HideChatBot /><ColyseusMancalaGame mode="random" /></>;
     }
     if (joinMode === 'colyseus_room') {
-        return <ColyseusMancalaGame mode="room" roomId={customRoomId || undefined} />;
+        return <><HideChatBot /><ColyseusMancalaGame mode="room" roomId={customRoomId || undefined} /></>;
     }
 
     if (joinMode === 'ai') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

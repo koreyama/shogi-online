@@ -1,0 +1,496 @@
+/* Request Section */
+.requestSection {
+    margin-bottom: 2rem;
+    background: #fffaf0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #feebc8;
+}
+
+.subTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #c05621;
+    margin-bottom: 1rem;
+}
+
+.requestActions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.acceptBtn {
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rejectBtn {
+    background: #fff;
+    color: #e53e3e;
+    border: 1px solid #e53e3e;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.container {
+    padding: 3rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    color: #1a202c;
+    background: #fdfdfd;
+    min-height: 100vh;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: flex-start;
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 3rem;
+    border: 1px solid #f0f0f0;
+}
+
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 2.5rem;
+}
+
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #edf2f7;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #a0aec0;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 4px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarParamsBtn {
+    background: #edf2f7;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #4a5568;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.avatarParamsBtn:hover {
+    background: #e2e8f0;
+}
+
+.userInfo {
+    flex: 1;
+}
+
+.userName {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.userBio {
+    color: #718096;
+    margin: 0.5rem 0 1.5rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+}
+
+.idContainer {
+    display: inline-flex;
+    align-items: center;
+    background: #f7fafc;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    border: 1px solid #edf2f7;
+}
+
+.idLabel {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-right: 0.5rem;
+}
+
+.idValue {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-right: 1rem;
+    font-weight: 600;
+}
+
+.copyBtn {
+    background: none;
+    border: 1px solid #cbd5e0;
+    color: #718096;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.copyBtn:hover {
+    background: #edf2f7;
+    color: #2d3748;
+}
+
+
+.actionArea {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Edit Form */
+.editForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: #fafafa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #718096;
+}
+
+.editInput {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: 600;
+    color: #2d3748;
+    transition: border 0.2s;
+}
+
+.editInput:focus,
+.editTextarea:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.editTextarea {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Buttons */
+.primaryBtn {
+    background: #1a202c;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.primaryBtn:hover {
+    background: #2d3748;
+    transform: translateY(-1px);
+}
+
+.secondaryBtn {
+    background: white;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.secondaryBtn:hover {
+    background: #f7fafc;
+    color: #2d3748;
+    border-color: #cbd5e0;
+}
+
+/* Sections */
+.section {
+    margin-bottom: 3.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Stats */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.statCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.gameTitle {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.statDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.statItem {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    border-bottom: 1px dashed #f0f0f0;
+    padding-bottom: 0.3rem;
+}
+
+.statItem:last-child {
+    border-bottom: none;
+}
+
+.statLabel {
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+.statValue {
+    font-weight: 700;
+    color: #2d3748;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+/* Friends */
+.addFriendSection {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+}
+
+.friendIdInput {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.addFriendBtn {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 0 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.friendGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.friendCard {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #edf2f7;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.friendLinkContent {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.friendCard:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+.friendAvatarPlaceholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #cbd5e0;
+    margin-right: 0.75rem;
+}
+
+.friendInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.friendName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.badgePending {
+    color: #dd6b20;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.emptyText {
+    color: #a0aec0;
+    font-size: 0.9rem;
+}
+
+.backLink {
+    display: block;
+    margin-top: 4rem;
+    text-align: center;
+    color: #718096;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.backLink:hover {
+    color: #2d3748;
+}
+
+.removeFriendBtn {
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    line-height: 1;
+    margin-left: 0.5rem;
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.removeFriendBtn:hover {
+    color: #e53e3e;
+    background: #fff5f5;
+    opacity: 1;
+}
+
+.friendAvatarPlaceholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #edf2f7;
+    margin-right: 0.75rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #a0aec0;
+    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.friendAvatarImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friendIdSub {
+    font-size: 0.7rem;
+    color: #a0aec0;
+    font-family: monospace;
+}

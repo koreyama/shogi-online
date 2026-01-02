@@ -11,6 +11,7 @@ import { getBestMove } from '@/lib/reversi/ai';
 import { GameState, Player, Coordinates } from '@/lib/reversi/types'; // Used for AI
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import HideChatBot from '@/components/HideChatBot';
 
 // Valid Moves Helper for AI/Local
 import { getValidMoves } from '@/lib/reversi/engine';
@@ -166,6 +167,7 @@ export default function ReversiPage() {
     if (joinMode === 'colyseus_random') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="random" userData={{ name: playerName, id: playerId }} />
             </main>
@@ -175,6 +177,7 @@ export default function ReversiPage() {
     if (joinMode === 'colyseus_room_active') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="room" roomId={customRoomId || undefined} userData={{ name: playerName, id: playerId }} />
             </main>
@@ -241,6 +244,7 @@ export default function ReversiPage() {
     if (joinMode === 'ai') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

@@ -8,6 +8,7 @@ import { IconHourglass, IconBack, IconUser, IconHelp } from '@/components/Icons'
 import { YakuListModal } from './YakuListModal';
 import { audioManager } from '@/lib/mahjong/audio';
 import { TILE_DISPLAY, Wind } from '@/lib/mahjong/types';
+import HideChatBot from '@/components/HideChatBot';
 
 interface ColyseusMahjongGameProps {
     mode: 'random' | 'room';
@@ -349,6 +350,7 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                 /* Game UI (Playing / Finished) */
                 status !== 'connecting' && (
                     <>
+                        <HideChatBot />
                         <CutInEffect text={cutInText} />
                         {showYakuList && <YakuListModal onClose={() => setShowYakuList(false)} />}
                         <div className={styles.header}>

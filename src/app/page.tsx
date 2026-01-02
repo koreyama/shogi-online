@@ -7,6 +7,7 @@ import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconCards, 
 import { IconKing } from '@/components/SimpleShogiIcons';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlayer } from '@/hooks/usePlayer'; // Add import
 
 // Custom SVG Icons
 const IconCloud = ({ size = 24 }: { size?: number }) => (
@@ -65,6 +66,7 @@ export default function Home() {
 
 
   const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+  const { playerName } = usePlayer();
 
 
   const [mounted, setMounted] = useState(false);
@@ -516,7 +518,23 @@ export default function Home() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
           }}>
             {user.photoURL && <img src={user.photoURL} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2d3748', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.displayName}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2d3748', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName}</span>
+            <Link href={`/profile/${user.uid}`} style={{ textDecoration: 'none' }}>
+              <button
+                style={{
+                  padding: '0.25rem 0.6rem',
+                  fontSize: '0.7rem',
+                  background: '#4A90E2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  marginRight: '5px'
+                }}
+              >
+                プロフィール
+              </button>
+            </Link>
             <button
               onClick={signOut}
               style={{

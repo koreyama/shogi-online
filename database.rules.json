@@ -45,12 +45,19 @@
         },
         "users": {
             "$uid": {
+                ".read": true,
+                ".write": "auth != null && auth.uid === $uid",
                 "decks": {
-                    ".read": "auth != null && auth.uid === $uid",
                     ".write": "auth != null && auth.uid === $uid"
-                },
-                ".read": "auth != null && auth.uid === $uid",
-                ".write": "auth != null && auth.uid === $uid"
+                }
+            }
+        },
+        "friends": {
+            ".read": true,
+            "$uid": {
+                "$friendId": {
+                    ".write": "auth != null && (auth.uid === $uid || auth.uid === $friendId)"
+                }
             }
         },
         "rooms": {

@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import dynamic from 'next/dynamic';
+import HideChatBot from '@/components/HideChatBot';
 
 // Dynamically import ColyseusCardGame with SSR disabled to prevent server-side issues with colyseus.js
 const ColyseusCardGame = dynamic(
@@ -102,6 +103,7 @@ function CardGameContent() {
 
         return (
             <div className={styles.main}>
+                <HideChatBot />
                 <ColyseusCardGame
                     roomId={roomId || undefined}
                     options={{ create, mode }} // Pass mode to server if needed for matchmaking? 
@@ -344,6 +346,7 @@ function CardGameContent() {
 
     return (
         <div className={styles.main}>
+            <HideChatBot />
             <GameBoard
                 gameState={gameState}
                 myPlayerId={playerId}

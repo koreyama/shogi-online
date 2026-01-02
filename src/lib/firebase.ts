@@ -14,6 +14,9 @@ const firebaseConfig = {
 
 import { getAuth } from "firebase/auth";
 
+import { getStorage } from "firebase/storage";
+
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export const auth = getAuth(app);
+// export const storage = getStorage(app); // Comment out or remove if not used

@@ -12,6 +12,7 @@ import { getBestMove } from '@/lib/honeycomb/ai';
 import { generateGrid, hexToPixel, getHexPoints, checkWinLoss, getHexKey } from '@/lib/honeycomb/engine';
 import { Hex, Player, GameState, BOARD_RADIUS, HEX_SIZE } from '@/lib/honeycomb/types';
 import ColyseusHoneycombGame from './ColyseusHoneycombGame';
+import HideChatBot from '@/components/HideChatBot';
 
 interface ChatMessage {
     id: string;
@@ -86,11 +87,11 @@ export default function HoneycombPage() {
                 setGameState('won');
                 setWinner(player);
                 setWinningHexes(result.line);
-                if (roomId && roomId !== 'ai-match') setStatus('finished');
+                setStatus('finished');
             } else if (result.lost) {
                 setGameState('lost');
                 setWinner(player === 1 ? 2 : 1);
-                if (roomId && roomId !== 'ai-match') setStatus('finished');
+                setStatus('finished');
             } else {
                 setCurrentPlayer(player === 1 ? 2 : 1);
             }
@@ -196,18 +197,77 @@ export default function HoneycombPage() {
 
     // --- GAME VIEW: RANDOM / ROOM ---
     if (joinMode === 'colyseus_random') {
-        return <ColyseusHoneycombGame mode="random" />;
+        return <><HideChatBot /><ColyseusHoneycombGame mode="random" /></>;
     }
     if (joinMode === 'colyseus_room') {
         const roomId = customRoomId.trim() || undefined;
-        return <ColyseusHoneycombGame mode="room" roomId={roomId} />;
+        return <><HideChatBot /><ColyseusHoneycombGame mode="room" roomId={roomId} /></>;
     }
 
-    // --- GAME VIEW: AI MATCH (Existing Logic) ---
-    // If we are in AI match (or status 'playing' from legacy code), we render the board here.
-    // Let's rely on 'joinMode' === 'ai'.
-    // BUT the existing code uses `status` and `roomId='ai-match'`.
-    // We should adapt the existing logic to be triggered by `joinMode === 'ai'`.
+    // --- GAME VIEW: AI MATCH ---
+    if (joinMode === 'ai') {
+        return (
+            <main className={styles.main}>
+                <HideChatBot />
+                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={styles.gameLayout}>
+                    <div className={styles.leftPanel}>
+                        <div className={styles.playersSection}>
+                            <div className={styles.playerInfo}>
+                                <p>AI (相手)</p>
+                                <p>赤 (後攻)</p>
+                            </div>
+                            <div className={styles.playerInfo}>
+                                <p>{playerName} (自分)</p>
+                                <p>青 (先攻)</p>
+                            </div>
+                        </div>
+                        <div className={styles.chatSection}>
+                            <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
+                        </div>
+                    </div>
+                    <div className={styles.centerPanel}>
+                        <div className={styles.turnIndicator}>
+                            {currentPlayer === 1 ? '青の番' : '赤の番'}
+                            {currentPlayer === 1 && ' (あなた)'}
+                        </div>
+                        <svg width="600" height="500" viewBox="-450 -400 900 800" className={styles.hexGrid}>
+                            {hexes.map(hex => {
+                                const { x, y } = hexToPixel(hex);
+                                const key = getHexKey(hex);
+                                const player = board.get(key);
+                                const isWinning = winningHexes.includes(key);
+
+                                return (
+                                    <polygon
+                                        key={key}
+                                        points={getHexPoints(HEX_SIZE)}
+                                        transform={`translate(${x}, ${y})`}
+                                        className={`${styles.hex} ${player ? styles[`player${player}`] : ''} ${isWinning ? styles.winning : ''}`}
+                                        onClick={() => handleHexClick(hex)}
+                                    />
+                                );
+                            })}
+                        </svg>
+                    </div>
+                </div>
+                {status === 'finished' && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modal}>
+                            <h2>勝負あり！</h2>
+                            <p>
+                                {winner === 1 ? 'あなたの勝ち！' : 'あなたの負け...'}
+                                <br />
+                                {gameState === 'won' ? '(4つ並びました)' : '(3目並べ反則負け)'}
+                            </p>
+                            <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
+                            <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
+                        </div>
+                    </div>
+                )}
+            </main>
+        );
+    }
 
     // --- MENU VIEW ---
     // --- UI HELPERS ---

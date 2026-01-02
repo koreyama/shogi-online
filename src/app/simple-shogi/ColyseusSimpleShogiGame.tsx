@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { soundManager } from '@/utils/sound';
 import { Chat } from '@/components/Chat';
 import SimpleShogiRuleGuide from '@/components/SimpleShogiRuleGuide';
+import HideChatBot from '@/components/HideChatBot';
 
 // Map Colyseus types if needed, or stick to any for schema decoding
 interface Props {
@@ -246,6 +247,7 @@ export default function ColyseusSimpleShogiGame({ mode, roomId: targetRoomId }: 
 
     return (
         <main className={styles.main}>
+            <HideChatBot />
             <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
             <div className={styles.gameLayout}>
                 <div className={styles.leftPanel}>

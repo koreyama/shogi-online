@@ -8,6 +8,7 @@ import { PolyominoEngine } from './polyomino-engine';
 import { GameState, Piece, PlayerColor, Point, BOARD_SIZE } from './polyomino-types';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import HideChatBot from '@/components/HideChatBot';
 import ColyseusPolyominoGame from './ColyseusPolyominoGame';
 
 export default function PolyominoPage() {
@@ -85,16 +86,17 @@ export default function PolyominoPage() {
     if (!isLoaded) return <div className={styles.main}>読み込み中...</div>;
 
     if (joinMode === 'colyseus_random') {
-        return <ColyseusPolyominoGame mode="random" />;
+        return <><HideChatBot /><ColyseusPolyominoGame mode="random" /></>;
     }
 
     if (joinMode === 'colyseus_room') {
-        return <ColyseusPolyominoGame mode="room" roomId={customRoomId.trim() || undefined} />;
+        return <><HideChatBot /><ColyseusPolyominoGame mode="room" roomId={customRoomId.trim() || undefined} /></>;
     }
 
     if (joinMode === 'ai') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={gameStyles.game_layout_wrapper}>
                     <div className={gameStyles.side_panel}>

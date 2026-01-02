@@ -11,6 +11,7 @@ import { createInitialState, getValidMoves, move } from '@/lib/checkers/engine';
 import { getBestMove } from '@/lib/checkers/ai';
 import { GameState, Move, Player, Position } from '@/lib/checkers/types';
 import ColyseusCheckersGame from './ColyseusCheckersGame';
+import HideChatBot from '@/components/HideChatBot';
 
 interface ChatMessage {
     id: string;
@@ -106,16 +107,17 @@ export default function CheckersPage() {
     };
 
     if (joinMode === 'colyseus_random') {
-        return <ColyseusCheckersGame mode="random" />;
+        return <><HideChatBot /><ColyseusCheckersGame mode="random" /></>;
     }
     if (joinMode === 'colyseus_room') {
-        return <ColyseusCheckersGame mode="room" roomId={customRoomId || undefined} />;
+        return <><HideChatBot /><ColyseusCheckersGame mode="room" roomId={customRoomId || undefined} /></>;
     }
 
     if (joinMode === 'ai') {
         const validMoves = getValidMoves(gameState, gameState.turn);
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

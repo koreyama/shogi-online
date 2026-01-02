@@ -8,6 +8,7 @@ import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import ColyseusHitBlowGame from './ColyseusHitBlowGame';
 import SoloHitAndBlowGame from './HitAndBlowGame'; // Reusing existing for Solo for now, but will clean it up
+import HideChatBot from '@/components/HideChatBot';
 
 export default function HitAndBlowPage() {
     const router = useRouter();
@@ -32,16 +33,17 @@ export default function HitAndBlowPage() {
     if (!isLoaded) return <div className={styles.main}>読み込み中...</div>;
 
     if (joinMode === 'colyseus_random') {
-        return <ColyseusHitBlowGame mode="random" />;
+        return <><HideChatBot /><ColyseusHitBlowGame mode="random" /></>;
     }
 
     if (joinMode === 'colyseus_room') {
-        return <ColyseusHitBlowGame mode="room" roomId={customRoomId.trim() || undefined} />;
+        return <><HideChatBot /><ColyseusHitBlowGame mode="room" roomId={customRoomId.trim() || undefined} /></>;
     }
 
     if (joinMode === 'ai') {
         return (
             <main className={styles.container}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={gameStyles.game_layout_wrapper}>
                     <div className={gameStyles.side_panel}>

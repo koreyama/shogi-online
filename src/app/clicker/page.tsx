@@ -16,6 +16,7 @@ import { TitleScreen } from './TitleScreen';
 import { useAuth } from '@/hooks/useAuth';
 import { Resources, TradeRoute, ResourceType } from '@/lib/clicker/types';
 import { AVAILABLE_TRADE_ROUTES } from '@/lib/clicker/data';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function ClickerPage() {
     const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
@@ -171,6 +172,7 @@ export default function ClickerPage() {
 
     return (
         <div className={styles.gameContainer}>
+            <HideChatBot />
             {/* Left Panel: Status */}
             <div className={styles.statusPanel}>
                 <div className={styles.panelHeader}>

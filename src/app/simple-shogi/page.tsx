@@ -10,6 +10,7 @@ import { getBestMove } from '@/lib/simple-shogi/ai';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import ColyseusSimpleShogiGame from './ColyseusSimpleShogiGame';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function SimpleShogiPage() {
     const router = useRouter();
@@ -128,6 +129,7 @@ export default function SimpleShogiPage() {
     if (joinMode === 'ai' && gameState) {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

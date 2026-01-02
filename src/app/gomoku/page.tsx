@@ -10,6 +10,7 @@ import { GomokuBoard } from '@/components/GomokuBoard';
 import { createInitialState, executeMove, GameState } from '@/lib/gomoku/engine';
 import { getBestMove } from '@/lib/gomoku/ai';
 import { Chat } from '@/components/Chat'; // Assuming Chat is usable
+import HideChatBot from '@/components/HideChatBot';
 
 export default function GomokuPage() {
     const router = useRouter();
@@ -65,6 +66,7 @@ export default function GomokuPage() {
     if (joinMode === 'colyseus_random') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusGomokuGame mode="random" userData={userData} />
             </main>
@@ -75,6 +77,7 @@ export default function GomokuPage() {
     if (joinMode === 'colyseus_room_active') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusGomokuGame mode="room" roomId={customRoomId || undefined} userData={userData} />
             </main>
@@ -85,6 +88,7 @@ export default function GomokuPage() {
     if (joinMode === 'ai' && gameState) {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

@@ -7,6 +7,7 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot, IconTrophy } from '@/components/Icons';
 import YachtGame from './YachtGame';
 import ColyseusYachtGame from './ColyseusYachtGame';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function YachtPage() {
     const router = useRouter();
@@ -79,6 +80,7 @@ export default function YachtPage() {
     if (joinMode === 'ai') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}>
                     <button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button>
                 </div>
@@ -90,15 +92,15 @@ export default function YachtPage() {
     }
 
     if (joinMode === 'random') {
-        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusYachtGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} /></>;
     }
 
     if (joinMode === 'create') {
-        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} /></>;
     }
 
     if (joinMode === 'join') {
-        return <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} /></>;
     }
 
     return (

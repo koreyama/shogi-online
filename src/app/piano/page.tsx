@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { pianoEngine, InstrumentType } from '@/lib/piano/AudioEngine';
+import HideChatBot from '@/components/HideChatBot';
 
 // Note Data for C3 to C5 (Same range)
 const NOTES = [
@@ -229,6 +230,7 @@ export default function PianoPage() {
                 overflow: 'hidden'
             }}
         >
+            <HideChatBot />
             {/* Loading Overlay (Light Theme) */}
             {isLoading && (
                 <div style={{

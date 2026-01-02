@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { submitScore, getRankings, ScoreEntry } from '@/lib/minesweeper/ranking';
 import { usePlayer } from '@/hooks/usePlayer';
 import { ColyseusMinesweeperGame } from './ColyseusMinesweeperGame';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function MinesweeperPage() {
     const router = useRouter();
@@ -121,13 +122,16 @@ export default function MinesweeperPage() {
     // Render Multiplayer Game
     if (status === 'multiplayer') {
         return (
-            <ColyseusMinesweeperGame
-                roomId={multiplayerOptions?.roomId}
-                options={multiplayerOptions}
-                onLeave={() => { setStatus('menu'); setMultiplayerOptions(null); }}
-                myPlayerId={(user?.uid || 'guest') + '-' + Math.floor(Math.random() * 10000)}
-                myPlayerName={playerName}
-            />
+            <>
+                <HideChatBot />
+                <ColyseusMinesweeperGame
+                    roomId={multiplayerOptions?.roomId}
+                    options={multiplayerOptions}
+                    onLeave={() => { setStatus('menu'); setMultiplayerOptions(null); }}
+                    myPlayerId={(user?.uid || 'guest') + '-' + Math.floor(Math.random() * 10000)}
+                    myPlayerName={playerName}
+                />
+            </>
         );
     }
 
@@ -188,6 +192,7 @@ export default function MinesweeperPage() {
     // Render Single Player Game
     return (
         <main className={styles.main}>
+            <HideChatBot />
             <div className={styles.header}>
                 <button onClick={() => setStatus('menu')} className={styles.backButton}><IconBack size={18} /> 戻る</button>
             </div>

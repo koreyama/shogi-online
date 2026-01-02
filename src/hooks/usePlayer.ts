@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { getUserProfile } from '@/lib/firebase/users';
 
 const STORAGE_KEY_NAME = 'asobi_lounge_player_name';
 const STORAGE_KEY_ID = 'asobi_lounge_player_id';
@@ -9,6 +10,9 @@ export const usePlayer = () => {
     const [localName, setLocalName] = useState<string>('');
     const [playerId, setPlayerId] = useState<string>('');
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const [profileName, setProfileName] = useState<string>('');
+    const [profileLoaded, setProfileLoaded] = useState(false);
 
     useEffect(() => {
         // クライアントサイドでのみ実行
@@ -30,6 +34,26 @@ export const usePlayer = () => {
         }
     }, []);
 
+    // Sync with Firebase Profile if logged in
+    useEffect(() => {
+        if (!user) {
+            setProfileName('');
+            setProfileLoaded(true);
+            return;
+        }
+
+        let isMounted = true;
+
+        getUserProfile(user.uid).then(profile => {
+            if (isMounted && profile && profile.displayName) {
+                setProfileName(profile.displayName);
+            }
+            if (isMounted) setProfileLoaded(true);
+        });
+
+        return () => { isMounted = false; };
+    }, [user]);
+
     const savePlayerName = (name: string) => {
         if (typeof window !== 'undefined') {
             localStorage.setItem(STORAGE_KEY_NAME, name);
@@ -37,8 +61,8 @@ export const usePlayer = () => {
         }
     };
 
-    // Googleログインしている場合はその名前を優先、なければローカル保存の名前
-    const playerName = user?.displayName || localName;
+    // Priority: Custom Profile Name > Google Auth Name > Local Name
+    const playerName = profileName || user?.displayName || localName;
 
-    return { playerName, playerId, isLoaded, savePlayerName };
+    return { playerName, playerId, isLoaded: isLoaded && profileLoaded, savePlayerName };
 };

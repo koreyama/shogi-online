@@ -8,6 +8,7 @@ import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusChessGame from './ColyseusChessGame';
 import ChessBoard from '@/components/ChessBoard';
 import { Chat } from '@/components/Chat';
+import HideChatBot from '@/components/HideChatBot';
 import { createInitialState, executeMove, isValidMove } from '@/lib/chess/engine';
 import { getBestMove } from '@/lib/chess/ai';
 import { Coordinates } from '@/lib/chess/types';
@@ -145,16 +146,17 @@ export default function ChessPage() {
 
     // --- GAME VIEWS ---
     if (joinMode === 'colyseus_random') {
-        return <ColyseusChessGame mode="random" userData={{ name: savedName, id: playerId }} />;
+        return <><HideChatBot /><ColyseusChessGame mode="random" userData={{ name: savedName, id: playerId }} /></>;
     }
 
     if (joinMode === 'colyseus_room_active') {
-        return <ColyseusChessGame mode="room" roomId={customRoomId || undefined} userData={{ name: savedName, id: playerId }} />;
+        return <><HideChatBot /><ColyseusChessGame mode="room" roomId={customRoomId || undefined} userData={{ name: savedName, id: playerId }} /></>;
     }
 
     if (joinMode === 'ai' && gameState) {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>

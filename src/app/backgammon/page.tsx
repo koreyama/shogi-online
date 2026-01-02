@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import { IconBack, IconDice, IconKey } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import ColyseusBackgammonGame from './ColyseusBackgammonGame';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function BackgammonPage() {
     const router = useRouter();
@@ -51,10 +52,10 @@ export default function BackgammonPage() {
 
     // Game Active
     if (joinMode === 'colyseus_room') {
-        return <ColyseusBackgammonGame mode="room" roomId={customRoomId || undefined} playerName={playerName} />;
+        return <><HideChatBot /><ColyseusBackgammonGame mode="room" roomId={customRoomId || undefined} playerName={playerName} /></>;
     }
     if (joinMode === 'colyseus_random') {
-        return <ColyseusBackgammonGame mode="random" playerName={playerName} />;
+        return <><HideChatBot /><ColyseusBackgammonGame mode="random" playerName={playerName} /></>;
     }
 
     return (

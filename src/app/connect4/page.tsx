@@ -10,6 +10,7 @@ import Connect4Board from '@/components/Connect4Board';
 import { createInitialState, dropPiece, getValidMoves } from '@/lib/connect4/engine';
 import { GameState, Player } from '@/lib/connect4/types';
 import { getBestMove } from '@/lib/connect4/ai';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function ConnectFourPage() {
     const router = useRouter();
@@ -65,6 +66,7 @@ export default function ConnectFourPage() {
     if (joinMode === 'colyseus_random') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <ColyseusConnectFourGame mode="random" />
             </main>
         );
@@ -74,6 +76,7 @@ export default function ConnectFourPage() {
     if (joinMode === 'colyseus_room_active') {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <ColyseusConnectFourGame mode="room" roomId={customRoomId || undefined} />
             </main>
         );
@@ -83,6 +86,7 @@ export default function ConnectFourPage() {
     if (joinMode === 'ai' && gameState) {
         return (
             <main className={styles.main}>
+                <HideChatBot />
                 <div className={styles.header}>
                     <button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button>
                     <div className={styles.headerContent}>

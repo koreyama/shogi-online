@@ -1,0 +1,9 @@
+.statusBadge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #e2e8f0;
+    color: #4a5568;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}

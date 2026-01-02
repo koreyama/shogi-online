@@ -6,6 +6,7 @@ import styles from './page.module.css'; // Reuse existing styles or update
 import { useAuth } from '@/hooks/useAuth';
 import { IconUser, IconBack, IconPalette, IconSearch, IconPlus, IconDoorEnter } from '@/components/Icons'; // Ensure icons exist
 import dynamic from 'next/dynamic';
+import HideChatBot from '@/components/HideChatBot';
 
 const ColyseusDrawingGame = dynamic(() => import('./ColyseusDrawingGame'), {
     ssr: false,
@@ -55,22 +56,22 @@ export default function DrawingPage() {
     };
 
     if (view === 'game_random') {
-        return <ColyseusDrawingGame
+        return <><HideChatBot /><ColyseusDrawingGame
             playerId={user.uid}
             playerName={user.displayName || 'Guest'}
             mode="random"
             onBack={handleExit}
-        />;
+        /></>;
     }
 
     if (view === 'game_room') {
-        return <ColyseusDrawingGame
+        return <><HideChatBot /><ColyseusDrawingGame
             playerId={user.uid}
             playerName={user.displayName || 'Guest'}
             mode="room"
             roomId={targetRoomId}
             onBack={handleExit}
-        />;
+        /></>;
     }
 
     return (

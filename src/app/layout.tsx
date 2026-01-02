@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import Footer from "@/components/Footer";
+import SiteChatBot from "@/components/SiteChatBot";
+import { ChatVisibilityProvider } from "@/contexts/ChatVisibilityContext";
 
 export const metadata: Metadata = {
   title: "Asobi Lounge - オンラインボードゲームプラットフォーム",
@@ -25,8 +27,11 @@ export default function RootLayout({
   return (
     <html lang="ja" translate="no">
       <body className="notranslate" suppressHydrationWarning={true} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        {children}
-        <Footer />
+        <ChatVisibilityProvider>
+          {children}
+          <Footer />
+          <SiteChatBot />
+        </ChatVisibilityProvider>
         {/* Google AdSense */}
         <Script
           async

@@ -10,6 +10,7 @@ import { TrumpRoom } from '@/lib/trump/types';
 import { IconBack, IconCards, IconUser } from '@/components/Icons';
 import { ColyseusDaifugoGame } from './ColyseusDaifugoGame';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function TrumpLobbyPage() {
     const router = useRouter();
@@ -92,13 +93,16 @@ export default function TrumpLobbyPage() {
     // Active Game View
     if (colyseusGameActive && user) {
         return (
-            <ColyseusDaifugoGame
-                roomId={creationOptions?.roomId}
-                options={creationOptions}
-                onLeave={handleExitGame}
-                myPlayerId={user.uid}
-                myPlayerName={user.displayName || 'Guest'}
-            />
+            <>
+                <HideChatBot />
+                <ColyseusDaifugoGame
+                    roomId={creationOptions?.roomId}
+                    options={creationOptions}
+                    onLeave={handleExitGame}
+                    myPlayerId={user.uid}
+                    myPlayerName={user.displayName || 'Guest'}
+                />
+            </>
         );
     }
 

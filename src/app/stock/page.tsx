@@ -11,6 +11,7 @@ import { TradeModal } from '@/components/stock/TradeModal';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
 import { ref, onValue, set, get } from 'firebase/database';
+import HideChatBot from '@/components/HideChatBot';
 
 interface SearchSuggestion {
     symbol: string;
@@ -360,6 +361,7 @@ export default function StockTradePage() {
 
     return (
         <main className={styles.main}>
+            <HideChatBot />
             <header className={styles.header}>
                 <button onClick={() => router.push('/')} className={styles.backBtn}>
                     <IconBack size={20} /> Back

@@ -10,6 +10,7 @@ import { Piece, Player, BoardState, Coordinates, GameState } from '@/lib/shogi/t
 import { getValidMoves, getValidDrops, isForcedPromotion, getLegalMoves } from '@/lib/shogi/rules';
 import { canPromote } from '@/lib/shogi/engine';
 import { IconBack, IconUndo, IconHourglass } from '@/components/Icons';
+import HideChatBot from '@/components/HideChatBot';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import { soundManager } from '@/utils/sound';
@@ -358,6 +359,7 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
 
     return (
         <div className={styles.main}>
+            <HideChatBot />
             <div className={styles.header}>
                 <button onClick={() => window.location.reload()} className={styles.backButton}><IconBack size={18} /> 終了</button>
                 <h1 className={styles.compactTitle}>将棋オンライン</h1>

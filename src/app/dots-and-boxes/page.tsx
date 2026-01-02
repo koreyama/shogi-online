@@ -7,6 +7,7 @@ import styles from '@/styles/GameMenu.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/hooks/usePlayer';
+import HideChatBot from '@/components/HideChatBot';
 
 export default function DotsAndBoxesPage() {
     const router = useRouter();
@@ -64,19 +65,19 @@ export default function DotsAndBoxesPage() {
 
     // Game rendering
     if (joinMode === 'ai') {
-        return <DotsAndBoxesGame onBack={handleBackToMenu} />;
+        return <><HideChatBot /><DotsAndBoxesGame onBack={handleBackToMenu} /></>;
     }
 
     if (joinMode === 'random') {
-        return <ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} /></>;
     }
 
     if (joinMode === 'create') {
-        return <ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} /></>;
     }
 
     if (joinMode === 'join') {
-        return <ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} />;
+        return <><HideChatBot /><ColyseusDotsAndBoxesGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} /></>;
     }
 
     return (
