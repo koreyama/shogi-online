@@ -9,9 +9,19 @@ import YachtGame from './YachtGame';
 import ColyseusYachtGame from './ColyseusYachtGame';
 import HideChatBot from '@/components/HideChatBot';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function YachtPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, playerId, savePlayerName, isLoaded: nameLoaded } = usePlayer();
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Mode Selection: 'menu', 'ai', 'random', 'room', 'create', 'join'
     const [joinMode, setJoinMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'create' | 'join'>('menu');
@@ -51,7 +61,7 @@ export default function YachtPage() {
         router.push('/');
     };
 
-    if (!nameLoaded) return null;
+    if (!nameLoaded || authLoading || !user) return null;
 
     if (!playerName) {
         return (

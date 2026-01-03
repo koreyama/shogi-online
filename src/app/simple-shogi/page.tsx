@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import SimpleShogiBoard from '@/components/SimpleShogiBoard';
@@ -14,8 +15,16 @@ import HideChatBot from '@/components/HideChatBot';
 
 export default function SimpleShogiPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, isLoaded } = usePlayer();
     const [gameState, setGameState] = useState<GameState | null>(null);
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Online State
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
@@ -112,7 +121,7 @@ export default function SimpleShogiPage() {
         setAiStatus('playing');
     };
 
-    if (!isLoaded) return <div className={styles.main}>Loading...</div>;
+    if (!isLoaded || authLoading || !user) return <div className={styles.main}>Loading...</div>;
 
     // --- GAME VIEW: PREVIOUSLY ---
     if (joinMode === 'colyseus_random') {
@@ -265,7 +274,7 @@ export default function SimpleShogiPage() {
 
                 {/* Content Section (SEO/Info) - Preserved */}
                 <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>ファンタジー将棋（どうぶつしょうぎ風）の遊び方</h2>
+                    <h2 className={styles.contentTitle}>ファンタジー将棋の遊び方</h2>
 
                     <div className={styles.sectionBlock}>
                         <div className={styles.sectionHeader}>
@@ -286,24 +295,24 @@ export default function SimpleShogiPage() {
                         <div className={styles.cardGrid}>
                             <div className={styles.infoCard}>
                                 <span className={styles.cardTitle}>1. 勝利条件</span>
-                                <p className={styles.cardText}>相手の「ライオン（王）」を取るか（キャッチ）、自分のライオンが相手の陣地（一番奥の段）に入れば（トライ）勝ちです。</p>
+                                <p className={styles.cardText}>相手の「魔王（王）」を取るか（討伐）、自分の魔王が相手の陣地（一番奥の段）に入れば（侵略）勝ちです。</p>
                             </div>
                             <div className={styles.infoCard}>
                                 <span className={styles.cardTitle}>2. 駒の動き</span>
                                 <p className={styles.cardText}>
-                                    <strong>ライオン</strong>：全方向に1マス<br />
-                                    <strong>キリン</strong>：縦横に1マス<br />
-                                    <strong>ゾウ</strong>：斜めに1マス<br />
-                                    <strong>ヒヨコ</strong>：前に1マス
+                                    <strong>魔王 (King)</strong>：全方向に1マス<br />
+                                    <strong>戦士 (Rook)</strong>：縦横に1マス<br />
+                                    <strong>魔法使い (Bishop)</strong>：斜めに1マス<br />
+                                    <strong>スライム (Pawn)</strong>：前に1マス
                                 </p>
                             </div>
                             <div className={styles.infoCard}>
                                 <span className={styles.cardTitle}>3. 持ち駒</span>
-                                <p className={styles.cardText}>取った駒を自分の駒として、空いているマスに打つことができます。</p>
+                                <p className={styles.cardText}>取った駒を自分の仲間に加え、空いているマスに召喚（打つ）できます。</p>
                             </div>
                             <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>4. 成り</span>
-                                <p className={styles.cardText}>ヒヨコが相手の陣地に入ると「ニワトリ」になり、動きがパワーアップします。</p>
+                                <span className={styles.cardTitle}>4. 進化 (成り)</span>
+                                <p className={styles.cardText}>スライムが相手の陣地に入ると「勇者」に進化し、動きがパワーアップします。</p>
                             </div>
                         </div>
                     </div>

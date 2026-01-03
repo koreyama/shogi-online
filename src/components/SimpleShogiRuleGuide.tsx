@@ -25,33 +25,33 @@ export default function SimpleShogiRuleGuide() {
             <div className={styles.pieceList}>
                 <div className={styles.pieceItem}>
                     <div className={styles.iconWrapper}><IconKing size={24} /></div>
-                    <div className={styles.pieceName}>王 (King)</div>
+                    <div className={styles.pieceName}>魔王 (King)</div>
                     <MovementGrid pattern={[[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]} />
                 </div>
                 <div className={styles.pieceItem}>
                     <div className={styles.iconWrapper}><IconRook size={24} /></div>
-                    <div className={styles.pieceName}>飛 (Rook)</div>
+                    <div className={styles.pieceName}>戦士 (Warrior)</div>
                     <MovementGrid pattern={[[-1, 0], [1, 0], [0, -1], [0, 1]]} />
                 </div>
                 <div className={styles.pieceItem}>
                     <div className={styles.iconWrapper}><IconBishop size={24} /></div>
-                    <div className={styles.pieceName}>角 (Bishop)</div>
+                    <div className={styles.pieceName}>魔法使い (Mage)</div>
                     <MovementGrid pattern={[[-1, -1], [-1, 1], [1, -1], [1, 1]]} />
                 </div>
                 <div className={styles.pieceItem}>
                     <div className={styles.iconWrapper}><IconGold size={24} /></div>
-                    <div className={styles.pieceName}>金 (Gold)</div>
+                    <div className={styles.pieceName}>勇者 (Hero)</div>
                     <MovementGrid pattern={[[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0]]} />
                 </div>
                 <div className={styles.pieceItem}>
                     <div className={styles.iconWrapper}><IconPawn size={24} /></div>
-                    <div className={styles.pieceName}>歩 (Pawn)</div>
+                    <div className={styles.pieceName}>スライム (Slime)</div>
                     <MovementGrid pattern={[[-1, 0]]} />
                 </div>
             </div>
             <div className={styles.note}>
-                <p>※ 歩は敵陣(1段目)に入ると金に成ります。</p>
-                <p>※ 王が敵陣(1段目)に到達しても勝ちです(トライ)。</p>
+                <p>※ スライムは敵陣(1段目)に入ると勇者に進化します。</p>
+                <p>※ 魔王が敵陣(1段目)に到達しても勝ちです(侵略)。</p>
             </div>
         </div>
     );

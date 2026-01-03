@@ -14,12 +14,22 @@ import { PolicyManager } from './PolicyManager';
 import { formatNumber } from '@/lib/clicker/utils';
 import { TitleScreen } from './TitleScreen';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { Resources, TradeRoute, ResourceType } from '@/lib/clicker/types';
 import { AVAILABLE_TRADE_ROUTES } from '@/lib/clicker/data';
 import HideChatBot from '@/components/HideChatBot';
 
 export default function ClickerPage() {
+    const router = useRouter();
     const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     const {
         gameState,
         setGameState,
@@ -120,6 +130,8 @@ export default function ClickerPage() {
         setIsLoadingSave(false);
         setShowTitle(false);
     };
+
+    if (authLoading || !user) return <div className={styles.loading}>Loading...</div>;
 
     if (showTitle) {
         return (

@@ -115,12 +115,27 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId, userData }
                 });
 
             } catch (e: any) {
-                console.error("Connection failed", e);
+                console.error("Connection failed raw:", e);
+                // Attempt to extract meaningful error info
+                let errorDetails = "";
+                if (e instanceof Error) {
+                    errorDetails = e.message;
+                    console.error("Connection failed Error:", e.name, e.message, e.stack);
+                } else if (e instanceof CloseEvent) { // WebSocket close
+                    errorDetails = `WebSocket Closed: Code=${e.code}, Reason=${e.reason}`;
+                    console.error("Connection failed CloseEvent:", e.code, e.reason);
+                } else {
+                    errorDetails = JSON.stringify(e);
+                    console.error("Connection failed Unknown:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+                }
+
                 let msg = "接続に失敗しました。";
-                if (e.message && e.message.includes("locked")) {
+                if (errorDetails.includes("locked")) {
                     msg = "ルームが満員か、ロックされています。";
                 }
-                setError(msg + " " + (e.message || ""));
+
+                // Show detailed error in UI for debugging
+                setError(`${msg} (${errorDetails})`);
             }
         };
 

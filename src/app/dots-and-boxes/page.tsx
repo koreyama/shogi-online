@@ -7,14 +7,23 @@ import styles from '@/styles/GameMenu.module.css';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import HideChatBot from '@/components/HideChatBot';
 
 export default function DotsAndBoxesPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, savePlayerName, playerId, isLoaded: nameLoaded } = usePlayer();
     const [joinMode, setJoinMode] = useState<'menu' | 'ai' | 'random' | 'room' | 'create' | 'join'>('menu');
     const [targetRoomId, setTargetRoomId] = useState('');
     const [tempPlayerName, setTempPlayerName] = useState(playerName || '');
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     useEffect(() => {
         if (nameLoaded && playerName) {
@@ -38,7 +47,7 @@ export default function DotsAndBoxesPage() {
         router.push('/');
     };
 
-    if (!nameLoaded) return null;
+    if (!nameLoaded || authLoading || !user) return <div className={styles.main}>Loading...</div>;
 
     if (!playerName) {
         return (

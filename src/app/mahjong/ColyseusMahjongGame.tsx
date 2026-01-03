@@ -110,6 +110,8 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
     const [winner, setWinner] = useState<string | null>(null);
     const [playerCount, setPlayerCount] = useState(0);
     const [cutInText, setCutInText] = useState<string | null>(null);
+    const [canCall, setCanCall] = useState(false);
+    const [canRon, setCanRon] = useState(false);
 
     // ドラ判定ヘルパー
     const checkIsDora = (tile: any, indicators: any[]) => {
@@ -205,6 +207,18 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                         if (p.sessionId === sessionId) {
                             setMySeat(p.seatIndex);
                             setMyHand([...p.hand]);
+
+                            // Sync call flags
+                            if (state.canCall && state.canCall[p.seatIndex]) {
+                                setCanCall(true);
+                            } else {
+                                setCanCall(false);
+                            }
+                            if (state.canRon && state.canRon[p.seatIndex]) {
+                                setCanRon(true);
+                            } else {
+                                setCanRon(false);
+                            }
                         }
                         count++;
                     });
@@ -216,6 +230,9 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                         setStatus('playing');
                     } else if (state.phase === 'waiting') {
                         setStatus('waiting');
+                    } else if (state.phase === 'calling') {
+                        // Keep playing status for UI, but buttons will appear via canCall
+                        setStatus('playing');
                     } else if (state.phase === 'finished') {
                         setStatus('finished');
                     }
@@ -262,15 +279,67 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
         audioManager.playWin();
         setCutInText('ロン');
         setTimeout(() => setCutInText(null), 2000);
+        setCanRon(false);
+    };
+
+    const handlePon = () => {
+        room?.send("pon");
+        setCutInText('ポン');
+        setTimeout(() => setCutInText(null), 1000);
+        setCanCall(false);
+    };
+
+    const handleChi = () => {
+        // Simple Chi (auto-select or send empty to let server pick)
+        room?.send("chi", { tiles: [] });
+        setCutInText('チー');
+        setTimeout(() => setCutInText(null), 1000);
+        setCanCall(false);
+    };
+
+    const handleKan = () => {
+        room?.send("kan");
+        setCutInText('カン');
+        setTimeout(() => setCutInText(null), 1000);
+        setCanCall(false);
+    };
+
+    const handlePass = () => {
+        room?.send("pass");
+        setCanCall(false);
+        setCanRon(false);
     };
 
     const handleStartGame = () => {
         room?.send("startGame");
     };
 
+    const handleNextRound = () => {
+        room?.send("nextRound");
+        // Reset local UI override if needed, though status change handles most
+        setWinner(null);
+        setCutInText(null);
+    };
+
     const handleBackToTop = () => {
         roomRef.current?.leave();
         window.location.reload();
+    };
+
+    const toggleFullScreen = () => {
+        try {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.log("Fullscreen denied:", e);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        } catch (err) {
+            console.error("Fullscreen error:", err);
+        }
     };
 
     const windDisplay: Record<string, string> = { east: '東', south: '南', west: '西', north: '北' };
@@ -295,6 +364,13 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                     </div>
                 </div>
             )}
+
+            {/* Mobile Rotation Prompt */}
+            <div className={styles.rotateOverlay}>
+                <div className={styles.rotateIcon}>📱➡️</div>
+                <h3>横画面にしてください</h3>
+                <p>このゲームは横画面専用です</p>
+            </div>
 
             {status === 'waiting' ? (
                 /* Lobby (Waiting Room) */
@@ -474,8 +550,20 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                                             打牌
                                         </button>
                                     )}
-                                    <button className={styles.actionBtn} onClick={handleTsumo}>ツモ</button>
-                                    <button className={`${styles.actionBtn} ${styles.ronBtn}`} onClick={handleRon}>ロン</button>
+                                    <button className={styles.actionBtn} onClick={handleTsumo} disabled={!isMyTurn}>ツモ</button>
+
+                                    {/* Action Buttons for Calling Phase */}
+                                    {canCall && (
+                                        <>
+                                            <button className={`${styles.actionBtn} ${styles.ponBtn}`} onClick={handlePon}>ポン</button>
+                                            <button className={`${styles.actionBtn} ${styles.chiBtn}`} onClick={handleChi}>チー</button>
+                                            <button className={`${styles.actionBtn} ${styles.kanBtn}`} onClick={handleKan}>カン</button>
+                                            <button className={`${styles.actionBtn} ${styles.passBtn}`} onClick={handlePass}>パス</button>
+                                        </>
+                                    )}
+                                    {canRon && (
+                                        <button className={`${styles.actionBtn} ${styles.ronBtn}`} onClick={handleRon}>ロン</button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -485,8 +573,8 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                             <div className={styles.resultOverlay}>
                                 <div className={styles.resultModal}>
                                     <h2>{winner ? `${winner}の勝ち！` : '終了'}</h2>
-                                    <button className={styles.newGameBtn} onClick={() => window.location.reload()}>
-                                        もう一度
+                                    <button className={styles.newGameBtn} onClick={handleNextRound}>
+                                        次の局へ (点数継続)
                                     </button>
                                     <button className={styles.exitBtn} onClick={handleBackToTop}>
                                         終了
@@ -497,6 +585,11 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                     </>
                 )
             )}
+            {/* Mobile Fullscreen Toggle - Visible only via CSS on mobile */}
+            {/* Mobile Fullscreen Toggle - Visible only via CSS on mobile */}
+            <button className={styles.mobileFullscreenBtn} onClick={toggleFullScreen}>
+                📺 全画面
+            </button>
         </main>
     );
 }

@@ -112,12 +112,26 @@
 }
 
 @media (max-width: 600px) {
+
+    /* Mobile optimizations - prioritize fitting in viewport */
+    .boardWrapper {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
     .cell {
-        width: 34px;
-        height: 38px;
+        /* Use fluid sizing based on viewport width mostly */
+        width: min(10vw, 42px);
+        height: min(11vw, 46px);
+        min-width: 32px;
+        /* Force minimum size */
+        min-height: 36px;
+        font-size: min(2.5vw, 1.3rem);
     }
 
     .piece {
-        font-size: 1.3rem;
+        font-size: min(5vw, 1.4rem);
     }
 }

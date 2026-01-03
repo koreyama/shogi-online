@@ -9,12 +9,21 @@ import { GameState, Piece, PlayerColor, Point, BOARD_SIZE } from './polyomino-ty
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import HideChatBot from '@/components/HideChatBot';
+import { useAuth } from '@/hooks/useAuth';
 import ColyseusPolyominoGame from './ColyseusPolyominoGame';
 
 export default function PolyominoPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, isLoaded } = usePlayer();
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
     const [customRoomId, setCustomRoomId] = useState('');
 
     // Local AI game state
@@ -83,7 +92,7 @@ export default function PolyominoPage() {
         setJoinMode('colyseus_room');
     };
 
-    if (!isLoaded) return <div className={styles.main}>読み込み中...</div>;
+    if (!isLoaded || authLoading || !user) return <div className={styles.main}>読み込み中...</div>;
 
     if (joinMode === 'colyseus_random') {
         return <><HideChatBot /><ColyseusPolyominoGame mode="random" /></>;

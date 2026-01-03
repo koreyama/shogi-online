@@ -106,11 +106,20 @@ type ViewState = 'top' | 'random_select' | 'room_select' | 'ai_select';
 
 export default function MahjongPage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [view, setView] = useState<ViewState>('top');
     const [gameMode, setGameMode] = useState<GameMode | null>(null);
     const [roomId, setRoomId] = useState('');
     const [options, setOptions] = useState<any>({});
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
+    if (authLoading || !user) return <div className={menuStyles.loading}>Loading...</div>;
 
     const startOnlineGame = (mode: 'random' | 'room', opts: any = {}) => {
         if (!user) {

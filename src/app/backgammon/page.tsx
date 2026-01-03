@@ -5,16 +5,25 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { IconBack, IconDice, IconKey } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import ColyseusBackgammonGame from './ColyseusBackgammonGame';
 import HideChatBot from '@/components/HideChatBot';
 
 export default function BackgammonPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [joinMode, setJoinMode] = useState<'random' | 'room' | 'colyseus_room' | 'colyseus_random' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
     const [playerName, setPlayerName] = useState('');
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     useEffect(() => {
         setMounted(true);
@@ -48,7 +57,7 @@ export default function BackgammonPage() {
     };
 
     // Setup / Loading
-    if (!mounted) return <div className={styles.main}>Loading...</div>;
+    if (!mounted || authLoading || !user || !isLoaded) return <div className={styles.main}>Loading...</div>;
 
     // Game Active
     if (joinMode === 'colyseus_room') {

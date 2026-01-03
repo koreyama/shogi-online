@@ -9,12 +9,21 @@ import { usePlayer } from '@/hooks/usePlayer';
 import ColyseusHitBlowGame from './ColyseusHitBlowGame';
 import SoloHitAndBlowGame from './HitAndBlowGame'; // Reusing existing for Solo for now, but will clean it up
 import HideChatBot from '@/components/HideChatBot';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HitAndBlowPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, isLoaded } = usePlayer();
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
+
+    // Auth Guard
+    React.useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     const handleBackToTop = () => {
         router.push('/');
@@ -30,7 +39,7 @@ export default function HitAndBlowPage() {
         setJoinMode('colyseus_room');
     };
 
-    if (!isLoaded) return <div className={styles.main}>読み込み中...</div>;
+    if (!isLoaded || authLoading || !user) return <div className={styles.main}>読み込み中...</div>;
 
     if (joinMode === 'colyseus_random') {
         return <><HideChatBot /><ColyseusHitBlowGame mode="random" /></>;

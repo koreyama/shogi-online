@@ -40,9 +40,21 @@ const KEY_MAP: Record<string, string> = {
     'q': 'C4', '2': 'C#4', 'w': 'D4', '3': 'D#4', 'e': 'E4', 'r': 'F4', '5': 'F#4', 't': 'G4', '6': 'G#4', 'y': 'A4', '7': 'A#4', 'u': 'B4', 'i': 'C5'
 };
 
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+
 export default function PianoPage() {
+    const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
     const [mounted, setMounted] = useState(false);
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Settings
     const [reverb, setReverb] = useState(0.3);
@@ -211,7 +223,7 @@ export default function PianoPage() {
         };
     }, [playNote, stopNote, resumeAudio]);
 
-    if (!mounted) return null;
+    if (!mounted || authLoading || !user) return null;
 
     return (
         <div

@@ -16,6 +16,7 @@ import { getBestMove } from '@/lib/shogi/ai';
 import { soundManager } from '@/utils/sound';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import ColyseusShogiGame from './ColyseusShogiGame';
 
 interface ChatMessage {
@@ -27,7 +28,8 @@ interface ChatMessage {
 
 export default function ShogiPage() {
   const router = useRouter();
-  const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
+  const { user, loading: authLoading } = useAuth();
+  const { playerName: savedName, savePlayerName, isLoaded: playerLoaded } = usePlayer();
   const [mounted, setMounted] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedHandPiece, setSelectedHandPiece] = useState<Piece | null>(null);
@@ -40,6 +42,13 @@ export default function ShogiPage() {
   const [undoRequest, setUndoRequest] = useState<{ requester: string } | null>(null);
   const [pendingMove, setPendingMove] = useState<{ from: Coordinates, to: Coordinates } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Auth Guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [authLoading, user, router]);
 
   // Online State
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -283,11 +292,11 @@ export default function ShogiPage() {
   }, [roomId, myRole]); // Removed status from dependency to avoid re-subscribing
 
   useEffect(() => {
-    if (isLoaded && savedName) {
+    if (playerLoaded && savedName) {
       setPlayerName(savedName);
       setStatus('initial');
     }
-  }, [isLoaded, savedName]);
+  }, [playerLoaded, savedName]);
 
   const joinRandomGame = async () => {
     setJoinMode('colyseus_random');
@@ -569,7 +578,7 @@ export default function ShogiPage() {
   };
 
   // Setup Screen - Player Name Input
-  if (!mounted) {
+  if (!mounted || authLoading || !user || !playerLoaded) {
     return (
       <main className={styles.main}>
         <div className={styles.setupContainer}>

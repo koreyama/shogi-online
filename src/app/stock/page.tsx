@@ -42,6 +42,13 @@ export default function StockTradePage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
 
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
     const [engine, setEngine] = useState<PortfolioEngine | null>(null);
@@ -291,67 +298,8 @@ export default function StockTradePage() {
     };
 
     // Loading state
-    if (authLoading) {
+    if (authLoading || !user) {
         return <main className={styles.main}><div className={styles.loading}>Loading...</div></main>;
-    }
-
-    // Login required screen
-    if (!user) {
-        return (
-            <main className={styles.main}>
-                <header className={styles.header}>
-                    <button onClick={() => router.push('/')} className={styles.backBtn}>
-                        <IconBack size={20} /> Back
-                    </button>
-                    <h1 className={styles.title}>Stock Trade Simulator</h1>
-                </header>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '60vh',
-                    padding: '2rem'
-                }}>
-                    <div style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        borderRadius: '16px',
-                        padding: '3rem',
-                        textAlign: 'center',
-                        color: 'white',
-                        maxWidth: '400px',
-                        width: '100%',
-                        boxShadow: '0 10px 40px rgba(102, 126, 234, 0.3)'
-                    }}>
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginBottom: '1rem' }}>
-                            <path d="M3 3v18h18" />
-                            <path d="M18 9l-5 5-3-3-4 4" />
-                        </svg>
-                        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>ログインが必要です</h2>
-                        <p style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                            Stock Trade Simulatorはクラウドセーブ対応ゲームです。<br />
-                            Googleアカウントでログインするとポートフォリオが保存され、どのデバイスからでもアクセスできます。
-                        </p>
-                        <button
-                            onClick={signInWithGoogle}
-                            style={{
-                                padding: '0.8rem 2rem',
-                                fontSize: '1rem',
-                                background: 'white',
-                                color: '#667eea',
-                                border: 'none',
-                                borderRadius: '25px',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                            }}
-                        >
-                            Googleでログイン
-                        </button>
-                    </div>
-                </div>
-            </main>
-        );
     }
 
     // Loading portfolio

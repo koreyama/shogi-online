@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import styles from './page.module.css';
 import { Chat } from '@/components/Chat';
 import CheckersBoard from '@/components/CheckersBoard';
@@ -22,6 +23,7 @@ interface ChatMessage {
 
 export default function CheckersPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerId, playerName, isLoaded } = usePlayer();
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
@@ -34,10 +36,20 @@ export default function CheckersPage() {
     const [selectedPos, setSelectedPos] = useState<Position | null>(null);
 
     const statusRef = useRef<string>('');
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     useEffect(() => {
         if (!isLoaded) return;
         statusRef.current = 'ゲームモードを選択してください';
     }, [isLoaded]);
+
+    if (authLoading || !user || !isLoaded) return <div className={styles.main}>Loading...</div>;
 
     // AI Logic
     useEffect(() => {

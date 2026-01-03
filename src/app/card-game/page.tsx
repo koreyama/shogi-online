@@ -39,6 +39,13 @@ function CardGameContent() {
     const router = useRouter(); // Import useRouter
     const { user, loading: authLoading } = useAuth();
 
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     const mode = searchParams.get('mode') || 'local'; // 'local', 'cpu', 'random', 'room'
     const deckId = searchParams.get('deck') || 'warrior_starter';
     const deckType = searchParams.get('deckType') || 'starter';
@@ -98,8 +105,9 @@ function CardGameContent() {
 
 
     // RENDER COLYSEUS GAME FOR MULTIPLAYER
+    if (authLoading || !user) return <div>Loading...</div>;
     if (mode === 'random' || mode === 'room' || mode === 'ranked' || mode === 'casual') {
-        if (!deckLoaded || authLoading) return <div>Loading Deck...</div>;
+        if (!deckLoaded) return <div>Loading Deck...</div>;
 
         return (
             <div className={styles.main}>

@@ -16,8 +16,15 @@ import HideChatBot from '@/components/HideChatBot';
 
 export default function MinesweeperPage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, savePlayerName, isLoaded: nameLoaded } = usePlayer();
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Game State (Single Player)
     const [difficulty, setDifficulty] = useState<Difficulty>(DIFFICULTIES.EASY);
@@ -105,6 +112,7 @@ export default function MinesweeperPage() {
     };
 
     // Render Setup
+    if (authLoading || !user) return <div className={styles.main}>Loading...</div>;
     if (status === 'setup') {
         return (
             <main className={styles.main}>

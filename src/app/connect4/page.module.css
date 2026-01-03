@@ -140,8 +140,38 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    /* Keep header within reasonable bounds */
     max-width: 800px;
     margin-bottom: var(--spacing-md);
+}
+
+/* Media Queries for Mobile/Tablet */
+@media (max-width: 960px) {
+    .main {
+        padding: 4px;
+        /* Minimal padding for mobile */
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .header {
+        padding: 0 1rem;
+    }
+
+    .gameArea {
+        width: 100%;
+    }
+
+    .playerInfo {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .statusDisplay {
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+    }
 }
 
 .headerContent {

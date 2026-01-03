@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/GameMenu.module.css';
+import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusConnectFourGame from './ColyseusConnectFourGame';
@@ -14,7 +15,8 @@ import HideChatBot from '@/components/HideChatBot';
 
 export default function ConnectFourPage() {
     const router = useRouter();
-    const { playerName, playerId, isLoaded } = usePlayer();
+    const { user, loading: authLoading } = useAuth();
+    const { playerName, playerId, isLoaded: playerLoaded } = usePlayer();
 
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | 'ai' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
@@ -22,6 +24,13 @@ export default function ConnectFourPage() {
     // AI/Local State
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [aiStatus, setAiStatus] = useState<'playing' | 'finished'>('playing');
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // AI Logic
     useEffect(() => {
@@ -60,25 +69,25 @@ export default function ConnectFourPage() {
         }
     };
 
-    if (!isLoaded) return <div className={styles.main}>Loading...</div>;
+    if (authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
 
     // --- GAME VIEW: RANDOM MATCH ---
     if (joinMode === 'colyseus_random') {
         return (
-            <main className={styles.main}>
+            <>
                 <HideChatBot />
                 <ColyseusConnectFourGame mode="random" />
-            </main>
+            </>
         );
     }
 
     // --- GAME VIEW: ROOM MATCH ---
     if (joinMode === 'colyseus_room_active') {
         return (
-            <main className={styles.main}>
+            <>
                 <HideChatBot />
                 <ColyseusConnectFourGame mode="room" roomId={customRoomId || undefined} />
-            </main>
+            </>
         );
     }
 

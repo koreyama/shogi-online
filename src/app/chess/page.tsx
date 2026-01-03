@@ -13,11 +13,21 @@ import { createInitialState, executeMove, isValidMove } from '@/lib/chess/engine
 import { getBestMove } from '@/lib/chess/ai';
 import { Coordinates } from '@/lib/chess/types';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function ChessPage() {
     const router = useRouter();
-    const { playerName: savedName, savePlayerName, playerId, isLoaded } = usePlayer();
+    const { user, loading: authLoading } = useAuth();
+    const { playerName: savedName, savePlayerName, playerId, isLoaded: playerLoaded } = usePlayer();
     const [playerName, setPlayerName] = useState('');
     const [mounted, setMounted] = useState(false);
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Mode Selection: null, 'colyseus_random', 'colyseus_room', 'colyseus_room_active', 'ai'
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | 'ai' | null>(null);
@@ -36,10 +46,10 @@ export default function ChessPage() {
     }, []);
 
     useEffect(() => {
-        if (isLoaded && savedName) {
+        if (playerLoaded && savedName) {
             setPlayerName(savedName);
         }
-    }, [isLoaded, savedName]);
+    }, [playerLoaded, savedName]);
 
     const handleNameSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,7 +138,7 @@ export default function ChessPage() {
     };
 
     if (!mounted) return null;
-    if (!isLoaded) return null;
+    if (authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
 
     if (!savedName) {
         return (

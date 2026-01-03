@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import { createInitialState, executeMove, isValidMove } from '@/lib/mancala/engine';
 import { GameState } from '@/lib/mancala/types';
 import { getBestMove } from '@/lib/mancala/ai';
@@ -14,9 +15,19 @@ import HideChatBot from '@/components/HideChatBot';
 
 export default function MancalaPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName, isLoaded } = usePlayer();
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
+    if (authLoading || !user || !isLoaded) return <div className={styles.main}>Loading...</div>;
 
     // Local state for AI match
     const [gameState, setGameState] = useState<GameState>(createInitialState());

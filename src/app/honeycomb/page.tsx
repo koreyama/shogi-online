@@ -21,10 +21,20 @@ interface ChatMessage {
     timestamp: number;
 }
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function HoneycombPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
+
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
     // Game State
     const [board, setBoard] = useState<Map<string, Player>>(new Map());

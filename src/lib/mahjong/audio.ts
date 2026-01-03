@@ -9,12 +9,18 @@ export class MahjongAudioManager {
         if (typeof window === 'undefined') return null;
 
         if (!this.ctx) {
-            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-            this.ctx = new AudioContext();
+            try {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                if (!AudioContext) return null;
+                this.ctx = new AudioContext();
+            } catch (e) {
+                console.warn('AudioContext creation failed:', e);
+                return null;
+            }
         }
 
-        if (this.ctx.state === 'suspended') {
-            this.ctx.resume().catch(console.error);
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(e => console.warn('Audio resume failed:', e));
         }
 
         return this.ctx;

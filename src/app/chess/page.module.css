@@ -5,6 +5,8 @@
     align-items: center;
     padding: var(--spacing-lg);
     background-color: var(--color-bg);
+    /* Allow scrolling on mobile */
+    overflow-y: auto;
 }
 
 .gameContainer {
@@ -287,16 +289,29 @@
     .gameLayout {
         flex-direction: column;
         align-items: center;
-        gap: var(--spacing-md);
+        gap: 1rem;
+        /* Natural gap */
+        height: auto;
+        /* Allow growth */
+        padding-bottom: 2rem;
     }
 
     .leftPanel {
         width: 100%;
+        max-width: 100%;
         order: 2;
+        /* Info below board */
+        flex: 0 0 auto;
     }
 
     .centerPanel {
         order: 1;
+        /* Board on top */
+        width: 100%;
+        flex: 1;
+        overflow: visible;
+        /* Ensure board isn't clipped */
+        min-height: 0;
     }
 }
 

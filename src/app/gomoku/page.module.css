@@ -119,14 +119,16 @@
     display: flex;
     gap: 2rem;
     width: 100%;
-    max-width: 1200px;
+    /* Allow layout to grow to fit large boards */
+    max-width: 1800px;
     justify-content: center;
     align-items: flex-start;
     flex-wrap: wrap;
 }
 
 .leftPanel {
-    flex: 0 0 300px;
+    flex: 0 0 250px;
+    /* Reduced from 300px to give more space to board */
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -137,7 +139,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 300px;
+    /* Allow it to shrink below 300px if necessary to fit board logic */
+    min-width: 0;
 }
 
 /* Player Cards */
@@ -336,25 +339,56 @@
 }
 
 /* Media Queries */
-@media (max-width: 1200px) {
+@media (max-width: 960px) {
     .gameLayout {
         flex-direction: column;
         align-items: center;
     }
-}
-
-@media (max-width: 767px) {
-    .main {
-        padding: var(--spacing-sm);
-    }
 
     .leftPanel {
         width: 100%;
+        max-width: 100%;
         order: 2;
     }
 
     .centerPanel {
         order: 1;
+    }
+}
+
+@media (max-width: 767px) {
+    .main {
+        /* Minimize padding to maximize board size */
+        padding: 4px;
+        /* Ensure scrolling on mobile */
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .gameLayout {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+        /* Tighter gap */
+    }
+
+    .leftPanel {
+        width: 100%;
+        max-width: 100%;
+        order: 2;
+        /* Info below board */
+        flex: 0 0 auto;
+        margin-top: 0.5rem;
+    }
+
+    .centerPanel {
+        order: 1;
+        /* Board on top */
+        width: 100%;
+        min-width: 0;
+        /* Allow shrinking if needed */
+        flex: 1 1 auto;
     }
 
     /* Added responsive fixes */

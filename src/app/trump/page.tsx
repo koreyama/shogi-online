@@ -16,6 +16,13 @@ export default function TrumpLobbyPage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
 
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     // UI State (Daifugo Only)
     const [rooms, setRooms] = useState<TrumpRoom[]>([]);
 
@@ -74,21 +81,7 @@ export default function TrumpLobbyPage() {
         setCreationOptions(null);
     };
 
-    if (authLoading) return <div className={styles.loading}>読み込み中...</div>;
-
-    // Login Check
-    if (!user) {
-        return (
-            <main className={styles.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <IconCards size={64} color="#2b6cb0" />
-                    <h1 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>大富豪 Online</h1>
-                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>プレイするにはログインが必要です</p>
-                    <button onClick={signInWithGoogle} className={styles.loginBtn}>Googleでログイン</button>
-                </div>
-            </main>
-        );
-    }
+    if (authLoading || !user) return <div className={styles.loading}>読み込み中...</div>;
 
     // Active Game View
     if (colyseusGameActive && user) {

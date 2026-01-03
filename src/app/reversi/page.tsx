@@ -11,6 +11,7 @@ import { getBestMove } from '@/lib/reversi/ai';
 import { GameState, Player, Coordinates } from '@/lib/reversi/types'; // Used for AI
 import { IconBack, IconDice, IconKey, IconRobot, IconHourglass } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 import HideChatBot from '@/components/HideChatBot';
 
 // Valid Moves Helper for AI/Local
@@ -25,7 +26,8 @@ interface ChatMessage {
 
 export default function ReversiPage() {
     const router = useRouter();
-    const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
+    const { user, loading: authLoading } = useAuth();
+    const { playerName: savedName, savePlayerName, isLoaded: playerLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
     const [gameState, setGameState] = useState<GameState | null>(null); // For AI Match
     const [validMoves, setValidMoves] = useState<Coordinates[]>([]);
@@ -40,17 +42,24 @@ export default function ReversiPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [status, setStatus] = useState<'setup' | 'initial' | 'waiting' | 'playing' | 'finished'>('setup');
 
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
     useEffect(() => {
         setMounted(true);
         setPlayerId(Math.random().toString(36).substring(2, 15));
     }, []);
 
     useEffect(() => {
-        if (isLoaded && savedName) {
+        if (playerLoaded && savedName) {
             setPlayerName(savedName);
             setStatus('initial');
         }
-    }, [isLoaded, savedName]);
+    }, [playerLoaded, savedName]);
 
     // AI Match Setup
     useEffect(() => {
@@ -147,7 +156,7 @@ export default function ReversiPage() {
         }
     };
 
-    if (!mounted) return <div className={styles.main}>Loading...</div>;
+    if (!mounted || authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
 
     if (status === 'setup') {
         return (

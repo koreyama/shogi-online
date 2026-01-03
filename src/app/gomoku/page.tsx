@@ -3,18 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusGomokuGame from './ColyseusGomokuGame';
 import { GomokuBoard } from '@/components/GomokuBoard';
 import { createInitialState, executeMove, GameState } from '@/lib/gomoku/engine';
 import { getBestMove } from '@/lib/gomoku/ai';
-import { Chat } from '@/components/Chat'; // Assuming Chat is usable
+import { Chat } from '@/components/Chat';
 import HideChatBot from '@/components/HideChatBot';
 
 export default function GomokuPage() {
     const router = useRouter();
-    const { playerName, playerId, isLoaded } = usePlayer();
+    const { user, loading: authLoading } = useAuth();
+    const { playerName, playerId, isLoaded: playerLoaded } = usePlayer();
     const userData = { name: playerName, id: playerId };
 
     // Mode Selection: null (Menu), 'colyseus_random', 'colyseus_room', 'colyseus_room_active', 'ai'
@@ -25,6 +27,12 @@ export default function GomokuPage() {
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [aiStatus, setAiStatus] = useState<'playing' | 'finished'>('playing');
 
+    // Auth Guard
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
 
 
     // --- AI Logic ---
@@ -60,27 +68,25 @@ export default function GomokuPage() {
         }
     };
 
-    if (!isLoaded) return <div className={styles.main}>Loading...</div>;
+    if (authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
 
     // --- GAME VIEW: RANDOM MATCH ---
     if (joinMode === 'colyseus_random') {
         return (
-            <main className={styles.main}>
+            <>
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusGomokuGame mode="random" userData={userData} />
-            </main>
+            </>
         );
     }
 
     // --- GAME VIEW: ROOM MATCH (Playing) ---
     if (joinMode === 'colyseus_room_active') {
         return (
-            <main className={styles.main}>
+            <>
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
                 <ColyseusGomokuGame mode="room" roomId={customRoomId || undefined} userData={userData} />
-            </main>
+            </>
         );
     }
 

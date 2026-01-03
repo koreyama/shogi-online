@@ -3,17 +3,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm);
   background-color: var(--color-bg);
+  /* Allow scrolling on mobile if content overflows */
+  overflow-y: auto;
 }
 
 .gameContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   max-width: 1000px;
   width: 100%;
+  height: 100%;
+  justify-content: center;
+  /* Center vertically */
 }
 
 /* Setup Screen */
@@ -399,11 +404,38 @@
     min-width: auto;
     order: 2;
     /* 盤の下に配置 */
+    flex: 0 0 auto;
+    /* Don't stretch infinitely */
   }
 
   .centerPanel {
     order: 1;
     /* 盤を上に配置 */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* overflow: hidden;  <-- REMOVE THIS to prevent clipping */
+    min-height: 0;
+    /* Important for flex child to shrink */
+  }
+
+  /* Compact header for mobile */
+  .header {
+    margin-bottom: 5px;
+    padding: 0 5px;
+  }
+
+  .compactTitle {
+    font-size: 1.1rem;
+  }
+
+  .gameLayout {
+    height: auto;
+    /* Allow growth */
+    justify-content: flex-start;
+    gap: 1rem;
+    padding-bottom: 2rem;
   }
 
   .chatSection {

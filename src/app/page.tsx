@@ -558,15 +558,40 @@ export default function Home() {
       </header>
 
       <section style={{ maxWidth: '1200px', margin: '0 auto 1.5rem', padding: '0 1rem' }}>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#2d3748', borderLeft: '3px solid #3182ce', paddingLeft: '0.75rem' }}>最新情報</h2>
+        <Link href="/releases" style={{ textDecoration: 'none' }}>
+          <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#2d3748', borderLeft: '3px solid #3182ce', paddingLeft: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            最新情報
+            <span style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 400 }}>もっと見る &gt;</span>
+          </h2>
+        </Link>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <Link href="/blog/clicker-game-release" style={{ textDecoration: 'none' }}>
+          {/* v1.5.0 */}
+          <Link href="/releases" style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.05</span>
-              <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>NEW</span>
-              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder リリース</span>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2026.01.02</span>
+              <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>UPDATE</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>蜂の陣AI強化・チャット非表示・プロフィール機能追加</span>
             </div>
           </Link>
+
+          {/* v1.4.5 */}
+          <Link href="/releases" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2026.01.01</span>
+              <span style={{ background: '#e53e3e', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>FIX</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>お絵かきクイズの表示不具合修正など</span>
+            </div>
+          </Link>
+
+          {/* v1.4.0 */}
+          <Link href="/blog/clicker-game-release" style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.25</span>
+              <span style={{ background: '#3182ce', color: '#fff', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>UPDATE</span>
+              <span style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.85rem' }}>Civilization Builder: 製油所バランス調整とスキル拡張</span>
+            </div>
+          </Link>
+
           <Link href="/polyomino" style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.7rem', color: '#718096' }}>2025.12.07</span>
