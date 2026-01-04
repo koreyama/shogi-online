@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://asobi-lounge.pages.dev';
+    const baseUrl = 'https://asobi-lounge.com';
 
     return [
         {

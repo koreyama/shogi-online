@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import SiteChatBot from "@/components/SiteChatBot";
 import { ChatVisibilityProvider } from "@/contexts/ChatVisibilityContext";
 
-const siteUrl = "https://asobi-lounge.pages.dev";
+const siteUrl = "https://asobi-lounge.com";
 
 export const viewport: Viewport = {
   width: "device-width",
