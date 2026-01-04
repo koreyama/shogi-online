@@ -144,23 +144,37 @@ export default function Home() {
             </button>
             <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1a202c', letterSpacing: '-0.03em' }}>Asobi Lounge</div>
           </div>
-          <button
-            onClick={signInWithGoogle}
-            style={{
-              padding: '0.625rem 1.5rem',
-              fontSize: '0.875rem',
-              background: 'linear-gradient(135deg, #1a202c 0%, #2d3748 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            ログイン
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <Link
+              href="/about"
+              style={{
+                fontSize: '0.875rem',
+                color: '#4a5568',
+                textDecoration: 'none',
+                fontWeight: 500,
+                transition: 'color 0.2s'
+              }}
+            >
+              About
+            </Link>
+            <button
+              onClick={signInWithGoogle}
+              style={{
+                padding: '0.625rem 1.5rem',
+                fontSize: '0.875rem',
+                background: 'linear-gradient(135deg, #1a202c 0%, #2d3748 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              ログイン
+            </button>
+          </div>
         </nav>
 
         {/* Slide-out Game Menu */}
@@ -452,6 +466,55 @@ export default function Home() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* About Section - Learn More */}
+        <section style={{
+          padding: '4rem 1.5rem',
+          background: 'white',
+          textAlign: 'center',
+          borderTop: '1px solid #edf2f7'
+        }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <h2 style={{
+              fontSize: '1.35rem',
+              fontWeight: 700,
+              color: '#1a202c',
+              marginBottom: '0.75rem'
+            }}>
+              Asobi Loungeについて
+            </h2>
+            <p style={{
+              color: '#718096',
+              fontSize: '0.95rem',
+              lineHeight: 1.7,
+              marginBottom: '1.5rem'
+            }}>
+              開発者の想いやサービスのビジョン、今後の展望について詳しくご紹介しています。
+            </p>
+            <Link
+              href="/about"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.875rem 2rem',
+                fontSize: '0.95rem',
+                background: 'white',
+                color: '#2b6cb0',
+                border: '2px solid #2b6cb0',
+                borderRadius: '100px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              もっと詳しく見る
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </section>
 

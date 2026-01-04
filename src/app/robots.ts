@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shogi-online.vercel.app';
+    const baseUrl = 'https://asobi-lounge.pages.dev';
 
     return {
         rules: {

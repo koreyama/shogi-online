@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://asobi-lounge.vercel.app';
+    const baseUrl = 'https://asobi-lounge.pages.dev';
 
     return [
         {

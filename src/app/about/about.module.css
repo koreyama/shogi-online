@@ -1,0 +1,397 @@
+.main {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+    font-family: var(--font-main);
+}
+
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 5rem 1.5rem 4rem;
+    background: white;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 3rem;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: #718096;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+/* Container */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Section */
+.section {
+    margin-bottom: 3rem;
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Card */
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card p {
+    color: #4a5568;
+    line-height: 1.75;
+    margin: 0 0 1rem;
+}
+
+.cardTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.75rem;
+}
+
+/* Developer */
+.developerCard {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.developerAvatarLink {
+    display: block;
+    flex-shrink: 0;
+}
+
+.developerAvatarImg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e2e8f0;
+    transition: border-color 0.2s;
+}
+
+.developerAvatarLink:hover .developerAvatarImg {
+    border-color: #2b6cb0;
+}
+
+.developerInfo {
+    flex: 1;
+}
+
+.developerName {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 0.25rem;
+}
+
+.developerRole {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0 0 0.75rem;
+}
+
+.twitterLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: #1a1a1a;
+    color: white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.twitterLink:hover {
+    background: #333;
+}
+
+/* Vision Grid */
+.visionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.visionCard {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.visionCard h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.5rem;
+}
+
+.visionCard p {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Feature Grid */
+.featureGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.featureCard {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.featureIcon {
+    width: 48px;
+    height: 48px;
+    background: #f0f4f8;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.featureCard h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.35rem;
+}
+
+.featureCard p {
+    font-size: 0.88rem;
+    color: #718096;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Support */
+.supportCard {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.supportText {
+    font-size: 1rem;
+    color: #4a5568;
+    margin: 0 0 1.5rem;
+    line-height: 1.7;
+}
+
+.supportGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.supportItem {
+    background: #f8fafc;
+    padding: 1.25rem;
+    border-radius: 12px;
+    text-align: left;
+}
+
+.supportItem h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 0.5rem;
+}
+
+.supportItem p {
+    font-size: 0.88rem;
+    color: #718096;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.contactText {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0 0 1rem;
+}
+
+.contactButton {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    background: #2b6cb0;
+    color: white;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.contactButton:hover {
+    background: #2c5282;
+    transform: translateY(-1px);
+}
+
+/* Roadmap */
+.roadmapList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.roadmapList li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.roadmapList li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.roadmapList li:first-child {
+    padding-top: 0;
+}
+
+.roadmapNumber {
+    width: 28px;
+    height: 28px;
+    background: #2b6cb0;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.roadmapList strong {
+    display: block;
+    color: #2d3748;
+    margin-bottom: 0.25rem;
+}
+
+.roadmapList p {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0;
+}
+
+/* CTA */
+.cta {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.ctaButton {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: #2b6cb0;
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(43, 108, 176, 0.25);
+    transition: all 0.2s;
+}
+
+.ctaButton:hover {
+    background: #2c5282;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(43, 108, 176, 0.3);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: white;
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+.footer p {
+    margin: 0.25rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero {
+        padding: 3rem 1rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .developerCard {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .featureGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .visionGrid {
+        grid-template-columns: 1fr;
+    }
+}
