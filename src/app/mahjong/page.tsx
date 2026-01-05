@@ -655,7 +655,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                     )}
                     <div className={styles.handHidden}>
                         {gameState.players[2].hand.map((_, i) => (
-                            <div key={i} className={styles.tileBack}>🀫</div>
+                            <div key={i} className={styles.tileBack}></div>
                         ))}
                     </div>
                 </div>
@@ -683,22 +683,14 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                         )}
                         <div className={styles.handVertical}>
                             {gameState.players[3].hand.map((_, i) => (
-                                <div key={i} className={styles.tileBackVertical}>🀫</div>
+                                <div key={i} className={styles.tileBackVertical}></div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 中央（河・ドラ） */}
+                    {/* 中央（河） */}
                     <div className={styles.centerArea}>
                         <div className={styles.centerInfo}>
-                            <div className={styles.doraArea}>
-                                <span className={styles.doraLabel}>ドラ</span>
-                                <div className={styles.doraTiles}>
-                                    {gameState.doraIndicators.map((tile, i) => (
-                                        <TileComponent key={i} tile={tile} size="small" isDora={true} />
-                                    ))}
-                                </div>
-                            </div>
                             <div className={styles.wallCount}>
                                 残り: {gameState.wall.length}枚
                             </div>
@@ -759,7 +751,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                         )}
                         <div className={styles.handVertical}>
                             {gameState.players[1].hand.map((_, i) => (
-                                <div key={i} className={styles.tileBackVertical}>🀫</div>
+                                <div key={i} className={styles.tileBackVertical}></div>
                             ))}
                         </div>
                     </div>
@@ -805,6 +797,11 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                                 <button className={styles.actionBtn} onClick={handlePass}>
                                     パス
                                 </button>
+                                {callTimer > 0 && (
+                                    <span className={styles.callTimerDisplay}>
+                                        残り {callTimer}秒
+                                    </span>
+                                )}
                             </>
                         )}
                         {canCallPon && !canRon && (
