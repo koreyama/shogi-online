@@ -315,7 +315,8 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
     const [showResult, setShowResult] = useState(false);
     const [isAiThinking, setIsAiThinking] = useState(false);
     const [showYakuList, setShowYakuList] = useState(false);
-    const [callTimer, setCallTimer] = useState<number>(0); // 鳴き判断用タイマー（秒）
+    const [callTimer, setCallTimer] = useState<number>(0);
+    const [nakinashi, setNakinashi] = useState(false); // 鳴きなしモード（雀魂機能）
 
     // ゲーム初期化
     useEffect(() => {
@@ -346,7 +347,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         }
     }, [gameState?.currentPlayerIndex, gameState?.phase]);
 
-    // 鳴き可能時の15秒タイマー
+    // 鳴き可能時はゲームを止めて待機（自動パスなし - 雀魂方式）
     useEffect(() => {
         if (!gameState || gameState.phase !== 'calling') {
             setCallTimer(0);
@@ -368,13 +369,20 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
             return () => clearTimeout(timer);
         }
 
-        // 鳴ける場合は15秒タイマー開始
+        // 鳴きなしモードがONの場合、ロン以外は自動パス
+        if (nakinashi && !canRon) {
+            const timer = setTimeout(() => {
+                handlePass();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+
+        // 鳴ける場合はタイマー表示のみ（自動パスなし - ユーザー選択を待つ）
         setCallTimer(15);
         const interval = setInterval(() => {
             setCallTimer((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval);
-                    handlePass(); // タイムアウトで自動パス
                     return 0;
                 }
                 return prev - 1;
@@ -382,7 +390,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [gameState?.phase, gameState?.lastDiscard?.id]); // calling phase と捨て牌が変わった時のみ
+    }, [gameState?.phase, gameState?.lastDiscard?.id, nakinashi]);
 
     const executeAiTurn = () => {
         if (!gameState) return;
@@ -612,6 +620,14 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                     </button>
                     <button onClick={() => setShowYakuList(true)} className={styles.backButton} style={{ width: 'auto', padding: '0 10px', fontSize: '0.9rem' }}>
                         <IconHelp size={18} /> 役一覧
+                    </button>
+                    <button
+                        onClick={() => setNakinashi(!nakinashi)}
+                        className={`${styles.backButton} ${nakinashi ? styles.nakinashiActive : ''}`}
+                        style={{ width: 'auto', padding: '0 10px', fontSize: '0.85rem' }}
+                        title="鳴きなし：ONにするとポン・チーを自動スキップ（ロンのみ反応）"
+                    >
+                        {nakinashi ? '🔇 鳴きなし' : '🔊 鳴きあり'}
                     </button>
                 </div>
                 {/* ドラ表示（左上） */}

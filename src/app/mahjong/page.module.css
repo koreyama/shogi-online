@@ -97,6 +97,13 @@
     }
 }
 
+/* 鳴きなしボタン（アクティブ時） */
+.nakinashiActive {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: white !important;
+    border: 2px solid #e74c3c !important;
+}
+
 .loading {
     display: flex;
     align-items: center;
