@@ -86,11 +86,13 @@ function PlayerPanel({
     const windDisplay: Record<Wind, string> = {
         east: '東', south: '南', west: '西', north: '北'
     };
+    const isDealer = player.wind === 'east';
 
     return (
         <div className={`${styles.playerPanel} ${styles[`player${position.charAt(0).toUpperCase() + position.slice(1)}`]}`}>
             <div className={styles.playerInfo}>
                 <span className={styles.wind}>{windDisplay[player.wind]}</span>
+                {isDealer && <span className={styles.dealerIndicator}>親</span>}
                 <span className={styles.playerName}>{player.name}</span>
                 <span className={styles.score}>{player.score.toLocaleString()}</span>
                 {player.isRiichi && <span className={styles.riichiIndicator}>リーチ</span>}
@@ -313,6 +315,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
     const [showResult, setShowResult] = useState(false);
     const [isAiThinking, setIsAiThinking] = useState(false);
     const [showYakuList, setShowYakuList] = useState(false);
+    const [callTimer, setCallTimer] = useState<number>(0); // 鳴き判断用タイマー（秒）
 
     // ゲーム初期化
     useEffect(() => {
@@ -343,9 +346,12 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         }
     }, [gameState?.currentPlayerIndex, gameState?.phase]);
 
-    // オートパス（自分が鳴けず、ロンもできない場合）
+    // 鳴き可能時の15秒タイマー
     useEffect(() => {
-        if (!gameState || gameState.phase !== 'calling') return;
+        if (!gameState || gameState.phase !== 'calling') {
+            setCallTimer(0);
+            return;
+        }
 
         const myPlayer = gameState.players[0];
         if (!myPlayer) return;
@@ -354,14 +360,29 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         const canCallPon = gameState.lastDiscard && gameState.lastDiscardPlayer !== 0 && !myPlayer.isRiichi && getPonTiles(myPlayer.hand, gameState.lastDiscard).length >= 2;
         const canCallChi = gameState.lastDiscard && gameState.lastDiscardPlayer === 3 && !myPlayer.isRiichi && getChiOptions(myPlayer.hand, gameState.lastDiscard).length > 0;
 
+        // 鳴けない場合は即パス
         if (!canCallPon && !canCallChi && !canRon) {
-            // 少し遅らせてパス
             const timer = setTimeout(() => {
                 handlePass();
             }, 600);
             return () => clearTimeout(timer);
         }
-    }, [gameState]); // gameState全体に依存させる（簡易化）
+
+        // 鳴ける場合は15秒タイマー開始
+        setCallTimer(15);
+        const interval = setInterval(() => {
+            setCallTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    handlePass(); // タイムアウトで自動パス
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [gameState?.phase, gameState?.lastDiscard?.id]); // calling phase と捨て牌が変わった時のみ
 
     const executeAiTurn = () => {
         if (!gameState) return;
@@ -593,6 +614,15 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                         <IconHelp size={18} /> 役一覧
                     </button>
                 </div>
+                {/* ドラ表示（左上） */}
+                <div className={styles.doraHeaderArea}>
+                    <span className={styles.doraLabel}>ドラ</span>
+                    <div className={styles.doraTiles}>
+                        {gameState.doraIndicators.map((tile, i) => (
+                            <TileComponent key={i} tile={tile} size="small" isDora={true} />
+                        ))}
+                    </div>
+                </div>
                 <div className={styles.roundInfo}>
                     {gameState.roundWind === 'east' ? '東' : '南'}{gameState.roundNumber}局
                     {gameState.honba > 0 && ` ${gameState.honba}本場`}
@@ -788,9 +818,16 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
                             </button>
                         )}
                         {(canCallPon || canCallChi) && !canRon && (
-                            <button className={styles.actionBtn} onClick={handlePass}>
-                                パス
-                            </button>
+                            <>
+                                <button className={styles.actionBtn} onClick={handlePass}>
+                                    パス
+                                </button>
+                                {callTimer > 0 && (
+                                    <span className={styles.callTimerDisplay}>
+                                        残り {callTimer}秒
+                                    </span>
+                                )}
+                            </>
                         )}
                         {canRiichi && selectedTileId && (
                             <button className={styles.actionBtn} onClick={handleRiichi}>
