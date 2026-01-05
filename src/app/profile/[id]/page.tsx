@@ -1,32 +1,35 @@
 'use client';
 export const runtime = 'edge';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import styles from '../profile.module.css';
-import { getUserProfile, getFriends, UserProfile, sendFriendRequest, updateUserProfileData, ensureUserExists } from '@/lib/firebase/users';
-import { useAuth } from '@/hooks/useAuth';
-import { usePlayer } from '@/hooks/usePlayer';
 import Link from 'next/link';
+
+// Types copied locally to avoid import issues with Edge Runtime
+interface UserProfile {
+    uid: string;
+    displayName: string;
+    photoURL?: string;
+    bio?: string;
+    stats?: Record<string, { rating: number; wins: number; losses: number }>;
+    createdAt?: number;
+}
 
 export default function ProfilePage() {
     const params = useParams();
     const targetUserId = params.id as string;
-    const { user } = useAuth();
-    const { playerId } = usePlayer();
 
-    const isMyProfile = user?.uid === targetUserId || playerId === targetUserId;
-
+    const [user, setUser] = useState<any>(null);
+    const [playerId, setPlayerId] = useState<string>('');
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
     const [editBio, setEditBio] = useState('');
-
-    // Avatar Seed for DiceBear
-    const [avatarSeed, setAvatarSeed] = useState('');
 
     // Friend Search
     const [friendIdInput, setFriendIdInput] = useState('');
@@ -36,31 +39,56 @@ export default function ProfilePage() {
     const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
     const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
 
+    const isMyProfile = user?.uid === targetUserId || playerId === targetUserId;
+
+    // Load auth and player on client side only
     useEffect(() => {
-        if (!targetUserId) return;
+        setMounted(true);
+
+        // Load player ID from localStorage
+        const storedPlayerId = localStorage.getItem('playerId');
+        if (storedPlayerId) {
+            setPlayerId(storedPlayerId);
+        }
+
+        // Dynamic import of Firebase auth
+        import('@/lib/firebase').then(({ auth }) => {
+            const unsubscribe = auth.onAuthStateChanged((firebaseUser: any) => {
+                setUser(firebaseUser);
+            });
+            return () => unsubscribe();
+        });
+    }, []);
+
+    // Fetch profile data
+    useEffect(() => {
+        if (!targetUserId || !mounted) return;
 
         const fetchData = async () => {
             setLoading(true);
             try {
-                let userConstants = await getUserProfile(targetUserId);
+                // Dynamic import of Firebase user functions
+                const { getUserProfile, getFriends, ensureUserExists } = await import('@/lib/firebase/users');
+
+                let userProfile = await getUserProfile(targetUserId);
 
                 // If profile doesn't exist but it matches current logged-in user, create it
-                if (!userConstants && user && user.uid === targetUserId) {
-                    userConstants = await ensureUserExists(user.uid, user.displayName || 'No Name', user.photoURL || '');
+                if (!userProfile && user && user.uid === targetUserId) {
+                    userProfile = await ensureUserExists(user.uid, user.displayName || 'No Name', user.photoURL || '');
                 }
 
-                setProfile(userConstants);
-                if (userConstants) {
-                    setEditName(userConstants.displayName || '');
-                    setEditBio(userConstants.bio || '');
+                setProfile(userProfile);
+                if (userProfile) {
+                    setEditName(userProfile.displayName || '');
+                    setEditBio(userProfile.bio || '');
                 }
 
                 const allFriends = await getFriends(targetUserId);
 
                 // Categorize
-                const accepted = allFriends.filter(f => f.status === 'accepted');
-                const incoming = allFriends.filter(f => f.status === 'pending' && f.direction === 'received');
-                const outgoing = allFriends.filter(f => f.status === 'pending' && f.direction === 'sent');
+                const accepted = allFriends.filter((f: any) => f.status === 'accepted');
+                const incoming = allFriends.filter((f: any) => f.status === 'pending' && f.direction === 'received');
+                const outgoing = allFriends.filter((f: any) => f.status === 'pending' && f.direction === 'sent');
 
                 setFriends(accepted);
                 setIncomingRequests(incoming);
@@ -74,7 +102,18 @@ export default function ProfilePage() {
         };
 
         fetchData();
-    }, [targetUserId, user]);
+    }, [targetUserId, user, mounted]);
+
+    // Sync Google PhotoURL if needed
+    useEffect(() => {
+        if (!mounted) return;
+        if (isMyProfile && user?.photoURL && profile && profile.photoURL !== user.photoURL) {
+            import('@/lib/firebase/users').then(({ updateUserProfileData }) => {
+                updateUserProfileData(user.uid, { photoURL: user.photoURL });
+            });
+            setProfile(prev => prev ? { ...prev, photoURL: user.photoURL || '' } : null);
+        }
+    }, [isMyProfile, user, profile, mounted]);
 
     const handleFriendRequest = async () => {
         if (!user) {
@@ -82,6 +121,7 @@ export default function ProfilePage() {
             return;
         }
         try {
+            const { sendFriendRequest } = await import('@/lib/firebase/users');
             await sendFriendRequest(user.uid, targetUserId);
             alert("フレンド申請を送りました！");
         } catch (e) {
@@ -102,6 +142,7 @@ export default function ProfilePage() {
         }
 
         try {
+            const { sendFriendRequest } = await import('@/lib/firebase/users');
             await sendFriendRequest(user.uid, friendIdInput.trim());
             alert(`${friendIdInput} にフレンド申請を送りました`);
             setFriendIdInput('');
@@ -110,24 +151,15 @@ export default function ProfilePage() {
         }
     }
 
-    // Sync Google PhotoURL if needed
-    useEffect(() => {
-        if (isMyProfile && user?.photoURL && profile && profile.photoURL !== user.photoURL) {
-            // Auto-update to Google Avatar
-            updateUserProfileData(user.uid, { photoURL: user.photoURL });
-            setProfile(prev => prev ? { ...prev, photoURL: user.photoURL || '' } : null);
-        }
-    }, [isMyProfile, user, profile]);
-
     const handleSaveProfile = async () => {
         if (!user || !profile) return;
         try {
+            const { updateUserProfileData } = await import('@/lib/firebase/users');
             await updateUserProfileData(user.uid, {
                 displayName: editName,
                 bio: editBio,
-                // photoURL update removed (handled by auto-sync)
             });
-
+            setProfile(prev => prev ? { ...prev, displayName: editName, bio: editBio } : null);
             setIsEditing(false);
             alert("プロフィールを更新しました");
         } catch (e) {
@@ -138,7 +170,8 @@ export default function ProfilePage() {
     const handleAccept = async (fromUid: string) => {
         if (!user) return;
         try {
-            await import('@/lib/firebase/users').then(mod => mod.acceptFriendRequest(user.uid, fromUid));
+            const { acceptFriendRequest } = await import('@/lib/firebase/users');
+            await acceptFriendRequest(user.uid, fromUid);
             alert("フレンド登録しました！");
             window.location.reload();
         } catch (e) {
@@ -150,7 +183,8 @@ export default function ProfilePage() {
         if (!user) return;
         if (!confirm("本当に拒否しますか？")) return;
         try {
-            await import('@/lib/firebase/users').then(mod => mod.rejectFriendRequest(user.uid, fromUid));
+            const { rejectFriendRequest } = await import('@/lib/firebase/users');
+            await rejectFriendRequest(user.uid, fromUid);
             setIncomingRequests(prev => prev.filter(req => req.uid !== fromUid));
         } catch (e) {
             alert("エラー: " + e);
@@ -161,7 +195,8 @@ export default function ProfilePage() {
         if (!user) return;
         if (!confirm("本当にこのフレンドを削除しますか？")) return;
         try {
-            await import('@/lib/firebase/users').then(mod => mod.removeFriend(user.uid, friendUid));
+            const { removeFriend } = await import('@/lib/firebase/users');
+            await removeFriend(user.uid, friendUid);
             setFriends(prev => prev.filter(f => f.uid !== friendUid));
             alert("フレンドを削除しました");
         } catch (e) {
@@ -174,7 +209,7 @@ export default function ProfilePage() {
         alert("IDをコピーしました");
     };
 
-    if (loading) return <div className={styles.container}>読み込み中...</div>;
+    if (!mounted || loading) return <div className={styles.container}>読み込み中...</div>;
     if (!profile && !loading) return <div className={styles.container}>ユーザーが見つかりません</div>;
 
     return (
@@ -187,7 +222,6 @@ export default function ProfilePage() {
                             <span>{profile?.displayName?.charAt(0) || 'U'}</span>
                         }
                     </div>
-                    {/* Avatar Generation Button Removed */}
                 </div>
 
                 <div className={styles.userInfo} style={{ flex: 1 }}>
@@ -235,11 +269,6 @@ export default function ProfilePage() {
                                         const isFriend = friends.some(f => f.uid === user?.uid && f.status === 'accepted');
                                         const isPendingIncoming = incomingRequests.some(r => r.uid === user?.uid);
                                         const isPendingOutgoing = outgoingRequests.some(r => r.uid === user?.uid);
-
-                                        // Note: friends/incoming/outgoing here are loaded from the TARGET user's perspective.
-                                        // 'friends' -> Target's friends. My UID in there = we are friends.
-                                        // 'incoming' -> Requests Target user RECEIVED. My UID in there = I sent it (Outgoing from me).
-                                        // 'outgoing' -> Requests Target user SENT. My UID in there = I received it (Incoming to me).
 
                                         if (isFriend) {
                                             return <span className={styles.statusBadge}>フレンド</span>;
