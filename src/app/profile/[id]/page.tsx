@@ -1,12 +1,11 @@
 'use client';
-export const runtime = 'edge';
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import styles from '../profile.module.css';
 import Link from 'next/link';
 
-// Types copied locally to avoid import issues with Edge Runtime
+// Types
 interface UserProfile {
     uid: string;
     displayName: string;
@@ -14,6 +13,17 @@ interface UserProfile {
     bio?: string;
     stats?: Record<string, { rating: number; wins: number; losses: number }>;
     createdAt?: number;
+}
+
+// Helper function to get game name
+function getGameName(id: string) {
+    const map: Record<string, string> = {
+        shogi: '将棋',
+        reversi: 'リバーシ',
+        chess: 'チェス',
+        mahjong: '麻雀',
+    };
+    return map[id] || id;
 }
 
 export default function ProfilePage() {
@@ -25,6 +35,7 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
+    const [firebaseLoaded, setFirebaseLoaded] = useState(false);
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
@@ -41,40 +52,59 @@ export default function ProfilePage() {
 
     const isMyProfile = user?.uid === targetUserId || playerId === targetUserId;
 
-    // Load auth and player on client side only
+    // Initial mount
     useEffect(() => {
         setMounted(true);
 
         // Load player ID from localStorage
-        const storedPlayerId = localStorage.getItem('playerId');
-        if (storedPlayerId) {
-            setPlayerId(storedPlayerId);
+        if (typeof window !== 'undefined') {
+            const storedPlayerId = localStorage.getItem('playerId');
+            if (storedPlayerId) {
+                setPlayerId(storedPlayerId);
+            }
         }
-
-        // Dynamic import of Firebase auth
-        import('@/lib/firebase').then(({ auth }) => {
-            const unsubscribe = auth.onAuthStateChanged((firebaseUser: any) => {
-                setUser(firebaseUser);
-            });
-            return () => unsubscribe();
-        });
     }, []);
 
-    // Fetch profile data
+    // Load Firebase auth after mount
     useEffect(() => {
-        if (!targetUserId || !mounted) return;
+        if (!mounted) return;
+
+        let unsubscribe: (() => void) | undefined;
+
+        const loadAuth = async () => {
+            try {
+                const firebaseModule = await import('@/lib/firebase');
+                const auth = firebaseModule.auth;
+                unsubscribe = auth.onAuthStateChanged((firebaseUser: any) => {
+                    setUser(firebaseUser);
+                    setFirebaseLoaded(true);
+                });
+            } catch (e) {
+                console.error('Firebase auth load error:', e);
+                setFirebaseLoaded(true);
+            }
+        };
+
+        loadAuth();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [mounted]);
+
+    // Fetch profile data after Firebase is loaded
+    useEffect(() => {
+        if (!targetUserId || !firebaseLoaded) return;
 
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Dynamic import of Firebase user functions
-                const { getUserProfile, getFriends, ensureUserExists } = await import('@/lib/firebase/users');
+                const usersModule = await import('@/lib/firebase/users');
 
-                let userProfile = await getUserProfile(targetUserId);
+                let userProfile = await usersModule.getUserProfile(targetUserId);
 
-                // If profile doesn't exist but it matches current logged-in user, create it
                 if (!userProfile && user && user.uid === targetUserId) {
-                    userProfile = await ensureUserExists(user.uid, user.displayName || 'No Name', user.photoURL || '');
+                    userProfile = await usersModule.ensureUserExists(user.uid, user.displayName || 'No Name', user.photoURL || '');
                 }
 
                 setProfile(userProfile);
@@ -83,9 +113,7 @@ export default function ProfilePage() {
                     setEditBio(userProfile.bio || '');
                 }
 
-                const allFriends = await getFriends(targetUserId);
-
-                // Categorize
+                const allFriends = await usersModule.getFriends(targetUserId);
                 const accepted = allFriends.filter((f: any) => f.status === 'accepted');
                 const incoming = allFriends.filter((f: any) => f.status === 'pending' && f.direction === 'received');
                 const outgoing = allFriends.filter((f: any) => f.status === 'pending' && f.direction === 'sent');
@@ -93,27 +121,26 @@ export default function ProfilePage() {
                 setFriends(accepted);
                 setIncomingRequests(incoming);
                 setOutgoingRequests(outgoing);
-
             } catch (e) {
-                console.error(e);
+                console.error('Profile fetch error:', e);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [targetUserId, user, mounted]);
+    }, [targetUserId, user, firebaseLoaded]);
 
-    // Sync Google PhotoURL if needed
+    // Sync Google PhotoURL
     useEffect(() => {
-        if (!mounted) return;
+        if (!mounted || !firebaseLoaded) return;
         if (isMyProfile && user?.photoURL && profile && profile.photoURL !== user.photoURL) {
-            import('@/lib/firebase/users').then(({ updateUserProfileData }) => {
-                updateUserProfileData(user.uid, { photoURL: user.photoURL });
+            import('@/lib/firebase/users').then((mod) => {
+                mod.updateUserProfileData(user.uid, { photoURL: user.photoURL });
             });
             setProfile(prev => prev ? { ...prev, photoURL: user.photoURL || '' } : null);
         }
-    }, [isMyProfile, user, profile, mounted]);
+    }, [isMyProfile, user, profile, mounted, firebaseLoaded]);
 
     const handleFriendRequest = async () => {
         if (!user) {
@@ -121,8 +148,8 @@ export default function ProfilePage() {
             return;
         }
         try {
-            const { sendFriendRequest } = await import('@/lib/firebase/users');
-            await sendFriendRequest(user.uid, targetUserId);
+            const mod = await import('@/lib/firebase/users');
+            await mod.sendFriendRequest(user.uid, targetUserId);
             alert("フレンド申請を送りました！");
         } catch (e) {
             alert("申請エラー: " + e);
@@ -142,20 +169,20 @@ export default function ProfilePage() {
         }
 
         try {
-            const { sendFriendRequest } = await import('@/lib/firebase/users');
-            await sendFriendRequest(user.uid, friendIdInput.trim());
+            const mod = await import('@/lib/firebase/users');
+            await mod.sendFriendRequest(user.uid, friendIdInput.trim());
             alert(`${friendIdInput} にフレンド申請を送りました`);
             setFriendIdInput('');
         } catch (e) {
-            alert("申請に失敗しました。IDを確認してください: " + e);
+            alert("申請に失敗しました: " + e);
         }
-    }
+    };
 
     const handleSaveProfile = async () => {
         if (!user || !profile) return;
         try {
-            const { updateUserProfileData } = await import('@/lib/firebase/users');
-            await updateUserProfileData(user.uid, {
+            const mod = await import('@/lib/firebase/users');
+            await mod.updateUserProfileData(user.uid, {
                 displayName: editName,
                 bio: editBio,
             });
@@ -170,8 +197,8 @@ export default function ProfilePage() {
     const handleAccept = async (fromUid: string) => {
         if (!user) return;
         try {
-            const { acceptFriendRequest } = await import('@/lib/firebase/users');
-            await acceptFriendRequest(user.uid, fromUid);
+            const mod = await import('@/lib/firebase/users');
+            await mod.acceptFriendRequest(user.uid, fromUid);
             alert("フレンド登録しました！");
             window.location.reload();
         } catch (e) {
@@ -183,8 +210,8 @@ export default function ProfilePage() {
         if (!user) return;
         if (!confirm("本当に拒否しますか？")) return;
         try {
-            const { rejectFriendRequest } = await import('@/lib/firebase/users');
-            await rejectFriendRequest(user.uid, fromUid);
+            const mod = await import('@/lib/firebase/users');
+            await mod.rejectFriendRequest(user.uid, fromUid);
             setIncomingRequests(prev => prev.filter(req => req.uid !== fromUid));
         } catch (e) {
             alert("エラー: " + e);
@@ -195,8 +222,8 @@ export default function ProfilePage() {
         if (!user) return;
         if (!confirm("本当にこのフレンドを削除しますか？")) return;
         try {
-            const { removeFriend } = await import('@/lib/firebase/users');
-            await removeFriend(user.uid, friendUid);
+            const mod = await import('@/lib/firebase/users');
+            await mod.removeFriend(user.uid, friendUid);
             setFriends(prev => prev.filter(f => f.uid !== friendUid));
             alert("フレンドを削除しました");
         } catch (e) {
@@ -205,21 +232,33 @@ export default function ProfilePage() {
     };
 
     const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        alert("IDをコピーしました");
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            alert("IDをコピーしました");
+        }
     };
 
-    if (!mounted || loading) return <div className={styles.container}>読み込み中...</div>;
-    if (!profile && !loading) return <div className={styles.container}>ユーザーが見つかりません</div>;
+    // Show loading state
+    if (!mounted) {
+        return <div className={styles.container}>読み込み中...</div>;
+    }
+
+    if (loading) {
+        return <div className={styles.container}>読み込み中...</div>;
+    }
+
+    if (!profile) {
+        return <div className={styles.container}>ユーザーが見つかりません</div>;
+    }
 
     return (
         <div className={styles.container}>
             <div className={styles.profileHeader}>
                 <div className={styles.avatarSection}>
                     <div className={styles.avatar}>
-                        {profile?.photoURL ?
+                        {profile.photoURL ?
                             <img src={profile.photoURL} alt="Avatar" /> :
-                            <span>{profile?.displayName?.charAt(0) || 'U'}</span>
+                            <span>{profile.displayName?.charAt(0) || 'U'}</span>
                         }
                     </div>
                 </div>
@@ -248,15 +287,13 @@ export default function ProfilePage() {
                             </div>
                             <div className={styles.buttonGroup}>
                                 <button className={styles.primaryBtn} onClick={handleSaveProfile}>保存する</button>
-                                <button className={styles.secondaryBtn} onClick={() => {
-                                    setIsEditing(false);
-                                }}>キャンセル</button>
+                                <button className={styles.secondaryBtn} onClick={() => setIsEditing(false)}>キャンセル</button>
                             </div>
                         </div>
                     ) : (
                         <>
-                            <h1 className={styles.userName}>{profile?.displayName || 'Unknown Player'}</h1>
-                            <p className={styles.userBio}>{profile?.bio || 'プロフィールはまだ設定されていません。'}</p>
+                            <h1 className={styles.userName}>{profile.displayName || 'Unknown Player'}</h1>
+                            <p className={styles.userBio}>{profile.bio || 'プロフィールはまだ設定されていません。'}</p>
 
                             <div className={styles.actionArea}>
                                 {isMyProfile && (
@@ -264,35 +301,25 @@ export default function ProfilePage() {
                                         編集
                                     </button>
                                 )}
-                                {!isMyProfile && (
+                                {!isMyProfile && user && (
                                     (() => {
-                                        const isFriend = friends.some(f => f.uid === user?.uid && f.status === 'accepted');
-                                        const isPendingIncoming = incomingRequests.some(r => r.uid === user?.uid);
-                                        const isPendingOutgoing = outgoingRequests.some(r => r.uid === user?.uid);
+                                        const isFriend = friends.some(f => f.uid === user.uid);
+                                        const isPendingIncoming = incomingRequests.some(r => r.uid === user.uid);
+                                        const isPendingOutgoing = outgoingRequests.some(r => r.uid === user.uid);
 
-                                        if (isFriend) {
-                                            return <span className={styles.statusBadge}>フレンド</span>;
-                                        }
-                                        if (isPendingIncoming) {
-                                            return <span className={styles.statusBadge}>申請済み</span>;
-                                        }
-                                        if (isPendingOutgoing) {
-                                            return <button className={styles.primaryBtn} onClick={() => handleAccept(user?.uid || '')}>申請を承認</button>;
-                                        }
+                                        if (isFriend) return <span className={styles.statusBadge}>フレンド</span>;
+                                        if (isPendingIncoming) return <span className={styles.statusBadge}>申請済み</span>;
+                                        if (isPendingOutgoing) return <button className={styles.primaryBtn} onClick={() => handleAccept(user.uid)}>申請を承認</button>;
 
-                                        return (
-                                            <button className={styles.primaryBtn} onClick={handleFriendRequest}>
-                                                フレンド申請
-                                            </button>
-                                        );
+                                        return <button className={styles.primaryBtn} onClick={handleFriendRequest}>フレンド申請</button>;
                                     })()
                                 )}
                             </div>
 
                             <div className={styles.idContainer}>
                                 <span className={styles.idLabel}>ユーザーID:</span>
-                                <code className={styles.idValue}>{profile?.uid}</code>
-                                <button className={styles.copyBtn} onClick={() => profile?.uid && copyToClipboard(profile.uid)}>コピー</button>
+                                <code className={styles.idValue}>{profile.uid}</code>
+                                <button className={styles.copyBtn} onClick={() => copyToClipboard(profile.uid)}>コピー</button>
                             </div>
                         </>
                     )}
@@ -302,11 +329,9 @@ export default function ProfilePage() {
             <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>ゲーム戦績</h2>
                 <div className={styles.statsGrid}>
-                    {profile?.stats && Object.entries(profile.stats).map(([gameId, stat]) => (
+                    {profile.stats && Object.entries(profile.stats).map(([gameId, stat]) => (
                         <div key={gameId} className={styles.statCard}>
-                            <div className={styles.gameTitle}>
-                                {getGameName(gameId)}
-                            </div>
+                            <div className={styles.gameTitle}>{getGameName(gameId)}</div>
                             <div className={styles.statDetails}>
                                 <div className={styles.statItem}>
                                     <span className={styles.statLabel}>レート</span>
@@ -323,112 +348,97 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     ))}
-                    {(!profile?.stats || Object.keys(profile.stats).length === 0) && (
+                    {(!profile.stats || Object.keys(profile.stats).length === 0) && (
                         <p className={styles.emptyText}>プレイ履歴はまだありません</p>
                     )}
                 </div>
             </section>
 
-            {
-                isMyProfile && (
-                    <section className={styles.section}>
-                        {incomingRequests.length > 0 && (
-                            <div className={styles.requestSection}>
-                                <h3 className={styles.subTitle}>受信したフレンド申請</h3>
-                                <div className={styles.friendGrid}>
-                                    {incomingRequests.map(f => (
-                                        <div key={f.uid} className={styles.friendCard} style={{ cursor: 'default' }}>
-                                            <div className={styles.friendAvatarPlaceholder}>
-                                                {f.photoURL ? (
-                                                    <img src={f.photoURL} alt={f.displayName} className={styles.friendAvatarImg} />
-                                                ) : (
-                                                    <span>{f.displayName?.charAt(0) || 'U'}</span>
-                                                )}
-                                            </div>
-                                            <div className={styles.friendInfo}>
-                                                <Link href={`/profile/${f.uid}`} className={styles.friendName} style={{ textDecoration: 'underline' }}>
-                                                    {f.displayName || 'Unknown'}
-                                                </Link>
-                                                <span className={styles.friendIdSub}>ID: {f.uid.substring(0, 6)}...</span>
-                                                <div className={styles.requestActions}>
-                                                    <button className={styles.acceptBtn} onClick={() => handleAccept(f.uid)}>承認</button>
-                                                    <button className={styles.rejectBtn} onClick={() => handleReject(f.uid)}>拒否</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <h2 className={styles.sectionTitle}>フレンド ({friends.length})</h2>
-
-                        <div className={styles.addFriendSection}>
-                            <input
-                                className={styles.friendIdInput}
-                                value={friendIdInput}
-                                onChange={(e) => setFriendIdInput(e.target.value)}
-                                placeholder="ユーザーIDを入力して追加"
-                            />
-                            <button className={styles.addFriendBtn} onClick={handleAddFriendById}>申請</button>
-                        </div>
-
-                        {outgoingRequests.length > 0 && (
-                            <div style={{ marginBottom: '1.5rem', color: '#718096', fontSize: '0.9rem' }}>
-                                <p>送信済みの申請: {outgoingRequests.length} 件</p>
-                            </div>
-                        )}
-
-                        <div className={styles.friendGrid}>
-                            {friends.map(f => (
-                                <div key={f.uid} className={styles.friendCard}>
-                                    <Link href={`/profile/${f.uid}`} className={styles.friendLinkContent}>
+            {isMyProfile && (
+                <section className={styles.section}>
+                    {incomingRequests.length > 0 && (
+                        <div className={styles.requestSection}>
+                            <h3 className={styles.subTitle}>受信したフレンド申請</h3>
+                            <div className={styles.friendGrid}>
+                                {incomingRequests.map(f => (
+                                    <div key={f.uid} className={styles.friendCard} style={{ cursor: 'default' }}>
                                         <div className={styles.friendAvatarPlaceholder}>
                                             {f.photoURL ? (
                                                 <img src={f.photoURL} alt={f.displayName} className={styles.friendAvatarImg} />
                                             ) : (
-                                                <span>{f.displayName.charAt(0)}</span>
+                                                <span>{f.displayName?.charAt(0) || 'U'}</span>
                                             )}
                                         </div>
                                         <div className={styles.friendInfo}>
-                                            <span className={styles.friendName}>{f.displayName}</span>
+                                            <Link href={`/profile/${f.uid}`} className={styles.friendName} style={{ textDecoration: 'underline' }}>
+                                                {f.displayName || 'Unknown'}
+                                            </Link>
+                                            <span className={styles.friendIdSub}>ID: {f.uid.substring(0, 6)}...</span>
+                                            <div className={styles.requestActions}>
+                                                <button className={styles.acceptBtn} onClick={() => handleAccept(f.uid)}>承認</button>
+                                                <button className={styles.rejectBtn} onClick={() => handleReject(f.uid)}>拒否</button>
+                                            </div>
                                         </div>
-                                    </Link>
-                                    {isMyProfile && (
-                                        <button
-                                            className={styles.removeFriendBtn}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                handleRemoveFriend(f.uid);
-                                            }}
-                                            title="フレンド削除"
-                                        >
-                                            ✕
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                            {friends.length === 0 && <p className={styles.emptyText}>フレンドはいません</p>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </section>
-                )
-            }
+                    )}
+
+                    <h2 className={styles.sectionTitle}>フレンド ({friends.length})</h2>
+
+                    <div className={styles.addFriendSection}>
+                        <input
+                            className={styles.friendIdInput}
+                            value={friendIdInput}
+                            onChange={(e) => setFriendIdInput(e.target.value)}
+                            placeholder="ユーザーIDを入力して追加"
+                        />
+                        <button className={styles.addFriendBtn} onClick={handleAddFriendById}>申請</button>
+                    </div>
+
+                    {outgoingRequests.length > 0 && (
+                        <div style={{ marginBottom: '1.5rem', color: '#718096', fontSize: '0.9rem' }}>
+                            <p>送信済みの申請: {outgoingRequests.length} 件</p>
+                        </div>
+                    )}
+
+                    <div className={styles.friendGrid}>
+                        {friends.map(f => (
+                            <div key={f.uid} className={styles.friendCard}>
+                                <Link href={`/profile/${f.uid}`} className={styles.friendLinkContent}>
+                                    <div className={styles.friendAvatarPlaceholder}>
+                                        {f.photoURL ? (
+                                            <img src={f.photoURL} alt={f.displayName} className={styles.friendAvatarImg} />
+                                        ) : (
+                                            <span>{f.displayName?.charAt(0) || '?'}</span>
+                                        )}
+                                    </div>
+                                    <div className={styles.friendInfo}>
+                                        <span className={styles.friendName}>{f.displayName}</span>
+                                    </div>
+                                </Link>
+                                <button
+                                    className={styles.removeFriendBtn}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleRemoveFriend(f.uid);
+                                    }}
+                                    title="フレンド削除"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                        {friends.length === 0 && <p className={styles.emptyText}>フレンドはいません</p>}
+                    </div>
+                </section>
+            )}
 
             <Link href="/" className={styles.backLink}>
                 トップに戻る
             </Link>
-        </div >
+        </div>
     );
-}
-
-// Helpers
-function getGameName(id: string) {
-    const map: any = {
-        shogi: '将棋',
-        reversi: 'リバーシ',
-        chess: 'チェス',
-        mahjong: '麻雀',
-    };
-    return map[id] || id;
 }
