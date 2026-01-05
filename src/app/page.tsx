@@ -582,7 +582,7 @@ export default function Home() {
           }}>
             {user.photoURL && <img src={user.photoURL} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2d3748', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerName}</span>
-            <Link href={`/profile/${user.uid}`} style={{ textDecoration: 'none' }}>
+            <Link href={`/profile?id=${user.uid}`} style={{ textDecoration: 'none' }}>
               <button
                 style={{
                   padding: '0.25rem 0.6rem',
