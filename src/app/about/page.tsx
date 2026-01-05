@@ -1,11 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import styles from './about.module.css';
 import { IconShogi, IconChess, IconSwords } from '@/components/Icons';
 
 export default function AboutPage() {
+    // Load Note embed script
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://note.com/scripts/embed.js';
+        script.async = true;
+        script.charset = 'utf-8';
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
     return (
         <main className={styles.main}>
             {/* Hero Section */}
@@ -73,6 +85,36 @@ export default function AboutPage() {
                         <p style={{ marginBottom: 0 }}>
                             「いつでも友達と、一人でも気軽にボードゲームやカードゲームを楽しめたらいいな」——そんなシンプルな想いから、このプロジェクトは始まりました。
                             忙しい日常の中でも、ブラウザを開くだけですぐに遊べる場所を作りたいと思い、Asobi Loungeを開発しています。
+                        </p>
+                    </div>
+                </section>
+
+                {/* Note Embed Section */}
+                <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>開発ブログ</h2>
+                    <div className={styles.card}>
+                        <iframe
+                            className="note-embed"
+                            src="https://note.com/embed/notes/n7be45ded3cda"
+                            style={{
+                                border: 0,
+                                display: 'block',
+                                maxWidth: '100%',
+                                width: '100%',
+                                padding: 0,
+                                margin: '0 auto',
+                            }}
+                            height={400}
+                        />
+                        <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.9rem', color: '#718096' }}>
+                            <a
+                                href="https://note.com/zaaan477888"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: '#2b6cb0', textDecoration: 'none' }}
+                            >
+                                noteで他の記事も読む →
+                            </a>
                         </p>
                     </div>
                 </section>
