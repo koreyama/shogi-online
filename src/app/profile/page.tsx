@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './profile.module.css';
 import Link from 'next/link';
@@ -26,7 +26,22 @@ function getGameName(id: string) {
     return map[id] || id;
 }
 
-export default function ProfilePage() {
+// Loading fallback component
+function ProfileLoading() {
+    return <div className={styles.container}>読み込み中...</div>;
+}
+
+// Wrapper component with Suspense
+export default function ProfilePageWrapper() {
+    return (
+        <Suspense fallback={<ProfileLoading />}>
+            <ProfilePage />
+        </Suspense>
+    );
+}
+
+// Main profile component
+function ProfilePage() {
     const searchParams = useSearchParams();
     const targetUserId = searchParams.get('id') || '';
 
