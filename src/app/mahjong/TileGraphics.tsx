@@ -30,7 +30,7 @@ const PinCircle = ({ size = '24%', color = COLORS.pin, innerColor = COLORS.pin }
 );
 
 // Explicit pixel sizes for better control in small tiles
-const SimpleCircle = ({ color }) => (
+const SimpleCircle = ({ color }: { color: string }) => (
     <div style={{
         width: 8, height: 8,
         borderRadius: '50%',
