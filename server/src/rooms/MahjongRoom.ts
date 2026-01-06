@@ -8,6 +8,7 @@ export class MahjongRoom extends Room<MahjongState> {
     maxClients = 4;
     private gameStarted = false;
     private cpuTimers: NodeJS.Timeout[] = [];
+    private wall: any[] = []; // 山牌
 
     onCreate(options: any) {
         this.setState(new MahjongState());
@@ -72,7 +73,7 @@ export class MahjongRoom extends Room<MahjongState> {
                 // Convert to CPU if game in progress
                 player.isConnected = false;
                 player.isCpu = true;
-                player.name = `CPU (${player.wind})`;
+                player.name = `CPU ${player.seatIndex + 1}`;
             } else {
                 this.state.players.delete(client.sessionId);
             }
@@ -85,14 +86,16 @@ export class MahjongRoom extends Room<MahjongState> {
 
     handleStartGame(client: Client) {
         if (this.gameStarted) return;
-        if (this.state.players.size < this.state.minPlayers) return;
+        // At least 1 player required to start (rest will be CPUs)
+        if (this.state.players.size < 1) return;
 
-        // Fill remaining seats with CPU
+        // Fill remaining seats with CPU based on minPlayers (3 or 4)
         const currentCount = this.state.players.size;
-        for (let i = currentCount; i < 4; i++) {
+        const targetCount = this.state.minPlayers || 4; // 3人麻雀か4人麻雀か
+        for (let i = currentCount; i < targetCount; i++) {
             const cpuPlayer = new MahjongPlayer();
             cpuPlayer.sessionId = `cpu-${i}`;
-            cpuPlayer.name = `CPU ${WINDS[i].charAt(0).toUpperCase() + WINDS[i].slice(1)}`;
+            cpuPlayer.name = `CPU ${i + 1}`;
             cpuPlayer.seatIndex = i;
             cpuPlayer.wind = WINDS[i];
             cpuPlayer.score = 25000;
@@ -137,12 +140,14 @@ export class MahjongRoom extends Room<MahjongState> {
             this.sortHand(player.hand);
         }
 
-        this.state.remainingTiles = tiles.length;
+        // Store remaining tiles in wall
+        this.wall = tiles;
+        this.state.remainingTiles = this.wall.length;
         this.state.currentPlayerIndex = 0;
         this.state.turnCount = 0;
 
         // First player draws
-        this.drawTile(0, tiles);
+        this.drawTile(0);
     }
 
     private createAllTiles(): any[] {
@@ -199,15 +204,30 @@ export class MahjongRoom extends Room<MahjongState> {
         arr.forEach(t => hand.push(t));
     }
 
-    private drawTile(playerIndex: number, tiles?: any[]) {
-        // Simplified draw - broadcast state update
+    private drawTile(playerIndex: number) {
+        const player = this.getPlayerBySeat(playerIndex);
+        if (!player) return;
+
+        // Check if wall is empty (draw game)
+        if (this.wall.length === 0) {
+            this.state.phase = "draw";
+            return;
+        }
+
+        // Draw tile from wall
+        const drawnTile = this.wall.shift()!;
+        const tileSchema = new MahjongTile();
+        Object.assign(tileSchema, drawnTile);
+        player.hand.push(tileSchema);
+
+        // Update state
+        this.state.remainingTiles = this.wall.length;
         this.state.turnCount++;
         this.state.currentPlayerIndex = playerIndex;
         this.state.lastAction = `draw:${playerIndex}`;
 
         // Schedule CPU action if needed
-        const player = this.getPlayerBySeat(playerIndex);
-        if (player?.isCpu) {
+        if (player.isCpu) {
             this.scheduleCpuAction(playerIndex);
         }
     }
@@ -245,20 +265,18 @@ export class MahjongRoom extends Room<MahjongState> {
             this.state.lastDiscardPlayer = player.seatIndex;
             this.state.lastAction = `discard:${player.seatIndex}:${tile.id}`;
 
-            // Next player
-            this.nextTurn();
+            // Check for Ron/Pon/Chi opportunities before moving to next turn
+            this.checkCallOpportunities(tile, player.seatIndex);
         }
     }
 
     private nextTurn() {
-        const nextIndex = (this.state.currentPlayerIndex + 1) % 4;
-        this.state.currentPlayerIndex = nextIndex;
-        this.state.turnCount++;
+        // Use actual player count (3 or 4)
+        const playerCount = this.state.players.size;
+        const nextIndex = (this.state.currentPlayerIndex + 1) % playerCount;
 
-        const player = this.getPlayerBySeat(nextIndex);
-        if (player?.isCpu) {
-            this.scheduleCpuAction(nextIndex);
-        }
+        // Draw tile for next player
+        this.drawTile(nextIndex);
     }
 
     handleDiscard(client: Client, msg: { tileId: string }) {
@@ -348,10 +366,10 @@ export class MahjongRoom extends Room<MahjongState> {
         this.cpuTimers.forEach(t => clearTimeout(t));
         this.cpuTimers = [];
 
-        // Check if anyone declared an action? 
-        // This function implies "Time is up, nobody acted".
+        // Reset call flags for all players
+        const playerCount = this.state.players.size;
         this.state.phase = "playing";
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < playerCount; i++) {
             this.state.canCall[i] = false;
             this.state.canRon[i] = false;
         }

@@ -90,6 +90,7 @@ export default function Home() {
     { name: 'Hit & Blow', category: 'パズル', description: '相手が設定した4桁の数字を推理するゲーム。位置も数字も合っていればヒット、数字だけならブローです。', color: '#4299e1' },
     { name: 'Dots & Boxes', category: 'パズル', description: '点と点を線で結び、四角を完成させたら自分の陣地。戦略的な陣取りゲームです。', color: '#ed64a6' },
     { name: 'バックギャモン', category: 'ボードゲーム', description: '5000年の歴史を持つ世界最古のボードゲーム。サイコロの運と戦略が融合した遊びです。', color: '#dd6b20' },
+    { name: '囲碁', category: 'ボードゲーム', description: '黒と白の石を使って陣地を取り合う、東洋の伝統的な戦略ゲーム。シンプルながら無限の奥深さがあります。', color: '#1a202c' },
   ];
 
   // useRoomJanitor();
@@ -863,6 +864,12 @@ export default function Home() {
               <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
                 <div style={{ marginBottom: '0.3rem', fontSize: '1.75rem' }}>🀄</div>
                 <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>麻雀</div>
+              </div>
+            </Link>
+            <Link href="/go" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
+                <div style={{ marginBottom: '0.3rem', fontSize: '1.75rem' }}>⚪</div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>囲碁</div>
               </div>
             </Link>
           </div>

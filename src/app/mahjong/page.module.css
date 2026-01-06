@@ -480,10 +480,13 @@
 /* アクションボタン */
 /* アクションボタン */
 .actions {
+    position: absolute;
+    bottom: 130px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     gap: 1rem;
     padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 50px;
     backdrop-filter: blur(4px);
@@ -491,6 +494,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 50;
     transition: all 0.2s ease;
+    width: max-content;
 }
 
 .actionBtn {
@@ -660,17 +664,35 @@
 }
 
 /* レスポンシブ */
-@media (max-width: 600px) {
+@media (max-width: 900px) {
     .tile {
-        width: 28px;
-        height: 38px;
-        font-size: 1.25rem;
+        width: 34px;
+        height: 46px;
+        font-size: 2.2rem !important;
+        line-height: 1.1;
+        padding: 0;
+        margin-top: -3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: inherit;
     }
 
     .tileSmall {
-        width: 24px;
-        height: 32px;
-        font-size: 1rem;
+        width: 28px;
+        height: 38px;
+        font-size: 1.8rem !important;
+        line-height: 1.1;
+        padding: 0;
+        margin-top: -2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: inherit;
     }
 
     .playerPanel {
@@ -679,6 +701,38 @@
 
     .playerInfo {
         font-size: 0.75rem;
+    }
+
+    /* モバイル用ヘッダー調整 */
+    .header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .doraHeaderArea {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+        padding: 4px 8px;
+        gap: 4px;
+    }
+
+    .doraLabel {
+        font-size: 0.7rem;
+    }
+
+    .roundInfo {
+        font-size: 1rem;
+    }
+
+    .riichiSticks {
+        font-size: 0.75rem;
+    }
+
+    .backButton {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
     }
 }
 
@@ -994,51 +1048,146 @@
     }
 }
 
-/* Landscape Mode on Mobile: Fit Vertical Height */
-/* Landscape Mode on Mobile: Fit Vertical Height */
-/* Landscape Mode on Mobile: Fit Vertical Height */
+/* Landscape Mode on Mobile: Compact Header and Fit Vertical Height */
 @media (max-height: 600px) and (orientation: landscape) {
 
-    /* Hide header to save vertical space */
+    /* Compact header instead of hiding */
     .header {
-        display: none !important;
+        padding: 0.25rem 0.5rem;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        font-size: 0.75rem;
+    }
+
+    .backButton {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .doraHeaderArea {
+        padding: 2px 6px;
+        gap: 3px;
+    }
+
+    .doraLabel {
+        font-size: 0.6rem;
+    }
+
+    .doraTiles .tileSmall {
+        width: 18px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+
+    .roundInfo {
+        font-size: 0.8rem;
+    }
+
+    .riichiSticks {
+        font-size: 0.65rem;
     }
 
     .main {
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-        height: 100dvh;
-        /* Use dynamic viewport height to account for browser bars */
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 100dvh;
+    }
+
+    /* ロビー画面ではスクロール可能にする */
+    .lobbyContainer {
+        margin: 1rem auto;
+        padding: 1.5rem;
+        max-height: none;
+        overflow: visible;
     }
 
     .gameBoard {
-        /* Content height is roughly 600px+. Mobile height ~350px. Scale needs to be ~0.45 */
         transform-origin: center top;
-        transform: scale(0.45);
-
-        /* Center horizontally */
+        transform: scale(0.48);
         width: 100%;
-        margin: 5px auto;
-
-        /* Ensure touch events work */
+        margin: 0 auto;
         pointer-events: auto;
-
-        /* Ensure no overflow scrolling triggers */
-        /* Ensure no overflow scrolling triggers */
         touch-action: none;
     }
 
-    /* Adjust Action Buttons */
+    /* Adjust Action Buttons - 画面右端に余裕を持って配置 */
     .actions {
         position: fixed;
-        bottom: 10px;
-        right: 10px;
-        /* Counter-scale to keep buttons pressable */
-        transform: scale(1.5);
+        bottom: 15px;
+        right: -250px;
+        left: auto;
+        transform: scale(2);
         transform-origin: bottom right;
-        opacity: 0.9;
+        opacity: 1;
         flex-direction: column-reverse;
+        gap: 0.4rem;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 0.4rem;
+        border-radius: 6px;
+        z-index: 1000;
+    }
+
+    .actionBtn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.65rem;
+        white-space: nowrap;
+    }
+
+    /* 手牌と捨て牌のサイズ調整（横画面用） */
+    .tile {
+        width: 34px;
+        height: 46px;
+        font-size: 2.2rem !important;
+        line-height: 1.1;
+        padding: 0;
+        margin-top: -3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: inherit;
+    }
+
+    .tileSmall {
+        width: 28px;
+        height: 38px;
+        font-size: 1.8rem !important;
+        line-height: 1.1;
+        padding: 0;
+        margin-top: -2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: inherit;
+    }
+
+    .discardBtn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.65rem;
+        white-space: nowrap;
+    }
+
+    /* 鳴いた牌を右端に固定表示 */
+    .callsArea {
+        position: fixed;
+        bottom: 100px;
+        right: -250px;
+        flex-direction: column;
+        gap: 0.2rem;
+        transform: scale(1.8);
+        transform-origin: bottom right;
+        z-index: 999;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.2rem;
+        border-radius: 4px;
+    }
+
+    .callGroup {
+        padding: 0.15rem 0.2rem;
+        gap: 0.1rem;
     }
 }
 

@@ -1,0 +1,490 @@
+/* page.module.css for Go Game */
+
+.main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f0;
+    /* Soft off-white background */
+    background-image:
+        radial-gradient(#e0e0e0 1px, transparent 1px),
+        radial-gradient(#e0e0e0 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    /* Mincho for traditional feel */
+}
+
+.gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    max-width: 1400px;
+    width: 100%;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+/* Setup Container (Menu) */
+.setupContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    max-width: 800px;
+    width: 95%;
+    margin-top: 5vh;
+    padding: 3rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.modeSelection {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.modeBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.modeBtn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    border-color: #bdc3c7;
+}
+
+.joinSection {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 100%;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+/* Rules Container */
+.rulesContainer {
+    max-width: 800px;
+    width: 95%;
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-top: 2rem;
+    /* Separated from setup */
+    margin-bottom: 3rem;
+    line-height: 1.8;
+    color: #444;
+}
+
+.rulesContainer h2 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.rulesContainer h3 {
+    font-size: 1.3rem;
+    color: #34495e;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.rulesContainer p {
+    margin-bottom: 1rem;
+}
+
+.rulesContainer ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.rulesContainer li {
+    margin-bottom: 0.5rem;
+}
+
+
+/* Go Board Styles */
+.goban {
+    position: relative;
+    /* Kaya Wood Texture using Gradients */
+    background-color: #dcb35c;
+    background-image:
+        linear-gradient(45deg, rgba(0, 0, 0, 0.03) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.03) 75%, rgba(0, 0, 0, 0.03)),
+        linear-gradient(45deg, rgba(0, 0, 0, 0.03) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.03) 75%, rgba(0, 0, 0, 0.03));
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        inset 0 0 20px rgba(0, 0, 0, 0.1);
+    /* Inner shadow for depth */
+
+    display: grid;
+    /* grid-template-columns assigned inline */
+    padding: 25px;
+    /* Margin around the grid */
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.cell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Lines */
+.cell::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #111;
+    z-index: 1;
+}
+
+.cell::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: 1px;
+    background: #111;
+    z-index: 1;
+}
+
+/* Edge Fixes: Prevent lines from extending outside */
+.cell.top::after {
+    top: 50%;
+    height: 50%;
+}
+
+.cell.bottom::after {
+    height: 50%;
+}
+
+.cell.left::before {
+    left: 50%;
+    width: 50%;
+}
+
+.cell.right::before {
+    width: 50%;
+}
+
+.starPoint {
+    position: absolute;
+    width: 15%;
+    /* Relative to cell size */
+    height: 15%;
+    background: #000;
+    border-radius: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.stone {
+    width: 92%;
+    height: 92%;
+    border-radius: 50%;
+    z-index: 10;
+    position: relative;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    /* Casting shadow on board */
+}
+
+/* Realistic Black Stone (Nachi Black) */
+.stone.black {
+    background: radial-gradient(circle at 35% 35%, #555, #111 40%, #000 85%);
+}
+
+/* Realistic White Stone (Clam Shell) */
+.stone.white {
+    background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0 30%, #ddd 80%, #ccc 100%);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.stoneGhost {
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    opacity: 0.6;
+    z-index: 5;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.stoneGhost.black {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.stoneGhost.white {
+    background: rgba(255, 255, 255, 0.6);
+    border: 2px solid #333;
+}
+
+/* Game Layout */
+.gameLayout {
+    display: flex;
+    gap: 3rem;
+    align-items: flex-start;
+    padding: 2rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.infoPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 280px;
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.turnIndicator {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0 1rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+    width: 280px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.turnBlack {
+    color: white;
+    background: #222;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.turnWhite {
+    color: #333;
+    background: #fdfdfd;
+    border: 2px solid #eee;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.captured {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.captured h3 {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin: 0;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.capturedRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.actionBtn {
+    flex: 1;
+    padding: 0.8rem 0.2rem;
+    cursor: pointer;
+    background: #34495e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.actionBtn:hover {
+    background: #2c3e50;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.actionBtn:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.secondaryBtn {
+    background: white;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+}
+
+.secondaryBtn:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal {
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.backButton:hover {
+    background: #f8f8f8;
+    color: #333;
+    transform: translateY(-1px);
+}
+
+.loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 1024px) {
+    .gameLayout {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .infoPanel {
+        width: 100%;
+        min-width: unset;
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 600px) {
+    .goban {
+        padding: 4vw;
+        /* Reduce padding on mobile */
+    }
+}

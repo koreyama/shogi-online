@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { GameState, Tile, PlayerState, TILE_DISPLAY, Wind } from '@/lib/mahjong/types';
+import { GameState, Tile, PlayerState, TILE_DISPLAY, Wind, WIND_ORDER } from '@/lib/mahjong/types';
 import {
     createInitialGameState, performDraw, performDiscard,
     declareRiichi, executeTsumo, executeRon, passCall,
@@ -19,6 +19,7 @@ import { audioManager } from '@/lib/mahjong/audio';
 
 import { YakuListModal } from './YakuListModal';
 import { useAuth } from '@/hooks/useAuth';
+import HideChatBot from '@/components/HideChatBot';
 
 
 type GameMode = 'select' | 'ai' | 'online-random' | 'online-room';
@@ -325,11 +326,11 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         setGameState(drawnState);
     }, []);
 
-    // AIのターン処理
+    // AIのターン処理（playingフェーズのみ）
     useEffect(() => {
         if (!gameState || gameState.phase === 'finished' || gameState.phase === 'draw') return;
 
-        // 自分のターン以外はAIが行動
+        // 自分のターン以外でplayingフェーズの場合のみAIが行動
         if (gameState.currentPlayerIndex !== 0 && gameState.phase === 'playing') {
             setIsAiThinking(true);
             const timer = setTimeout(() => {
@@ -337,14 +338,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
             }, 1000);
             return () => clearTimeout(timer);
         }
-
-        // 鳴き/ロン待ちでAIの応答
-        if (gameState.phase === 'calling') {
-            const timer = setTimeout(() => {
-                handleAiCallResponse();
-            }, 500);
-            return () => clearTimeout(timer);
-        }
+        // callingフェーズではAIは何もしない - プレイヤーのパス後にhandlePassが処理する
     }, [gameState?.currentPlayerIndex, gameState?.phase]);
 
     // 鳴き可能時はゲームを止めて待機（自動パスなし - 雀魂方式）
@@ -362,7 +356,9 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
         const canCallChi = gameState.lastDiscard && gameState.lastDiscardPlayer === 3 && !myPlayer.isRiichi && getChiOptions(myPlayer.hand, gameState.lastDiscard).length > 0;
 
         // 鳴けない場合は即パス
+        console.log('[DEBUG] Calling phase check:', { canRon, canCallPon, canCallChi, lastDiscardPlayer: gameState.lastDiscardPlayer });
         if (!canCallPon && !canCallChi && !canRon) {
+            console.log('[DEBUG] Player cannot call - auto-passing');
             const timer = setTimeout(() => {
                 handlePass();
             }, 600);
@@ -377,12 +373,14 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
             return () => clearTimeout(timer);
         }
 
-        // 鳴ける場合はタイマー表示のみ（自動パスなし - ユーザー選択を待つ）
+        // 鳴ける場合は15秒タイマー開始（タイムアウトで自動パス）
         setCallTimer(15);
         const interval = setInterval(() => {
             setCallTimer((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval);
+                    console.log('[DEBUG] Timer expired - auto-passing');
+                    handlePass();
                     return 0;
                 }
                 return prev - 1;
@@ -435,6 +433,17 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
 
     const handleAiCallResponse = () => {
         if (!gameState) return;
+
+        // 安全チェック：プレイヤーがコールできる場合は何もしない
+        const myPlayer = gameState.players[0];
+        const canRon = gameState.canRon[0];
+        const canCallPon = gameState.lastDiscard && gameState.lastDiscardPlayer !== 0 && !myPlayer.isRiichi && getPonTiles(myPlayer.hand, gameState.lastDiscard).length >= 2;
+        const canCallChi = gameState.lastDiscard && gameState.lastDiscardPlayer === 3 && !myPlayer.isRiichi && getChiOptions(myPlayer.hand, gameState.lastDiscard).length > 0;
+
+        if (canRon || canCallPon || canCallChi) {
+            // プレイヤーがコールできる場合はAIは何もしない
+            return;
+        }
 
         // AI（プレイヤー1-3）のロン/鳴き判断
         for (let i = 1; i < 4; i++) {
@@ -501,8 +510,14 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
     };
 
     const handleRon = () => {
-        if (!gameState || !gameState.canRon[0]) return;
+        console.log('[DEBUG] handleRon called, canRon:', gameState?.canRon);
+        if (!gameState || !gameState.canRon[0]) {
+            console.log('[DEBUG] Ron rejected - gameState or canRon[0] is false');
+            return;
+        }
+        console.log('[DEBUG] Executing Ron...');
         const newState = executeRon(gameState, 0);
+        console.log('[DEBUG] New state after Ron:', newState.phase, newState.winner);
         audioManager.playWin();
         setGameState(newState);
         setCutInText('ロン');
@@ -549,8 +564,50 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
     };
 
     const handleNewGame = () => {
-        const state = createInitialGameState(['あなた', 'CPU 南', 'CPU 西', 'CPU 北']);
-        const drawnState = performDraw(state);
+        if (!gameState) {
+            // 初回起動時
+            const state = createInitialGameState(['あなた', 'CPU 南', 'CPU 西', 'CPU 北']);
+            const drawnState = performDraw(state);
+            setGameState(drawnState);
+            setShowResult(false);
+            setSelectedTileId(null);
+            return;
+        }
+
+        // 現在の点数を保持して次局へ
+        const currentScores = gameState.players.map(p => p.score);
+        const currentRiichiSticks = gameState.riichiSticks;
+
+        // 親の交代（風を回す）
+        const nextRoundNumber = gameState.roundNumber < 4 ? gameState.roundNumber + 1 : 1;
+        const nextRoundWind = gameState.roundNumber >= 4 ?
+            (gameState.roundWind === 'east' ? 'south' : 'east') : gameState.roundWind;
+
+        // 新しい局を作成
+        const newState = createInitialGameState(['あなた', 'CPU 南', 'CPU 西', 'CPU 北']);
+
+        // 点数と局情報を引き継ぐ
+        const updatedPlayers = newState.players.map((p, i) => ({
+            ...p,
+            score: currentScores[i],
+            // 風を一つ進める（親交代）
+            wind: WIND_ORDER[(i + gameState.roundNumber) % 4]
+        }));
+
+        // 東家（親）のプレイヤーインデックスを見つける
+        const dealerIndex = updatedPlayers.findIndex(p => p.wind === 'east');
+
+        const continuedState: GameState = {
+            ...newState,
+            players: updatedPlayers,
+            roundWind: nextRoundWind,
+            roundNumber: nextRoundNumber,
+            riichiSticks: currentRiichiSticks,
+            honba: gameState.winner !== undefined ? 0 : gameState.honba + 1,
+            currentPlayerIndex: dealerIndex >= 0 ? dealerIndex : 0
+        };
+
+        const drawnState = performDraw(continuedState);
         setGameState(drawnState);
         setShowResult(false);
         setSelectedTileId(null);
@@ -609,6 +666,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
 
     return (
         <main className={styles.main}>
+            <HideChatBot />
             <CutInEffect text={cutInText} />
             {showYakuList && <YakuListModal onClose={() => setShowYakuList(false)} />}
 

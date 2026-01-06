@@ -138,16 +138,19 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
         const connect = async () => {
             try {
                 let r: Room;
+                // 3人麻雀と4人麻雀で別のルーム名を使用してマッチングを分離
+                const roomName = options?.minPlayers === 3 ? "mahjong3" : "mahjong";
+
                 if (mode === 'room') {
                     if (propRoomId) {
                         r = await client.joinById(propRoomId, { name: playerName, ...options });
                     } else {
                         // ルーム作成時はオプションを渡す（minPlayersなど）
-                        r = await client.create("mahjong", { name: playerName, isPrivate: true, ...options });
+                        r = await client.create(roomName, { name: playerName, isPrivate: true, ...options });
                     }
                 } else {
-                    // ランダムマッチ
-                    r = await client.joinOrCreate("mahjong", { name: playerName, ...options });
+                    // ランダムマッチ - 人数別に分離
+                    r = await client.joinOrCreate(roomName, { name: playerName, ...options });
                 }
 
                 setRoom(r);
@@ -410,9 +413,9 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                             <button
                                 className={styles.startBtn}
                                 onClick={handleStartGame}
-                                disabled={playerCount < (room?.state?.minPlayers || 3)}
+                                disabled={playerCount < 1}
                             >
-                                ゲーム開始
+                                {playerCount < 4 ? `CPUを入れて開始 (${playerCount}/4人)` : 'ゲーム開始'}
                             </button>
                         ) : (
                             <div className={styles.waitingText}>
@@ -437,6 +440,15 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                                 <button onClick={() => setShowYakuList(true)} className={styles.backButton} style={{ width: 'auto', padding: '0 10px', fontSize: '0.9rem' }}>
                                     <IconHelp size={18} /> 役一覧
                                 </button>
+                            </div>
+                            {/* ドラ表示（左上） */}
+                            <div className={styles.doraHeaderArea}>
+                                <span className={styles.doraLabel}>ドラ</span>
+                                <div className={styles.doraTiles}>
+                                    {doraIndicators.map((tile: any, i: number) => (
+                                        <TileComponent key={i} tile={tile} size="small" isDora={true} />
+                                    ))}
+                                </div>
                             </div>
                             <div className={styles.roundInfo}>
                                 {windDisplay[roundInfo.wind] || '東'}{roundInfo.number}局
@@ -550,7 +562,7 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                                             打牌
                                         </button>
                                     )}
-                                    <button className={styles.actionBtn} onClick={handleTsumo} disabled={!isMyTurn}>ツモ</button>
+                                    {/* ツモは現在未実装 - サーバー側でcanTsumo状態の同期が必要 */}
 
                                     {/* Action Buttons for Calling Phase */}
                                     {canCall && (
@@ -585,11 +597,6 @@ export default function ColyseusMahjongGame({ mode, roomId: propRoomId, userData
                     </>
                 )
             )}
-            {/* Mobile Fullscreen Toggle - Visible only via CSS on mobile */}
-            {/* Mobile Fullscreen Toggle - Visible only via CSS on mobile */}
-            <button className={styles.mobileFullscreenBtn} onClick={toggleFullScreen}>
-                📺 全画面
-            </button>
         </main>
     );
 }

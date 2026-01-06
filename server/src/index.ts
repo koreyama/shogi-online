@@ -67,7 +67,10 @@ import { BackgammonRoom } from "./rooms/BackgammonRoom";
 gameServer.define("backgammon", BackgammonRoom);
 
 import { MahjongRoom } from "./rooms/MahjongRoom";
+import { GoRoom } from "./rooms/GoRoom";
 gameServer.define("mahjong", MahjongRoom);
+gameServer.define("mahjong3", MahjongRoom); // 3人麻雀用
+gameServer.define("go", GoRoom);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);
