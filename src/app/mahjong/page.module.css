@@ -1209,3 +1209,36 @@
         backdrop-filter: blur(4px);
     }
 }
+
+/* Text-based Tile Styles */
+.tileContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    padding-bottom: 2px;
+}
+
+.tileMain {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+.tileSub {
+    font-size: 0.6rem;
+    font-weight: bold;
+    margin-top: -2px;
+}
+
+/* Specific adjustments */
+.tileSmall .tileMain {
+    font-size: 1.1rem;
+}
+
+.tileSmall .tileSub {
+    font-size: 0.5rem;
+}

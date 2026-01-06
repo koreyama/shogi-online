@@ -7,7 +7,8 @@ import { Room } from 'colyseus.js';
 import { IconHourglass, IconBack, IconUser, IconHelp } from '@/components/Icons';
 import { YakuListModal } from './YakuListModal';
 import { audioManager } from '@/lib/mahjong/audio';
-import { TILE_DISPLAY, Wind } from '@/lib/mahjong/types';
+import { TILE_DISPLAY, Wind, getTileVisual } from '@/lib/mahjong/types';
+import { TileGraphics } from './TileGraphics';
 import HideChatBot from '@/components/HideChatBot';
 
 interface ColyseusMahjongGameProps {
@@ -25,22 +26,15 @@ function TileComponent({ tile, isSelected, onClick, size = 'normal', isDora = fa
     size?: 'normal' | 'small';
     isDora?: boolean;
 }) {
-    const getKey = () => {
-        if (tile.suit === 'honor') {
-            const honorMap: Record<number, string> = { 1: 'east', 2: 'south', 3: 'west', 4: 'north', 5: 'white', 6: 'green', 7: 'red' };
-            return honorMap[tile.value] || '';
-        }
-        return `${tile.suit}${tile.value}`;
-    };
-    const display = TILE_DISPLAY[getKey()] || '🀫';
-
     return (
         <div
             className={`${styles.tile} ${isSelected ? styles.tileSelected : ''} ${size === 'small' ? styles.tileSmall : ''} ${isDora ? styles.tileDora : ''}`}
             onClick={onClick}
             style={{ cursor: onClick ? 'pointer' : 'default' }}
         >
-            {display}
+            <div className={styles.tileContent}>
+                <TileGraphics suit={tile.suit} value={tile.value} size={size} />
+            </div>
             {tile.isRed && <span className={styles.redDot} />}
         </div>
     );

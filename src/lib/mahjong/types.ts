@@ -134,3 +134,32 @@ export const HONOR_VALUES: Record<number, HonorType> = {
     1: 'east', 2: 'south', 3: 'west', 4: 'north',
     5: 'white', 6: 'green', 7: 'red'
 };
+
+// 互換性のあるタイル表示データ取得
+export function getTileVisual(suit: string, value: number): { text: string, sub?: string, color: string } {
+    if (suit === 'man') {
+        return { text: value.toString(), sub: '萬', color: '#b71c1c' }; // Red
+    }
+    if (suit === 'pin') {
+        // Use standard number + Circle implicit in design, or just text representation
+        return { text: value.toString(), sub: '筒', color: '#0d47a1' }; // Blue
+    }
+    if (suit === 'sou') {
+        if (value === 1) return { text: '鳥', color: '#1b5e20' }; // 1 Sou (Bird)
+        return { text: value.toString(), sub: '索', color: '#1b5e20' }; // Green
+    }
+    if (suit === 'honor') {
+        const map: Record<number, { t: string, c: string }> = {
+            1: { t: '東', c: '#000' },
+            2: { t: '南', c: '#000' },
+            3: { t: '西', c: '#000' },
+            4: { t: '北', c: '#000' },
+            5: { t: '白', c: '#000' }, // White dragon usually blank or blue frame, use Black for text
+            6: { t: '發', c: '#1b5e20' }, // Green Dragon
+            7: { t: '中', c: '#b71c1c' }  // Red Dragon
+        };
+        const h = map[value];
+        return { text: h?.t || '?', color: h?.c || '#000' };
+    }
+    return { text: '?', color: '#000' };
+}

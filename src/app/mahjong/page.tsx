@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { GameState, Tile, PlayerState, TILE_DISPLAY, Wind, WIND_ORDER } from '@/lib/mahjong/types';
+import { GameState, Tile, PlayerState, TILE_DISPLAY, Wind, WIND_ORDER, getTileVisual } from '@/lib/mahjong/types';
+import { TileGraphics } from './TileGraphics';
 import {
     createInitialGameState, performDraw, performDiscard,
     declareRiichi, executeTsumo, executeRon, passCall,
@@ -40,16 +41,17 @@ function TileComponent({
     size?: 'normal' | 'small';
     isDora?: boolean;
 }) {
-    const key = getTileKey(tile);
-    const display = TILE_DISPLAY[key] || '🀫';
-
     return (
         <div
             className={`${styles.tile} ${isSelected ? styles.tileSelected : ''} ${size === 'small' ? styles.tileSmall : ''} ${isDora ? styles.tileDora : ''}`}
             onClick={onClick}
             style={{ cursor: onClick ? 'pointer' : 'default' }}
         >
-            {isHidden ? '🀫' : display}
+            {isHidden ? '🀫' : (
+                <div className={styles.tileContent}>
+                    <TileGraphics suit={tile.suit} value={tile.value} size={size} />
+                </div>
+            )}
             {tile.isRed && <span className={styles.redDot} />}
         </div>
     );

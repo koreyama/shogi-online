@@ -862,7 +862,14 @@ export default function Home() {
             </Link>
             <Link href="/mahjong" style={{ textDecoration: 'none' }}>
               <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center', height: '100%' }}>
-                <div style={{ marginBottom: '0.3rem', fontSize: '1.75rem' }}>🀄</div>
+                <div style={{ marginBottom: '0.3rem', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '32px' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="4" width="14" height="16" rx="2" fill="white" stroke="#2d3748" />
+                    <path d="M12 8v8" stroke="#e53e3e" />
+                    <path d="M9 10h6" stroke="#e53e3e" />
+                    <rect x="7" y="6" width="10" height="12" rx="1" stroke="none" fill="#e53e3e" fillOpacity="0.1" />
+                  </svg>
+                </div>
                 <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#1a202c' }}>麻雀</div>
               </div>
             </Link>
