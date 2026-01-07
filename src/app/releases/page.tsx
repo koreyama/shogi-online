@@ -4,8 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { IconBack } from '@/components/Icons';
 
-export const runtime = 'edge';
-
 const RELEASES = [
     {
         version: '2.0.0',
