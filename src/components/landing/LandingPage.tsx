@@ -142,13 +142,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '1.25rem 2.5rem',
+                padding: 'clamp(0.75rem, 2vw, 1.25rem) clamp(1rem, 4vw, 2.5rem)',
                 background: 'rgba(255, 255, 255, 0.85)',
                 backdropFilter: 'blur(16px)',
                 borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
                 position: 'sticky',
                 top: 0,
-                zIndex: 100
+                zIndex: 100,
+                gap: 'clamp(0.5rem, 2vw, 1rem)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {/* Hamburger Menu Button */}
@@ -172,15 +173,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         <span style={{ width: '22px', height: '2px', background: '#1a202c', borderRadius: '1px' }} />
                     </motion.button>
 
-                    <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1a202c', letterSpacing: '-0.03em', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '32px', height: '32px', position: 'relative', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                    <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 800, color: '#1a202c', letterSpacing: '-0.03em', display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 12px)' }}>
+                        <div style={{ width: 'clamp(28px, 4vw, 36px)', height: 'clamp(28px, 4vw, 36px)', minWidth: '28px', flexShrink: 0, position: 'relative', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                             <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                         </div>
-                        Asobi Lounge
+                        <span style={{ whiteSpace: 'nowrap' }}>Asobi Lounge</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <Link href="/about" style={{ fontSize: '0.875rem', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1.5rem)', flexShrink: 0 }}>
+                    <Link href="/about" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
                         About
                     </Link>
                     <motion.button
@@ -188,8 +189,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         whileTap={{ scale: 0.95 }}
                         onClick={onLogin}
                         style={{
-                            padding: '0.625rem 1.75rem',
-                            fontSize: '0.875rem',
+                            padding: 'clamp(0.5rem, 1vw, 0.625rem) clamp(1rem, 2vw, 1.75rem)',
+                            fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)',
                             background: '#1a202c',
                             color: 'white',
                             border: 'none',
@@ -197,6 +198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             cursor: 'pointer',
                             fontWeight: 600,
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                            whiteSpace: 'nowrap'
                         }}
                     >
                         ログイン
@@ -328,8 +330,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </AnimatePresence>
 
             {/* Hero Section */}
+            {/* Hero Section */}
             <section style={{
-                padding: '8rem 2rem 5rem',
+                padding: 'clamp(4rem, 10vw, 8rem) 1rem clamp(3rem, 6vw, 5rem)',
                 maxWidth: '900px',
                 margin: '0 auto',
                 textAlign: 'center',
@@ -367,9 +370,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         }}>自由</span>にしよう。
                     </motion.h1>
 
-                    <motion.p variants={itemVariants} style={{ fontSize: '1.2rem', color: '#4a5568', lineHeight: 1.7, marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                        インストール一切不要。ブラウザを開けばそこがゲームセンター。<br />
-                        将棋も、カードも、パーティゲームも、全てここで。
+                    <motion.p variants={itemVariants} style={{ fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: '#4a5568', lineHeight: 1.7, marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem', padding: '0 0.5rem' }}>
+                        インストール一切不要。ブラウザを開けばそこがゲームセンター。将棋も、カードも、パーティゲームも、全てここで。
                     </motion.p>
 
                     <motion.div variants={itemVariants} style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -490,9 +492,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         <h2 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#2d3748', marginBottom: '1.5rem' }}>
                             Asobi Lounge の特徴
                         </h2>
-                        <p style={{ fontSize: '1.1rem', color: '#718096', maxWidth: '600px', margin: '0 auto' }}>
-                            ただのゲームサイトではありません。<br />
-                            快適に、そして長く遊べるための工夫があります。
+                        <p style={{ fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)', color: '#718096', maxWidth: '600px', margin: '0 auto', padding: '0 0.5rem' }}>
+                            ただのゲームサイトではありません。快適に、そして長く遊べるための工夫があります。
                         </p>
                     </motion.div>
 
@@ -508,8 +509,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             </div>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: '#2d3748' }}>クラウド同期</h3>
                             <p style={{ fontSize: '1rem', color: '#718096', lineHeight: 1.7 }}>
-                                通勤中にスマホで進めたゲームの続きを、帰宅後にPCの大画面で。<br />
-                                ログインするだけで、データは常に安全に同期されます。
+                                通勤中にスマホで進めたゲームの続きを、帰宅後にPCの大画面で。ログインするだけで、データは常に安全に同期されます。
                             </p>
                         </motion.div>
 
@@ -525,8 +525,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             </div>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: '#2d3748' }}>進化するライブラリ</h3>
                             <p style={{ fontSize: '1rem', color: '#718096', lineHeight: 1.7 }}>
-                                定番のボードゲームから、実験的なシミュレーションゲームまで。<br />
-                                毎月のように新しい遊びが追加され、飽きることがありません。
+                                定番のボードゲームから、実験的なシミュレーションゲームまで。毎月のように新しい遊びが追加され、飽きることがありません。
                             </p>
                         </motion.div>
 
@@ -542,8 +541,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             </div>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: '#2d3748' }}>マルチデバイス</h3>
                             <p style={{ fontSize: '1rem', color: '#718096', lineHeight: 1.7 }}>
-                                最新のブラウザ技術を駆使し、アプリのインストールなしで<br />
-                                ネイティブアプリのような快適な操作感を実現しています。
+                                最新のブラウザ技術を駆使し、アプリのインストールなしでネイティブアプリのような快適な操作感を実現しています。
                             </p>
                         </motion.div>
                     </div>
@@ -560,9 +558,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#2d3748', marginBottom: '1rem' }}>
                         私たちについて
                     </h2>
-                    <p style={{ color: '#718096', maxWidth: '600px', margin: '0 auto 2rem', fontSize: '1.05rem' }}>
-                        Asobi Loungeは、「遊びを、もっと自由に」をテーマに開発された<br />
-                        新しいゲームプラットフォームです。開発ストーリーをご覧ください。
+                    <p style={{ color: '#718096', maxWidth: '600px', margin: '0 auto 2rem', fontSize: 'clamp(0.95rem, 2.5vw, 1.05rem)', padding: '0 0.5rem' }}>
+                        Asobi Loungeは、「遊びを、もっと自由に」をテーマに開発された新しいゲームプラットフォームです。開発ストーリーをご覧ください。
                     </p>
                     <Link href="/about" style={{ textDecoration: 'none' }}>
                         <motion.button
@@ -596,12 +593,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ margin: "-50px" }}
                 >
-                    <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: 'clamp(1.8rem, 6vw, 2.5rem)', fontWeight: 900, marginBottom: '1.5rem', whiteSpace: 'nowrap' }}>
                         さあ、はじめよう。
                     </h2>
-                    <p style={{ color: '#cbd5e0', marginBottom: '3rem', fontSize: '1.1rem' }}>
-                        必要なのはGoogleアカウントだけ。<br />
-                        今すぐ無料で、すべてのゲームにアクセスできます。
+                    <p style={{ color: '#cbd5e0', marginBottom: '3rem', fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)', padding: '0 0.5rem' }}>
+                        必要なのはGoogleアカウントだけ。今すぐ無料で、すべてのゲームにアクセスできます。
                     </p>
                     <button
                         onClick={onLogin}
