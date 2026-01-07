@@ -12,8 +12,8 @@ import HideChatBot from '@/components/HideChatBot';
 import { createInitialState, executeMove, isValidMove } from '@/lib/chess/engine';
 import { getBestMove } from '@/lib/chess/ai';
 import { Coordinates } from '@/lib/chess/types';
-
 import { useAuth } from '@/hooks/useAuth';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 
 export default function ChessPage() {
     const router = useRouter();
@@ -166,6 +166,7 @@ export default function ChessPage() {
     if (joinMode === 'ai' && gameState) {
         return (
             <main className={styles.main}>
+                <FloatingShapes />
                 <HideChatBot />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
@@ -219,6 +220,7 @@ export default function ChessPage() {
     if (joinMode === 'colyseus_room') {
         return (
             <main className={styles.main}>
+                <FloatingShapes />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
                 <div className={styles.gameContainer}>
                     <h1 className={styles.title}>ルーム対戦</h1>
@@ -270,6 +272,7 @@ export default function ChessPage() {
     // MAIN MENU
     return (
         <main className={styles.main}>
+            <FloatingShapes />
             <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
             <div className={styles.gameContainer}>
                 <h1 className={styles.title}>チェス</h1>
