@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as Colyseus from 'colyseus.js';
 import styles from './page.module.css';
 import Connect4Board from '@/components/Connect4Board';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 import { Board, Player, Coordinates } from '@/lib/connect4/types';
 import { client } from '@/lib/colyseus';
 import { IconBack } from '@/components/Icons';
@@ -246,6 +247,15 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>戻る</button>
                     </div>
                 </div>
+            )}
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </div>
     );

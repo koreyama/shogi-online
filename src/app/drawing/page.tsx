@@ -13,6 +13,14 @@ const ColyseusDrawingGame = dynamic(() => import('./ColyseusDrawingGame'), {
     loading: () => <div className={styles.loading}>読み込み中...</div>
 });
 
+const DRAWING_THEME = {
+    '--theme-primary': '#7c3aed',
+    '--theme-secondary': '#6d28d9',
+    '--theme-tertiary': '#8b5cf6',
+    '--theme-bg-light': '#f5f3ff',
+    '--theme-text-title': 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%)',
+} as React.CSSProperties;
+
 export default function DrawingPage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
@@ -59,7 +67,7 @@ export default function DrawingPage() {
     }
 
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={DRAWING_THEME}>
             <div className={styles.header}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button onClick={() => router.push('/')} className={styles.backButton}>

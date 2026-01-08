@@ -109,6 +109,14 @@ function PlayerPanel({
 
 type ViewState = 'top' | 'random_select' | 'room_select' | 'ai_select';
 
+const MAHJONG_THEME = {
+    '--theme-primary': '#059669',
+    '--theme-secondary': '#047857',
+    '--theme-tertiary': '#10b981',
+    '--theme-bg-light': '#ecfdf5',
+    '--theme-text-title': 'linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%)',
+} as React.CSSProperties;
+
 export default function MahjongPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
@@ -142,21 +150,23 @@ export default function MahjongPage() {
     // トップ画面 & モード選択
     if (!gameMode) {
         return (
-            <main className={menuStyles.main}>
-                <div className={menuStyles.header}>
+            <main className={menuStyles.main} style={MAHJONG_THEME}>
+                <div className={menuStyles.header} style={{ position: 'relative', justifyContent: 'center' }}>
                     <button
                         onClick={() => view === 'top' ? router.push('/') : setView('top')}
                         className={menuStyles.backButton}
+                        style={{ position: 'absolute', left: 0 }}
                     >
                         <IconBack size={18} /> 戻る
                     </button>
-                    <h1 className={menuStyles.title}>🀄 四人麻雀</h1>
-                    <p className={menuStyles.subtitle}>
-                        {view === 'top' && 'モードを選択してください'}
-                        {view === 'random_select' && '対戦形式を選択'}
-                        {view === 'room_select' && 'ルーム作成・参加'}
-                        {view === 'ai_select' && 'CPU対戦設定'}
-                    </p>
+                    <div style={{ textAlign: 'center' }}>
+                        <h1 className={menuStyles.title}>麻雀</h1>
+                        <p className={menuStyles.subtitle}>
+                            {view === 'random_select' && '対戦形式を選択'}
+                            {view === 'room_select' && 'ルーム作成・参加'}
+                            {view === 'ai_select' && 'CPU対戦設定'}
+                        </p>
+                    </div>
                 </div>
 
                 {view === 'top' && (
@@ -667,7 +677,7 @@ function MahjongAiGame({ onBack }: { onBack: () => void }) {
     };
 
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={MAHJONG_THEME}>
             <HideChatBot />
             <CutInEffect text={cutInText} />
             {showYakuList && <YakuListModal onClose={() => setShowYakuList(false)} />}

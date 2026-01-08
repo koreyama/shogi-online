@@ -12,6 +12,14 @@ import { ColyseusDaifugoGame } from './ColyseusDaifugoGame';
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 import HideChatBot from '@/components/HideChatBot';
 
+const TRUMP_THEME = {
+    '--theme-primary': '#e11d48',
+    '--theme-secondary': '#be123c',
+    '--theme-tertiary': '#f43f5e',
+    '--theme-bg-light': '#fff1f2',
+    '--theme-text-title': 'linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%)',
+} as React.CSSProperties;
+
 export default function TrumpLobbyPage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
@@ -101,7 +109,7 @@ export default function TrumpLobbyPage() {
 
     // Lobby View
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={TRUMP_THEME}>
             <header className={styles.header}>
                 <button onClick={() => router.push('/')} className={styles.backButton}>
                     <IconBack size={20} /> ホームに戻る

@@ -72,5 +72,8 @@ gameServer.define("mahjong", MahjongRoom);
 gameServer.define("mahjong3", MahjongRoom); // 3人麻雀用
 gameServer.define("go", GoRoom);
 
+import { StatsRoom } from "./rooms/StatsRoom";
+gameServer.define("stats", StatsRoom);
+
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/components/Chat';
 import MancalaBoard from '@/components/MancalaBoard';
 import { GameState, Player, BoardState } from '@/lib/mancala/types';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 interface Props {
     mode: 'random' | 'room';
@@ -119,20 +120,7 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.main}>Loading...</div>;
 
-    if (status === 'waiting' || status === 'connecting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    <div className={styles.waitingAnimation}><IconHourglass size={64} color="#d69e2e" /></div>
-                    {mode !== 'random' && (
-                        <p>ルームID: <span className={styles.roomId}>{room.roomId}</span></p>
-                    )}
-                </div>
-            </main>
-        );
-    }
+
 
     return (
         <main className={styles.main}>
@@ -184,6 +172,16 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>戻る</button>
                     </div>
                 </div>
+            )}
+
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </main>
     );

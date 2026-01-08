@@ -6,6 +6,7 @@ import { client } from '@/lib/colyseus';
 import { Room } from 'colyseus.js';
 import { IconBack, IconCopy, IconCheck } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 type PlayerRole = 'P1' | 'P2';
 const ROWS = 6;
@@ -164,40 +165,9 @@ export default function ColyseusDotsAndBoxesGame({ playerName, playerId, onBack,
         </div>
     );
 
-    if (status === 'connecting' || !gameState) {
-        return (
-            <div className={styles.loader_container}>
-                {dissolvedModal}
-                <div className={styles.spinner}></div>
-                <p>サーバーに接続中...</p>
-            </div>
-        );
-    }
 
-    if (status === 'waiting') {
-        return (
-            <div className={styles.loader_container}>
-                {dissolvedModal}
-                <div className={styles.spinner}></div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#1f2937' }}>対戦相手を待っています...</h2>
-                {mode === 'room' && room && (
-                    <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>ルームIDを友達に教えてください</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
-                            <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#3b82f6', letterSpacing: '0.1em' }}>{room.roomId}</span>
-                            <button onClick={copyRoomId} style={{ background: 'white', border: '1px solid #cbd5e1', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer', position: 'relative' }}>
-                                {showCopyTooltip ? <IconCheck size={20} color="#22c55e" /> : <IconCopy size={20} color="#64748b" />}
-                                {showCopyTooltip && <span style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', background: '#333', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem' }}>コピーしました</span>}
-                            </button>
-                        </div>
-                    </div>
-                )}
-                <button onClick={onBack} className={styles.backButton} style={{ marginTop: '2rem' }}>キャンセル</button>
-            </div>
-        );
-    }
 
-    const { hLines, vLines, boxes, currentPlayer, winner, scores } = gameState;
+    const { hLines, vLines, boxes, currentPlayer, winner, scores } = gameState || { hLines: [], vLines: [], boxes: [], currentPlayer: 1, winner: 0, scores: { 1: 0, 2: 0 } };
     const isGameOver = status === 'finished';
     const isMyTurn = !isGameOver && ((myRole === 'P1' && currentPlayer === 1) || (myRole === 'P2' && currentPlayer === 2));
 
@@ -283,6 +253,19 @@ export default function ColyseusDotsAndBoxesGame({ playerName, playerId, onBack,
                     <p>点と点の間をクリックして線を引きます。四角形を完成させるとポイント獲得＆もう一度行動できます。</p>
                 </div>
             </div>
-        </div>
+
+
+            {/* Matching Screen Overlay */}
+            {
+                ((status === 'waiting' || status === 'connecting') || !gameState) && (
+                    <MatchingWaitingScreen
+                        status={status === 'waiting' ? 'waiting' : 'connecting'}
+                        mode={mode}
+                        roomId={room?.roomId}
+                        onCancel={onBack}
+                    />
+                )
+            }
+        </div >
     );
 }

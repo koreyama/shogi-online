@@ -7,6 +7,7 @@ import { Room } from 'colyseus.js';
 import { CATEGORIES, Category, calculateScore } from './scoring';
 import { IconHourglass, IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 const MAX_ROLLS = 3;
 
@@ -196,34 +197,18 @@ export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName
         );
     }
 
-    if (status === 'connecting' || !gameState) {
-        return (
-            <div className={styles.container}>
-                {dissolvedModal}
-                <div className={styles.waiting_overlay}>
-                    <div className={styles.spinner}></div>
-                    <p>サーバーに接続中...</p>
-                </div>
-            </div>
-        );
-    }
 
-    if (status === 'waiting') {
-        const displayRoomId = room?.roomId;
+
+
+    if (!gameState) {
         return (
             <div className={styles.container}>
-                {dissolvedModal}
-                <div className={styles.waiting_overlay}>
-                    <div className={styles.spinner}></div>
-                    <p>対戦相手を待っています...</p>
-                    {mode === 'room' && (
-                        <div className={styles.roomIdSection}>
-                            <p>ルームID: <span className={styles.roomIdText}>{displayRoomId}</span></p>
-                            <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>このIDを友達に伝えてください</p>
-                        </div>
-                    )}
-                </div>
-                <button onClick={onBack} className={styles.restart_btn} style={{ marginTop: '2rem' }}>戻る</button>
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={() => onBack ? onBack() : window.location.reload()}
+                />
             </div>
         );
     }
@@ -347,6 +332,16 @@ export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName
                     <button onClick={handleRestart} className={styles.restart_btn}>もう一度遊ぶ</button>
                     <button onClick={onBack} className={styles.restart_btn} style={{ background: '#666', marginTop: '0.5rem' }}>メニューに戻る</button>
                 </div>
+            )}
+
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={() => onBack ? onBack() : window.location.reload()}
+                />
             )}
         </div>
     );

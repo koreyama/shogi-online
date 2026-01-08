@@ -12,6 +12,14 @@ import HideChatBot from '@/components/HideChatBot';
 import { useAuth } from '@/hooks/useAuth';
 import ColyseusPolyominoGame from './ColyseusPolyominoGame';
 
+const POLYOMINO_THEME = {
+    '--theme-primary': '#d946ef',
+    '--theme-secondary': '#c026d3',
+    '--theme-tertiary': '#e879f9',
+    '--theme-bg-light': '#fdf4ff',
+    '--theme-text-title': 'linear-gradient(135deg, #c026d3 0%, #d946ef 50%, #e879f9 100%)',
+} as React.CSSProperties;
+
 export default function PolyominoPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
@@ -104,7 +112,7 @@ export default function PolyominoPage() {
 
     if (joinMode === 'ai') {
         return (
-            <main className={styles.main}>
+            <main className={styles.main} style={POLYOMINO_THEME}>
                 <HideChatBot />
                 <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={gameStyles.game_layout_wrapper}>
@@ -189,7 +197,7 @@ export default function PolyominoPage() {
     }
 
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={POLYOMINO_THEME}>
             <div className={styles.header}>
                 <button onClick={handleBackToTop} className={styles.backButton}>
                     <IconBack size={18} /> トップへ戻る

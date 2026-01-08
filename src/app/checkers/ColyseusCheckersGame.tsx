@@ -7,6 +7,7 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/components/Chat';
 import CheckersBoard from '@/components/CheckersBoard';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 import { getValidMoves } from '@/lib/checkers/engine';
 import { GameState as LocalGameState, Piece, Player, Board, Position } from '@/lib/checkers/types';
 
@@ -172,20 +173,7 @@ export default function ColyseusCheckersGame({ mode, roomId: targetRoomId }: Pro
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.main}>Loading...</div>;
 
-    if (status === 'waiting' || status === 'connecting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    <div className={styles.waitingAnimation}><IconHourglass size={64} color="#805ad5" /></div>
-                    {mode !== 'random' && (
-                        <p>ルームID: <span className={styles.roomId}>{room.roomId}</span></p>
-                    )}
-                </div>
-            </main>
-        );
-    }
+
 
     const localStateRef: LocalGameState = { board, turn, winner, history: [], mustJump, activePiece };
     const validMoves = getValidMoves(localStateRef, turn);
@@ -242,6 +230,16 @@ export default function ColyseusCheckersGame({ mode, roomId: targetRoomId }: Pro
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>戻る</button>
                     </div>
                 </div>
+            )}
+
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </main>
     );

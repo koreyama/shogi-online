@@ -15,6 +15,14 @@ import { Coordinates } from '@/lib/chess/types';
 import { useAuth } from '@/hooks/useAuth';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 
+const CHESS_THEME = {
+    '--theme-primary': '#4338ca',
+    '--theme-secondary': '#3730a3',
+    '--theme-tertiary': '#6366f1',
+    '--theme-bg-light': '#e0e7ff',
+    '--theme-text-title': 'linear-gradient(135deg, #3730a3 0%, #4338ca 50%, #6366f1 100%)',
+} as React.CSSProperties;
+
 export default function ChessPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
@@ -142,7 +150,7 @@ export default function ChessPage() {
 
     if (!savedName) {
         return (
-            <main className={styles.main}>
+            <main className={styles.main} style={CHESS_THEME}>
                 <div className={styles.setupContainer}>
                     <h1 className={styles.title}>チェス</h1>
                     <form onSubmit={handleNameSubmit} className={styles.setupForm}>
@@ -165,7 +173,7 @@ export default function ChessPage() {
 
     if (joinMode === 'ai' && gameState) {
         return (
-            <main className={styles.main}>
+            <main className={styles.main} style={CHESS_THEME}>
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
@@ -219,7 +227,7 @@ export default function ChessPage() {
     // --- MENU VIEWS ---
     if (joinMode === 'colyseus_room') {
         return (
-            <main className={styles.main}>
+            <main className={styles.main} style={CHESS_THEME}>
                 <FloatingShapes />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
                 <div className={styles.gameContainer}>
@@ -271,7 +279,7 @@ export default function ChessPage() {
 
     // MAIN MENU
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={CHESS_THEME}>
             <FloatingShapes />
             <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
             <div className={styles.gameContainer}>

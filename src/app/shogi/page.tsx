@@ -18,6 +18,8 @@ import { IconBack, IconDice, IconKey, IconRobot, IconHourglass, IconUndo } from 
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import ColyseusShogiGame from './ColyseusShogiGame';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 
 interface ChatMessage {
   id: string;
@@ -76,7 +78,7 @@ export default function ShogiPage() {
   // Player State
   const [playerName, setPlayerName] = useState('');
   const [opponentName, setOpponentName] = useState('');
-  const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | 'colyseus' | 'colyseus_random' | 'colyseus_room' | null>(null);
+  const [joinMode, setJoinMode] = useState<'random' | 'room' | 'ai' | 'colyseus' | 'colyseus_random' | 'colyseus_room' | 'playing_room' | null>(null);
   const [customRoomId, setCustomRoomId] = useState('');
 
   // Chat State
@@ -84,7 +86,7 @@ export default function ShogiPage() {
 
   const joinRoomCreate = async () => {
     setCustomRoomId(''); // Ensure empty
-    setJoinMode('colyseus_room');
+    setJoinMode('playing_room');
   };
 
   const joinRoomJoin = async () => {
@@ -92,7 +94,7 @@ export default function ShogiPage() {
       alert("ルームIDを入力してください");
       return;
     }
-    setJoinMode('colyseus_room');
+    setJoinMode('playing_room');
   };
 
   // Prevent hydration errors
@@ -294,7 +296,7 @@ export default function ShogiPage() {
   useEffect(() => {
     if (playerLoaded && savedName) {
       setPlayerName(savedName);
-      setStatus('initial');
+      setStatus('setup');
     }
   }, [playerLoaded, savedName]);
 
@@ -593,141 +595,71 @@ export default function ShogiPage() {
     return <ColyseusShogiGame mode="random" />;
   }
 
-  if (joinMode === 'colyseus_room') {
+  if (joinMode === 'playing_room') {
     return <ColyseusShogiGame mode="room" roomId={customRoomId || undefined} />;
   }
 
-  // Initial Screen - Join Mode Selection
-  if (status === 'initial') {
+
+  // Initial Screen (Mode Selection)
+  if (!joinMode && status === 'setup') {
+    const theme = {
+      '--theme-primary': '#d97706',
+      '--theme-secondary': '#b45309',
+      '--theme-tertiary': '#f59e0b',
+      '--theme-bg-light': '#fffbeb',
+      '--theme-text-title': 'linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%)',
+    } as React.CSSProperties;
+
     return (
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <button onClick={handleBackToTop} className={styles.backButton}>
+      <main className={navStyles.main} style={theme}>
+        <FloatingShapes />
+        <div className={navStyles.header}>
+          <button onClick={() => router.push('/')} className={navStyles.backButton}>
             <IconBack size={18} /> トップへ戻る
           </button>
         </div>
-        <div className={styles.gameContainer}>
-          <h1 className={styles.title}>Asobi Lounge</h1>
-          <p className={styles.welcomeText}>ようこそ、{playerName}さん!</p>
 
-          {!joinMode ? (
-            <div className={styles.modeSelection}>
-              <button onClick={joinRandomGame} className={styles.modeBtn}>
-                <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
-              </button>
+        <div className={navStyles.gameContainer}>
+          <h1 className={navStyles.title}>将棋</h1>
+          <p className={navStyles.subtitle}>Online Shogi</p>
 
-              <button onClick={() => setJoinMode('room')} className={styles.modeBtn}>
-                <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                <span className={styles.modeBtnDesc}>友達と対戦</span>
-              </button>
+          <div className={navStyles.modeSelection}>
+            <button onClick={joinRandomGame} className={navStyles.modeBtn}>
+              <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+              <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+              <span className={navStyles.modeBtnDesc}>世界中のプレイヤーと対戦</span>
+            </button>
 
-              <button onClick={startAIGame} className={styles.modeBtn}>
-                <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                <span className={styles.modeBtnTitle}>AI対戦</span>
-                <span className={styles.modeBtnDesc}>練習モード (Lv.1-3)</span>
-              </button>
+            <button onClick={() => setJoinMode('colyseus_room')} className={navStyles.modeBtn}>
+              <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+              <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+              <span className={navStyles.modeBtnDesc}>合言葉で友達と対戦</span>
+            </button>
 
-
-              {/* Beta Button Removed */}
-            </div>
-          ) : joinMode === 'random' ? (
-            <div className={styles.joinSection}>
-              <p className={styles.joinDesc}>ランダムな対戦相手とマッチングします</p>
-              <button onClick={joinRandomGame} className={styles.primaryBtn}>
-                対戦を始める
-              </button>
-              <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>
-                戻る
-              </button>
-            </div>
-          ) : (
-            <div className={styles.joinSection}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
-                {/* Create Section */}
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
-                  <button onClick={joinRoomCreate} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #e6b422 0%, #b8860b 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}>
-                    ルーム作成（ID自動発行）
-                  </button>
-                </div>
-
-                <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
-                  <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#121212', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
-                </div>
-
-                {/* Join Section */}
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <input
-                      type="text"
-                      value={customRoomId}
-                      onChange={(e) => setCustomRoomId(e.target.value)}
-                      placeholder="6桁のID"
-                      className={styles.input}
-                      maxLength={10}
-                      style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
-                      inputMode="numeric"
-                    />
-                    <button onClick={joinRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                      参加
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '3rem', fontSize: '0.9rem', opacity: 0.8 }}>
-                戻る
-              </button>
-            </div>
-          )}
+            <button onClick={startAIGame} className={navStyles.modeBtn}>
+              <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+              <span className={navStyles.modeBtnTitle}>AI対戦</span>
+              <span className={navStyles.modeBtnDesc}>コンピュータと練習</span>
+            </button>
+          </div>
         </div>
 
-        {showAILevelDialog && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <h2>AIレベル選択</h2>
-              <p style={{ fontSize: '1rem', marginBottom: '1rem' }}>対戦相手の強さを選んでください</p>
-              <div className={styles.levelButtons}>
-                <button onClick={() => confirmAIGame(1)} className={styles.levelBtn}>
-                  <span className={styles.levelTitle}>Lv.1 入門 (Beginner)</span>
-                  <span className={styles.levelDesc}>2手先を読み回避します。初心者向けです。</span>
-                </button>
-                <button onClick={() => confirmAIGame(2)} className={styles.levelBtn}>
-                  <span className={styles.levelTitle}>Lv.2 中級 (Intermediate)</span>
-                  <span className={styles.levelDesc}>3手先+静止探索。うっかりミスが減ります。</span>
-                </button>
-                <button onClick={() => confirmAIGame(3)} className={styles.levelBtn}>
-                  <span className={styles.levelTitle}>Lv.3 上級 (Advanced)</span>
-                  <span className={styles.levelDesc}>4手先+王の囲い評価。攻守のバランス重視。</span>
-                </button>
-              </div>
-              <div style={{ marginTop: '1rem' }}>
-                <button onClick={() => setShowAILevelDialog(false)} className={styles.secondaryBtn}>キャンセル</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Rules Section */}
+        <div className={navStyles.contentSection}>
+          <h2 className={navStyles.contentTitle}>将棋の奥深い世界へようこそ</h2>
 
-        {/* AdSense Content Section */}
-        <div className={styles.contentSection}>
-          <h2 className={styles.contentTitle}>将棋の奥深い世界へようこそ</h2>
-
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionIcon}>🏯</span>
-              <h3 className={styles.sectionTitle}>将棋の歴史と起源</h3>
+          <div className={navStyles.sectionBlock}>
+            <div className={navStyles.sectionHeader}>
+              <span className={navStyles.sectionIcon}>🏯</span>
+              <h3 className={navStyles.sectionTitle}>将棋の歴史と起源</h3>
             </div>
-            <p className={styles.textBlock}>
+            <p className={navStyles.textBlock}>
               将棋の起源は、古代インドの「チャトランガ」にあると言われています。これが西に伝わってチェスになり、東に伝わって中国のシャンチー、そして朝鮮半島のチャンギとなりました。
               日本に伝わったのは平安時代頃とされていますが、当時の将棋は現在とは少し異なっていました。
             </p>
-            <div className={styles.highlightBox}>
-              <span className={styles.highlightTitle}>日本独自の進化「持ち駒」</span>
-              <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+            <div className={navStyles.highlightBox}>
+              <span className={navStyles.highlightTitle}>日本独自の進化「持ち駒」</span>
+              <p className={navStyles.textBlock} style={{ marginBottom: 0 }}>
                 日本の将棋における最大の特徴は、<strong>「取った相手の駒を自分の駒として再利用できる（持ち駒）」</strong>というルールです。
                 このルールは世界中の将棋系ゲームの中でも日本将棋にしか存在しません。
                 一説には、戦国時代の「捕虜を殺さずに味方に引き入れる」という傭兵の考え方が反映されたとも言われています。
@@ -736,56 +668,94 @@ export default function ShogiPage() {
             </div>
           </div>
 
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionIcon}>📖</span>
-              <h3 className={styles.sectionTitle}>基本的な遊び方</h3>
+          <div className={navStyles.sectionBlock}>
+            <div className={navStyles.sectionHeader}>
+              <span className={navStyles.sectionIcon}>📖</span>
+              <h3 className={navStyles.sectionTitle}>基本的な遊び方</h3>
             </div>
-            <p className={styles.textBlock}>
+            <p className={navStyles.textBlock}>
               将棋は9×9の盤上で、8種類の駒を使って戦います。相手の「王将（玉将）」を捕まえる（詰ます）ことが最終目的です。
             </p>
-            <div className={styles.cardGrid}>
-              <div className={styles.infoCard}>
-                <span className={styles.cardTitle}>1. 勝利条件</span>
-                <p className={styles.cardText}>相手の王将を逃げられない状態（詰み）にするか、相手が投了（負けを認める）すると勝ちになります。</p>
+            <div className={navStyles.cardGrid}>
+              <div className={navStyles.infoCard}>
+                <span className={navStyles.cardTitle}>1. 勝利条件</span>
+                <p className={navStyles.cardText}>相手の王将を逃げられない状態（詰み）にするか、相手が投了（負けを認める）すると勝ちになります。</p>
               </div>
-              <div className={styles.infoCard}>
-                <span className={styles.cardTitle}>2. 手番</span>
-                <p className={styles.cardText}>先手（せんて）と後手（ごて）が交互に1手ずつ指します。パスはできません。</p>
+              <div className={navStyles.infoCard}>
+                <span className={navStyles.cardTitle}>2. 手番</span>
+                <p className={navStyles.cardText}>先手（せんて）と後手（ごて）が交互に1手ずつ指します。パスはできません。</p>
               </div>
-              <div className={styles.infoCard}>
-                <span className={styles.cardTitle}>3. 成り（なり）</span>
-                <p className={styles.cardText}>相手の陣地（3段目以内）に駒が進むと、裏返ってパワーアップできます（金将と王将以外）。</p>
+              <div className={navStyles.infoCard}>
+                <span className={navStyles.cardTitle}>3. 成り（なり）</span>
+                <p className={navStyles.cardText}>相手の陣地（3段目以内）に駒が進むと、裏返ってパワーアップできます（金将と王将以外）。</p>
               </div>
-              <div className={styles.infoCard}>
-                <span className={styles.cardTitle}>4. 打ち（うち）</span>
-                <p className={styles.cardText}>持ち駒は、盤上の空いている好きなマスに打つことができます（二歩などの禁じ手を除く）。</p>
+              <div className={navStyles.infoCard}>
+                <span className={navStyles.cardTitle}>4. 打ち（うち）</span>
+                <p className={navStyles.cardText}>持ち駒は、盤上の空いている好きなマスに打つことができます（二歩などの禁じ手を除く）。</p>
               </div>
             </div>
           </div>
+        </div>
+      </main>
+    );
+  }
 
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionIcon}>💡</span>
-              <h3 className={styles.sectionTitle}>知っておきたい将棋の格言</h3>
+
+
+  // Room Match Setup
+  if (joinMode === 'colyseus_room') {
+    return (
+      <main className={navStyles.main}>
+        <FloatingShapes />
+        <div className={navStyles.header}>
+          <button onClick={() => setJoinMode(null)} className={navStyles.backButton}>
+            <IconBack size={18} /> 戻る
+          </button>
+        </div>
+
+        <div className={navStyles.gameContainer}>
+          <h1 className={navStyles.title}>ルーム対戦</h1>
+          <p className={navStyles.subtitle}>友達と対戦します</p>
+
+          <div className={navStyles.joinSection}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
+                <button
+                  onClick={joinRoomCreate}
+                  className={navStyles.primaryBtn}
+                  style={{ width: '100%', background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', color: '#fff' }}
+                >
+                  ルーム作成（ID自動発行）
+                </button>
+              </div>
+
+              <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="IDを入力"
+                    value={customRoomId}
+                    onChange={(e) => setCustomRoomId(e.target.value)}
+                    className={navStyles.input}
+                    style={{ flex: 1, textAlign: 'center' }}
+                  />
+                  <button
+                    onClick={joinRoomJoin}
+                    className={navStyles.secondaryBtn}
+                    disabled={!playerName.trim() || !customRoomId.trim()}
+                    style={{ width: 'auto', padding: '0 1.5rem', whiteSpace: 'nowrap' }}
+                  >
+                    参加
+                  </button>
+                </div>
+              </div>
             </div>
-            <p className={styles.textBlock}>
-              将棋には、先人たちが経験から導き出した「格言」がたくさんあります。これらを覚えるだけで、棋力がぐっと上がります。
-            </p>
-            <ul className={styles.list}>
-              <li className={styles.listItem}>
-                <strong>「居玉（いぎょく）は避けよ」</strong><br />
-                王様が初期配置のままだと攻められやすいので、早めに「囲い」を作って守りましょう。
-              </li>
-              <li className={styles.listItem}>
-                <strong>「歩のない将棋は負け将棋」</strong><br />
-                一番弱い駒である「歩」ですが、攻めにも守りにも欠かせない重要な駒です。無駄に捨てないようにしましょう。
-              </li>
-              <li className={styles.listItem}>
-                <strong>「王手は追う手」</strong><br />
-                むやみに王手をかけると、かえって王様を安全な場所に逃がしてしまうことがあります。王手はここぞという時まで温存しましょう。
-              </li>
-            </ul>
           </div>
         </div>
       </main>
@@ -795,20 +765,25 @@ export default function ShogiPage() {
   // Waiting Screen
   if (status === 'waiting') {
     return (
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <button onClick={handleBackToTop} className={styles.backButton}>
+      <main className={navStyles.main}>
+        <FloatingShapes />
+        <div className={navStyles.header}>
+          <button onClick={handleBackToTop} className={navStyles.backButton}>
             <IconBack size={18} /> トップへ戻る
           </button>
         </div>
-        <div className={styles.gameContainer}>
-          <h1 className={styles.title}>待機中...</h1>
-          <div className={styles.waitingAnimation}><IconHourglass size={64} color="var(--color-primary)" /></div>
-          <p>対戦相手を探しています</p>
-          <div className={styles.roomInfo}>
-            <p className={styles.roomLabel}>ルームID</p>
-            <p className={styles.roomId}>{roomId}</p>
-            <p className={styles.roomHint}>このIDを友達に教えて参加してもらえます</p>
+        <div className={navStyles.gameContainer}>
+          <h1 className={navStyles.title}>待機中...</h1>
+          <div className={navStyles.waitingLayout}>
+            <div style={{ margin: '2rem 0', display: 'flex', justifyContent: 'center' }}>
+              <IconHourglass size={64} color="#3b82f6" />
+            </div>
+          </div>
+          <p style={{ color: '#6b7280', fontSize: '1.2rem' }}>対戦相手を探しています</p>
+          <div className={navStyles.waitingContainer}>
+            <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>ルームID (Room ID)</span>
+            <div className={navStyles.roomId}>{roomId}</div>
+            <span style={{ fontSize: '0.9rem', color: '#9ca3af' }}>このIDを友達に教えて参加してもらえます</span>
           </div>
         </div>
       </main>
@@ -827,12 +802,13 @@ export default function ShogiPage() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.header}>
-        <button onClick={handleBackToTop} className={styles.backButton}>
+      <FloatingShapes />
+      <div className={navStyles.header}>
+        <button onClick={handleBackToTop} className={navStyles.backButton}>
           <IconBack size={18} /> トップへ戻る
         </button>
         {status === 'playing' && (
-          <button onClick={handleUndo} className={styles.undoButton} title="待った">
+          <button onClick={handleUndo} className={styles.undoButton} title="待った" style={{ marginLeft: 'auto' }}>
             <IconUndo size={18} /> 待った
           </button>
         )}

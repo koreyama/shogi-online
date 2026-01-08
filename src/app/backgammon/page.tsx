@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { IconBack, IconDice, IconKey } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,53 +58,74 @@ export default function BackgammonPage() {
     };
 
     // Setup / Loading
-    if (!mounted || authLoading || !user || !isLoaded) return <div className={styles.main}>Loading...</div>;
+    if (!mounted || authLoading || !user || !isLoaded) return <div className={navStyles.main}>Loading...</div>;
 
     // Game Active
     if (joinMode === 'colyseus_room') {
-        return <><HideChatBot /><ColyseusBackgammonGame mode="room" roomId={customRoomId || undefined} playerName={playerName} /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusBackgammonGame mode="room" roomId={customRoomId || undefined} playerName={playerName} />
+            </main>
+        );
     }
     if (joinMode === 'colyseus_random') {
-        return <><HideChatBot /><ColyseusBackgammonGame mode="random" playerName={playerName} /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusBackgammonGame mode="random" playerName={playerName} />
+            </main>
+        );
     }
 
+    const theme = {
+        '--theme-primary': '#b91c1c',
+        '--theme-secondary': '#991b1b',
+        '--theme-tertiary': '#ef4444',
+        '--theme-bg-light': '#fef2f2',
+        '--theme-text-title': 'linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #ef4444 100%)',
+    } as React.CSSProperties;
+
     return (
-        <main className={styles.main}>
-            <div className={styles.header}>
-                <button onClick={handleBackToTop} className={styles.backButton}>
+        <main className={navStyles.main} style={theme}>
+            <FloatingShapes />
+            <div className={navStyles.header}>
+                <button onClick={handleBackToTop} className={navStyles.backButton}>
                     <IconBack size={18} /> トップへ戻る
                 </button>
             </div>
-            <div className={styles.gameContainer}>
-                <h1 className={styles.title}>Backgammon</h1>
-                <p className={styles.welcomeText}>ようこそ、{playerName}さん!</p>
+            <div className={navStyles.gameContainer}>
+                <h1 className={navStyles.title}>Backgammon</h1>
+                <p className={navStyles.welcomeText}>ようこそ、{playerName}さん!</p>
 
                 {!joinMode ? (
-                    <div className={styles.modeSelection}>
-                        <button onClick={joinRandomGame} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                    <div className={navStyles.modeSelection}>
+                        <button onClick={joinRandomGame} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
 
-                        <button onClick={() => setJoinMode('room')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('room')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
                     </div>
                 ) : (
-                    <div className={styles.joinSection}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                    <div className={navStyles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
-                                <button onClick={joinRoomCreate} className={styles.primaryBtn} style={{ width: '100%' }}>
+                                <button onClick={joinRoomCreate} className={navStyles.primaryBtn} style={{ width: '100%' }}>
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
 
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
-                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f7fafc', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
 
                             <div style={{ textAlign: 'center' }}>
@@ -114,44 +136,45 @@ export default function BackgammonPage() {
                                         value={customRoomId}
                                         onChange={(e) => setCustomRoomId(e.target.value)}
                                         placeholder="ルームID"
-                                        className={styles.input}
+                                        className={navStyles.input}
+                                        style={{ textAlign: 'center' }}
                                     />
-                                    <button onClick={joinRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem' }}>
+                                    <button onClick={joinRoomJoin} className={navStyles.secondaryBtn} style={{ width: 'auto', padding: '0 2rem' }}>
                                         参加
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>
+                        <button onClick={() => setJoinMode(null)} className={navStyles.secondaryBtn} style={{ marginTop: '2rem' }}>
                             戻る
                         </button>
                     </div>
                 )}
 
                 {/* Game Description */}
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>バックギャモンについて</h2>
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🎲</span>
-                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                <div className={navStyles.contentSection}>
+                    <h2 className={navStyles.contentTitle}>バックギャモンについて</h2>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🎲</span>
+                            <h3 className={navStyles.sectionTitle}>基本ルール</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             2つのサイコロを振って駒を進め、全ての駒を先にゴール（盤外へ出す）させた方が勝ちです。<br />
                             白は時計回り（24→1）、黒は反時計回り（1→24）に進みます（またはその逆、設定依存）。
                         </p>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>ヒット (Hit)</span>
-                                <p className={styles.cardText}>相手の駒が1つだけある場所（ブロット）に止まると、その駒はバー（中央）に飛ばされます。</p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>ヒット (Hit)</span>
+                                <p className={navStyles.cardText}>相手の駒が1つだけある場所（ブロット）に止まると、その駒はバー（中央）に飛ばされます。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>エンター (Enter)</span>
-                                <p className={styles.cardText}>飛ばされた駒は、サイコロの目で相手のインナーボードから再開しないと他の駒を動かせません。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>エンター (Enter)</span>
+                                <p className={navStyles.cardText}>飛ばされた駒は、サイコロの目で相手のインナーボードから再開しないと他の駒を動かせません。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>ベアオフ (Bear off)</span>
-                                <p className={styles.cardText}>全ての駒を自分のインナーボードに集めると、サイコロの目に従ってゴール（盤外）させることができます。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>ベアオフ (Bear off)</span>
+                                <p className={navStyles.cardText}>全ての駒を自分のインナーボードに集めると、サイコロの目に従ってゴール（盤外）させることができます。</p>
                             </div>
                         </div>
                     </div>

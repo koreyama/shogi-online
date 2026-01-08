@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
+import styles from './page.module.css'; // Keep for board specific styles if needed
 import SimpleShogiBoard from '@/components/SimpleShogiBoard';
 import { createInitialState, getValidMoves, move } from '@/lib/simple-shogi/engine';
 import { GameState, Player, PieceType } from '@/lib/simple-shogi/types';
@@ -125,21 +127,32 @@ export default function SimpleShogiPage() {
 
     // --- GAME VIEW: PREVIOUSLY ---
     if (joinMode === 'colyseus_random') {
-        return <ColyseusSimpleShogiGame mode="random" />;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <ColyseusSimpleShogiGame mode="random" />
+            </main>
+        );
     }
 
     // --- GAME VIEW: ROOM MATCH ---
     if (joinMode === 'colyseus_room') {
         const roomId = customRoomId.trim() || undefined; // If empty, create new room
-        return <ColyseusSimpleShogiGame mode="room" roomId={roomId} />;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <ColyseusSimpleShogiGame mode="room" roomId={roomId} />
+            </main>
+        );
     }
 
     // --- GAME VIEW: AI MATCH ---
     if (joinMode === 'ai' && gameState) {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.container}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>
                         <div className={styles.playersSection}>
@@ -197,54 +210,63 @@ export default function SimpleShogiPage() {
         setJoinMode('colyseus_room');
     };
 
+    const theme = {
+        '--theme-primary': '#d97706',
+        '--theme-secondary': '#b45309',
+        '--theme-tertiary': '#f59e0b',
+        '--theme-bg-light': '#fffbeb',
+        '--theme-text-title': 'linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%)',
+    } as React.CSSProperties;
+
     return (
-        <main className={styles.main}>
-            <div className={styles.header}>
-                <button onClick={handleBackToTop} className={styles.backButton}>
+        <main className={navStyles.main} style={theme}>
+            <FloatingShapes />
+            <div className={navStyles.header}>
+                <button onClick={handleBackToTop} className={navStyles.backButton}>
                     <IconBack size={18} /> トップへ戻る
                 </button>
             </div>
 
-            <div className={styles.gameContainer}>
-                <h1 className={styles.title}>ファンタジー将棋</h1>
-                <p className={styles.subtitle}>小さな盤面で熱い頭脳戦</p>
+            <div className={navStyles.gameContainer}>
+                <h1 className={navStyles.title}>ファンタジー将棋</h1>
+                <p className={navStyles.subtitle}>小さな盤面で熱い頭脳戦</p>
 
                 {/* Mode Selection (Side-by-Side) */}
                 {!joinMode && (
-                    <div className={styles.modeSelection}>
-                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                    <div className={navStyles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
 
-                        <button onClick={() => setJoinMode('room_menu')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('room_menu')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
 
-                        <button onClick={() => setJoinMode('ai')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>AI対戦</span>
-                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
+                        <button onClick={() => setJoinMode('ai')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>AI対戦</span>
+                            <span className={navStyles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>
                     </div>
                 )}
 
                 {/* Room Mode Selection (Create or Join) */}
                 {joinMode === 'room_menu' && (
-                    <div className={styles.joinSection}>
+                    <div className={navStyles.joinSection}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             {/* Create Section */}
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
-                                <button onClick={handleRoomCreate} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #e6b422 0%, #b8860b 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}>
+                                <button onClick={handleRoomCreate} className={navStyles.primaryBtn} style={{ width: '100%' }}>
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
 
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
                                 <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
 
@@ -253,66 +275,66 @@ export default function SimpleShogiPage() {
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <input
-                                        className={styles.input}
+                                        className={navStyles.input}
                                         placeholder="ルームID (6桁)"
                                         value={customRoomId}
                                         onChange={e => setCustomRoomId(e.target.value)}
                                         style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
                                     />
-                                    <button onClick={handleRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem', whiteSpace: 'nowrap' }}>
+                                    <button onClick={handleRoomJoin} className={navStyles.secondaryBtn} style={{ width: 'auto', padding: '0 2rem', whiteSpace: 'nowrap' }}>
                                         参加
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>
+                        <button onClick={() => setJoinMode(null)} className={navStyles.secondaryBtn} style={{ marginTop: '2rem' }}>
                             戻る
                         </button>
                     </div>
                 )}
 
                 {/* Content Section (SEO/Info) - Preserved */}
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>ファンタジー将棋の遊び方</h2>
+                <div className={navStyles.contentSection}>
+                    <h2 className={navStyles.contentTitle}>ファンタジー将棋の遊び方</h2>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🦁</span>
-                            <h3 className={styles.sectionTitle}>小さな盤面で熱い頭脳戦</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🦁</span>
+                            <h3 className={navStyles.sectionTitle}>小さな盤面で熱い頭脳戦</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             ファンタジー将棋は、3×4マスの小さな盤面で遊ぶ、将棋を簡略化したミニゲームです。
                             ルールは簡単ですが奥が深く、短時間で楽しめます。
                         </p>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>📏</span>
-                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>📏</span>
+                            <h3 className={navStyles.sectionTitle}>基本ルール</h3>
                         </div>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>1. 勝利条件</span>
-                                <p className={styles.cardText}>相手の「魔王（王）」を取るか（討伐）、自分の魔王が相手の陣地（一番奥の段）に入れば（侵略）勝ちです。</p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>1. 勝利条件</span>
+                                <p className={navStyles.cardText}>相手の「魔王（王）」を取るか（討伐）、自分の魔王が相手の陣地（一番奥の段）に入れば（侵略）勝ちです。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>2. 駒の動き</span>
-                                <p className={styles.cardText}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>2. 駒の動き</span>
+                                <p className={navStyles.cardText}>
                                     <strong>魔王 (King)</strong>：全方向に1マス<br />
                                     <strong>戦士 (Rook)</strong>：縦横に1マス<br />
                                     <strong>魔法使い (Bishop)</strong>：斜めに1マス<br />
                                     <strong>スライム (Pawn)</strong>：前に1マス
                                 </p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>3. 持ち駒</span>
-                                <p className={styles.cardText}>取った駒を自分の仲間に加え、空いているマスに召喚（打つ）できます。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>3. 持ち駒</span>
+                                <p className={navStyles.cardText}>取った駒を自分の仲間に加え、空いているマスに召喚（打つ）できます。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>4. 進化 (成り)</span>
-                                <p className={styles.cardText}>スライムが相手の陣地に入ると「勇者」に進化し、動きがパワーアップします。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>4. 進化 (成り)</span>
+                                <p className={navStyles.cardText}>スライムが相手の陣地に入ると「勇者」に進化し、動きがパワーアップします。</p>
                             </div>
                         </div>
                     </div>

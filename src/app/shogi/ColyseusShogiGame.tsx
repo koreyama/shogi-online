@@ -14,6 +14,8 @@ import HideChatBot from '@/components/HideChatBot';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import { soundManager } from '@/utils/sound';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
+
 
 // Type definitions for Colyseus State (must match Server Schema partially)
 interface ShogiSchema {
@@ -457,6 +459,15 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
                         <button onClick={() => window.location.reload()} className={styles.primaryBtn}>ホームへ戻る</button>
                     </div>
                 </div>
+            )}
+            {/* Matching Screen */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={() => window.location.reload()}
+                />
             )}
         </div>
     );

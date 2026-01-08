@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import { GoBoard } from './GoBoard';
 import { GoBoard as GoBoardType, StoneColor } from '@/lib/go/types';
 import { IconUser } from '@/components/Icons';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 interface ColyseusGoGameProps {
     mode: 'random' | 'room';
@@ -223,26 +224,7 @@ export default function ColyseusGoGame({ mode, roomId: propRoomId, userData }: C
         );
     }
 
-    if (status === 'connecting' || status === 'waiting') {
-        return (
-            <div className={styles.main}>
-                <div className={styles.loadingOverlay}>
-                    <div className={styles.loadingSpinner}></div>
-                    <p>{status === 'connecting' ? 'ルームに接続中...' : '対戦相手を待っています...'}</p>
-                    {/* Only show Room ID if not random mode */}
-                    {room && mode !== 'random' && <p className={styles.roomId}>ルームID: {room.roomId}</p>}
 
-                    <button
-                        className={styles.secondaryBtn}
-                        style={{ marginTop: '20px', padding: '10px 20px' }}
-                        onClick={handleCancelEvents}
-                    >
-                        キャンセル
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     const isMyTurn = board.currentColor === myColor;
 
@@ -308,6 +290,19 @@ export default function ColyseusGoGame({ mode, roomId: propRoomId, userData }: C
                     </div>
                 </div>
             )}
-        </div>
+
+
+            {/* Matching Screen Overlay */}
+            {
+                (status === 'waiting' || status === 'connecting') && (
+                    <MatchingWaitingScreen
+                        status={status}
+                        mode={mode}
+                        roomId={room?.roomId}
+                        onCancel={handleCancelEvents}
+                    />
+                )
+            }
+        </div >
     );
 }

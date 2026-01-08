@@ -9,7 +9,8 @@ import { GameState } from '@/lib/mancala/types';
 import { getBestMove } from '@/lib/mancala/ai';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import MancalaBoard from '@/components/MancalaBoard';
-import styles from '@/styles/GameMenu.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import ColyseusMancalaGame from './ColyseusMancalaGame';
 import HideChatBot from '@/components/HideChatBot';
 
@@ -20,6 +21,23 @@ export default function MancalaPage() {
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'ai' | 'room_menu' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
 
+    // Local state for AI match
+    const [gameState, setGameState] = useState<GameState>(createInitialState());
+
+    // AI Logic
+    useEffect(() => {
+        if (joinMode !== 'ai' || !gameState || gameState.turn !== 'second' || gameState.isGameOver) return;
+
+        const timer = setTimeout(() => {
+            const bestMove = getBestMove(gameState, 'second');
+            if (bestMove !== null) {
+                const newState = executeMove(gameState, bestMove);
+                setGameState(newState);
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [gameState, joinMode]);
+
     // Auth Guard
     useEffect(() => {
         if (!authLoading && !user) {
@@ -27,10 +45,7 @@ export default function MancalaPage() {
         }
     }, [authLoading, user, router]);
 
-    if (authLoading || !user || !isLoaded) return <div className={styles.main}>Loading...</div>;
-
-    // Local state for AI match
-    const [gameState, setGameState] = useState<GameState>(createInitialState());
+    if (authLoading || !user || !isLoaded) return <div className={navStyles.main}>Loading...</div>;
 
     const startAIGame = () => {
         setGameState(createInitialState());
@@ -47,20 +62,6 @@ export default function MancalaPage() {
         setJoinMode('colyseus_room');
     };
 
-    // AI Logic
-    useEffect(() => {
-        if (joinMode !== 'ai' || !gameState || gameState.turn !== 'second' || gameState.isGameOver) return;
-
-        const timer = setTimeout(() => {
-            const bestMove = getBestMove(gameState, 'second');
-            if (bestMove !== null) {
-                const newState = executeMove(gameState, bestMove);
-                setGameState(newState);
-            }
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, [gameState, joinMode]);
-
     const handlePitClick = (pitIndex: number) => {
         if (!gameState || gameState.turn !== 'first' || gameState.isGameOver) return;
 
@@ -73,32 +74,45 @@ export default function MancalaPage() {
     };
 
     if (joinMode === 'colyseus_random') {
-        return <><HideChatBot /><ColyseusMancalaGame mode="random" /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusMancalaGame mode="random" />
+            </main>
+        );
     }
     if (joinMode === 'colyseus_room') {
-        return <><HideChatBot /><ColyseusMancalaGame mode="room" roomId={customRoomId || undefined} /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusMancalaGame mode="room" roomId={customRoomId || undefined} />
+            </main>
+        );
     }
 
     if (joinMode === 'ai') {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={styles.gameLayout}>
-                    <div className={styles.leftPanel}>
-                        <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={navStyles.gameLayout}>
+                    <div className={navStyles.leftPanel}>
+                        <div className={navStyles.playersSection}>
+                            <div className={navStyles.playerInfo}>
                                 <p>AI</p>
                                 <p>Second (上)</p>
                             </div>
-                            <div className={styles.playerInfo}>
+                            <div className={navStyles.playerInfo}>
                                 <p>{playerName} (自分)</p>
                                 <p>First (下)</p>
                             </div>
                         </div>
                     </div>
-                    <div className={styles.centerPanel}>
-                        <div className={styles.turnIndicator}>
+                    <div className={navStyles.centerPanel}>
+                        <div className={navStyles.turnIndicator}>
                             {gameState.turn === 'first' ? 'Firstの番 (下)' : 'Secondの番 (上)'}
                             {gameState.turn === 'first' && ' (あなた)'}
                         </div>
@@ -113,12 +127,12 @@ export default function MancalaPage() {
                     </div>
                 </div>
                 {gameState.isGameOver && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modal}>
+                    <div className={navStyles.modalOverlay}>
+                        <div className={navStyles.modal}>
                             <h2>勝負あり！</h2>
                             <p>勝者: {gameState.winner === 'first' ? 'First' : gameState.winner === 'second' ? 'Second' : '引き分け'}</p>
-                            <button onClick={startAIGame} className={styles.primaryBtn}>再戦</button>
-                            <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn}>終了</button>
+                            <button onClick={startAIGame} className={navStyles.primaryBtn}>再戦</button>
+                            <button onClick={() => setJoinMode(null)} className={navStyles.secondaryBtn}>終了</button>
                         </div>
                     </div>
                 )}
@@ -126,103 +140,112 @@ export default function MancalaPage() {
         );
     }
 
+    const theme = {
+        '--theme-primary': '#c2410c',
+        '--theme-secondary': '#9a3412',
+        '--theme-tertiary': '#fb923c',
+        '--theme-bg-light': '#fff7ed',
+        '--theme-text-title': 'linear-gradient(135deg, #9a3412 0%, #c2410c 50%, #fb923c 100%)',
+    } as React.CSSProperties;
+
     return (
-        <main className={styles.main}>
-            <div className={styles.header}>
-                <button onClick={() => router.push('/')} className={styles.backButton}>
+        <main className={navStyles.main} style={theme}>
+            <FloatingShapes />
+            <div className={navStyles.header}>
+                <button onClick={() => router.push('/')} className={navStyles.backButton}>
                     <IconBack size={18} /> トップへ戻る
                 </button>
             </div>
-            <div className={styles.gameContainer}>
-                <h1 className={styles.title}>マンカラ</h1>
-                <p className={styles.subtitle}>最古のボードゲームで知略を競う</p>
+            <div className={navStyles.gameContainer}>
+                <h1 className={navStyles.title}>マンカラ</h1>
+                <p className={navStyles.subtitle}>最古のボードゲームで知略を競う</p>
 
                 {!joinMode && (
-                    <div className={styles.modeSelection}>
-                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                    <div className={navStyles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
-                        <button onClick={() => setJoinMode('room_menu')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('room_menu')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
-                        <button onClick={startAIGame} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>AI対戦</span>
-                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
+                        <button onClick={startAIGame} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>AI対戦</span>
+                            <span className={navStyles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>
                     </div>
                 )}
 
                 {joinMode === 'room_menu' && (
-                    <div className={styles.joinSection}>
+                    <div className={navStyles.joinSection}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
-                                <button onClick={handleRoomCreate} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #ECC94B 0%, #D69E2E 100%)', color: '#fff' }}>
+                                <button onClick={handleRoomCreate} className={navStyles.primaryBtn} style={{ width: '100%' }}>
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
                                 <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <input
-                                        className={styles.input}
+                                        className={navStyles.input}
                                         placeholder="ルームID (6桁)"
                                         value={customRoomId}
                                         onChange={e => setCustomRoomId(e.target.value)}
                                         style={{ flex: 1, textAlign: 'center' }}
                                     />
-                                    <button onClick={handleRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem' }}>参加</button>
+                                    <button onClick={handleRoomJoin} className={navStyles.secondaryBtn} style={{ width: 'auto', padding: '0 2rem' }}>参加</button>
                                 </div>
                             </div>
                         </div>
-                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>戻る</button>
+                        <button onClick={() => setJoinMode(null)} className={navStyles.secondaryBtn} style={{ marginTop: '2rem' }}>戻る</button>
                     </div>
                 )}
 
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>マンカラ（カラハ）の遊び方と歴史</h2>
+                <div className={navStyles.contentSection}>
+                    <h2 className={navStyles.contentTitle}>マンカラ（カラハ）の遊び方と歴史</h2>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🌍</span>
-                            <h3 className={styles.sectionTitle}>世界最古のゲーム「マンカラ」</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🌍</span>
+                            <h3 className={navStyles.sectionTitle}>世界最古のゲーム「マンカラ」</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             マンカラ（Mancala）は、紀元前から遊ばれている世界最古のボードゲームの一つです。
                             アフリカや中近東、東南アジアなど世界中で親しまれており、数百種類以上のルールが存在します。
                             このサイトでは、最もポピュラーなルールの一つである「ベーシック（カラハ）」を採用しています。
                         </p>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>💎</span>
-                            <h3 className={styles.sectionTitle}>基本ルール（カラハ）</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>💎</span>
+                            <h3 className={navStyles.sectionTitle}>基本ルール（カラハ）</h3>
                         </div>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>1. 種まき</span>
-                                <p className={styles.cardText}>自分のポケットから1つ選び、中の石をすべて取ります。反時計回りに隣の穴へ1つずつ入れていきます。</p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>1. 種まき</span>
+                                <p className={navStyles.cardText}>自分のポケットから1つ選び、中の石をすべて取ります。反時計回りに隣の穴へ1つずつ入れていきます。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>2. ゴール</span>
-                                <p className={styles.cardText}>右端の大きな穴が自分のゴール（ストア）です。ここにも石を入れますが、相手のストアは飛ばします。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>2. ゴール</span>
+                                <p className={navStyles.cardText}>右端の大きな穴が自分のゴール（ストア）です。ここにも石を入れますが、相手のストアは飛ばします。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>3. ぴったりゴール</span>
-                                <p className={styles.cardText}>最後の石が自分のストアに入ったら、もう一度自分の番になります（連続手番）。これが勝利の鍵です！</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>3. ぴったりゴール</span>
+                                <p className={navStyles.cardText}>最後の石が自分のストアに入ったら、もう一度自分の番になります（連続手番）。これが勝利の鍵です！</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>4. 横取り</span>
-                                <p className={styles.cardText}>最後の石が自分の空のポケットに入り、向かい側に相手の石があれば、それらをすべて獲得できます。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>4. 横取り</span>
+                                <p className={navStyles.cardText}>最後の石が自分の空のポケットに入り、向かい側に相手の石があれば、それらをすべて獲得できます。</p>
                             </div>
                         </div>
                     </div>

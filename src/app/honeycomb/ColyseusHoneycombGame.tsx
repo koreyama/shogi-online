@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/components/Chat';
 import { generateGrid, hexToPixel, getHexPoints, getHexKey } from '@/lib/honeycomb/engine';
 import { Hex, Player, HEX_SIZE } from '@/lib/honeycomb/types';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 interface Props {
     mode: 'random' | 'room';
@@ -157,20 +158,7 @@ export default function ColyseusHoneycombGame({ mode, roomId: targetRoomId }: Pr
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.main}>Loading...</div>;
 
-    if (status === 'waiting' || status === 'connecting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    <div className={styles.waitingAnimation}><IconHourglass size={64} color="#d69e2e" /></div>
-                    {mode !== 'random' && (
-                        <p>ルームID: <span className={styles.roomId}>{room.roomId}</span></p>
-                    )}
-                </div>
-            </main>
-        );
-    }
+
 
     return (
         <main className={styles.main}>
@@ -242,6 +230,15 @@ export default function ColyseusHoneycombGame({ mode, roomId: targetRoomId }: Pr
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>戻る</button>
                     </div>
                 </div>
+            )}
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </main>
     );

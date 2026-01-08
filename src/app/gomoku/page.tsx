@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
@@ -68,54 +69,67 @@ export default function GomokuPage() {
         }
     };
 
-    if (authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
+    if (authLoading || !user || !playerLoaded) return <div className={navStyles.main}>Loading...</div>;
 
     // --- GAME VIEW: RANDOM MATCH ---
     if (joinMode === 'colyseus_random') {
         return (
-            <>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
+                <div className={navStyles.header}>
+                    <button onClick={() => setJoinMode(null)} className={navStyles.backButton}>
+                        <IconBack size={18} /> 終了
+                    </button>
+                </div>
                 <ColyseusGomokuGame mode="random" userData={userData} />
-            </>
+            </main>
         );
     }
 
     // --- GAME VIEW: ROOM MATCH (Playing) ---
     if (joinMode === 'colyseus_room_active') {
         return (
-            <>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
+                <div className={navStyles.header}>
+                    <button onClick={() => setJoinMode(null)} className={navStyles.backButton}>
+                        <IconBack size={18} /> 終了
+                    </button>
+                </div>
                 <ColyseusGomokuGame mode="room" roomId={customRoomId || undefined} userData={userData} />
-            </>
+            </main>
         );
     }
 
     // --- GAME VIEW: AI MATCH ---
     if (joinMode === 'ai' && gameState) {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={styles.gameLayout}>
-                    <div className={styles.leftPanel}>
-                        <div className={styles.playersSection}>
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={navStyles.gameLayout}>
+                    <div className={navStyles.leftPanel}>
+                        <div className={navStyles.playersSection}>
                             {/* Opponent (AI - White) */}
-                            <div className={`${styles.playerCard} ${styles.white} ${gameState.turn === 'white' ? styles.playerCardActive : ''}`}>
-                                <div className={styles.playerName}>AI (相手)</div>
-                                <div className={styles.playerRole}>後手 (白)</div>
-                                {gameState.turn === 'white' && <div className={styles.turnBadge}>THINKING...</div>}
+                            <div className={`${navStyles.playerCard} ${navStyles.white} ${gameState.turn === 'white' ? navStyles.playerCardActive : ''}`}>
+                                <div className={navStyles.playerName}>AI (相手)</div>
+                                <div className={navStyles.playerRole}>後手 (白)</div>
+                                {gameState.turn === 'white' && <div className={navStyles.turnBadge}>THINKING...</div>}
                             </div>
 
                             {/* Self (Player - Black) */}
-                            <div className={`${styles.playerCard} ${styles.black} ${gameState.turn === 'black' ? styles.playerCardActive : ''}`}>
-                                <div className={styles.playerName}>{playerName}</div>
-                                <div className={styles.playerRole}>先手 (黒)</div>
-                                {gameState.turn === 'black' && <div className={styles.turnBadge}>YOUR TURN</div>}
+                            <div className={`${navStyles.playerCard} ${navStyles.black} ${gameState.turn === 'black' ? navStyles.playerCardActive : ''}`}>
+                                <div className={navStyles.playerName}>{playerName}</div>
+                                <div className={navStyles.playerRole}>先手 (黒)</div>
+                                {gameState.turn === 'black' && <div className={navStyles.turnBadge}>YOUR TURN</div>}
                             </div>
                         </div>
                     </div>
-                    <div className={styles.centerPanel}>
-                        <div className={`${styles.turnIndicator} ${gameState.turn === 'black' ? styles.turnBlack : styles.turnWhite}`}>
+                    <div className={navStyles.centerPanel}>
+                        <div className={`${navStyles.turnIndicator} ${gameState.turn === 'black' ? navStyles.turnBlack : navStyles.turnWhite}`}>
                             {gameState.turn === 'black' ? '黒の番 (あなた)' : '白の番 (AI)'}
                         </div>
                         <GomokuBoard
@@ -126,8 +140,8 @@ export default function GomokuPage() {
                     </div>
                 </div>
                 {aiStatus === 'finished' && (
-                    <div className={styles.modalOverlay}>
-                        <div className={`${styles.modal} fade-in`} style={{
+                    <div className={navStyles.modalOverlay}>
+                        <div className={`${navStyles.modal} fade-in`} style={{
                             borderTop: gameState.winner === 'black' ? '8px solid #4CAF50' :
                                 gameState.winner === 'white' ? '8px solid #f44336' : '8px solid #999',
                             textAlign: 'center',
@@ -150,19 +164,19 @@ export default function GomokuPage() {
                                 </>
                             )}
 
-                            <div className={styles.modalBtnGroup}>
+                            <div className={navStyles.modalBtnGroup}>
                                 <button
                                     onClick={() => {
                                         setGameState(createInitialState());
                                         setAiStatus('playing');
                                     }}
-                                    className={styles.primaryBtn}
+                                    className={navStyles.primaryBtn}
                                 >
                                     もう一度
                                 </button>
                                 <button
                                     onClick={() => setJoinMode(null)}
-                                    className={styles.secondaryBtn}
+                                    className={navStyles.secondaryBtn}
                                 >
                                     終了
                                 </button>
@@ -177,27 +191,28 @@ export default function GomokuPage() {
     // --- MENU VIEW: ROOM SELECTION ---
     if (joinMode === 'colyseus_room') {
         return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>ルーム対戦</h1>
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 戻る</button></div>
+                <div className={navStyles.gameContainer}>
+                    <h1 className={navStyles.title}>ルーム対戦</h1>
 
-                    <div className={styles.joinSection}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                    <div className={navStyles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             {/* Create Section */}
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
                                 <button
                                     onClick={() => { setCustomRoomId(''); setJoinMode('colyseus_room_active'); }}
-                                    className={styles.primaryBtn}
-                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}
+                                    className={navStyles.primaryBtn}
+                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)', color: '#fff' }}
                                 >
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
 
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
-                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f7fafc', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
 
                             {/* Join Section */}
@@ -209,14 +224,14 @@ export default function GomokuPage() {
                                         value={customRoomId}
                                         onChange={(e) => setCustomRoomId(e.target.value)}
                                         placeholder="6桁のID"
-                                        className={styles.input}
+                                        className={navStyles.input}
                                         maxLength={10}
                                         style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
                                         inputMode="numeric"
                                     />
                                     <button
                                         onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }}
-                                        className={styles.primaryBtn}
+                                        className={navStyles.secondaryBtn}
                                         style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}
                                         disabled={!customRoomId}
                                     >
@@ -232,65 +247,74 @@ export default function GomokuPage() {
     }
 
     // --- MAIN MENU VIEW ---
+    const theme = {
+        '--theme-primary': '#475569',
+        '--theme-secondary': '#1e293b',
+        '--theme-tertiary': '#64748b',
+        '--theme-bg-light': '#f8fafc',
+        '--theme-text-title': 'linear-gradient(135deg, #1e293b 0%, #475569 50%, #64748b 100%)',
+    } as React.CSSProperties;
+
     return (
-        <main className={styles.main}>
-            <div className={styles.header}><button onClick={() => router.push('/')} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+        <main className={navStyles.main} style={theme}>
+            <FloatingShapes />
+            <div className={navStyles.header}><button onClick={() => router.push('/')} className={navStyles.backButton}><IconBack size={18} /> 戻る</button></div>
 
-            <div className={styles.gameContainer}>
-                <h1 className={styles.title}>五目並べ</h1>
+            <div className={navStyles.gameContainer}>
+                <h1 className={navStyles.title}>五目並べ</h1>
 
-                <div className={styles.modeSelection}>
-                    <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                        <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                        <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                <div className={navStyles.modeSelection}>
+                    <button onClick={() => setJoinMode('colyseus_random')} className={navStyles.modeBtn}>
+                        <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                        <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                        <span className={navStyles.modeBtnDesc}>世界中のプレイヤーと対戦</span>
                     </button>
-                    <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
-                        <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                        <span className={styles.modeBtnDesc}>友達と対戦</span>
+                    <button onClick={() => setJoinMode('colyseus_room')} className={navStyles.modeBtn}>
+                        <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                        <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                        <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                     </button>
-                    <button onClick={() => setJoinMode('ai')} className={styles.modeBtn}>
-                        <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>AI対戦</span>
-                        <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
+                    <button onClick={() => setJoinMode('ai')} className={navStyles.modeBtn}>
+                        <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                        <span className={navStyles.modeBtnTitle}>AI対戦</span>
+                        <span className={navStyles.modeBtnDesc}>コンピュータと練習</span>
                     </button>
                 </div>
             </div>
 
             {/* Content Section */}
-            <div className={styles.contentSection}>
-                <h2 className={styles.contentTitle}>五目並べ（連珠）の世界</h2>
+            <div className={navStyles.contentSection}>
+                <h2 className={navStyles.contentTitle}>五目並べ（連珠）の世界</h2>
 
-                <div className={styles.sectionBlock}>
-                    <div className={styles.sectionHeader}>
-                        <span className={styles.sectionIcon}>⚫⚪</span>
-                        <h3 className={styles.sectionTitle}>五目並べとは</h3>
+                <div className={navStyles.sectionBlock}>
+                    <div className={navStyles.sectionHeader}>
+                        <span className={navStyles.sectionIcon}>⚫⚪</span>
+                        <h3 className={navStyles.sectionTitle}>五目並べとは</h3>
                     </div>
-                    <p className={styles.textBlock}>
+                    <p className={navStyles.textBlock}>
                         五目並べは、黒と白の石を交互に打ち、先に縦・横・斜めのいずれかに5つ連続で並べた方が勝ちとなるシンプルなゲームです。
                         日本では「連珠（れんじゅ）」として競技化されており、黒番の有利さを調整するための禁じ手ルールなどもありますが、
                         本サイトではシンプルに「5つ並べたら勝ち」というフリー・レンジュ（禁じ手なし）に近いルールを採用しています。
                     </p>
                 </div>
 
-                <div className={styles.sectionBlock}>
-                    <div className={styles.sectionHeader}>
-                        <span className={styles.sectionIcon}>🎓</span>
-                        <h3 className={styles.sectionTitle}>基本ルール</h3>
+                <div className={navStyles.sectionBlock}>
+                    <div className={navStyles.sectionHeader}>
+                        <span className={navStyles.sectionIcon}>🎓</span>
+                        <h3 className={navStyles.sectionTitle}>基本ルール</h3>
                     </div>
-                    <div className={styles.cardGrid}>
-                        <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>1. 対局開始</span>
-                            <p className={styles.cardText}>盤面は何もない状態からスタートします。黒が先手で、盤の交点に石を置きます。</p>
+                    <div className={navStyles.cardGrid}>
+                        <div className={navStyles.infoCard}>
+                            <span className={navStyles.cardTitle}>1. 対局開始</span>
+                            <p className={navStyles.cardText}>盤面は何もない状態からスタートします。黒が先手で、盤の交点に石を置きます。</p>
                         </div>
-                        <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>2. 交互に打つ</span>
-                            <p className={styles.cardText}>黒と白が交互に1手ずつ石を打ちます。一度置いた石は動かせません。</p>
+                        <div className={navStyles.infoCard}>
+                            <span className={navStyles.cardTitle}>2. 交互に打つ</span>
+                            <p className={navStyles.cardText}>黒と白が交互に1手ずつ石を打ちます。一度置いた石は動かせません。</p>
                         </div>
-                        <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>3. 勝利条件</span>
-                            <p className={styles.cardText}>先に縦・横・斜めのいずれかに、自分の石を「5つ以上」連続で並べたプレイヤーが勝利となります。</p>
+                        <div className={navStyles.infoCard}>
+                            <span className={navStyles.cardTitle}>3. 勝利条件</span>
+                            <p className={navStyles.cardText}>先に縦・横・斜めのいずれかに、自分の石を「5つ以上」連続で並べたプレイヤーが勝利となります。</p>
                         </div>
                     </div>
                 </div>

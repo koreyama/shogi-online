@@ -13,6 +13,15 @@ import { submitScore, getRankings, ScoreEntry } from '@/lib/minesweeper/ranking'
 import { usePlayer } from '@/hooks/usePlayer';
 import { ColyseusMinesweeperGame } from './ColyseusMinesweeperGame';
 import HideChatBot from '@/components/HideChatBot';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
+
+const MINESWEEPER_THEME = {
+    '--theme-primary': '#475569',
+    '--theme-secondary': '#334155',
+    '--theme-tertiary': '#64748b',
+    '--theme-bg-light': '#f8fafc',
+    '--theme-text-title': 'linear-gradient(135deg, #334155 0%, #475569 50%, #64748b 100%)',
+} as React.CSSProperties;
 
 export default function MinesweeperPage() {
     const router = useRouter();
@@ -42,6 +51,7 @@ export default function MinesweeperPage() {
 
     // Navigation State
     const [status, setStatus] = useState<'setup' | 'menu' | 'playing' | 'multiplayer'>('setup');
+    const [menuView, setMenuView] = useState<'top' | 'room_select'>('top');
     const [joinRoomId, setJoinRoomId] = useState('');
     const [multiplayerOptions, setMultiplayerOptions] = useState<any>(null);
 
@@ -115,7 +125,7 @@ export default function MinesweeperPage() {
     if (authLoading || !user) return <div className={styles.main}>Loading...</div>;
     if (status === 'setup') {
         return (
-            <main className={styles.main}>
+            <main className={styles.main} style={MINESWEEPER_THEME}>
                 <div className={styles.setupContainer}>
                     <h1 className={styles.title}>マインスイーパー</h1>
                     <form onSubmit={(e: any) => { e.preventDefault(); savePlayerName(e.target.playerName.value); }} className={styles.setupForm}>
@@ -146,52 +156,110 @@ export default function MinesweeperPage() {
     // Render Menu
     if (status === 'menu') {
         return (
-            <main className={styles.main}>
-                <div className={styles.header}>
-                    <button onClick={() => router.push('/')} className={styles.backButton}><IconBack size={18} /> 戻る</button>
-                </div>
-                <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>マインスイーパー</h1>
-
-                    <h2 className={styles.subtitle} style={{ marginTop: '1rem' }}>難易度選択</h2>
-                    <div className={gameStyles.controls} style={{ justifyContent: 'center' }}>
-                        {Object.values(DIFFICULTIES).map((diff) => (
-                            <button
-                                key={diff.name}
-                                className={`${gameStyles.difficultyBtn} ${difficulty.name === diff.name ? gameStyles.active : ''}`}
-                                onClick={() => setDifficulty(diff)}
-                            >
-                                {diff.name}
-                            </button>
-                        ))}
+            <main className={styles.main} style={MINESWEEPER_THEME}>
+                <FloatingShapes />
+                <div className={styles.header} style={{ position: 'relative', justifyContent: 'center' }}>
+                    <button
+                        onClick={() => menuView === 'top' ? router.push('/') : setMenuView('top')}
+                        className={styles.backButton}
+                        style={{ position: 'absolute', left: 0 }}
+                    >
+                        <IconBack size={18} /> 戻る
+                    </button>
+                    <div style={{ textAlign: 'center' }}>
+                        <h1 className={styles.title}>マインスイーパー</h1>
+                        <p className={styles.subtitle}>
+                            {menuView === 'room_select' ? 'ルーム作成・参加' : '難易度を選択してモードを開始'}
+                        </p>
                     </div>
+                </div>
 
-                    <div className={styles.modeSelection}>
-                        <button onClick={startSinglePlayer} className={styles.modeBtn}>
-                            <IconUser size={48} color="#2e7d32" /><span className={styles.modeBtnTitle}>シングルプレイ</span>
-                            <span className={styles.modeBtnDesc}>ランキング対応</span>
-                        </button>
+                <div className={styles.gameContainer}>
+                    {menuView === 'top' && (
+                        <>
+                            <h2 className={styles.subtitle} style={{ marginTop: '0', marginBottom: '1rem' }}>難易度選択</h2>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2.5rem', background: 'white', padding: '0.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                                {Object.values(DIFFICULTIES).map((diff) => (
+                                    <button
+                                        key={diff.name}
+                                        className={styles.secondaryBtn}
+                                        style={{
+                                            background: difficulty.name === diff.name ? 'var(--theme-primary)' : 'transparent',
+                                            color: difficulty.name === diff.name ? 'white' : 'var(--theme-secondary)',
+                                            border: 'none',
+                                            boxShadow: difficulty.name === diff.name ? '0 4px 6px rgba(0,0,0,0.1)' : 'none',
+                                            minWidth: '80px'
+                                        }}
+                                        onClick={() => setDifficulty(diff)}
+                                    >
+                                        {diff.name}
+                                    </button>
+                                ))}
+                            </div>
 
-                        <button onClick={startMultiplayerRandom} className={styles.modeBtn}>
-                            <IconDice size={48} color="#d97706" /><span className={styles.modeBtnTitle}>ランダム対戦</span>
-                            <span className={styles.modeBtnDesc}>早解き勝負</span>
-                        </button>
+                            <div className={styles.modeSelection}>
+                                <button onClick={startSinglePlayer} className={styles.modeBtn}>
+                                    <div className={styles.modeBtnIcon}>
+                                        <IconUser size={48} />
+                                    </div>
+                                    <span className={styles.modeBtnTitle}>シングルプレイ</span>
+                                    <span className={styles.modeBtnDesc}>ランキング対応</span>
+                                </button>
 
+                                <button onClick={startMultiplayerRandom} className={styles.modeBtn}>
+                                    <div className={styles.modeBtnIcon}>
+                                        <IconDice size={48} />
+                                    </div>
+                                    <span className={styles.modeBtnTitle}>ランダム対戦</span>
+                                    <span className={styles.modeBtnDesc}>早解き勝負</span>
+                                </button>
+
+                                <button onClick={() => setMenuView('room_select')} className={styles.modeBtn}>
+                                    <div className={styles.modeBtnIcon}>
+                                        <IconKey size={48} />
+                                    </div>
+                                    <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                                    <span className={styles.modeBtnDesc}>友達と対戦</span>
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {menuView === 'room_select' && (
                         <div className={styles.joinSection}>
-                            <h3 className={styles.joinDesc}>ルーム対戦</h3>
-                            <input
-                                type="text"
-                                value={joinRoomId}
-                                onChange={e => setJoinRoomId(e.target.value)}
-                                placeholder="ルームID"
-                                className={styles.input}
-                            />
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                                <button onClick={startMultiplayerJoin} className={styles.primaryBtn} style={{ flex: 1 }}>参加</button>
-                                <button onClick={startMultiplayerCreate} className={styles.secondaryBtn} style={{ flex: 1 }}>作成</button>
+                            <h2 className={styles.sectionTitle} style={{ marginBottom: '0.5rem' }}>ルームに参加・作成</h2>
+                            <p className={styles.joinDesc} style={{ marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                                選択中の難易度: <strong>{difficulty.name}</strong>
+                            </p>
+
+                            <div style={{ width: '100%', marginBottom: '1.5rem' }}>
+                                <p className={styles.joinDesc} style={{ textAlign: 'left', fontSize: '0.9rem', marginBottom: '0.5rem' }}>IDを入力して参加</p>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="ルームID"
+                                        value={joinRoomId}
+                                        onChange={(e) => setJoinRoomId(e.target.value)}
+                                        className={styles.input}
+                                    />
+                                    <button
+                                        className={styles.primaryBtn}
+                                        style={{ width: 'auto' }}
+                                        onClick={startMultiplayerJoin}
+                                    >
+                                        参加
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ width: '100%', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
+                                <p className={styles.joinDesc} style={{ marginBottom: '0.5rem' }}>または新しく作成</p>
+                                <button className={styles.primaryBtn} onClick={startMultiplayerCreate}>
+                                    この難易度で部屋を作成
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </main>
         );
@@ -199,7 +267,7 @@ export default function MinesweeperPage() {
 
     // Render Single Player Game
     return (
-        <main className={styles.main}>
+        <main className={styles.main} style={MINESWEEPER_THEME}>
             <HideChatBot />
             <div className={styles.header}>
                 <button onClick={() => setStatus('menu')} className={styles.backButton}><IconBack size={18} /> 戻る</button>

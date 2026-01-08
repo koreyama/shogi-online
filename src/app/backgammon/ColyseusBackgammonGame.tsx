@@ -8,6 +8,7 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { IconHourglass, IconBack } from '@/components/Icons'; // Assuming IconBack exists or use text
 
 // ... imports
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 // Types (simplified from Schema)
 interface Point {
@@ -133,27 +134,7 @@ export default function ColyseusBackgammonGame({ mode, roomId: initialRoomId, pl
 
     if (status === 'connecting') return <div className={styles.main}>Connecting...</div>;
 
-    if (status === 'waiting') {
-        // Check if we are actually waiting or just only me
-        // If both IDs exist, we are playing
-        if (gameState && gameState.whitePlayerId && gameState.blackPlayerId) {
-            // Should have switched to playing in onStateChange, but just in case
-        } else {
-            return (
-                <main className={styles.main}>
-                    <div className={styles.gameContainer}>
-                        <h1 className={styles.title}>Waiting...</h1>
-                        <div className={styles.waitingAnimation}><IconHourglass size={64} color="var(--color-primary)" /></div>
-                        <div className={styles.roomInfo}>
-                            <p className={styles.roomLabel}>ルームID</p>
-                            <p className={styles.roomId}>{actualRoomId}</p>
-                            <p className={styles.roomHint}>友達にこのIDを伝えてください</p>
-                        </div>
-                    </div>
-                </main>
-            );
-        }
-    }
+
 
 
 
@@ -200,13 +181,15 @@ export default function ColyseusBackgammonGame({ mode, roomId: initialRoomId, pl
                     )}
                 </div>
 
-                <BackgammonBoard
-                    gameState={gameState!}
-                    myColor={myColor}
-                    onRoll={handleRollResponse}
-                    onMove={handleMoveResponse}
-                    onPass={handlePassResponse}
-                />
+                {gameState && (
+                    <BackgammonBoard
+                        gameState={gameState}
+                        myColor={myColor}
+                        onRoll={handleRollResponse}
+                        onMove={handleMoveResponse}
+                        onPass={handlePassResponse}
+                    />
+                )}
 
                 <div className={styles.roomInfo} style={{ marginTop: '1rem', padding: '1rem', width: '100%' }}>
                     <div style={{ marginBottom: '1rem', textAlign: 'center' }}>Room ID: <strong>{actualRoomId}</strong></div>
@@ -249,6 +232,18 @@ export default function ColyseusBackgammonGame({ mode, roomId: initialRoomId, pl
                     </div>
                 </div>
             </div>
-        </main>
+
+            {/* Matching Screen Overlay */}
+            {
+                (status === 'waiting' || status === 'connecting') && (
+                    <MatchingWaitingScreen
+                        status={status}
+                        mode={mode}
+                        roomId={actualRoomId || room?.roomId}
+                        onCancel={() => window.location.reload()}
+                    />
+                )
+            }
+        </main >
     );
 }

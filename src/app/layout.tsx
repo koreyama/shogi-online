@@ -104,7 +104,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-      </body>
-    </html>
+      </body >
+    </html >
   );
 }

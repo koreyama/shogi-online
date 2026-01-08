@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
+import styles from './page.module.css'; // Keep for game-specific styles if needed, or remove if fully replaced. Keeping for hex grid specific styles.
 import { Chat } from '@/components/Chat';
 import { db } from '@/lib/firebase';
 import { ref, set, push, onValue, update, get, onChildAdded, onDisconnect, off } from 'firebase/database';
@@ -207,19 +209,33 @@ export default function HoneycombPage() {
 
     // --- GAME VIEW: RANDOM / ROOM ---
     if (joinMode === 'colyseus_random') {
-        return <><HideChatBot /><ColyseusHoneycombGame mode="random" /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusHoneycombGame mode="random" />
+            </main>
+        );
     }
     if (joinMode === 'colyseus_room') {
         const roomId = customRoomId.trim() || undefined;
-        return <><HideChatBot /><ColyseusHoneycombGame mode="room" roomId={roomId} /></>;
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <ColyseusHoneycombGame mode="room" roomId={roomId} />
+            </main>
+        );
     }
 
     // --- GAME VIEW: AI MATCH ---
     if (joinMode === 'ai') {
         return (
-            <main className={styles.main}>
+
+            <main className={navStyles.container}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={navStyles.header}><button onClick={handleBackToTop} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>
                         <div className={styles.playersSection}>
@@ -291,54 +307,63 @@ export default function HoneycombPage() {
         setJoinMode('colyseus_room');
     };
 
+    const theme = {
+        '--theme-primary': '#eab308',
+        '--theme-secondary': '#ca8a04',
+        '--theme-tertiary': '#facc15',
+        '--theme-bg-light': '#fefce8',
+        '--theme-text-title': 'linear-gradient(135deg, #ca8a04 0%, #eab308 50%, #facc15 100%)',
+    } as React.CSSProperties;
+
     return (
-        <main className={styles.main}>
-            <div className={styles.header}>
-                <button onClick={() => router.push('/')} className={styles.backButton}>
+        <main className={navStyles.main} style={theme}>
+            <FloatingShapes />
+            <div className={navStyles.header}>
+                <button onClick={() => router.push('/')} className={navStyles.backButton}>
                     <IconBack size={18} /> トップへ戻る
                 </button>
             </div>
 
-            <div className={styles.gameContainer}>
-                <h1 className={styles.title}>蜂の陣</h1>
-                <p className={styles.subtitle}>六角形の盤面で繰り広げる陣取り合戦</p>
+            <div className={navStyles.gameContainer}>
+                <h1 className={navStyles.title}>蜂の陣</h1>
+                <p className={navStyles.subtitle}>六角形の盤面で繰り広げる陣取り合戦</p>
 
                 {/* Mode Selection (Side-by-Side) */}
                 {!joinMode && (
-                    <div className={styles.modeSelection}>
-                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                    <div className={navStyles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
 
-                        <button onClick={() => setJoinMode('room_menu')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('room_menu')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
 
-                        <button onClick={startAIGame} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>AI対戦</span>
-                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
+                        <button onClick={startAIGame} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>AI対戦</span>
+                            <span className={navStyles.modeBtnDesc}>練習モード (オフライン)</span>
                         </button>
                     </div>
                 )}
 
                 {/* Room Mode Selection (Create or Join) */}
                 {joinMode === 'room_menu' && (
-                    <div className={styles.joinSection}>
+                    <div className={navStyles.joinSection}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             {/* Create Section */}
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
-                                <button onClick={handleRoomCreate} className={styles.primaryBtn} style={{ width: '100%', background: 'linear-gradient(135deg, #e6b422 0%, #b8860b 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}>
+                                <button onClick={handleRoomCreate} className={navStyles.primaryBtn} style={{ width: '100%' }}>
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
 
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
                                 <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
 
@@ -347,83 +372,83 @@ export default function HoneycombPage() {
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>友達の部屋に参加</p>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <input
-                                        className={styles.input}
+                                        className={navStyles.input}
                                         placeholder="ルームID (6桁)"
                                         value={customRoomId}
                                         onChange={e => setCustomRoomId(e.target.value)}
                                         style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
                                     />
-                                    <button onClick={handleRoomJoin} className={styles.primaryBtn} style={{ width: 'auto', padding: '0 2rem', whiteSpace: 'nowrap' }}>
+                                    <button onClick={handleRoomJoin} className={navStyles.secondaryBtn} style={{ width: 'auto', padding: '0 2rem', whiteSpace: 'nowrap' }}>
                                         参加
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <button onClick={() => setJoinMode(null)} className={styles.secondaryBtn} style={{ marginTop: '2rem' }}>
+                        <button onClick={() => setJoinMode(null)} className={navStyles.secondaryBtn} style={{ marginTop: '2rem' }}>
                             戻る
                         </button>
                     </div>
                 )}
 
                 {/* Content Section (SEO/Info) */}
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>蜂の陣（Honeycomb）の遊び方</h2>
+                <div className={navStyles.contentSection}>
+                    <h2 className={navStyles.contentTitle}>蜂の陣（Honeycomb）の遊び方</h2>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🐝</span>
-                            <h3 className={styles.sectionTitle}>六角形の盤面で繰り広げる陣取り合戦</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🐝</span>
+                            <h3 className={navStyles.sectionTitle}>六角形の盤面で繰り広げる陣取り合戦</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             蜂の陣は、六角形（ヘキサゴン）のマス目で構成された盤面で行う、戦略的なボードゲームです。
                             交互に自分の色を置いていき、特定の条件を満たすことを目指します。
                             シンプルながらも奥深い、幾何学的な思考が試されるゲームです。
                         </p>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>📏</span>
-                            <h3 className={styles.sectionTitle}>基本ルール</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>📏</span>
+                            <h3 className={navStyles.sectionTitle}>基本ルール</h3>
                         </div>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>1. 勝利条件</span>
-                                <p className={styles.cardText}>自分の色のマスを「一直線に4つ」並べると勝ちです。縦、斜めのどの方向でもOKです。</p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>1. 勝利条件</span>
+                                <p className={navStyles.cardText}>自分の色のマスを「一直線に4つ」並べると勝ちです。縦、斜めのどの方向でもOKです。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>2. 敗北条件</span>
-                                <p className={styles.cardText}>自分の色のマスを「一直線に3つ」並べてしまうと、その時点で負けになります（三目並べ禁止）。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>2. 敗北条件</span>
+                                <p className={navStyles.cardText}>自分の色のマスを「一直線に3つ」並べてしまうと、その時点で負けになります（三目並べ禁止）。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>3. 手番</span>
-                                <p className={styles.cardText}>青（先攻）と赤（後攻）が交互に、空いているマスに自分の色を置いていきます。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>3. 手番</span>
+                                <p className={navStyles.cardText}>青（先攻）と赤（後攻）が交互に、空いているマスに自分の色を置いていきます。</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🧠</span>
-                            <h3 className={styles.sectionTitle}>勝つためのコツ</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🧠</span>
+                            <h3 className={navStyles.sectionTitle}>勝つためのコツ</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             4つ並べることを目指しつつ、3つ並びそうになるのを避けなければなりません。
                         </p>
-                        <div className={styles.highlightBox}>
-                            <span className={styles.highlightTitle}>相手を追い込む</span>
-                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                        <div className={navStyles.highlightBox}>
+                            <span className={navStyles.highlightTitle}>相手を追い込む</span>
+                            <p className={navStyles.textBlock} style={{ marginBottom: 0 }}>
                                 相手に「次に置くと3つ並んでしまう」ような状況を作らせることができれば、勝利に近づきます。
                                 また、相手が4つ並べようとしているのを阻止するのも重要です。
                             </p>
                         </div>
-                        <ul className={styles.list}>
-                            <li className={styles.listItem}>
+                        <ul className={navStyles.list}>
+                            <li className={navStyles.listItem}>
                                 <strong>フォークを作る</strong><br />
                                 2つの方向で同時に4つ並びそうな形（フォーク）を作れば、相手は片方しか防げないので必勝となります。
                             </li>
-                            <li className={styles.listItem}>
+                            <li className={navStyles.listItem}>
                                 <strong>3並びの罠</strong><br />
                                 相手がうっかり3つ並べてしまうように、盤面をコントロールしましょう。
                             </li>

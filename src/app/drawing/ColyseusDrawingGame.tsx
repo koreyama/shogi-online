@@ -9,6 +9,14 @@ import { IconBack, IconUser, IconPalette, IconPen, IconSettings } from '@/compon
 import { useRouter } from 'next/navigation';
 import { DrawingCanvas } from '@/components/drawing/DrawingCanvas';
 
+const DRAWING_THEME = {
+    '--theme-primary': '#7c3aed',
+    '--theme-secondary': '#6d28d9',
+    '--theme-tertiary': '#8b5cf6',
+    '--theme-bg-light': '#f5f3ff',
+    '--theme-text-title': 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%)',
+} as React.CSSProperties;
+
 // Define Schema for Client-side Decoding (Without decorators)
 class DrawingPlayer extends Schema {
     id: string = "";
@@ -279,7 +287,7 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
     };
 
     return (
-        <main className={styles.gameContainer}>
+        <main className={styles.gameContainer} style={DRAWING_THEME}>
             {/* Header */}
             <header className={styles.header}>
                 <button onClick={onBack} className={styles.backButton}>

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from '@/styles/GameMenu.module.css';
+import navStyles from '@/styles/GameMenu.module.css';
+import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { ReversiBoard } from '@/components/ReversiBoard';
 import ColyseusReversiGame from './ColyseusReversiGame';
 import { Chat } from '@/components/Chat';
@@ -156,16 +157,17 @@ export default function ReversiPage() {
         }
     };
 
-    if (!mounted || authLoading || !user || !playerLoaded) return <div className={styles.main}>Loading...</div>;
+    if (!mounted || authLoading || !user || !playerLoaded) return <div className={navStyles.main}>Loading...</div>;
 
     if (status === 'setup') {
         return (
-            <main className={styles.main}>
-                <div className={styles.setupContainer}>
-                    <h1 className={styles.title}>リバーシ</h1>
-                    <form onSubmit={handleNameSubmit} className={styles.setupForm}>
-                        <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="プレイヤー名" className={styles.input} required />
-                        <button type="submit" className={styles.primaryBtn}>次へ</button>
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <div className={navStyles.setupContainer}>
+                    <h1 className={navStyles.title}>リバーシ</h1>
+                    <form onSubmit={handleNameSubmit} className={navStyles.setupForm}>
+                        <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="プレイヤー名" className={navStyles.input} required />
+                        <button type="submit" className={navStyles.primaryBtn}>次へ</button>
                     </form>
                 </div>
             </main>
@@ -175,9 +177,10 @@ export default function ReversiPage() {
     // Colyseus Components
     if (joinMode === 'colyseus_random') {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="random" userData={{ name: playerName, id: playerId }} />
             </main>
         );
@@ -185,9 +188,10 @@ export default function ReversiPage() {
 
     if (joinMode === 'colyseus_room_active') {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}>戻る</button></div>
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="room" roomId={customRoomId || undefined} userData={{ name: playerName, id: playerId }} />
             </main>
         );
@@ -195,27 +199,28 @@ export default function ReversiPage() {
 
     if (joinMode === 'colyseus_room') {
         return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={() => setJoinMode(null)} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>ルーム対戦</h1>
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 戻る</button></div>
+                <div className={navStyles.gameContainer}>
+                    <h1 className={navStyles.title}>ルーム対戦</h1>
 
-                    <div className={styles.joinSection}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', maxWidth: '340px' }}>
+                    <div className={navStyles.joinSection}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
                             {/* Create Section */}
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
                                 <button
                                     onClick={() => { setCustomRoomId(''); setJoinMode('colyseus_room_active'); }}
-                                    className={styles.primaryBtn}
-                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)', color: '#fff', fontWeight: 'bold', fontSize: '1.1rem', padding: '1rem' }}
+                                    className={navStyles.primaryBtn}
+                                    style={{ width: '100%', background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)', color: '#fff' }}
                                 >
                                     ルーム作成（ID自動発行）
                                 </button>
                             </div>
 
-                            <div style={{ position: 'relative', height: '1px', background: 'rgba(0,0,0,0.1)', width: '100%' }}>
-                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#f7fafc', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
+                            <div style={{ position: 'relative', height: '1px', background: 'rgba(255,255,255,0.2)', width: '100%' }}>
+                                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '0 1rem', fontSize: '0.9rem', color: '#888' }}>または</span>
                             </div>
 
                             {/* Join Section */}
@@ -227,14 +232,14 @@ export default function ReversiPage() {
                                         value={customRoomId}
                                         onChange={(e) => setCustomRoomId(e.target.value)}
                                         placeholder="6桁のID"
-                                        className={styles.input}
+                                        className={navStyles.input}
                                         maxLength={10}
                                         style={{ flex: 1, letterSpacing: '0.1em', textAlign: 'center', fontSize: '1.1rem' }}
                                         inputMode="numeric"
                                     />
                                     <button
                                         onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }}
-                                        className={styles.primaryBtn}
+                                        className={navStyles.secondaryBtn}
                                         style={{ width: 'auto', padding: '0 2rem', fontSize: '1rem', whiteSpace: 'nowrap' }}
                                         disabled={!customRoomId}
                                     >
@@ -252,27 +257,28 @@ export default function ReversiPage() {
     // AI Game View
     if (joinMode === 'ai') {
         return (
-            <main className={styles.main}>
+            <main className={navStyles.main}>
+                <FloatingShapes />
                 <HideChatBot />
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={styles.gameLayout}>
-                    <div className={styles.leftPanel}>
-                        <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
+                <div className={navStyles.header}><button onClick={handleBackToTop} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
+                <div className={navStyles.gameLayout}>
+                    <div className={navStyles.leftPanel}>
+                        <div className={navStyles.playersSection}>
+                            <div className={navStyles.playerInfo}>
                                 <p>AI (相手)</p>
                                 <p>白: {gameState?.whiteCount}</p>
                             </div>
-                            <div className={styles.playerInfo}>
+                            <div className={navStyles.playerInfo}>
                                 <p>{playerName} (自分)</p>
                                 <p>黒: {gameState?.blackCount}</p>
                             </div>
                         </div>
-                        <div className={styles.chatSection}>
+                        <div className={navStyles.chatSection}>
                             <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
                         </div>
                     </div>
-                    <div className={styles.centerPanel}>
-                        <div className={styles.turnIndicator}>
+                    <div className={navStyles.centerPanel}>
+                        <div className={navStyles.turnIndicator}>
                             {gameState?.turn === 'black' ? '黒の番 (あなた)' : '白の番'}
                         </div>
                         <ReversiBoard
@@ -284,12 +290,12 @@ export default function ReversiPage() {
                     </div>
                 </div>
                 {gameState?.winner && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modal}>
+                    <div className={navStyles.modalOverlay}>
+                        <div className={navStyles.modal}>
                             <h2>勝負あり！</h2>
                             <p>勝者: {gameState.winner === 'black' ? '黒' : gameState.winner === 'white' ? '白' : '引き分け'}</p>
-                            <button onClick={handleRematch} className={styles.primaryBtn}>再戦</button>
-                            <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
+                            <button onClick={handleRematch} className={navStyles.primaryBtn}>再戦</button>
+                            <button onClick={handleBackToTop} className={navStyles.secondaryBtn}>終了</button>
                         </div>
                     </div>
                 )}
@@ -298,94 +304,103 @@ export default function ReversiPage() {
     }
 
     if (status === 'initial') {
+        const theme = {
+            '--theme-primary': '#16a34a',
+            '--theme-secondary': '#15803d',
+            '--theme-tertiary': '#4ade80',
+            '--theme-bg-light': '#f0fdf4',
+            '--theme-text-title': 'linear-gradient(135deg, #15803d 0%, #16a34a 50%, #4ade80 100%)',
+        } as React.CSSProperties;
+
         return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={() => router.push('/')} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
+            <main className={navStyles.main} style={theme}>
+                <FloatingShapes />
+                <div className={navStyles.header}><button onClick={() => router.push('/')} className={navStyles.backButton}><IconBack size={18} /> 戻る</button></div>
 
-                <div className={styles.gameContainer}>
-                    <h1 className={styles.title}>リバーシ</h1>
+                <div className={navStyles.gameContainer}>
+                    <h1 className={navStyles.title}>リバーシ</h1>
 
-                    <div className={styles.modeSelection}>
-                        <button onClick={() => setJoinMode('colyseus_random')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
-                            <span className={styles.modeBtnDesc}>誰かとすぐに対戦</span>
+                    <div className={navStyles.modeSelection}>
+                        <button onClick={() => setJoinMode('colyseus_random')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={navStyles.modeBtnDesc}>世界中のプレイヤーと対戦</span>
                         </button>
-                        <button onClick={() => setJoinMode('colyseus_room')} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                        <button onClick={() => setJoinMode('colyseus_room')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={navStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
-                        <button onClick={startAIGame} className={styles.modeBtn}>
-                            <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>AI対戦</span>
-                            <span className={styles.modeBtnDesc}>練習モード (オフライン)</span>
+                        <button onClick={startAIGame} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>AI対戦</span>
+                            <span className={navStyles.modeBtnDesc}>コンピュータと練習</span>
                         </button>
                     </div>
                 </div>
 
                 {/* AdSense Content Section - (Preserved) */}
-                <div className={styles.contentSection}>
-                    <h2 className={styles.contentTitle}>リバーシ（リバーシ）の奥深い世界</h2>
+                <div className={navStyles.contentSection}>
+                    <h2 className={navStyles.contentTitle}>リバーシ（リバーシ）の奥深い世界</h2>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>⚪⚫</span>
-                            <h3 className={styles.sectionTitle}>リバーシの魅力と歴史</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>⚪⚫</span>
+                            <h3 className={navStyles.sectionTitle}>リバーシの魅力と歴史</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             リバーシは、19世紀後半にイギリスで考案されたと言われるボードゲームです。
                             2人のプレイヤーが黒と白の石を使い、相手の石を挟んで自分の色に変えていきます。
                             「覚えるのは1分、極めるのは一生」と言われるほど、ルールはシンプルですが奥深い戦略性を持っています。
                         </p>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🎓</span>
-                            <h3 className={styles.sectionTitle}>基本ルールと勝利条件</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🎓</span>
+                            <h3 className={navStyles.sectionTitle}>基本ルールと勝利条件</h3>
                         </div>
-                        <div className={styles.cardGrid}>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>1. 初期配置</span>
-                                <p className={styles.cardText}>盤の中央に黒と白の石を2つずつ、互い違いに置いてスタートします。</p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>1. 初期配置</span>
+                                <p className={navStyles.cardText}>盤の中央に黒と白の石を2つずつ、互い違いに置いてスタートします。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>2. 石を打つ</span>
-                                <p className={styles.cardText}>黒が先手です。自分の石で相手の石を挟める場所にしか打てません。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>2. 石を打つ</span>
+                                <p className={navStyles.cardText}>黒が先手です。自分の石で相手の石を挟める場所にしか打てません。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>3. 裏返す</span>
-                                <p className={styles.cardText}>挟んだ相手の石はすべて自分の色に変わります。縦・横・斜め、すべての方向で挟めます。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>3. 裏返す</span>
+                                <p className={navStyles.cardText}>挟んだ相手の石はすべて自分の色に変わります。縦・横・斜め、すべての方向で挟めます。</p>
                             </div>
-                            <div className={styles.infoCard}>
-                                <span className={styles.cardTitle}>4. 勝敗</span>
-                                <p className={styles.cardText}>盤面が埋まるか、両者打てなくなったら終了。石の数が多い方が勝ちです。</p>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>4. 勝敗</span>
+                                <p className={navStyles.cardText}>盤面が埋まるか、両者打てなくなったら終了。石の数が多い方が勝ちです。</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className={styles.sectionBlock}>
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionIcon}>🏆</span>
-                            <h3 className={styles.sectionTitle}>勝率を上げる3つの定石</h3>
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🏆</span>
+                            <h3 className={navStyles.sectionTitle}>勝率を上げる3つの定石</h3>
                         </div>
-                        <p className={styles.textBlock}>
+                        <p className={navStyles.textBlock}>
                             リバーシで勝つためには、単に石を多く取るだけではいけません。むしろ序盤は「少なく取る」ことが重要な場合もあります。
                         </p>
-                        <div className={styles.highlightBox}>
-                            <span className={styles.highlightTitle}>1. 四隅（角）を取る</span>
-                            <p className={styles.textBlock} style={{ marginBottom: 0 }}>
+                        <div className={navStyles.highlightBox}>
+                            <span className={navStyles.highlightTitle}>1. 四隅（角）を取る</span>
+                            <p className={navStyles.textBlock} style={{ marginBottom: 0 }}>
                                 盤の四隅（角）に置かれた石は、絶対に裏返されることがありません。これを「確定石」と呼びます。
                                 角を取ることで、そこを拠点に自分の石を安定して増やすことができます。
                             </p>
                         </div>
-                        <ul className={styles.list}>
-                            <li className={styles.listItem}>
+                        <ul className={navStyles.list}>
+                            <li className={navStyles.listItem}>
                                 <strong>X打ち・C打ちに注意</strong><br />
                                 角の隣のマス（XやCと呼ばれる場所）に不用意に打つと、相手に角を取られるチャンスを与えてしまいます。初心者はここを避けるだけで勝率が上がります。
                             </li>
-                            <li className={styles.listItem}>
+                            <li className={navStyles.listItem}>
                                 <strong>中割り（なかわり）</strong><br />
                                 序盤は外側の石を取らず、内側の石だけを裏返すように打つと、相手に打てる場所を与えず、自分は打てる場所を確保しやすくなります。
                             </li>

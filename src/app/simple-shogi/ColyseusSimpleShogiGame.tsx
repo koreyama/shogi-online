@@ -11,6 +11,7 @@ import { soundManager } from '@/utils/sound';
 import { Chat } from '@/components/Chat';
 import SimpleShogiRuleGuide from '@/components/SimpleShogiRuleGuide';
 import HideChatBot from '@/components/HideChatBot';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 // Map Colyseus types if needed, or stick to any for schema decoding
 interface Props {
@@ -226,24 +227,7 @@ export default function ColyseusSimpleShogiGame({ mode, roomId: targetRoomId }: 
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.main}>読み込み中...</div>;
 
-    if (status === 'waiting' || status === 'connecting') {
-        return (
-            <main className={styles.main}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div className={styles.gameContainer}>
-                    <h1>待機中...</h1>
-                    {status === 'connecting' ? <p>接続中...</p> : (
-                        <>
-                            <p>対戦相手を探しています</p>
-                            {mode !== 'random' && (
-                                <p>ルームID: <span className={styles.roomId}>{room.roomId}</span></p>
-                            )}
-                        </>
-                    )}
-                </div>
-            </main>
-        );
-    }
+
 
     return (
         <main className={styles.main}>
@@ -308,6 +292,16 @@ export default function ColyseusSimpleShogiGame({ mode, roomId: targetRoomId }: 
                         <button onClick={handleBackToTop} className={styles.secondaryBtn}>終了</button>
                     </div>
                 </div>
+            )}
+
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </main>
     );

@@ -108,6 +108,20 @@ const IconPianoLocal = ({ size = 32, color = "currentColor" }: { size?: number, 
         <circle cx="17" cy="16" r="3" />
     </svg>
 );
+const IconBrainLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 3.44-4z" />
+        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-3.44-4z" />
+    </svg>
+);
+const IconBlocksLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="4" width="7" height="7" rx="1" />
+        <rect x="13" y="4" width="7" height="7" rx="1" />
+        <rect x="4" y="13" width="7" height="7" rx="1" />
+        <rect x="13" y="13" width="7" height="7" rx="1" fill={color} stroke="none" />
+    </svg>
+);
 
 type GameDashboardProps = {
     user: any;
@@ -245,9 +259,9 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         <GameSection
                             title="パズル & 頭脳"
                             color="#d53f8c"
-                            icon={<IconPalette size={20} color="#d53f8c" />}
+                            icon={<IconBrainLocal size={20} color="#d53f8c" />}
                         >
-                            <GameCard href="/polyomino" title="Block Territory" desc="陣取りパズル" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
+                            <GameCard href="/polyomino" title="Block Territory" desc="陣取りパズル" icon={<IconBlocksLocal size={32} color="#d53f8c" />} color="#d53f8c" />
                             <GameCard href="/minesweeper" title="Minesweeper" desc="爆弾処理" icon={<IconBomb size={32} color="#e53e3e" />} color="#e53e3e" />
                             <GameCard href="/hit-and-blow" title="Hit & Blow" desc="推理ゲーム" icon={<IconHitBlowLocal size={32} color="#4299e1" />} color="#4299e1" />
                             <GameCard href="/dots-and-boxes" title="Dots & Boxes" desc="陣取り" icon={<IconDotsLocal size={32} color="#ed64a6" />} color="#ed64a6" />

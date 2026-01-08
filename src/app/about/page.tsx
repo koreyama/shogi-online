@@ -5,19 +5,10 @@ import Link from 'next/link';
 import styles from './about.module.css';
 import { IconShogi, IconChess, IconSwords } from '@/components/Icons';
 
-export default function AboutPage() {
-    // Load Note embed script
-    useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://note.com/scripts/embed.js';
-        script.async = true;
-        script.charset = 'utf-8';
-        document.body.appendChild(script);
+import ActiveUsers from '@/components/ActiveUsers';
 
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, []);
+export default function AboutPage() {
+    // ...
     return (
         <main className={styles.main}>
             {/* Hero Section */}
@@ -27,6 +18,9 @@ export default function AboutPage() {
                     いつでも、どこでも、誰とでも。<br />
                     シンプルで美しい、無料で遊べる総合オンラインゲームプラットフォーム
                 </p>
+                <div style={{ marginTop: '2rem' }}>
+                    <ActiveUsers />
+                </div>
             </header>
 
             <div className={styles.container}>

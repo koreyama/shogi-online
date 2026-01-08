@@ -9,6 +9,7 @@ import { IconHourglass, IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
 import { getValidMoves } from '@/lib/reversi/engine';
 import { Coordinates } from '@/lib/reversi/types';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 interface ColyseusReversiGameProps {
     mode: 'random' | 'room';
@@ -298,25 +299,13 @@ export default function ColyseusReversiGame({ mode, roomId: propRoomId, userData
                 </div>
             )}
 
-            {status === 'waiting' && mode === 'random' && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal} style={{ minWidth: '300px' }}>
-                        <h2>対戦相手を探しています...</h2>
-                        <div className={styles.waitingAnimation}><IconHourglass size={48} color="#2e7d32" /></div>
-                        <p className="text-sm text-gray-500 mt-2">しばらくお待ちください</p>
-                    </div>
-                </div>
-            )}
-
-            {status === 'waiting' && mode === 'room' && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal} style={{ minWidth: '300px' }}>
-                        <h2>対戦相手を待っています...</h2>
-                        <div className={styles.waitingAnimation}><IconHourglass size={48} color="#2e7d32" /></div>
-                        <p style={{ marginTop: '1rem' }}>ルームID: <span className="font-mono font-bold">{room?.roomId}</span></p>
-                        <p className="text-sm text-gray-500 mt-2">このIDを共有して友達と対戦できます</p>
-                    </div>
-                </div>
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
 
             {showPassModal && (

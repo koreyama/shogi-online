@@ -7,6 +7,7 @@ import { Room } from 'colyseus.js';
 import { GomokuBoard } from '@/components/GomokuBoard';
 import { IconHourglass, IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 
 interface ColyseusGomokuGameProps {
     mode: 'random' | 'room';
@@ -252,23 +253,14 @@ export default function ColyseusGomokuGame({ mode, roomId: propRoomId, userData 
                 </div>
             )}
 
-            {status === 'waiting' && mode === 'random' && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal} style={{ minWidth: '300px' }}>
-                        <h2>対戦相手を探しています...</h2>
-                        <div className={styles.waitingAnimation}><IconHourglass size={48} color="#2e7d32" /></div>
-                    </div>
-                </div>
-            )}
-
-            {status === 'waiting' && mode === 'room' && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal} style={{ minWidth: '300px' }}>
-                        <h2>対戦相手を待っています...</h2>
-                        <div className={styles.waitingAnimation}><IconHourglass size={48} color="#2e7d32" /></div>
-                        <p style={{ marginTop: '1rem' }}>ルームID: <span className="font-mono font-bold">{room?.roomId}</span></p>
-                    </div>
-                </div>
+            {/* Waiting Screen */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </div>
     );

@@ -24,6 +24,14 @@ import { db } from '@/lib/firebase';
 import dynamic from 'next/dynamic';
 import HideChatBot from '@/components/HideChatBot';
 
+const CARD_GAME_THEME = {
+    '--theme-primary': '#e11d48',
+    '--theme-secondary': '#be123c',
+    '--theme-tertiary': '#f43f5e',
+    '--theme-bg-light': '#fff1f2',
+    '--theme-text-title': 'linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%)',
+} as React.CSSProperties;
+
 // Dynamically import ColyseusCardGame with SSR disabled to prevent server-side issues with colyseus.js
 const ColyseusCardGame = dynamic(
     () => import('./ColyseusCardGame').then(mod => mod.ColyseusCardGame),
@@ -110,7 +118,7 @@ function CardGameContent() {
         if (!deckLoaded) return <div>Loading Deck...</div>;
 
         return (
-            <div className={styles.main}>
+            <div className={styles.main} style={CARD_GAME_THEME}>
                 <HideChatBot />
                 <ColyseusCardGame
                     roomId={roomId || undefined}
@@ -353,7 +361,7 @@ function CardGameContent() {
     }
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main} style={CARD_GAME_THEME}>
             <HideChatBot />
             <GameBoard
                 gameState={gameState}

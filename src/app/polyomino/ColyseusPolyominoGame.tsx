@@ -8,6 +8,7 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/components/Chat';
 import { PolyominoEngine } from './polyomino-engine';
+import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 import { Piece, PlayerColor, Point, BOARD_SIZE } from './polyomino-types';
 import { INITIAL_PIECES } from './polyomino-data';
 
@@ -176,28 +177,7 @@ export default function ColyseusPolyominoGame({ mode, roomId: targetRoomId }: Pr
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.container}>読み込み中...</div>;
 
-    if (status === 'waiting' && !isGameOver) {
-        return (
-            <main className={styles.container}>
-                <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 戻る</button></div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-                    <div className={gameStyles.spinner} style={{ marginBottom: '2rem' }}></div>
-                    <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1e293b' }}>待機中...</h1>
-                    <p style={{ fontSize: '1.1rem', color: '#64748b' }}>対戦相手を探しています</p>
 
-                    {mode === 'room' && (
-                        <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'white', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
-                            <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '0.5rem' }}>友達にこのIDを伝えてください</p>
-                            <p style={{ fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '1rem' }}>Room ID</p>
-                            <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#06b6d4', letterSpacing: '0.1em' }}>
-                                {room.roomId}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </main>
-        );
-    }
 
     const opponentRole = myRole === 'P1' ? 'P2' : 'P1';
 
@@ -313,6 +293,15 @@ export default function ColyseusPolyominoGame({ mode, roomId: targetRoomId }: Pr
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>戻る</button>
                     </div>
                 </div>
+            )}
+            {/* Matching Screen Overlay */}
+            {(status === 'waiting' || status === 'connecting') && (
+                <MatchingWaitingScreen
+                    status={status}
+                    mode={mode}
+                    roomId={room?.roomId}
+                    onCancel={handleBackToTop}
+                />
             )}
         </main>
     );
