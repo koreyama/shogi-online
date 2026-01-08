@@ -132,7 +132,7 @@ export default function ColyseusBackgammonGame({ mode, roomId: initialRoomId, pl
         if (room) room.send("pass");
     };
 
-    if (status === 'connecting') return <div className={styles.main}>Connecting...</div>;
+
 
 
 
