@@ -278,22 +278,26 @@
         display: none;
     }
 
-    /* Compact Control Panel */
+    /* Highly Compact Control Panel */
     .controlPanel {
-        padding: 0.3rem 1rem;
+        padding: 0.2rem 1rem;
         margin: 0;
-        gap: 1rem;
-        transform: scale(0.95);
-        /* Legible size */
+        margin-bottom: 2px;
+        gap: 0.5rem;
+        transform: scale(0.9);
         transform-origin: top center;
         width: 100%;
-        border-radius: 0 0 20px 20px;
+        border-radius: 0 0 16px 16px;
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(5px);
         z-index: 20;
         justify-content: center;
         flex-wrap: nowrap;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        min-height: 40px;
+        /* Force minimum height to contain items */
+        flex-shrink: 0;
+        /* Don't shrink below content size */
     }
 
     .controlGroup {
@@ -301,46 +305,49 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 0;
     }
 
     .controlGroup+.controlGroup {
-        padding-left: 1rem;
+        padding-left: 0.8rem;
         border-left: 1px solid #eee;
     }
 
     .label {
         display: block;
-        /* Restore labels */
-        font-size: 0.65rem;
+        font-size: 0.6rem;
+        line-height: 1;
         margin-bottom: 2px;
         color: #666;
         white-space: nowrap;
     }
 
     .slider {
-        width: 70px;
-        /* Restore width slightly */
+        width: 60px;
         height: 4px;
+        margin: 0;
+        padding: 0;
     }
 
     .select {
-        padding: 2px 6px;
-        height: 24px;
-        font-size: 0.75rem;
-        min-width: 130px;
+        padding: 0 4px;
+        height: 18px;
+        font-size: 0.7rem;
+        min-width: 100px;
     }
 
     .metronomeButton {
-        width: 24px;
-        height: 24px;
+        width: 18px;
+        height: 18px;
     }
 
-    /* Piano Chassis fills remaining space */
+    /* Piano Chassis fills ALL remaining space */
     .pianoChassis {
         padding: 0;
         margin: 0;
         border-radius: 0;
-        flex: 1;
+        flex: 1 1 auto;
+        /* Grow and shrink */
         display: flex;
         align-items: stretch;
         overflow-y: hidden;
@@ -349,6 +356,8 @@
         width: 100%;
         border: none;
         background: transparent;
+        height: auto;
+        /* Let flex handle it */
     }
 
     .pianoChassis::-webkit-scrollbar {
@@ -366,13 +375,14 @@
         width: 60px;
         height: 100% !important;
         min-height: auto;
-        border-radius: 0 0 8px 8px;
+        border-radius: 0 0 6px 6px;
         border-bottom-width: 4px !important;
     }
 
     .blackKey {
         width: 38px;
         height: 60% !important;
+        border-radius: 0 0 4px 4px;
     }
 
     .midiStatus {
