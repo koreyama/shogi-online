@@ -8,6 +8,7 @@ import { IconBack, IconDice, IconKey } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import ColyseusBackgammonGame from './ColyseusBackgammonGame';
+import LocalBackgammonGame from './LocalBackgammonGame';
 import HideChatBot from '@/components/HideChatBot';
 
 export default function BackgammonPage() {
@@ -15,7 +16,7 @@ export default function BackgammonPage() {
     const { user, loading: authLoading } = useAuth();
     const { playerName: savedName, savePlayerName, isLoaded } = usePlayer();
     const [mounted, setMounted] = useState(false);
-    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'colyseus_room' | 'colyseus_random' | null>(null);
+    const [joinMode, setJoinMode] = useState<'random' | 'room' | 'colyseus_room' | 'colyseus_random' | 'cpu' | null>(null);
     const [customRoomId, setCustomRoomId] = useState('');
     const [playerName, setPlayerName] = useState('');
 
@@ -80,6 +81,16 @@ export default function BackgammonPage() {
         );
     }
 
+    if (joinMode === 'cpu') {
+        return (
+            <main className={navStyles.main}>
+                <FloatingShapes />
+                <HideChatBot />
+                <LocalBackgammonGame onBack={() => setJoinMode(null)} />
+            </main>
+        );
+    }
+
     const theme = {
         '--theme-primary': '#b91c1c',
         '--theme-secondary': '#991b1b',
@@ -106,6 +117,12 @@ export default function BackgammonPage() {
                             <div className={navStyles.modeBtnIcon}><IconDice size={32} /></div>
                             <span className={navStyles.modeBtnTitle}>ランダムマッチ</span>
                             <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
+                        </button>
+
+                        <button onClick={() => setJoinMode('cpu')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}>🤖</div>
+                            <span className={navStyles.modeBtnTitle}>AI 対戦</span>
+                            <span className={navStyles.modeBtnDesc}>一人で練習</span>
                         </button>
 
                         <button onClick={() => setJoinMode('room')} className={navStyles.modeBtn}>
