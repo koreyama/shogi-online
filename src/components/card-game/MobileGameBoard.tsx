@@ -18,6 +18,7 @@ interface MobileGameBoardProps {
     onUseUltimate: () => void;
     onToggleLog: () => void;
     showLog: boolean;
+    onSurrender: () => void;
 }
 
 export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
@@ -30,7 +31,8 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
     onCancelCharge,
     onUseUltimate,
     onToggleLog,
-    showLog
+    showLog,
+    onSurrender
 }) => {
     const myPlayer = gameState.players[myPlayerId];
     const opponentId = Object.keys(gameState.players).find(id => id !== myPlayerId) || '';
@@ -39,6 +41,7 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
 
     const [showGraveyard, setShowGraveyard] = useState(false);
     const [showManaZone, setShowManaZone] = useState(false);
+    const [showMenu, setShowMenu] = useState(false); // New menu state
 
     useEffect(() => {
         logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,10 +93,41 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
 
             {/* Middle: Field Area */}
             <div className={styles.fieldArea}>
-                {/* Log Toggle */}
-                <button className={styles.logToggleBtn} onClick={onToggleLog}>
-                    {showLog ? 'ログ閉じる' : 'ログ'}
-                </button>
+                {/* Controls: Log & Menu */}
+                <div className={styles.topControls}>
+                    <button className={styles.logToggleBtn} onClick={onToggleLog}>
+                        {showLog ? 'ログ閉じる' : 'ログ'}
+                    </button>
+                    <button className={styles.menuBtn} onClick={() => setShowMenu(true)}>
+                        メニュー
+                    </button>
+                </div>
+
+                {/* Menu Overlay */}
+                {showMenu && (
+                    <div className={styles.overlayContainer} style={{ zIndex: 2000 }}>
+                        <div className={styles.overlayHeader}>
+                            <div className={styles.overlayTitle}>メニュー</div>
+                            <button className={styles.closeBtn} onClick={() => setShowMenu(false)}>閉じる</button>
+                        </div>
+                        <div className={styles.overlayContent} style={{ flexDirection: 'column', alignItems: 'center' }}>
+                            <button
+                                onClick={() => { setShowMenu(false); onSurrender(); }}
+                                style={{
+                                    padding: '1rem 2rem',
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 'bold',
+                                    fontSize: '1.2rem'
+                                }}
+                            >
+                                降参する (Surrender)
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Info Buttons */}
                 <div className={styles.infoButtons}>
@@ -159,18 +193,12 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
                     {gameState.lastPlayedCard && CARDS[gameState.lastPlayedCard.cardId] && (
                         <CardDisplay
                             card={CARDS[gameState.lastPlayedCard.cardId]}
-                            size="medium"
+                            size="small"
+                            variant="battle"
                             className={styles.playedCard}
                         />
                     )}
                 </div>
-
-                {/* Winner Announcement */}
-                {gameState.winner && (
-                    <div className={styles.winnerAnnouncement}>
-                        {gameState.winner === myPlayerId ? 'VICTORY!' : 'DEFEAT...'}
-                    </div>
-                )}
             </div>
 
             {/* Bottom: Player Area (Vertical Stack) */}
@@ -228,6 +256,7 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
                     />
                 </div>
             </div>
+
         </div>
     );
 };

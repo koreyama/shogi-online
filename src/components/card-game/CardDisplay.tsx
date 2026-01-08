@@ -7,12 +7,14 @@ interface CardDisplayProps {
     card: Card;
     onClick?: () => void;
     size?: 'small' | 'medium' | 'large';
+    size?: 'small' | 'medium' | 'large';
     className?: string;
     disabled?: boolean;
     overrideCost?: number;
+    variant?: 'default' | 'battle';
 }
 
-export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 'medium', className = '', disabled = false, overrideCost }) => {
+export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 'medium', className = '', disabled = false, overrideCost, variant = 'default' }) => {
     const getIcon = () => {
         const iconSize = size === 'small' ? 24 : 48;
         const name = card.name;
@@ -86,7 +88,7 @@ export const CardDisplay: React.FC<CardDisplayProps> = ({ card, onClick, size = 
 
     return (
         <div
-            className={`${styles.card} ${styles[size]} ${elementClass} ${rarityClass} ${disabled ? styles.disabled : ''} ${className}`}
+            className={`${styles.card} ${styles[size]} ${elementClass} ${rarityClass} ${disabled ? styles.disabled : ''} ${variant === 'battle' ? styles.battle : ''} ${className}`}
             onClick={!disabled ? onClick : undefined}
         >
             <div className={styles.header}>

@@ -17,6 +17,7 @@ interface GameBoardProps {
     onExecuteCharge: () => void;
     onCancelCharge: () => void;
     onUseUltimate: () => void;
+    onSurrender: () => void;
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({
@@ -27,7 +28,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     onManaCharge,
     onExecuteCharge,
     onCancelCharge,
-    onUseUltimate
+    onUseUltimate,
+    onSurrender
 }) => {
     const [showLog, setShowLog] = useState(false);
     const logEndRef = useRef<HTMLDivElement>(null);
@@ -113,6 +115,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     onUseUltimate={onUseUltimate}
                     onToggleLog={() => setShowLog(!showLog)}
                     showLog={showLog}
+                    onSurrender={onSurrender}
                 />
                 {/* Debug: Toggle View */}
                 <button

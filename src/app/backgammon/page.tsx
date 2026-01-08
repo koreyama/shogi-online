@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import navStyles from '@/styles/GameMenu.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
-import { IconBack, IconDice, IconKey } from '@/components/Icons';
+import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 import ColyseusBackgammonGame from './ColyseusBackgammonGame';
@@ -119,16 +119,16 @@ export default function BackgammonPage() {
                             <span className={navStyles.modeBtnDesc}>誰かとすぐに対戦</span>
                         </button>
 
-                        <button onClick={() => setJoinMode('cpu')} className={navStyles.modeBtn}>
-                            <div className={navStyles.modeBtnIcon}>🤖</div>
-                            <span className={navStyles.modeBtnTitle}>AI 対戦</span>
-                            <span className={navStyles.modeBtnDesc}>一人で練習</span>
-                        </button>
-
                         <button onClick={() => setJoinMode('room')} className={navStyles.modeBtn}>
                             <div className={navStyles.modeBtnIcon}><IconKey size={32} /></div>
                             <span className={navStyles.modeBtnTitle}>ルーム対戦</span>
                             <span className={navStyles.modeBtnDesc}>友達と対戦</span>
+                        </button>
+
+                        <button onClick={() => setJoinMode('cpu')} className={navStyles.modeBtn}>
+                            <div className={navStyles.modeBtnIcon}><IconRobot size={32} /></div>
+                            <span className={navStyles.modeBtnTitle}>AI 対戦</span>
+                            <span className={navStyles.modeBtnDesc}>コンピュータと練習</span>
                         </button>
                     </div>
                 ) : (

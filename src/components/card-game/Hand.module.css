@@ -57,23 +57,22 @@
 @media (max-width: 768px) {
     .handContainer {
         padding: 0.25rem;
-        gap: 0.25rem;
+        gap: 0.5rem;
         height: 100%;
         /* Fill parent */
         align-items: center;
         /* Center vertically */
-        width: calc(100vw - 130px);
-        /* Explicit width to force scroll */
+        width: 100%;
+        /* Full width */
         max-width: 100%;
     }
 
     .cardWrapper {
-        width: 80px;
-        /* Fixed mobile width */
-        min-width: 80px;
-        /* Force minimum width */
-        height: 120px;
-        /* Fixed mobile height */
+        width: 110px;
+        /* Increased from 80 */
+        min-width: 110px;
+        height: 165px;
+        /* Aspect 2:3 */
         flex-shrink: 0;
         /* Prevent shrinking */
     }

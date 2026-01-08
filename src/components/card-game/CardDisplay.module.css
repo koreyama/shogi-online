@@ -48,44 +48,51 @@
 @media (max-width: 768px) {
     .small {
         width: 100%;
-        /* Fill container (which is 80px) */
-        min-width: 80px;
-        /* Force minimum width */
-        height: 100%;
-        /* Fill container (which is 120px) */
-        font-size: 0.5rem;
+        height: auto;
+        aspect-ratio: 2 / 3;
+        font-size: 1rem;
+        /* Maximize size */
     }
 
     .small .description {
-        height: 25px;
-        font-size: 0.7em;
-        line-height: 1.1;
+        height: auto;
+        font-size: 0.95em;
+        /* Large description */
+        line-height: 1.3;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        /* Allow more lines */
+        -webkit-box-orient: vertical;
     }
 
     .small .header {
-        height: 20px;
-        padding: 0.1rem 0.2rem;
+        height: auto;
+        min-height: 34px;
+        padding: 0.3rem 0.5rem;
     }
 
     .small .cost {
-        font-size: 0.7em;
-        padding: 0 3px;
+        font-size: 0.8em;
     }
 
     .small .imageArea {
-        min-height: 30px;
-        padding: 0.2rem;
+        min-height: 40px;
+        padding: 0.25rem;
     }
 
     .small .body {
-        height: 40px;
-        padding: 0.2rem;
+        height: auto;
+        /* Allow growing */
+        min-height: 60px;
+        padding: 0.25rem;
         gap: 2px;
     }
 
     .small .footer {
-        height: 20px;
-        padding: 0.1rem;
+        height: auto;
+        min-height: 24px;
+        padding: 0.25rem;
     }
 }
 
@@ -254,5 +261,58 @@
 
     to {
         box-shadow: 0 0 0 2px rgba(251, 191, 36, 1), 0 0 20px rgba(251, 191, 36, 0.6);
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Battle Mode Overrides for Mobile */
+    .battle.small {
+        font-size: 0.8rem;
+    }
+
+    .battle.small .header {
+        font-size: 0.85em;
+        /* Relative to card font-size */
+        padding: 0.2rem 0.3rem;
+        min-height: 24px;
+    }
+
+    .battle.small .name {
+        font-size: 0.9em;
+    }
+
+    .battle.small .cost {
+        font-size: 0.9em;
+        padding: 1px 4px;
+    }
+
+    .battle.small .imageArea {
+        min-height: 30px;
+        padding: 0.1rem;
+    }
+
+    .battle.small .body {
+        min-height: 40px;
+        padding: 0.2rem;
+        gap: 1px;
+    }
+
+    .battle.small .type {
+        font-size: 0.65em;
+        margin-bottom: 1px;
+    }
+
+    .battle.small .description {
+        font-size: 0.7em !important;
+        /* Force smaller text */
+        line-height: 1.1;
+        -webkit-line-clamp: 4;
+    }
+
+    .battle.small .footer {
+        min-height: 20px;
+        padding: 0.1rem;
+        font-size: 0.8em;
     }
 }

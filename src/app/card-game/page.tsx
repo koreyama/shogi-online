@@ -112,38 +112,44 @@ function CardGameContent() {
     }, [deckId, deckType, user, authLoading]);
 
 
-    // RENDER COLYSEUS GAME FOR MULTIPLAYER
-    if (authLoading || !user) return <div>Loading...</div>;
-    if (mode === 'random' || mode === 'room' || mode === 'ranked' || mode === 'casual') {
-        if (!deckLoaded) return <div>Loading Deck...</div>;
-
-        return (
-            <div className={styles.main} style={CARD_GAME_THEME}>
-                <HideChatBot />
-                <ColyseusCardGame
-                    roomId={roomId || undefined}
-                    options={{ create, mode }} // Pass mode to server if needed for matchmaking? 
-                    // Actually Colyseus "room" mode logic is usually handled by `joinById` vs `create`.
-                    // For "random", we use `joinOrCreate`.
-                    // My `ColyseusCardGame` handles `roomId` vs `options.create`.
-                    // If mode='random', we pass neither `roomId` nor `create:true` (or create:false), so it does `joinOrCreate`.
-                    playerId={playerId}
-                    playerName={user?.displayName || 'Player'}
-                    avatarId={avatarId}
-                    deck={myDeck}
-                    onLeave={() => router.push('/card-game/lobby')}
-                />
-            </div>
-        );
-    }
-
-    // LOCAL / CPU MODE LOGIC (Existing)
+    // Move hooks to top level
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [isMultiplayer, setIsMultiplayer] = useState(false); // Force false for local/cpu
+
+    // Determine Player Name
+    const [localPlayerName, setLocalPlayerName] = useState('Player');
+    useEffect(() => {
+        const fetchProfileName = async () => {
+            if (typeof window !== 'undefined') {
+                const storedName = localStorage.getItem('card_game_player_name');
+                if (storedName) setLocalPlayerName(storedName);
+            }
+
+            if (user) {
+                try {
+                    const usersModule = await import('@/lib/firebase/users');
+                    const profile = await usersModule.getUserProfile(user.uid);
+                    if (profile && profile.displayName) {
+                        setLocalPlayerName(profile.displayName);
+                        // Optional: Sync back to local storage
+                        localStorage.setItem('card_game_player_name', profile.displayName);
+                    } else if (user.displayName) {
+                        setLocalPlayerName(user.displayName);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch profile name:", e);
+                    if (user.displayName) setLocalPlayerName(user.displayName);
+                }
+            }
+        };
+        fetchProfileName();
+    }, [user]);
 
     // Initialize Game (Local/CPU)
     useEffect(() => {
         if (!deckLoaded) return;
+        // Skip if multiplayer mode
+        if (mode === 'random' || mode === 'room' || mode === 'ranked' || mode === 'casual') return;
 
         const initGame = async () => {
             // Randomly select a guardian god for CPU
@@ -170,13 +176,13 @@ function CardGameContent() {
 
             const initial = createInitialState(
                 roomId || 'local-room',
-                { id: playerId, name: user?.displayName || 'You', avatarId: avatarId, deck: myDeck },
+                { id: playerId, name: localPlayerName, avatarId: avatarId, deck: myDeck },
                 { id: 'cpu', name: randomGuardian.name, avatarId: randomGuardian.avatarId, deck: cpuDeck }
             );
             setGameState(initial);
         };
         initGame();
-    }, [mode, playerId, avatarId, user, authLoading, deckLoaded, myDeck]);
+    }, [mode, playerId, avatarId, user, authLoading, deckLoaded, myDeck, roomId, localPlayerName]);
 
     // WebSocket Sync (Mock)
     const syncGameState = (roomId: string | null, newState: GameState) => {
@@ -330,6 +336,37 @@ function CardGameContent() {
         if (isMultiplayer) syncGameState(roomId, newState);
     };
 
+
+    // RENDER COLYSEUS GAME FOR MULTIPLAYER
+    if (authLoading || !user) return <div>Loading...</div>;
+
+    // Check mode and decide what to render
+    const isOnlineMode = mode === 'random' || mode === 'room' || mode === 'ranked' || mode === 'casual';
+
+    if (isOnlineMode) {
+        if (!deckLoaded) return <div>Loading Deck...</div>;
+
+        return (
+            <div className={styles.main} style={CARD_GAME_THEME}>
+                <HideChatBot />
+                <ColyseusCardGame
+                    roomId={roomId || undefined}
+                    options={{ create, mode }} // Pass mode to server if needed for matchmaking? 
+                    // Actually Colyseus "room" mode logic is usually handled by `joinById` vs `create`.
+                    // For "random", we use `joinOrCreate`.
+                    // My `ColyseusCardGame` handles `roomId` vs `options.create`.
+                    // If mode='random', we pass neither `roomId` nor `create:true` (or create:false), so it does `joinOrCreate`.
+                    playerId={playerId}
+                    playerName={user?.displayName || 'Player'}
+                    avatarId={avatarId}
+                    deck={myDeck}
+                    onLeave={() => router.push('/card-game/lobby')}
+                />
+            </div>
+        );
+    }
+
+    // Local/CPU Game Render
     if (!gameState) return <div>Loading...</div>;
 
     // Waiting for opponent
@@ -372,38 +409,17 @@ function CardGameContent() {
                 onManaCharge={handleToggleManaCharge}
                 onExecuteCharge={handleExecuteManaCharge}
                 onCancelCharge={handleCancelManaCharge}
+                onSurrender={() => {
+                    if (confirm('本当にあきらめますか？')) {
+                        const endedState: GameState = {
+                            ...gameState,
+                            winner: 'opponent',
+                            phase: 'end'
+                        };
+                        setGameState(endedState);
+                    }
+                }}
             />
-            {gameState && gameState.phase !== 'end' && (
-                <button
-                    onClick={() => {
-                        if (confirm('本当にあきらめますか？')) {
-                            // Local Surrender Logic
-                            const endedState: GameState = {
-                                ...gameState,
-                                winner: 'opponent', // Opponent (CPU) wins
-                                phase: 'end'
-                            };
-                            setGameState(endedState);
-                            // syncGameState(roomId, endedState); // Optional if we want to sync local state somewhere
-                        }
-                    }}
-                    style={{
-                        position: 'fixed',
-                        top: '1rem',
-                        left: '1rem',
-                        padding: '0.5rem 1rem',
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        zIndex: 1000
-                    }}
-                >
-                    あきらめる
-                </button>
-            )}
             {gameState && gameState.phase === 'end' && (
                 <div style={{
                     position: 'fixed',

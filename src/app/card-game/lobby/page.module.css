@@ -669,32 +669,117 @@
         padding: 1rem;
     }
 
-    .title {
-        font-size: 1.8rem;
+    .gameContainer {
+        gap: 1.5rem;
     }
 
-    .modeSelection {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .modeBtn,
-    .roomModeContainer {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .rulesBtn {
-        position: static;
-        transform: none;
-        margin-top: 1rem;
-        width: 100%;
-    }
-
+    /* Header Adjustments */
     .header {
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .title {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .headerBtnGroup {
+        position: static;
+        transform: none;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .rulesBtn,
+    .leaderboardBtn {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .backButton {
+        position: static;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    /* Section Adjustments */
+    .section {
+        padding: 1.25rem;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .deckActions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .deckActions button {
+        flex: 1;
+    }
+
+    .avatarGrid {
+        grid-template-columns: 1fr;
+        /* Single column for avatars */
+    }
+
+    /* Mode Selection Adjustments */
+    .modeSelection {
+        flex-direction: column;
+        align-items: stretch;
+        /* Stretch to full width */
+        gap: 1rem;
+    }
+
+    .modeBtn {
+        width: 100%;
+        max-width: none;
+        /* Remove max-width constraint */
+        flex-direction: row;
+        /* Horizontal layout for buttons on mobile */
+        padding: 1.5rem;
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .modeBtnIcon {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+    }
+
+    .modeBtnTitle {
+        font-size: 1.1rem;
+    }
+
+    /* Room Mode specific */
+    .roomModeContainer {
+        width: 100%;
+        max-width: none;
+    }
+
+    .roomActionsExpanded {
+        padding: 1rem;
+    }
+
+    .joinInputGroup {
+        flex-direction: column;
+    }
+
+    .joinInputGroup button {
+        width: 100%;
     }
 }
 

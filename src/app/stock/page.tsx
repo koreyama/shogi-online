@@ -10,6 +10,7 @@ import { StockCard } from '@/components/stock/StockCard';
 import { TradeModal } from '@/components/stock/TradeModal';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
+import { getUserProfile } from '@/lib/firebase/users';
 import { ref, onValue, set, get } from 'firebase/database';
 import HideChatBot from '@/components/HideChatBot';
 
@@ -67,6 +68,33 @@ export default function StockTradePage() {
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [cloudSyncStatus, setCloudSyncStatus] = useState<'local' | 'cloud' | 'syncing'>('local');
     const [exchangeRate, setExchangeRate] = useState<number>(USD_JPY_RATE);
+    const [profileName, setProfileName] = useState<string>('');
+
+    // Fetch user profile name
+    useEffect(() => {
+        if (user) {
+            getUserProfile(user.uid).then(profile => {
+                if (profile && profile.displayName) {
+                    setProfileName(profile.displayName);
+                }
+            });
+        }
+    }, [user]);
+
+    // Force leaderboard update immediately when profile name becomes available
+    useEffect(() => {
+        if (user && profileName && portfolio) {
+            set(ref(db, `stock_leaderboard/${user.uid}`), {
+                odId: user.uid,
+                odName: profileName,
+                totalValue: portfolio.totalValue,
+                totalProfit: portfolio.totalProfit,
+                totalProfitPercent: portfolio.totalProfitPercent,
+                lastUpdated: Date.now()
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [profileName]);
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -178,7 +206,7 @@ export default function StockTradePage() {
         try {
             await set(ref(db, `stock_leaderboard/${user.uid}`), {
                 odId: user.uid,
-                odName: user.displayName || 'Unknown',
+                odName: profileName || user.displayName || 'Unknown',
                 totalValue: p.totalValue,
                 totalProfit: p.totalProfit,
                 totalProfitPercent: p.totalProfitPercent,
@@ -367,7 +395,7 @@ export default function StockTradePage() {
                         Cash: {portfolio && formatCurrency(portfolio.cash)}
                         <span className={styles.syncStatus}>
                             {cloudSyncStatus === 'cloud' && user ? (
-                                <span className={styles.cloudSync}>Cloud Sync ON ({user.displayName})</span>
+                                <span className={styles.cloudSync}>Cloud Sync ON ({profileName || user.displayName})</span>
                             ) : cloudSyncStatus === 'syncing' ? (
                                 <span className={styles.syncing}>Syncing...</span>
                             ) : (

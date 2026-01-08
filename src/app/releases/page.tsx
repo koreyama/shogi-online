@@ -6,6 +6,22 @@ import { IconBack } from '@/components/Icons';
 
 const RELEASES = [
     {
+        version: '2.1.0',
+        date: '2026.01.09',
+        title: 'カードゲームUI改善 & Stock Simulator更新',
+        categories: ['Update', 'Game', 'Feature'],
+        content: [
+            {
+                head: 'カードゲーム (Divinduel) UI改善',
+                text: 'モバイル版の操作性を大幅に向上させました。手札のスクロール修正、プレイしたカードの視認性向上（サイズ統一・最前面表示）、アクションボタンのレイアウト最適化を行いました。また、PC版のボタンデザインもモダンなスタイルに統一しました。'
+            },
+            {
+                head: 'Stock Simulator プロフィール連携',
+                text: 'ランキングやクラウド同期ステータスに表示される名前が、Googleアカウント名からサイト内のプロフィール設定名に変更されました。これにより、他のゲームと同じ名前でランキングに参加できるようになります。'
+            }
+        ]
+    },
+    {
         version: '2.0.0',
         date: '2026.01.07',
         title: 'UI全面リニューアル & ゲームリスト拡充',

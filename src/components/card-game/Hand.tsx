@@ -42,6 +42,7 @@ export const Hand: React.FC<HandProps> = ({ cardIds, onPlayCard, onDiscard, isMy
                             }}
                             disabled={!canPlay && !isManaChargeMode}
                             size="small"
+                            variant="battle"
                             className={`${isManaChargeMode ? styles.chargeTarget : ''} ${isSelected ? styles.selected : ''}`}
                             overrideCost={isFree ? 0 : undefined}
                         />
