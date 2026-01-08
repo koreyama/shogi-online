@@ -228,6 +228,17 @@ export default function PianoPage() {
 
     return (
         <div className={styles.container} onClick={resumeAudio}>
+            {/* Portrait Overlay */}
+            <div className={styles.portraitOverlay}>
+                <svg className={styles.rotateIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 4v16M7 4v16M21 12H3" strokeOpacity="0" /> {/* Spacer */}
+                    <rect x="5" y="3" width="14" height="18" rx="2" />
+                    <path d="M12 7v4l3 3" strokeOpacity="0" />
+                </svg>
+                <h2>画面を横にしてください</h2>
+                <p>Landscape Mode Only</p>
+            </div>
+
             <HideChatBot />
             {/* Loading Overlay */}
             {isLoading && (

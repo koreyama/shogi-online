@@ -207,108 +207,250 @@
     backdrop-filter: blur(4px);
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* Portrait Overlay */
+.portraitOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #1a202c;
+    color: white;
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.rotateIcon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1.5rem;
+    animation: rotateAnimation 2s infinite;
+}
+
+@keyframes rotateAnimation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    30% {
+        transform: rotate(-90deg);
+    }
+
+    100% {
+        transform: rotate(-90deg);
+    }
+}
+
+/* Mobile Portrait Enforcement */
+@media (max-width: 900px) and (orientation: portrait) {
+    .portraitOverlay {
+        display: flex;
+    }
+
+    /* Hide main content when asking to rotate */
+    .header,
+    .controlPanel,
+    .pianoChassis,
+    .footer,
+    .midiStatus {
+        display: none !important;
+    }
+}
+
+/* Mobile Landscape Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
     .container {
-        height: 100vh;
-        height: 100dvh;
-        /* Dynamic usage */
-        justify-content: flex-start;
-        padding-top: 20px;
-        overflow-y: auto;
-        /* Allow layout scrolling if needed */
+        padding: 10px;
+        justify-content: center;
     }
 
     .header {
-        margin-bottom: 1rem;
+        display: none;
+        /* Hide header to save space */
     }
 
-    .title {
-        font-size: 1.5rem;
+    .footer {
+        display: none;
+        /* Hide footer */
     }
 
     .controlPanel {
-        flex-wrap: wrap;
-        width: 90%;
-        padding: 1rem;
-        border-radius: 20px;
-        gap: 1rem;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-
-    .controlGroup {
-        flex: 1 1 40%;
-        min-width: 120px;
+        padding: 0.5rem 1.5rem;
+        margin-bottom: 0.5rem;
+        gap: 1.5rem;
+        transform: scale(0.9);
+        /* Slight scale down */
+        transform-origin: center;
+        width: auto;
+        border-radius: 30px;
     }
 
     .controlGroup+.controlGroup {
-        border-left: none;
-        padding-left: 0;
-        border-top: 1px solid #eee;
-        /* Optional visual separator for stacked items? Or just gap */
-        padding-top: 0;
-        /* Let flex gap handle it */
-    }
-
-    /* Specific adjustment to remove borders completely on mobile for cleaner look */
-    .controlGroup+.controlGroup {
-        border: none;
-        padding: 0;
+        padding-left: 1.5rem;
     }
 
     .pianoChassis {
-        width: 95%;
-        padding: 10px;
-        overflow-x: auto;
-        /* Horizontal scroll for keys */
-        -webkit-overflow-scrolling: touch;
-        justify-content: flex-start;
-        /* Ensure start alignment */
-    }
-
-    .pianoChassis::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .pianoChassis::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 3px;
-    }
-
-    .keysContainer {
-        /* Ensure user can scroll to see all keys */
-        min-width: max-content;
-        padding-bottom: 10px;
-        /* Space for scrollbar */
+        padding: 10px 10px 0 10px;
+        /* Reduce padding */
+        border-radius: 8px;
+        flex: 1;
+        /* Take remaining height */
+        display: flex;
+        align-items: flex-end;
+        /* Align keys to bottom */
+        overflow-y: hidden;
+        max-height: 220px;
+        /* Limit height */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
     .whiteKey {
-        width: 44px;
-        /* Slightly narrower on mobile? or keep same */
-        height: 220px;
-        /* Shorter */
+        height: 180px;
+        /* Shorter keys */
+        width: 50px;
     }
 
     .blackKey {
-        width: 28px;
-        height: 130px;
-        /* Need to recalculate left positions in JS or use percentages, but JS fixed px is used currently. 
+        height: 110px;
+        width: 32px;
+    }
+
+    /* Recalculate black key positions if width changed? 
+       Actually, if we change whiteKey width to 50px, the math in TSX (59px) breaks.
+       Let's keep whiteKey width standard (60px) but scale the whole chassis or just reduce height.
+    */
+    .whiteKey {
+        width: 60px;
+        /* Keep consistent width for alignment */
+        height: 100%;
+        /* Fill chassis height */
+        min-height: 150px;
+    }
+
+    .blackKey {
+        width: 40px;
+        height: 60%;
+        /* Proportional height */
+    }
+
+    .midiStatus {
+        bottom: 5px;
+        right: 5px;
+        transform: scale(0.8);
+        transform-origin: bottom right;
+    }
+}
+
+/* Mobile Responsive (General) */
+@media (max-width: 768px) {
+    .container {
+        /* Reset height logic for general mobile if not caught by specific queries */
+    }
+
+    height: 100vh;
+    height: 100dvh;
+    /* Dynamic usage */
+    justify-content: flex-start;
+    padding-top: 20px;
+    overflow-y: auto;
+    /* Allow layout scrolling if needed */
+}
+
+.header {
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-size: 1.5rem;
+}
+
+.controlPanel {
+    flex-wrap: wrap;
+    width: 90%;
+    padding: 1rem;
+    border-radius: 20px;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.controlGroup {
+    flex: 1 1 40%;
+    min-width: 120px;
+}
+
+.controlGroup+.controlGroup {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid #eee;
+    /* Optional visual separator for stacked items? Or just gap */
+    padding-top: 0;
+    /* Let flex gap handle it */
+}
+
+/* Specific adjustment to remove borders completely on mobile for cleaner look */
+.controlGroup+.controlGroup {
+    border: none;
+    padding: 0;
+}
+
+.pianoChassis {
+    width: 95%;
+    padding: 10px;
+    overflow-x: auto;
+    /* Horizontal scroll for keys */
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    /* Ensure start alignment */
+}
+
+.pianoChassis::-webkit-scrollbar {
+    height: 6px;
+}
+
+.pianoChassis::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.keysContainer {
+    /* Ensure user can scroll to see all keys */
+    min-width: max-content;
+    padding-bottom: 10px;
+    /* Space for scrollbar */
+}
+
+.whiteKey {
+    width: 44px;
+    /* Slightly narrower on mobile? or keep same */
+    height: 220px;
+    /* Shorter */
+}
+
+.blackKey {
+    width: 28px;
+    height: 130px;
+    /* Need to recalculate left positions in JS or use percentages, but JS fixed px is used currently. 
            We might need to adjust the calculation logic in TSX if we change width here.
            Let's KEEP WIDTHS SAME for simplicity of 'left' calculation, just enable SCROLL.
         */
-        width: 40px;
-        height: 170px;
-    }
+    width: 40px;
+    height: 170px;
+}
 
-    /* If we keep widths same, we just rely on scroll */
-    .whiteKey {
-        width: 60px;
-        height: 280px;
-    }
+/* If we keep widths same, we just rely on scroll */
+.whiteKey {
+    width: 60px;
+    height: 280px;
+}
 
-    .blackKey {
-        width: 40px;
-        height: 170px;
-    }
+.blackKey {
+    width: 40px;
+    height: 170px;
+}
 }
