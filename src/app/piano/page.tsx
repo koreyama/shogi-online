@@ -258,6 +258,14 @@ export default function PianoPage() {
 
             {/* Control Panel */}
             <div className={styles.controlPanel}>
+                {/* Home Button */}
+                <Link href="/" className={styles.homeButton} title="Home">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </Link>
+
                 {/* Reverb Control */}
                 <div className={styles.controlGroup}>
                     <label className={styles.label}>リバーブ (残響)</label>
