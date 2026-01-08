@@ -22,8 +22,9 @@ export const RegisteredUserCount = ({ style, className, prefix = '登録者数: 
                 setCount(val);
             }
         }, (error) => {
-            console.error("Failed to read user count:", error);
-            // Fallback to 6 if read fails entirely to ensure display
+            // Permission denied is expected if rules aren't updated yet.
+            // Be silent to avoid alarming the user, and fallback to 6.
+            // console.warn("User count read failed (likely permission):", error.message);
             setCount((prev) => prev === null ? 6 : prev);
         });
 

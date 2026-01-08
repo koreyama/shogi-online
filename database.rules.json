@@ -13,6 +13,10 @@
                 ]
             }
         },
+        "site_stats": {
+            ".read": true,
+            ".write": "auth != null"
+        },
         "stock_portfolios": {
             "$userId": {
                 ".read": "auth != null && auth.uid === $userId",
