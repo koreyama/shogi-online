@@ -1,5 +1,9 @@
 {
     "rules": {
+        "site_stats": {
+            ".read": true,
+            ".write": "auth != null"
+        },
         "minesweeper_scores": {
             ".read": true,
             "$difficulty": {
@@ -12,10 +16,6 @@
                     "userId"
                 ]
             }
-        },
-        "site_stats": {
-            ".read": true,
-            ".write": "auth != null"
         },
         "stock_portfolios": {
             "$userId": {
