@@ -269,16 +269,59 @@ export default function PolyominoPage() {
 
                 {!joinMode && (
                     <div className={styles.contentSection}>
-                        <h2 className={styles.contentTitle}>ルールと遊び方</h2>
+                        <h2 className={styles.contentTitle}>Block Territory (ブロックス系) の遊び方</h2>
+
                         <div className={styles.sectionBlock}>
                             <div className={styles.sectionHeader}>
-                                <span className={styles.sectionIcon}>♟️</span>
-                                <h3 className={styles.sectionTitle}>ゲームの目的</h3>
+                                <span className={styles.sectionIcon}>🧱</span>
+                                <h3 className={styles.sectionTitle}>基本ルール</h3>
                             </div>
-                            <p className={styles.textBlock}>
-                                ブロックテリトリーは、手持ちのピースを盤面に配置し、より多くのマス目を埋めたプレイヤーが勝利する陣取りゲームです。<br />
-                                すべてのピースを使い切るか、置ける場所がなくなるとゲーム終了です。
-                            </p>
+                            <div className={styles.textBlock}>
+                                様々な形をしたブロック（ピース）を盤面に置いていき、陣地を広げるゲームです。<br />
+                                最終的により多くのブロックを置けた（または残りマス数が少ない）プレイヤーの勝利です。
+                            </div>
+
+                            <div className={styles.cardGrid}>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>1. 角(カド)をつなげる</span>
+                                    <p className={styles.cardText}>
+                                        自分の色のピースの<strong>「角（カド）」</strong>とつながるように、新しいピースを置かなければなりません。<br />
+                                        辺と辺が接してはいけません。
+                                    </p>
+                                </div>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>2. 相手とは接してOK</span>
+                                    <p className={styles.cardText}>
+                                        相手の色のピースとは、辺でも角でも自由に接することができます。<br />
+                                        これを利用して、相手の進行方向をブロックしましょう。
+                                    </p>
+                                </div>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>3. 終了条件</span>
+                                    <p className={styles.cardText}>
+                                        全員がピースを置けなくなったらゲーム終了です。<br />
+                                        残ったピースのマス目数が少ない人（たくさん置いた人）が勝ちです。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🛡️</span>
+                                <h3 className={styles.sectionTitle}>戦略のヒント</h3>
+                            </div>
+                            <ul className={styles.list}>
+                                <li className={styles.listItem}>
+                                    <strong>中央を目指す:</strong> 序盤は盤面の中央に向かって伸ばしていくと、四方へ展開しやすくなります。
+                                </li>
+                                <li className={styles.listItem}>
+                                    <strong>大きなピースから使う:</strong> マス数の多い（5マスの）ピースは、後半になると置ける場所が減ってしまいます。早めに使い切りましょう。
+                                </li>
+                                <li className={styles.listItem}>
+                                    <strong>他人の邪魔をする:</strong> 相手が伸ばしたそうな場所の前に自分のピースを割り込ませて、進路をふさぎましょう。
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 )}

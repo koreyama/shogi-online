@@ -170,17 +170,53 @@ export default function DrawingPage() {
                 {/* Rules Section (Keep original content) */}
                 {view === 'menu' && (
                     <div className={styles.contentSection} style={{ marginTop: '3rem' }}>
-                        <h2 className={styles.contentTitle}>お絵かきクイズの遊び方</h2>
-                        { /* Content preserved from original file effectively by user request to maintain rules info */}
+                        <h2 className={styles.contentTitle}>お絵かきクイズ (Drawing Quiz) の遊び方</h2>
+
                         <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🎨</span>
+                                <h3 className={styles.sectionTitle}>ゲームの流れ</h3>
+                            </div>
                             <p className={styles.textBlock}>
-                                お題に沿って絵を描き、他のプレイヤーがそれを当てるゲームです。
-                                素早く正解すると高得点！
+                                参加者が順番に「描き手（Drawer）」となり、出されたお題の絵を描きます。
+                                他のプレイヤーは「回答者（Guesser）」となり、何を描いているかをチャットで当てます。
                             </p>
-                            <ul className={styles.list}>
-                                <li className={styles.listItem}><strong>Drawer:</strong> お題を選んで絵を描きます。文字は禁止！</li>
-                                <li className={styles.listItem}><strong>Guesser:</strong> チャットで答えを入力します。</li>
-                            </ul>
+                        </div>
+
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>👥</span>
+                                <h3 className={styles.sectionTitle}>役割とポイント</h3>
+                            </div>
+                            <div className={styles.cardGrid}>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>描き手 (Drawer)</span>
+                                    <p className={styles.cardText}>
+                                        ・お題を選んで絵を描きます。<br />
+                                        ・制限時間内に当ててもらうとポイントが入ります。<br />
+                                        ・<strong>文字や数字を書くのは禁止</strong>です！絵だけで伝えましょう。
+                                    </p>
+                                </div>
+                                <div className={styles.infoCard}>
+                                    <span className={styles.cardTitle}>回答者 (Guesser)</span>
+                                    <p className={styles.cardText}>
+                                        ・絵を見て、答えをチャットに入力します。<br />
+                                        ・早く正解するほど高得点がもらえます。<br />
+                                        ・ひらがな、カタカナ、漢字、どれでもOK（自動判定されます）。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.sectionBlock}>
+                            <div className={styles.sectionHeader}>
+                                <span className={styles.sectionIcon}>🏆</span>
+                                <h3 className={styles.sectionTitle}>勝利条件</h3>
+                            </div>
+                            <p className={styles.textBlock}>
+                                全員の描き手ターンが終わった時点で、最も合計スコアが高いプレイヤーが優勝です。
+                                画力だけでなく、特徴を捉えるセンスと、素早いひらめきが勝負の鍵です！
+                            </p>
                         </div>
                     </div>
                 )}

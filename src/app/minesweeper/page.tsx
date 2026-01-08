@@ -260,6 +260,49 @@ export default function MinesweeperPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* Game Rules Section */}
+                    {menuView === 'top' && (
+                        <div className={styles.contentSection} style={{ marginTop: '3rem' }}>
+                            <h2 className={styles.contentTitle}>マインスイーパーのルール</h2>
+                            <div className={styles.sectionBlock}>
+                                <div className={styles.sectionHeader}>
+                                    <span className={styles.sectionIcon}>💣</span>
+                                    <h3 className={styles.sectionTitle}>基本操作</h3>
+                                </div>
+                                <p className={styles.textBlock}>
+                                    地雷原から全ての地雷を見つけ出し、地雷以外のマスを全て開けるパズルゲームです。
+                                </p>
+                                <ul className={styles.list}>
+                                    <li className={styles.listItem}><strong>左クリック:</strong> マスを開けます。地雷を開けてしまうと即ゲームオーバーです。</li>
+                                    <li className={styles.listItem}><strong>右クリック (または旗ボタン):</strong> 地雷だと思うマスに「旗（フラグ）」を立てて目印にします。</li>
+                                    <li className={styles.listItem}><strong>数字の意味:</strong> 開いた数字は、その周囲8マス（縦・横・斜め）に隠されている地雷の数を示しています。</li>
+                                </ul>
+                            </div>
+
+                            <div className={styles.sectionBlock}>
+                                <div className={styles.sectionHeader}>
+                                    <span className={styles.sectionIcon}>🧩</span>
+                                    <h3 className={styles.sectionTitle}>攻略の基本パターン</h3>
+                                </div>
+                                <div className={styles.cardGrid}>
+                                    <div className={styles.infoCard}>
+                                        <span className={styles.cardTitle}>角の「1」</span>
+                                        <p className={styles.cardText}>
+                                            突き出した角にある「1」の対角線のマスは、必ず地雷です。<br />
+                                            （1の周りに未開封マスが1つしかなければ、それは確定で地雷です）
+                                        </p>
+                                    </div>
+                                    <div className={styles.infoCard}>
+                                        <span className={styles.cardTitle}>直線上の「1-2-1」</span>
+                                        <p className={styles.cardText}>
+                                            壁沿いに「1・2・1」と並んでいる場合、両端の1の脇にある未開封マスに地雷があります。真ん中の2の脇は安全です。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
         );

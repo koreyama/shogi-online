@@ -304,27 +304,61 @@ export default function ChessPage() {
             </div>
 
             <div className={styles.contentSection}>
-                <h2 className={styles.contentTitle}>チェスの世界へようこそ</h2>
+                <h2 className={styles.contentTitle}>チェス (Chess) の奥深い世界</h2>
+
                 <div className={styles.sectionBlock}>
                     <div className={styles.sectionHeader}>
                         <span className={styles.sectionIcon}>♔</span>
-                        <h3 className={styles.sectionTitle}>チェスの歴史</h3>
+                        <h3 className={styles.sectionTitle}>チェスの歴史と起源</h3>
                     </div>
                     <p className={styles.textBlock}>
-                        チェスの起源は古代インドまで遡ります。世界で最もポピュラーなボードゲームの一つです。
+                        チェスの起源は、6世紀頃のインドのゲーム「チャトランガ」にあると言われています。
+                        その後、ペルシャ、イスラム世界を経てヨーロッパに伝わり、現在のルール（クイーンの強化など）は15世紀頃に確立されました。
+                        「王様のゲーム」とも呼ばれ、世界中で最も普及しているボードゲームの一つです。
                     </p>
                 </div>
+
                 <div className={styles.sectionBlock}>
                     <div className={styles.sectionHeader}>
                         <span className={styles.sectionIcon}>♟️</span>
-                        <h3 className={styles.sectionTitle}>基本ルール</h3>
+                        <h3 className={styles.sectionTitle}>基本ルールと勝利条件</h3>
                     </div>
                     <div className={styles.cardGrid}>
                         <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>勝利条件</span>
-                            <p className={styles.cardText}>相手のキングをチェックメイトすれば勝ちです。</p>
+                            <span className={styles.cardTitle}>1. 勝利条件</span>
+                            <p className={styles.cardText}>相手のキングを「チェック（王手）」し、逃げ場のない状態「チェックメイト」にすれば勝ちです。</p>
+                        </div>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>2. ステイルメイト</span>
+                            <p className={styles.cardText}>手番のプレイヤーがチェックされていないが、指せる手がない場合は「引き分け」になります。</p>
+                        </div>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>3. プロモーション</span>
+                            <p className={styles.cardText}>ポーンが相手側の最終列に到達すると、クイーン・ルーク・ビショップ・ナイトのいずれかに成ることができます。</p>
+                        </div>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>4. 特殊ルール</span>
+                            <p className={styles.cardText}>
+                                <strong>キャスリング:</strong> キングとルークを同時に動かして守りを固める手。<br />
+                                <strong>アンパッサン:</strong> ポーンが2歩進んだ直後に、隣のポーンがそれを取れる特殊なルール。
+                            </p>
                         </div>
                     </div>
+                </div>
+
+                <div className={styles.sectionBlock}>
+                    <div className={styles.sectionHeader}>
+                        <span className={styles.sectionIcon}>💡</span>
+                        <h3 className={styles.sectionTitle}>上達へのヒント</h3>
+                    </div>
+                    <ul className={styles.list}>
+                        <li className={styles.listItem}>
+                            <strong>中央を支配する:</strong> 盤面中央（d4, d5, e4, e5）をポーンやナイトで制圧すると、駒の利きが良くなり有利になります。
+                        </li>
+                        <li className={styles.listItem}>
+                            <strong>駒を展開する:</strong> 序盤は同じ駒を何度も動かさず、ナイトやビショップを次々と戦いやすい位置に出動させましょう。
+                        </li>
+                    </ul>
                 </div>
             </div>
         </main>

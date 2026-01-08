@@ -200,17 +200,49 @@ export default function DotsAndBoxesPage() {
 
                 <div className={navStyles.contentSection}>
                     <h2 className={navStyles.contentTitle}>Dots & Boxes の遊び方</h2>
+
                     <div className={navStyles.sectionBlock}>
                         <div className={navStyles.sectionHeader}>
                             <span className={navStyles.sectionIcon}>📏</span>
                             <h3 className={navStyles.sectionTitle}>基本ルール</h3>
                         </div>
                         <p className={navStyles.textBlock}>
-                            1. プレイヤーは交互に点と点の間に線を引きます。<br />
-                            2. 4辺を囲んで「ボックス」を完成させたプレイヤーが、そのボックスを自分のものにできます。<br />
-                            3. ボックスを完成させたプレイヤーは、続けてもう一度線を引くことができます。<br />
-                            4. 最終的に獲得したボックスの数が多いプレイヤーの勝利です。
+                            紙とペンさえあれば遊べる、シンプルながら奥深い陣取りゲームです。
+                            交互に点と点の間に線を引いていき、最終的に多くの「箱（ボックス）」を獲得したプレイヤーが勝利します。
                         </p>
+                        <div className={navStyles.cardGrid}>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>1. 線を引く</span>
+                                <p className={navStyles.cardText}>プレイヤーは交互に、隣り合う点の間に縦または横の線を1本引きます。</p>
+                            </div>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>2. 箱の完成</span>
+                                <p className={navStyles.cardText}>線で正方形（箱）の4辺を囲むと、その箱を獲得できます。箱の中に自分のマークがつきます。</p>
+                            </div>
+                            <div className={navStyles.infoCard}>
+                                <span className={navStyles.cardTitle}>3. 連続手番</span>
+                                <p className={navStyles.cardText}>箱を獲得したプレイヤーは、ご褒美として<strong>「もう一度線を引く」</strong>ことができます。連続して箱が取れると一逆転も可能です！</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={navStyles.sectionBlock}>
+                        <div className={navStyles.sectionHeader}>
+                            <span className={navStyles.sectionIcon}>🧠</span>
+                            <h3 className={navStyles.sectionTitle}>勝つための戦略</h3>
+                        </div>
+                        <ul className={navStyles.list}>
+                            <li className={navStyles.listItem}>
+                                <strong>長い連鎖を作らせない:</strong>
+                                箱が連続して取れる配置（チェーン）を作らないように注意しましょう。
+                                逆に、相手に短いチェーンを取らせて、自分が長いチェーンを取るのが定石です。
+                            </li>
+                            <li className={navStyles.listItem}>
+                                <strong>「ダブルクロス」:</strong>
+                                長いチェーンの最後の2つの箱をあえて取らずに相手に渡す高等テクニック。
+                                これにより、相手に手番を強制的に渡し、次のさらに大きなチェーンへ誘導することができます。
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>

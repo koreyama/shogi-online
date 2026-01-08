@@ -263,13 +263,50 @@ export default function YachtPage() {
             </div>
 
             <div className={navStyles.contentSection}>
-                <h2 className={navStyles.contentTitle}>Yacht (ヨット) の遊び方</h2>
+                <h2 className={navStyles.contentTitle}>Yacht (ヨット) のルールと役</h2>
+
                 <div className={navStyles.sectionBlock}>
+                    <div className={navStyles.sectionHeader}>
+                        <span className={navStyles.sectionIcon}>🎲</span>
+                        <h3 className={navStyles.sectionTitle}>ゲームの流れ</h3>
+                    </div>
                     <p className={navStyles.textBlock}>
-                        5つのダイスを振り、特定の「役」を作って点数を競うゲームです。
-                        各ターンでは最大3回までダイスを振ることができ、残したいダイスを「ホールド（保持）」することができます。
-                        最終的にスコアシートをすべて埋め、合計点数が高いプレイヤーの勝利です。
+                        5つのダイスを振り、ポーカーの役のような組み合わせを作って高得点を目指すゲームです。全12ラウンド行います。
                     </p>
+                    <ul className={navStyles.list}>
+                        <li className={navStyles.listItem}>各ターン、ダイスは最大3回まで振ることができます。</li>
+                        <li className={navStyles.listItem}>「残したいダイス」をタップしてホールド（保持）し、残りを振り直します。</li>
+                        <li className={navStyles.listItem}>3回振り終わるか、途中で役が完成したら、スコアシートの空いている場所に点数を記録します。</li>
+                        <li className={navStyles.listItem}>一度埋めた場所には書き直せません。点数が低い役でも、どこかに記録しなければなりません（0点になることもあります）。</li>
+                    </ul>
+                </div>
+
+                <div className={navStyles.sectionBlock}>
+                    <div className={navStyles.sectionHeader}>
+                        <span className={navStyles.sectionIcon}>📋</span>
+                        <h3 className={navStyles.sectionTitle}>役（カテゴリー）一覧</h3>
+                    </div>
+
+                    <div className={navStyles.cardGrid}>
+                        <div className={navStyles.infoCard}>
+                            <span className={navStyles.cardTitle}>数字の部 (Upper)</span>
+                            <p className={navStyles.cardText}>
+                                <strong>1〜6 (Ace〜Six):</strong> 指定した数字のダイスの合計値が得点。<br />
+                                <strong>ボーナス:</strong> 数字の部の合計が63点以上なら、＋35点のボーナスがつきます！
+                            </p>
+                        </div>
+                        <div className={navStyles.infoCard}>
+                            <span className={navStyles.cardTitle}>役の部 (Lower)</span>
+                            <p className={navStyles.cardText}>
+                                <strong>チョイス:</strong> ダイス5つの合計値。<br />
+                                <strong>4カード:</strong> 同じ数字が4つ以上。ダイス5つの合計値。<br />
+                                <strong>フルハウス:</strong> 3枚組＋2枚組。固定25点。<br />
+                                <strong>Sストレート:</strong> 4つ連続（例:1-2-3-4）。固定30点。<br />
+                                <strong>Bストレート:</strong> 5つ連続（例:2-3-4-5-6）。固定40点。<br />
+                                <strong>ヨット:</strong> 5つ全て同じ数字。固定50点。
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

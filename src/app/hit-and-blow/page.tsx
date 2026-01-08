@@ -174,16 +174,60 @@ export default function HitAndBlowPage() {
 
                 {!joinMode && (
                     <div className={navStyles.contentSection}>
-                        <h2 className={navStyles.contentTitle}>ルールと遊び方</h2>
+                        <h2 className={navStyles.contentTitle}>Hit & Blow のルール</h2>
+
                         <div className={navStyles.sectionBlock}>
                             <div className={navStyles.sectionHeader}>
                                 <span className={navStyles.sectionIcon}>🎯</span>
                                 <h3 className={navStyles.sectionTitle}>ゲームの目的</h3>
                             </div>
                             <p className={navStyles.textBlock}>
-                                隠された4つの色の順番を推測するゲームです。<br />
-                                予想を送信すると、その予想が正解とどれくらい近いかが「HIT」と「BLOW」で返されます。
+                                相手が設定した「4つの色（または数字）の並び順」を推理して当てるゲームです。<br />
+                                できるだけ少ない回数で正解することを目指します。
                             </p>
+                        </div>
+
+                        <div className={navStyles.sectionBlock}>
+                            <div className={navStyles.sectionHeader}>
+                                <span className={navStyles.sectionIcon}>🔍</span>
+                                <h3 className={navStyles.sectionTitle}>ヒントの見方</h3>
+                            </div>
+                            <p className={navStyles.textBlock}>
+                                予想を送信すると、2種類のヒントが返ってきます。
+                            </p>
+                            <div className={navStyles.cardGrid}>
+                                <div className={navStyles.infoCard} style={{ borderLeft: '4px solid #ef4444' }}>
+                                    <span className={navStyles.cardTitle} style={{ color: '#ef4444' }}>HIT (ヒット)</span>
+                                    <p className={navStyles.cardText}>
+                                        色も場所も合っている数。<br />
+                                        例：正解が「赤・青・黄・緑」で、予想が「赤・白・黒・黄」の場合<br />
+                                        → 「赤」は場所も合っているので <strong>1 HIT</strong>
+                                    </p>
+                                </div>
+                                <div className={navStyles.infoCard} style={{ borderLeft: '4px solid #3b82f6' }}>
+                                    <span className={navStyles.cardTitle} style={{ color: '#3b82f6' }}>BLOW (ブロー)</span>
+                                    <p className={navStyles.cardText}>
+                                        色は合っているが、場所が違う数。<br />
+                                        上の例で、「黄」は正解に含まれているが場所が違うため <strong>1 BLOW</strong><br />
+                                        （合計：1 HIT / 1 BLOW）
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={navStyles.sectionBlock}>
+                            <div className={navStyles.sectionHeader}>
+                                <span className={navStyles.sectionIcon}>🧠</span>
+                                <h3 className={navStyles.sectionTitle}>推理のコツ</h3>
+                            </div>
+                            <ul className={navStyles.list}>
+                                <li className={navStyles.listItem}>
+                                    <strong>絞り込み:</strong> HIT数が少ない場合、その色は使われていない可能性が高いです。全く違う色に変えてみましょう。
+                                </li>
+                                <li className={navStyles.listItem}>
+                                    <strong>場所の特定:</strong> 色が合っている（BLOWが出ている）場合、その色を別の場所にずらして配置してみましょう。
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 )}
