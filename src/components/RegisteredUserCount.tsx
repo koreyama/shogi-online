@@ -1,27 +1,27 @@
-'use client';
-
 import React, { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
+import { ref, onValue, off } from 'firebase/database';
 
 export const RegisteredUserCount = ({ style, className, prefix = '登録者数: ' }: { style?: React.CSSProperties, className?: string, prefix?: string }) => {
     const [count, setCount] = useState<number | null>(null);
 
     useEffect(() => {
-        const fetchCount = async () => {
-            try {
-                // Use REST API with shallow=true to get keys without downloading all data
-                const res = await fetch('https://webshogi-b1015-default-rtdb.firebaseio.com/users.json?shallow=true');
-                if (!res.ok) throw new Error('Failed to fetch');
-                const data = await res.json();
-                if (data) {
-                    setCount(Object.keys(data).length);
-                }
-            } catch (e) {
-                console.error("Failed to fetch user count:", e);
-                // Fallback or silently fail
-            }
-        };
+        const statsRef = ref(db, 'site_stats/user_count');
 
-        fetchCount();
+        const unsubscribe = onValue(statsRef, (snapshot) => {
+            const val = snapshot.val();
+            if (typeof val === 'number') {
+                setCount(val);
+            }
+        }, (error) => {
+            // Silently fail or log debug only
+            // console.debug("Failed to read user count:", error);
+            setCount(null);
+        });
+
+        return () => {
+            unsubscribe(); // onValue returns unsubscribe function
+        };
     }, []);
 
     if (count === null) return null;

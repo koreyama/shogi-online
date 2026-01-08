@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { ref, get, set, update, push, child, onValue, off } from "firebase/database";
+import { ref, get, set, update, push, child, onValue, off, runTransaction } from "firebase/database";
 
 export interface UserStats {
     wins: number;
@@ -39,6 +39,12 @@ export const ensureUserExists = async (uid: string, displayName: string, photoUR
             lastSeen: Date.now()
         };
         await set(userRef, initialProfile);
+
+        // Increment total user count
+        runTransaction(ref(db, 'site_stats/user_count'), (currentCount) => {
+            return (currentCount || 0) + 1;
+        });
+
         return initialProfile;
     } else {
         // Update basic info just in case
