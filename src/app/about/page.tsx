@@ -5,6 +5,7 @@ import Link from 'next/link';
 import styles from './about.module.css';
 import { IconShogi, IconChess, IconSwords } from '@/components/Icons';
 
+import { RegisteredUserCount } from '@/components/RegisteredUserCount';
 import ActiveUsers from '@/components/ActiveUsers';
 
 export default function AboutPage() {
@@ -18,8 +19,21 @@ export default function AboutPage() {
                     いつでも、どこでも、誰とでも。<br />
                     シンプルで美しい、無料で遊べる総合オンラインゲームプラットフォーム
                 </p>
-                <div style={{ marginTop: '2rem' }}>
+                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <ActiveUsers />
+                    <RegisteredUserCount
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(0, 0, 0, 0.05)',
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            fontSize: '0.9rem',
+                            color: '#666',
+                            border: '1px solid rgba(0,0,0,0.1)'
+                        }}
+                    />
                 </div>
             </header>
 

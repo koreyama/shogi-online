@@ -9,6 +9,7 @@ import {
     IconBomb
 } from '@/components/Icons';
 import { FloatingShapes } from './FloatingShapes';
+import { RegisteredUserCount } from '@/components/RegisteredUserCount';
 import Image from 'next/image';
 
 // Local Definitions
@@ -417,6 +418,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         >
                             ゲーム一覧を見る
                         </motion.button>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} style={{ marginTop: '2rem' }}>
+                        <RegisteredUserCount
+                            prefix="現在の登録者数: "
+                            style={{
+                                fontSize: '0.9rem',
+                                color: '#718096',
+                                fontWeight: 600,
+                                display: 'inline-block',
+                                padding: '0.5rem 1.5rem',
+                                background: 'rgba(255,255,255,0.6)',
+                                backdropFilter: 'blur(4px)',
+                                borderRadius: '20px'
+                            }}
+                        />
                     </motion.div>
                 </motion.div>
             </section>
