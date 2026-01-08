@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { pianoEngine, InstrumentType } from '@/lib/piano/AudioEngine';
 import HideChatBot from '@/components/HideChatBot';
+import styles from './page.module.css';
 
 // Note Data for C3 to C5 (Same range)
 const NOTES = [
@@ -226,110 +227,57 @@ export default function PianoPage() {
     if (!mounted || authLoading || !user) return null;
 
     return (
-        <div
-            onClick={resumeAudio}
-            style={{
-                width: '100vw',
-                height: '100vh',
-                background: '#f8f9fa', // Light gray/white background
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#333', // Dark text
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                userSelect: 'none',
-                overflow: 'hidden'
-            }}
-        >
+        <div className={styles.container} onClick={resumeAudio}>
             <HideChatBot />
-            {/* Loading Overlay (Light Theme) */}
+            {/* Loading Overlay */}
             {isLoading && (
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(255,255,255,0.9)',
-                    zIndex: 1000,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#333'
-                }}>
+                <div className={styles.loadingOverlay}>
                     <div style={{ fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 500 }}>音源データを読み込み中...</div>
-                    <div style={{ width: '300px', height: '4px', background: '#eee', borderRadius: '2px' }}>
-                        <div style={{ width: `${loadProgress}%`, height: '100%', background: '#333', transition: 'width 0.1s' }}></div>
+                    <div className={styles.loadingBarContainer}>
+                        <div className={styles.loadingBarFill} style={{ width: `${loadProgress}%` }}></div>
                     </div>
                     <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.9rem' }}>{loadProgress}%</div>
                 </div>
             )}
 
-            <div style={{
-                marginBottom: '2.5rem',
-                textAlign: 'center'
-            }}>
-                <h1 style={{
-                    margin: 0,
-                    fontWeight: '300',
-                    letterSpacing: '2px',
-                    color: '#111',
-                    fontSize: '2rem'
-                }}>Virtual Piano</h1>
-                <p style={{ color: '#888', fontSize: '0.8rem', marginTop: '0.5rem', letterSpacing: '1px' }}>Simple & Clean</p>
+            <div className={styles.header}>
+                <h1 className={styles.title}>Virtual Piano</h1>
+                <p className={styles.subtitle}>Simple & Clean</p>
             </div>
 
-            {/* Control Panel (Minimalist) */}
-            <div style={{
-                display: 'flex',
-                gap: '2.5rem',
-                marginBottom: '2rem',
-                background: '#fff',
-                padding: '1.2rem 2.5rem',
-                borderRadius: '50px', // Pill shape
-                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                alignItems: 'center'
-            }}>
+            {/* Control Panel */}
+            <div className={styles.controlPanel}>
                 {/* Reverb Control */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <label style={{ fontSize: '0.7rem', color: '#999', marginBottom: '0.5rem', fontWeight: 600 }}>リバーブ (残響)</label>
+                <div className={styles.controlGroup}>
+                    <label className={styles.label}>リバーブ (残響)</label>
                     <input
                         type="range"
                         min="0" max="1" step="0.01"
                         value={reverb}
                         onChange={e => setReverb(parseFloat(e.target.value))}
-                        style={{ width: '80px', cursor: 'pointer', accentColor: '#333' }}
+                        className={styles.slider}
                     />
                 </div>
 
                 {/* Volume Control */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid #eee', paddingLeft: '2.5rem' }}>
-                    <label style={{ fontSize: '0.7rem', color: '#999', marginBottom: '0.5rem', fontWeight: 600 }}>音量</label>
+                <div className={styles.controlGroup}>
+                    <label className={styles.label}>音量</label>
                     <input
                         type="range"
                         min="0" max="1.5" step="0.05"
                         value={volume}
                         onChange={e => setVolume(parseFloat(e.target.value))}
-                        style={{ width: '80px', cursor: 'pointer', accentColor: '#333' }}
+                        className={styles.slider}
                     />
                 </div>
 
                 {/* Instrument Selector */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid #eee', paddingLeft: '2.5rem' }}>
-                    <label style={{ fontSize: '0.7rem', color: '#999', marginBottom: '0.5rem', fontWeight: 600 }}>楽器 / 音色</label>
+                <div className={styles.controlGroup}>
+                    <label className={styles.label}>楽器 / 音色</label>
                     <select
                         value={currentInstrument}
                         onChange={(e) => loadInstrument(e.target.value as any)}
-                        style={{
-                            background: 'transparent',
-                            color: '#333',
-                            border: '1px solid #ddd',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '0.85rem',
-                            outline: 'none',
-                            cursor: 'pointer',
-                            minWidth: '160px'
-                        }}
+                        className={styles.select}
                         disabled={isLoading}
                     >
                         <option value="acoustic_grand_piano">グランドピアノ (Grand Piano)</option>
@@ -350,22 +298,15 @@ export default function PianoPage() {
                 </div>
 
                 {/* Metronome Control */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid #eee', paddingLeft: '2.5rem' }}>
-                    <label style={{ fontSize: '0.7rem', color: '#999', marginBottom: '0.5rem', fontWeight: 600 }}>メトロノーム</label>
+                <div className={styles.controlGroup}>
+                    <label className={styles.label}>メトロノーム</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <button
                             onClick={() => setIsMetronomeOn(!isMetronomeOne)}
+                            className={styles.metronomeButton}
                             style={{
                                 background: isMetronomeOne ? '#333' : '#eee',
-                                border: 'none',
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 color: isMetronomeOne ? '#fff' : '#999',
-                                fontSize: '0.7rem'
                             }}
                             title="Toggle Metronome"
                         >
@@ -377,7 +318,7 @@ export default function PianoPage() {
                                 min="40" max="200"
                                 value={bpm}
                                 onChange={e => setBpm(parseInt(e.target.value))}
-                                style={{ width: '80px', cursor: 'pointer', accentColor: '#333' }}
+                                className={styles.slider}
                             />
                             <span style={{ fontSize: '0.9rem', width: '30px', textAlign: 'right', fontFamily: 'monospace', color: '#555' }}>{bpm}</span>
                         </div>
@@ -385,18 +326,9 @@ export default function PianoPage() {
                 </div>
             </div>
 
-            {/* Piano Chassis - Modern Clean */}
-            <div style={{
-                position: 'relative',
-                background: '#fff',
-                padding: '30px 20px 20px 20px',
-                borderRadius: '12px',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
-                border: '1px solid #f0f0f0'
-            }}>
-                {/* No Gold Trim, No Felt, just clean */}
-
-                <div style={{ display: 'flex', position: 'relative', zIndex: 1 }}>
+            {/* Piano Chassis */}
+            <div className={styles.pianoChassis}>
+                <div className={styles.keysContainer}>
                     {NOTES.map((n) => {
                         const isActive = activeNotes.has(n.note);
 
@@ -409,27 +341,12 @@ export default function PianoPage() {
                                     onMouseLeave={() => stopNote(n.note)}
                                     onTouchStart={(e) => { e.preventDefault(); resumeAudio(); playNote(n.note); }}
                                     onTouchEnd={(e) => { e.preventDefault(); stopNote(n.note); }}
+                                    className={styles.whiteKey}
                                     style={{
-                                        width: '60px',
-                                        height: '280px',
                                         background: isActive ? '#f0f0f0' : '#fff',
-                                        border: '1px solid #e0e0e0',
                                         borderBottom: isActive ? '2px solid #ddd' : '6px solid #ddd',
-                                        borderRadius: '0 0 4px 4px',
-                                        marginRight: '-1px',
-                                        cursor: 'pointer',
-                                        position: 'relative',
-                                        zIndex: 1,
                                         transform: isActive ? 'translateY(2px)' : 'none',
-                                        transformOrigin: 'top',
-                                        transition: 'transform 0.05s ease-out, background 0.1s',
-                                        display: 'flex',
-                                        alignItems: 'flex-end',
-                                        justifyContent: 'center',
-                                        paddingBottom: '20px',
                                         color: isActive ? '#333' : '#ddd',
-                                        fontWeight: '500',
-                                        fontSize: '0.7rem',
                                         boxShadow: isActive ? 'inset 0 3px 5px rgba(0,0,0,0.05)' : 'none'
                                     }}
                                 >
@@ -445,7 +362,7 @@ export default function PianoPage() {
                         if (n.type === 'black') {
                             const isActive = activeNotes.has(n.note);
                             const whiteKeysBefore = NOTES.slice(0, i).filter(k => k.type === 'white').length;
-                            const leftPos = (whiteKeysBefore * 59) - 18; // Adjusted spacing
+                            const leftPos = (whiteKeysBefore * 59) - 18; // Keep fixed px calculation, scroll handles it
 
                             return (
                                 <div
@@ -455,26 +372,11 @@ export default function PianoPage() {
                                     onMouseLeave={() => stopNote(n.note)}
                                     onTouchStart={(e) => { e.preventDefault(); resumeAudio(); playNote(n.note); }}
                                     onTouchEnd={(e) => { e.preventDefault(); stopNote(n.note); }}
+                                    className={styles.blackKey}
                                     style={{
-                                        position: 'absolute',
                                         left: `${leftPos}px`,
-                                        top: 0,
-                                        width: '40px',
-                                        height: '170px',
                                         background: isActive ? '#444' : '#222',
-                                        borderRadius: '0 0 3px 3px',
-                                        cursor: 'pointer',
-                                        zIndex: 10,
                                         transform: isActive ? 'translateY(2px)' : 'none',
-                                        transformOrigin: 'top',
-                                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                                        display: 'flex',
-                                        alignItems: 'flex-end',
-                                        justifyContent: 'center',
-                                        paddingBottom: '15px',
-                                        color: '#666',
-                                        fontSize: '0.6rem',
-                                        transition: 'transform 0.05s ease-out'
                                     }}
                                 >
                                     {isActive ? '' : n.label}
@@ -486,16 +388,11 @@ export default function PianoPage() {
                 </div>
             </div>
 
-            <div style={{ marginTop: '50px', display: 'flex', gap: '20px' }}>
+            <div className={styles.footer}>
                 <Link href="/" style={{ color: '#999', textDecoration: 'none', fontSize: '0.8rem', borderBottom: '1px solid #eee' }}>Home</Link>
             </div>
 
-            {/* Simple MIDI Status */}
-            <div style={{
-                position: 'fixed', bottom: '20px', right: '20px',
-                fontSize: '0.8rem', color: midiDevice ? '#48bb78' : '#ccc',
-                display: 'flex', alignItems: 'center', gap: '6px'
-            }}>
+            <div className={styles.midiStatus}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: midiDevice ? '#48bb78' : '#ddd' }}></div>
                 {midiDevice ? `MIDI: ${midiDevice}` : 'MIDI Not Connected'}
             </div>
