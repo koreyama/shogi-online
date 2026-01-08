@@ -344,6 +344,12 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
         room?.send("toggleManaCharge"); // Toggle off
     };
 
+    const handleSurrender = () => {
+        if (confirm('本当にあきらめますか？')) {
+            room?.send("surrender");
+        }
+    };
+
     if (error) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem' }}>
@@ -436,14 +442,11 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                 onManaCharge={handleManaCharge}
                 onExecuteCharge={handleExecuteCharge} // Wraps logic to send indices
                 onCancelCharge={handleCancelCharge}
+                onSurrender={handleSurrender}
             />
             {gameState.phase !== 'end' && (
                 <button
-                    onClick={() => {
-                        if (confirm('本当にあきらめますか？')) {
-                            room?.send("surrender");
-                        }
-                    }}
+                    onClick={handleSurrender}
                     style={{
                         position: 'fixed',
                         top: '1rem',
