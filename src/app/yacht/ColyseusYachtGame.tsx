@@ -204,7 +204,7 @@ export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName
         return (
             <div className={styles.container}>
                 <MatchingWaitingScreen
-                    status={status}
+                    status={(status === 'waiting' || status === 'connecting') ? status : 'connecting'}
                     mode={mode}
                     roomId={room?.roomId}
                     onCancel={() => onBack ? onBack() : window.location.reload()}
