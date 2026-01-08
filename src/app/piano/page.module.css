@@ -78,6 +78,31 @@
     z-index: 100;
 }
 
+.homeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #555;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.homeButton svg {
+    width: 18px;
+    height: 18px;
+}
+
+.homeButton:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
 .controlGroup {
     display: flex;
     flex-direction: column;
@@ -298,6 +323,18 @@
         /* Force minimum height to contain items */
         flex-shrink: 0;
         /* Don't shrink below content size */
+    }
+
+    .homeButton {
+        width: 24px;
+        height: 24px;
+        background: #eee;
+        margin-right: 0.5rem;
+    }
+
+    .homeButton svg {
+        width: 14px;
+        height: 14px;
     }
 
     .controlGroup {
