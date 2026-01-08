@@ -266,7 +266,6 @@
 @media (max-height: 500px) and (orientation: landscape) {
     .container {
         padding: 0;
-        /* Remove padding to fully utilize screen */
         justify-content: flex-start;
         overflow: hidden;
     }
@@ -279,53 +278,61 @@
         display: none;
     }
 
-    /* Ultra Compact Control Panel */
+    /* Compact Control Panel */
     .controlPanel {
-        padding: 0.2rem 1rem;
+        padding: 0.3rem 1rem;
         margin: 0;
-        /* No margin */
-        gap: 0.5rem;
-        transform: scale(0.8);
+        gap: 1rem;
+        transform: scale(0.95);
+        /* Legible size */
         transform-origin: top center;
         width: 100%;
-        /* Full width */
         border-radius: 0 0 20px 20px;
-        /* Rounded bottom only */
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(5px);
         z-index: 20;
         justify-content: center;
+        flex-wrap: nowrap;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
 
     .controlGroup {
         min-width: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .controlGroup+.controlGroup {
-        padding-left: 0.8rem;
+        padding-left: 1rem;
+        border-left: 1px solid #eee;
     }
 
     .label {
-        display: none;
-        /* Hide labels to save vertical space! */
+        display: block;
+        /* Restore labels */
+        font-size: 0.65rem;
+        margin-bottom: 2px;
+        color: #666;
+        white-space: nowrap;
     }
 
     .slider {
-        width: 50px;
+        width: 70px;
+        /* Restore width slightly */
         height: 4px;
-        /* Thinner slider */
     }
 
     .select {
-        padding: 0 4px;
-        height: 20px;
-        font-size: 0.7rem;
-        min-width: 100px;
+        padding: 2px 6px;
+        height: 24px;
+        font-size: 0.75rem;
+        min-width: 130px;
     }
 
     .metronomeButton {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
     }
 
     /* Piano Chassis fills remaining space */
@@ -334,10 +341,8 @@
         margin: 0;
         border-radius: 0;
         flex: 1;
-        /* Grow to fill space */
         display: flex;
         align-items: stretch;
-        /* Stretch children to full height */
         overflow-y: hidden;
         overflow-x: auto;
         box-shadow: none;
@@ -348,36 +353,25 @@
 
     .pianoChassis::-webkit-scrollbar {
         height: 0;
-        /* Hide scrollbar for immersion, user can still swipe? Or make very thin */
         width: 0;
     }
 
     .keysContainer {
         height: 100%;
-        /* Fill chassis */
         display: flex;
         align-items: stretch;
-        /* Stretch keys to full height */
-        /* padding-bottom: 0; */
     }
 
     .whiteKey {
-        width: auto;
-        /* Allow dynamic width? No, keep fixed for scroll */
-        min-width: 50px;
-        /* Reduced width to fit more? User wants BIGGER keys usually meaning longer */
         width: 60px;
         height: 100% !important;
-        /* Force fill container height */
         min-height: auto;
-        /* Remove constraints */
         border-radius: 0 0 8px 8px;
         border-bottom-width: 4px !important;
-        /* Thinner bottom border */
     }
 
     .blackKey {
-        width: 36px;
+        width: 38px;
         height: 60% !important;
     }
 
