@@ -7,7 +7,6 @@ interface CardDisplayProps {
     card: Card;
     onClick?: () => void;
     size?: 'small' | 'medium' | 'large';
-    size?: 'small' | 'medium' | 'large';
     className?: string;
     disabled?: boolean;
     overrideCost?: number;
