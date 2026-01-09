@@ -399,9 +399,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const handleMouseMove = (e: React.MouseEvent) => {
         // Update Cursor Position using direct DOM manipulation (No React Render!)
         if (cursorRef.current && isDrawer && !isSpacePressed) {
-            const raw = getRawPoint(e);
-            cursorRef.current.style.left = `${raw.x}px`;
-            cursorRef.current.style.top = `${raw.y}px`;
+            const rect = viewportRef.current?.getBoundingClientRect();
+            if (rect) {
+                const sx = e.clientX - rect.left;
+                const sy = e.clientY - rect.top;
+                cursorRef.current.style.left = `${sx}px`;
+                cursorRef.current.style.top = `${sy}px`;
+            }
         }
 
         if (isPanning) {
@@ -650,12 +654,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 // Inverse Rotate/Scale
                 const rad = -rotation * Math.PI / 180;
                 const rx = cx * Math.cos(rad) - cy * Math.sin(rad);
-                const ry = cx * Math.sin(rad) + dy * Math.cos(rad);
-                // Oops, dy undefined above. typo?
-                // Correct math:
-                const ry_calc = cx * Math.sin(rad) + cy * Math.cos(rad);
+                const ry = cx * Math.sin(rad) + cy * Math.cos(rad);
+
                 const wx = rx / scale;
-                const wy = ry_calc / scale;
+                const wy = ry / scale;
 
                 // Calculate New State
                 const newScale = Math.min(Math.max(scale * (dist / lastTouchDistance.current), 0.1), 5.0);
