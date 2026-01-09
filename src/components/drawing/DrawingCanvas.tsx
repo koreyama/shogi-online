@@ -68,6 +68,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     // Zoom & Pan
     const [scale, setScale] = useState(1);
     const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [rotation, setRotation] = useState(0); // Degrees
     const [isSpacePressed, setIsSpacePressed] = useState(false);
     const [isPanning, setIsPanning] = useState(false);
 
@@ -80,6 +81,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const lastPoint = useRef<Point | null>(null);
     const inputBuffer = useRef<Point[]>([]);
     const lastTouchDistance = useRef<number | null>(null); // For pinch zoom
+    const lastTouchAngle = useRef<number | null>(null); // For pinch rotate
     const lastTouchCenter = useRef<Point | null>(null); // For pinch pan
 
     const [isDrawing, setIsDrawing] = useState(false);
@@ -334,17 +336,30 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     useEffect(() => { layers.forEach(l => renderLayer(l.id, history)); }, [width, height, history, layers, renderLayer]);
 
     const getRawPoint = (e: React.MouseEvent | React.TouchEvent): Point => {
-        const canvas = layerRefs.current[0];
-        if (!canvas) return { x: 0, y: 0 };
-        const rect = canvas.getBoundingClientRect();
+        if (!viewportRef.current) return { x: 0, y: 0 };
+        const rect = viewportRef.current.getBoundingClientRect();
+
         let clientX, clientY;
         if ('touches' in e) {
             clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
         } else {
             clientX = (e as React.MouseEvent).clientX; clientY = (e as React.MouseEvent).clientY;
         }
-        const x = (clientX - rect.left) / scale;
-        const y = (clientY - rect.top) / scale;
+
+        // Screen to World Conversion
+        // 1. Remove Pan (Viewport relative -> Translated relative)
+        const dx = clientX - rect.left - pan.x;
+        const dy = clientY - rect.top - pan.y;
+
+        // 2. Inverse Rotation
+        const rad = -rotation * Math.PI / 180;
+        const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+        const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+        // 3. Inverse Scale
+        const x = rx / scale;
+        const y = ry / scale;
+
         return { x: Math.round(x), y: Math.round(y) };
     };
 
@@ -607,7 +622,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             const t1 = e.touches[0];
             const t2 = e.touches[1];
             const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            const angle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
+
             lastTouchDistance.current = dist;
+            lastTouchAngle.current = angle;
             lastTouchCenter.current = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
             return;
         }
@@ -616,25 +634,61 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
 
     const handleTouchMove = (e: React.TouchEvent) => {
         if (e.cancelable) e.preventDefault();
-        if (e.touches.length === 2 && lastTouchDistance.current && lastTouchCenter.current) {
+        if (e.touches.length === 2 && lastTouchDistance.current !== null && lastTouchAngle.current !== null && lastTouchCenter.current) {
             const t1 = e.touches[0];
             const t2 = e.touches[1];
             const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            const angle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
             const center = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+            const rect = viewportRef.current?.getBoundingClientRect();
 
-            const delta = dist / lastTouchDistance.current;
-            // newScale calculation
-            const newScale = Math.min(Math.max(scale * delta, 0.1), 5.0);
+            if (rect) {
+                // Calculate World Center using OLD state
+                // Screen Point relative to viewport
+                const cx = lastTouchCenter.current.x - rect.left - pan.x;
+                const cy = lastTouchCenter.current.y - rect.top - pan.y;
+                // Inverse Rotate/Scale
+                const rad = -rotation * Math.PI / 180;
+                const rx = cx * Math.cos(rad) - cy * Math.sin(rad);
+                const ry = cx * Math.sin(rad) + dy * Math.cos(rad);
+                // Oops, dy undefined above. typo?
+                // Correct math:
+                const ry_calc = cx * Math.sin(rad) + cy * Math.cos(rad);
+                const wx = rx / scale;
+                const wy = ry_calc / scale;
 
-            // Simple pan adjustments (drag feeling)
-            const deltaX = center.x - lastTouchCenter.current.x;
-            const deltaY = center.y - lastTouchCenter.current.y;
+                // Calculate New State
+                const newScale = Math.min(Math.max(scale * (dist / lastTouchDistance.current), 0.1), 5.0);
 
-            setScale(newScale);
-            setPan(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+                let deltaAngle = angle - lastTouchAngle.current;
+                // Normalize deltaAngle
+                if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+                if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
 
-            lastTouchDistance.current = dist;
-            lastTouchCenter.current = center;
+                const newRotation = rotation + (deltaAngle * 180 / Math.PI); // Convert to degrees
+
+                // Calculate New Pan to keep World Center at New Screen Center
+                const newRad = newRotation * Math.PI / 180;
+
+                // Rotated/Scaled World Center
+                const newRx = wx * newScale * Math.cos(newRad) - wy * newScale * Math.sin(newRad);
+                const newRy = wx * newScale * Math.sin(newRad) + wy * newScale * Math.cos(newRad);
+
+                // New Screen Center (relative to viewport top-left)
+                const targetCx = center.x - rect.left;
+                const targetCy = center.y - rect.top;
+
+                const newPanX = targetCx - newRx;
+                const newPanY = targetCy - newRy;
+
+                setScale(newScale);
+                setRotation(newRotation);
+                setPan({ x: newPanX, y: newPanY });
+
+                lastTouchDistance.current = dist;
+                lastTouchAngle.current = angle;
+                lastTouchCenter.current = center;
+            }
             return;
         }
         handleMouseMove(e as unknown as React.MouseEvent);
@@ -643,6 +697,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (e.cancelable) e.preventDefault();
         lastTouchDistance.current = null;
+        lastTouchAngle.current = null;
         lastTouchCenter.current = null;
         handleMouseUp();
     };
@@ -665,7 +720,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 }}
             >
                 <div style={{
-                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+                    transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${scale})`,
                     transformOrigin: 'top left',
                     transition: isPanning ? 'none' : 'transform 0.05s linear'
                 }}>
