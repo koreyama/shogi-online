@@ -87,46 +87,34 @@ export default function DrawingPage() {
             <div className={styles.content}>
 
                 {/* Menu Section */}
+                {/* Menu Section */}
                 {view === 'menu' && (
-                    <div className={styles.menuContainer} style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-
-                        <div className={styles.menuCard} onClick={() => setView('game_random')}
-                            style={{
-                                background: 'white', padding: '2rem', borderRadius: '1rem',
-                                border: '2px solid #e2e8f0', marginBottom: '1rem', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', gap: '1.5rem', transition: 'all 0.2s',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                            }}
-                            onMouseOver={(e: any) => e.currentTarget.style.borderColor = '#d53f8c'}
-                            onMouseOut={(e: any) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                    <div className={styles.menuContainer}>
+                        <div
+                            className={`${styles.menuCard} ${styles.menuCardRandom}`}
+                            onClick={() => setView('game_random')}
                         >
-                            <div style={{ background: '#fdf2f8', padding: '1rem', borderRadius: '50%', color: '#db2777' }}>
+                            <div className={styles.menuIconWrapper}>
                                 <IconSearch size={32} />
                             </div>
-                            <div>
-                                <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#1e293b' }}>ランダムマッチ (Random Match)</h2>
-                                <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
+                            <div className={styles.menuContent}>
+                                <h2 className={styles.menuTitle}>ランダムマッチ (Random Match)</h2>
+                                <p className={styles.menuDescription}>
                                     空いている部屋を自動で探して参加します
                                 </p>
                             </div>
                         </div>
 
-                        <div className={styles.menuCard} onClick={() => setView('input_room')}
-                            style={{
-                                background: 'white', padding: '2rem', borderRadius: '1rem',
-                                border: '2px solid #e2e8f0', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', gap: '1.5rem', transition: 'all 0.2s',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                            }}
-                            onMouseOver={(e: any) => e.currentTarget.style.borderColor = '#3182ce'}
-                            onMouseOut={(e: any) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                        <div
+                            className={`${styles.menuCard} ${styles.menuCardRoom}`}
+                            onClick={() => setView('input_room')}
                         >
-                            <div style={{ background: '#ebf8ff', padding: '1rem', borderRadius: '50%', color: '#3182ce' }}>
+                            <div className={styles.menuIconWrapper}>
                                 <IconDoorEnter size={32} />
                             </div>
-                            <div>
-                                <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#1e293b' }}>ルーム作成・参加 (Private Room)</h2>
-                                <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
+                            <div className={styles.menuContent}>
+                                <h2 className={styles.menuTitle}>ルーム作成・参加 (Private Room)</h2>
+                                <p className={styles.menuDescription}>
                                     IDを指定して友達と遊びます
                                 </p>
                             </div>
@@ -136,33 +124,25 @@ export default function DrawingPage() {
 
                 {/* Input Room ID Section */}
                 {view === 'input_room' && (
-                    <div className={styles.menuContainer} style={{ maxWidth: '500px', margin: '0 auto', width: '100%', background: 'white', padding: '2rem', borderRadius: '16px' }}>
-                        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>ルーム参加・作成</h2>
+                    <div className={styles.inputCard}>
+                        <h2 className={styles.inputTitle}>ルーム参加・作成</h2>
                         <input
                             value={targetRoomId}
                             onChange={(e) => setTargetRoomId(e.target.value)}
                             placeholder="ルームIDを入力 (空欄で新規作成)"
-                            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', marginBottom: '1rem', borderRadius: '8px', border: '2px solid #e2e8f0' }}
+                            className={styles.roomInput}
                         />
                         <button
                             onClick={() => setView('game_room')}
-                            style={{
-                                width: '100%', padding: '1rem', borderRadius: '8px', border: 'none',
-                                background: targetRoomId ? '#3182ce' : '#10b981',
-                                color: 'white', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer',
-                                marginBottom: '1rem'
-                            }}
+                            className={`${styles.actionBtn} ${targetRoomId ? styles.btnJoin : styles.btnPrimary}`}
                         >
-                            {targetRoomId ? '参加する' : '新規ルーム作成'}
+                            {targetRoomId ? <><IconDoorEnter size={20} /> 参加する</> : <><IconPlus size={20} /> 新規ルーム作成</>}
                         </button>
                         <button
                             onClick={() => setView('menu')}
-                            style={{
-                                width: '100%', padding: '0.8rem', borderRadius: '8px', border: 'none',
-                                background: '#f1f5f9', color: '#64748b', fontSize: '1rem', cursor: 'pointer'
-                            }}
+                            className={`${styles.actionBtn} ${styles.btnSecondary}`}
                         >
-                            キャンセル
+                            <IconBack size={20} /> キャンセル
                         </button>
                     </div>
                 )}
