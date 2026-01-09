@@ -391,7 +391,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        if (isSpacePressed) {
+        lastMousePos.current = { x: e.clientX, y: e.clientY };
+        if (isSpacePressed || e.ctrlKey) {
             setIsPanning(true);
             return;
         }
@@ -875,6 +876,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                     <button onClick={() => { if (confirm('全消去しますか？')) clearCanvas(); }} className={styles.toolBtn} style={{ color: '#ef4444' }}><IconTrash size={20} /></button>
                 </div>
             )}
+            {/* Debug Info */}
+            <div style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', color: 'white', padding: 5, fontSize: 10, pointerEvents: 'none', zIndex: 9999 }}>
+                Pos: {Math.round(pan.x)},{Math.round(pan.y)} <br />
+                Rot: {Math.round(rotation)}deg <br />
+                Ctrl: {isCtrlPressed ? 'ON' : 'OFF'}
+            </div>
         </div>
     );
 };
