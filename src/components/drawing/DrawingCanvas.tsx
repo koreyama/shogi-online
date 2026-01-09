@@ -760,8 +760,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                             ))}
                         </div>
                     </div>
-                    <div style={{ width: 1, height: 24, background: '#ccc' }} />
-                    <button onClick={() => { if (confirm('全消去しますか？')) clearCanvas(); }} style={{ color: '#ef4444', padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: 'pointer' }}><IconTrash size={20} /></button>
+                    <div className={styles.separator} />
+                    <button onClick={() => { if (confirm('全消去しますか？')) clearCanvas(); }} className={styles.toolBtn} style={{ color: '#ef4444' }}><IconTrash size={20} /></button>
                 </div>
             )}
         </div>

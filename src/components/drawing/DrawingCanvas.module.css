@@ -38,12 +38,6 @@
     max-width: 95%;
     overflow-x: auto;
     /* Allow scrolling on PC if window is narrow */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.toolbar::-webkit-scrollbar {
-    display: none;
 }
 
 .toolGroup {
