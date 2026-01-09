@@ -722,6 +722,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 }}
             >
                 <div style={{
+                    position: 'absolute', top: 0, left: 0,
                     transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${scale})`,
                     transformOrigin: 'top left',
                     transition: isPanning ? 'none' : 'transform 0.05s linear'
