@@ -720,17 +720,15 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
 
             {isDrawer && (
                 <div style={{
-                    padding: '10px',
-                    background: 'white',
-                    borderTop: '1px solid #ccc',
-                    display: 'flex',
-                    gap: '15px',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
+                    position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+                    background: 'white', padding: '0.5rem', borderRadius: 12,
+                    display: 'flex', gap: '0.4rem', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                    zIndex: 20,
+                    maxWidth: '95vw',
                     overflowX: 'auto',
-                    maxWidth: '100%',
-                    zIndex: 200,
-                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+                    flexWrap: 'nowrap',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
                     scrollbarWidth: 'none' // Hide scrollbar for cleaner look
                 }}>
                     {/* ... Toolbar Buttons (Same) ... */}
