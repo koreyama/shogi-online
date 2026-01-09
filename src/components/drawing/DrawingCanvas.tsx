@@ -363,7 +363,11 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         }
 
         if (isPanning) {
-            setPan(prev => ({ x: prev.x + e.movementX, y: prev.y + e.movementY }));
+            const movementX = (e as any).movementX || 0;
+            const movementY = (e as any).movementY || 0;
+            if (movementX || movementY) {
+                setPan(prev => ({ x: prev.x + movementX, y: prev.y + movementY }));
+            }
             return;
         }
         const raw = getRawPoint(e);
@@ -578,12 +582,16 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={() => { handleMouseUp(); }}
+                onTouchStart={(e) => { if (e.cancelable) e.preventDefault(); handleMouseDown(e as unknown as React.MouseEvent); }}
+                onTouchMove={(e) => { if (e.cancelable) e.preventDefault(); handleMouseMove(e as unknown as React.MouseEvent); }}
+                onTouchEnd={(e) => { if (e.cancelable) e.preventDefault(); handleMouseUp(); }}
                 onMouseLeave={() => { stopDrawing(); setIsPanning(false); if (cursorRef.current) cursorRef.current.style.display = 'none'; }}
                 onMouseEnter={() => { if (cursorRef.current) cursorRef.current.style.display = 'block'; }}
                 style={{
                     flex: 1, overflow: 'hidden', position: 'relative',
                     background: '#ccc', display: 'flex', justifyContent: 'center', alignItems: 'center',
-                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (tool === 'lasso' ? 'crosshair' : 'none')
+                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (tool === 'lasso' ? 'crosshair' : 'none'),
+                    touchAction: 'none'
                 }}
             >
                 <div style={{
@@ -639,7 +647,20 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             </div>
 
             {isDrawer && (
-                <div style={{ padding: '10px', background: 'white', borderTop: '1px solid #ccc', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', justifyContent: 'center', zIndex: 200, boxShadow: '0 -2px 10px rgba(0,0,0,0.1)' }}>
+                <div style={{
+                    padding: '10px',
+                    background: 'white',
+                    borderTop: '1px solid #ccc',
+                    display: 'flex',
+                    gap: '15px',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    overflowX: 'auto',
+                    maxWidth: '100%',
+                    zIndex: 200,
+                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+                    scrollbarWidth: 'none' // Hide scrollbar for cleaner look
+                }}>
                     {/* ... Toolbar Buttons (Same) ... */}
                     <div style={{ display: 'flex', gap: '5px' }}>
                         <button onClick={() => { setTool('pen'); setIsEraser(false); }} style={{ padding: '8px', borderRadius: '8px', background: tool === 'pen' && !isEraser ? '#e0f2fe' : 'transparent', border: 'none', cursor: 'pointer' }}><IconPen size={24} color={tool === 'pen' && !isEraser ? '#0ea5e9' : '#64748b'} /></button>
