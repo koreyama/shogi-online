@@ -430,14 +430,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        setDebugInfo({ x: e.clientX, y: e.clientY, b: e.buttons, target: (e.target as HTMLElement).tagName });
-        // Update Cursor Position using direct DOM manipulation (No React Render!)
-        if (cursorRef.current && isDrawer && !isSpacePressed && !isCtrlPressed) {
-            // Use Fixed Position (Screen Coords) for perfect alignment
-            cursorRef.current.style.left = `${e.clientX}px`;
-            cursorRef.current.style.top = `${e.clientY}px`;
-        }
-
         const clientX = e.clientX;
         const clientY = e.clientY;
 
@@ -783,7 +775,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 onMouseLeave={() => { stopDrawing(); setIsPanning(false); if (cursorRef.current) cursorRef.current.style.display = 'none'; }}
                 onMouseEnter={() => { if (cursorRef.current) cursorRef.current.style.display = 'block'; }}
                 style={{
-                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (isCtrlPressed ? 'ew-resize' : (tool === 'lasso' ? 'crosshair' : 'none'))
+                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (isCtrlPressed ? 'ew-resize' : 'crosshair')
                 }}
             >
                 <div style={{
