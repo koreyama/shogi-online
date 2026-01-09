@@ -47,8 +47,17 @@ export const ensureUserExists = async (uid: string, displayName: string, photoUR
 
         return initialProfile;
     } else {
-        // Update basic info just in case
-        await update(userRef, { displayName, customPhotoURL: photoURL, lastSeen: Date.now() });
+        // Update basic info just in case, but DO NOT overwrite displayName if it exists
+        // We only use the passed displayName if the DB one is somehow missing? 
+        // For now, let's strictly preserve the DB displayName.
+        // We only update lastSeen and maybe photoURL if not custom?
+        // Actually, customPhotoURL overrides photoURL.
+        const updates: any = { lastSeen: Date.now() };
+
+        // Optional: Update photoURL if we want to sync Google Avatar? 
+        // usually photoURL in DB is used.
+        // Let's just update lastSeen to be safe and avoid overwriting profile data.
+        await update(userRef, updates);
         return snapshot.val() as UserProfile;
     }
 };

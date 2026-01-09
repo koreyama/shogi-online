@@ -53,7 +53,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }, []);
 
     useEffect(() => {
-        logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        logEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, [gameState.log, showLog]);
 
     // Safety check: If myPlayer is not found (e.g. during ID switch), don't render

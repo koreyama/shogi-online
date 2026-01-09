@@ -4,16 +4,18 @@ import { MinesweeperBoard } from '@/components/MinesweeperBoard';
 import { IconBack, IconUser, IconFlag } from '@/components/Icons';
 import styles from './page.module.css';
 import { Board, Cell } from '@/lib/minesweeper/types';
+import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
     roomId?: string;
     options?: any;
     onLeave: () => void;
-    myPlayerId: string;
-    myPlayerName: string;
 }
 
-export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, myPlayerName }: Props) {
+export function ColyseusMinesweeperGame({ roomId, options, onLeave }: Props) {
+    const { playerName: myPlayerName, playerId: myPlayerId, isLoaded: playerLoaded } = usePlayer();
+    const { loading: authLoading } = useAuth();
     const [room, setRoom] = useState<Room | null>(null);
     const [board, setBoard] = useState<Board>([]);
     const [players, setPlayers] = useState<any[]>([]);
@@ -32,6 +34,7 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
 
     // Initial Connection
     useEffect(() => {
+        if (authLoading || !playerLoaded) return;
         // Prevent double connection in Strict Mode
         if (connectingRef.current || roomRef.current) return;
 
@@ -91,7 +94,7 @@ export function ColyseusMinesweeperGame({ roomId, options, onLeave, myPlayerId, 
             }
             connectingRef.current = false;
         };
-    }, []);
+    }, [roomId, options, myPlayerId, myPlayerName, authLoading, playerLoaded]);
 
     // Timer Logic
     useEffect(() => {

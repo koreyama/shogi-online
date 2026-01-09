@@ -10,15 +10,17 @@ import { Chat } from '@/components/Chat';
 import { getValidMoves } from '@/lib/reversi/engine';
 import { Coordinates } from '@/lib/reversi/types';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
+import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ColyseusReversiGameProps {
     mode: 'random' | 'room';
     roomId?: string;
-    userData: { name: string, id: string };
 }
 
-export default function ColyseusReversiGame({ mode, roomId: propRoomId, userData }: ColyseusReversiGameProps) {
-    const playerName = userData.name || "Guest";
+export default function ColyseusReversiGame({ mode, roomId: propRoomId }: ColyseusReversiGameProps) {
+    const { playerName, isLoaded: playerLoaded } = usePlayer();
+    const { loading: authLoading } = useAuth();
 
     // Core State
     const [room, setRoom] = useState<Room | null>(null);
@@ -49,6 +51,7 @@ export default function ColyseusReversiGame({ mode, roomId: propRoomId, userData
     const roomRef = useRef<Room | null>(null);
 
     useEffect(() => {
+        if (authLoading || !playerLoaded) return;
         if (dataEffectCalled.current) return;
         dataEffectCalled.current = true;
 
@@ -181,7 +184,7 @@ export default function ColyseusReversiGame({ mode, roomId: propRoomId, userData
                 roomRef.current = null;
             }
         };
-    }, [mode, propRoomId, playerName]);
+    }, [mode, propRoomId, playerName, authLoading, playerLoaded]);
 
     // Recalculate valid moves whenever board or turn/role changes and match is local
     useEffect(() => {

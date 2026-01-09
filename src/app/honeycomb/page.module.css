@@ -359,31 +359,88 @@
 
 @media (max-width: 1024px) {
     .gameLayout {
-        flex-direction: column-reverse;
-        overflow-y: auto;
+        flex-direction: column;
+        /* Normal column direction */
+        align-items: center;
+        gap: 1.5rem;
     }
 
     .leftPanel {
         width: 100%;
+        display: contents;
+        /* Allow splitting children */
+    }
+
+    .playersSection {
+        order: 1;
+        /* First */
+        width: 100%;
         flex-direction: row;
-        height: 300px;
+        justify-content: center;
+        gap: 1rem;
     }
 
-    .playersSection,
-    .chatSection {
+    .playerInfo {
         flex: 1;
-    }
-}
-
-@media (max-width: 768px) {
-    .leftPanel {
+        justify-content: center;
+        text-align: center;
         flex-direction: column;
-        height: auto;
+        /* Stack text and badge */
+        gap: 0.5rem;
+    }
+
+    .centerPanel {
+        order: 2;
+        /* Middle */
+        width: 100%;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .chatSection {
+        order: 3;
+        /* Last */
+        width: 100%;
+        margin-top: 1rem;
     }
 
     .hexGrid {
-        width: 100%;
-        height: auto;
+        max-height: 60vh;
+        /* Limit height to fit screen */
+        width: auto;
+    }
+}
+
+/* Active Player Styles */
+.playerInfoActive {
+    background: #e0f2fe;
+    /* Light blue */
+    border: 2px solid #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.turnBadge {
+    background: #3b82f6;
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.8rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 

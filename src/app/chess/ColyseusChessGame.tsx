@@ -9,6 +9,8 @@ import ChessBoard from '@/components/ChessBoard';
 import { IconHourglass, IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
+import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 
 // Helper to map chess.js board to our UI Board format
 const mapChessJsBoardToUI = (chess: Chess) => {
@@ -33,12 +35,12 @@ const mapChessJsBoardToUI = (chess: Chess) => {
 interface ColyseusChessGameProps {
     mode: 'random' | 'room';
     roomId?: string;
-    userData: { name: string, id: string };
 }
 
-export default function ColyseusChessGame({ mode, roomId: propRoomId, userData }: ColyseusChessGameProps) {
+export default function ColyseusChessGame({ mode, roomId: propRoomId }: ColyseusChessGameProps) {
     // Use passed props for player info to avoid race conditions
-    const playerName = userData.name || "Guest";
+    const { playerName, isLoaded: playerLoaded } = usePlayer();
+    const { loading: authLoading } = useAuth();
 
     // Core State
     const [room, setRoom] = useState<Room | null>(null);
@@ -63,6 +65,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId, userData }
     const roomRef = useRef<Room | null>(null);
 
     useEffect(() => {
+        if (authLoading || !playerLoaded) return;
         if (dataEffectCalled.current) return;
         dataEffectCalled.current = true;
 
@@ -213,7 +216,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId, userData }
                 roomRef.current = null;
             }
         };
-    }, [mode, propRoomId, playerName]);
+    }, [mode, propRoomId, playerName, authLoading, playerLoaded]);
 
     const handleCellClick = (x: number, y: number) => {
         if (status === 'connecting') return;

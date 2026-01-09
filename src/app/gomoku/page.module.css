@@ -120,10 +120,11 @@
     gap: 2rem;
     width: 100%;
     /* Allow layout to grow to fit large boards */
-    max-width: 1800px;
+    max-width: 1400px;
     justify-content: center;
     align-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    /* Prevent wrapping on desktop if possible */
 }
 
 .leftPanel {
@@ -168,17 +169,19 @@
 /* Active State Highlighting */
 .playerCardActive {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 3px #3b82f6, 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Blue ring for visibility */
+    background: #eff6ff;
+    z-index: 10;
 }
 
 .playerCardActive.black {
-    border: 2px solid #1a202c;
-    background: linear-gradient(to bottom, #ffffff, #f7fafc);
+    /* Override background for specific types if needed, but keeping unified active look is safer for "Blue" request */
+    border-color: #3b82f6;
 }
 
 .playerCardActive.white {
-    border: 2px solid #a0aec0;
-    background: linear-gradient(to bottom, #ffffff, #edf2f7);
+    border-color: #3b82f6;
 }
 
 .playerName {
@@ -193,23 +196,23 @@
     font-size: 0.9rem;
     color: #718096;
     font-weight: 600;
-    background: #edf2f7;
+    background: rgba(0, 0, 0, 0.05);
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
     margin-bottom: 0.5rem;
 }
 
-
-
 .turnBadge {
-    background: #4CAF50;
+    background: #3b82f6;
+    /* Blue to match "Blue turn" request potentially */
     color: white;
-    font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
     margin-top: 0.5rem;
     font-weight: bold;
     animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 @keyframes fadeIn {
@@ -233,7 +236,13 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 2rem;
+    /* Fix overlap with board */
+    position: relative;
+    z-index: 50;
+    margin-bottom: 3rem;
+    /* Increase space between pill and board */
+    background: rgba(255, 255, 255, 0.95);
+    /* Ensure opacity */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
     border: 3px solid rgba(255, 255, 255, 0.2);
@@ -339,59 +348,65 @@
 }
 
 /* Media Queries */
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
     .gameLayout {
         flex-direction: column;
         align-items: center;
+        gap: 1.5rem;
     }
 
     .leftPanel {
+        display: contents;
+        /* Lift children up */
+    }
+
+    .playersSection {
+        order: 1;
+        /* Players FIRST */
         width: 100%;
-        max-width: 100%;
-        order: 2;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .playerCard {
+        /* Compact card */
+        padding: 1rem;
+        flex: 1;
+        max-width: 300px;
+        /* Limit width on tablet */
     }
 
     .centerPanel {
-        order: 1;
+        order: 2;
+        /* Board SECOND */
+        width: 100%;
+    }
+
+    .chatSection {
+        order: 3;
+        /* Chat LAST */
+        width: 100%;
+        margin-top: 1rem;
     }
 }
 
-@media (max-width: 767px) {
+/* @media (max-width: 767px) - Removed, merged into above but keeping specific mobile adjustments if needed */
+@media (max-width: 600px) {
+    .playerCard {
+        /* Extra compact for small phones */
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
     .main {
-        /* Minimize padding to maximize board size */
         padding: 4px;
-        /* Ensure scrolling on mobile */
-        min-height: 100vh;
         overflow-y: auto;
     }
+}
 
-    .gameLayout {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        gap: 8px;
-        /* Tighter gap */
-    }
-
-    .leftPanel {
-        width: 100%;
-        max-width: 100%;
-        order: 2;
-        /* Info below board */
-        flex: 0 0 auto;
-        margin-top: 0.5rem;
-    }
-
-    .centerPanel {
-        order: 1;
-        /* Board on top */
-        width: 100%;
-        min-width: 0;
-        /* Allow shrinking if needed */
-        flex: 1 1 auto;
-    }
-
-    /* Added responsive fixes */
+/* Mobile specific fixes (restored) */
+@media (max-width: 768px) {
     .contentSection {
         padding: 1.5rem;
         margin-top: 2rem;

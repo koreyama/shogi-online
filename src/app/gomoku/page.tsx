@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import navStyles from '@/styles/GameMenu.module.css';
+import gameStyles from './page.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -18,7 +19,7 @@ export default function GomokuPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
     const { playerName, playerId, isLoaded: playerLoaded } = usePlayer();
-    const userData = { name: playerName, id: playerId };
+
 
     // Mode Selection: null (Menu), 'colyseus_random', 'colyseus_room', 'colyseus_room_active', 'ai'
     const [joinMode, setJoinMode] = useState<'colyseus_random' | 'colyseus_room' | 'colyseus_room_active' | 'ai' | null>(null);
@@ -49,15 +50,29 @@ export default function GomokuPage() {
     useEffect(() => {
         if (joinMode !== 'ai' || !gameState || gameState.turn !== 'white' || aiStatus !== 'playing') return;
 
-        const timer = setTimeout(() => {
-            const bestMove = getBestMove(gameState, 'white');
+        let isCancelled = false;
+
+        const think = async () => {
+            // Wait a bit to ensure UI updates to "THINKING..."
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            if (isCancelled) return;
+
+            // Run AI (Async)
+            const bestMove = await getBestMove(gameState, 'white');
+
+            if (isCancelled) return;
+
             if (bestMove) {
                 const newState = executeMove(gameState, bestMove.x, bestMove.y);
                 setGameState(newState);
                 if (newState.isGameOver) setAiStatus('finished');
             }
-        }, 500);
-        return () => clearTimeout(timer);
+        };
+
+        think();
+
+        return () => { isCancelled = true; };
     }, [gameState, joinMode, aiStatus]);
 
     const handleLocalClick = (x: number, y: number) => {
@@ -77,12 +92,8 @@ export default function GomokuPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <div className={navStyles.header}>
-                    <button onClick={() => setJoinMode(null)} className={navStyles.backButton}>
-                        <IconBack size={18} /> 終了
-                    </button>
-                </div>
-                <ColyseusGomokuGame mode="random" userData={userData} />
+                {/* Header removed to avoid duplication with ColyseusGomokuGame */}
+                <ColyseusGomokuGame mode="random" playerName={playerName} />
             </main>
         );
     }
@@ -93,12 +104,8 @@ export default function GomokuPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <div className={navStyles.header}>
-                    <button onClick={() => setJoinMode(null)} className={navStyles.backButton}>
-                        <IconBack size={18} /> 終了
-                    </button>
-                </div>
-                <ColyseusGomokuGame mode="room" roomId={customRoomId || undefined} userData={userData} />
+                {/* Header removed to avoid duplication with ColyseusGomokuGame */}
+                <ColyseusGomokuGame mode="room" roomId={customRoomId || undefined} playerName={playerName} />
             </main>
         );
     }
@@ -110,28 +117,25 @@ export default function GomokuPage() {
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={navStyles.gameLayout}>
-                    <div className={navStyles.leftPanel}>
-                        <div className={navStyles.playersSection}>
+                <div className={gameStyles.gameLayout}>
+                    <div className={gameStyles.leftPanel}>
+                        <div className={gameStyles.playersSection}>
                             {/* Opponent (AI - White) */}
-                            <div className={`${navStyles.playerCard} ${navStyles.white} ${gameState.turn === 'white' ? navStyles.playerCardActive : ''}`}>
-                                <div className={navStyles.playerName}>AI (相手)</div>
-                                <div className={navStyles.playerRole}>後手 (白)</div>
-                                {gameState.turn === 'white' && <div className={navStyles.turnBadge}>THINKING...</div>}
+                            <div className={`${gameStyles.playerCard} ${gameStyles.white} ${gameState.turn === 'white' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>AI (相手)</div>
+                                <div className={gameStyles.playerRole}>後手 (白)</div>
+                                {gameState.turn === 'white' && <div className={gameStyles.turnBadge}>思考中...</div>}
                             </div>
 
                             {/* Self (Player - Black) */}
-                            <div className={`${navStyles.playerCard} ${navStyles.black} ${gameState.turn === 'black' ? navStyles.playerCardActive : ''}`}>
-                                <div className={navStyles.playerName}>{playerName}</div>
-                                <div className={navStyles.playerRole}>先手 (黒)</div>
-                                {gameState.turn === 'black' && <div className={navStyles.turnBadge}>YOUR TURN</div>}
+                            <div className={`${gameStyles.playerCard} ${gameStyles.black} ${gameState.turn === 'black' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>{playerName}</div>
+                                <div className={gameStyles.playerRole}>先手 (黒)</div>
+                                {gameState.turn === 'black' && <div className={gameStyles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                     </div>
-                    <div className={navStyles.centerPanel}>
-                        <div className={`${navStyles.turnIndicator} ${gameState.turn === 'black' ? navStyles.turnBlack : navStyles.turnWhite}`}>
-                            {gameState.turn === 'black' ? '黒の番 (あなた)' : '白の番 (AI)'}
-                        </div>
+                    <div className={gameStyles.centerPanel}>
                         <GomokuBoard
                             board={gameState.board}
                             onIntersectionClick={handleLocalClick}
@@ -140,8 +144,8 @@ export default function GomokuPage() {
                     </div>
                 </div>
                 {aiStatus === 'finished' && (
-                    <div className={navStyles.modalOverlay}>
-                        <div className={`${navStyles.modal} fade-in`} style={{
+                    <div className={gameStyles.modalOverlay}>
+                        <div className={`${gameStyles.modal} fade-in`} style={{
                             borderTop: gameState.winner === 'black' ? '8px solid #4CAF50' :
                                 gameState.winner === 'white' ? '8px solid #f44336' : '8px solid #999',
                             textAlign: 'center',
@@ -164,19 +168,19 @@ export default function GomokuPage() {
                                 </>
                             )}
 
-                            <div className={navStyles.modalBtnGroup}>
+                            <div className={gameStyles.modalBtnGroup}>
                                 <button
                                     onClick={() => {
                                         setGameState(createInitialState());
                                         setAiStatus('playing');
                                     }}
-                                    className={navStyles.primaryBtn}
+                                    className={gameStyles.primaryBtn}
                                 >
                                     もう一度
                                 </button>
                                 <button
                                     onClick={() => setJoinMode(null)}
-                                    className={navStyles.secondaryBtn}
+                                    className={gameStyles.secondaryBtn}
                                 >
                                     終了
                                 </button>

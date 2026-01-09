@@ -8,6 +8,8 @@ import { CATEGORIES, Category, calculateScore } from './scoring';
 import { IconHourglass, IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
+import { usePlayer } from '@/hooks/usePlayer';
+import { useAuth } from '@/hooks/useAuth';
 
 const MAX_ROLLS = 3;
 
@@ -74,12 +76,12 @@ const Die = ({ value, held, rolling, onClick, disabled }: { value: number, held:
 interface ColyseusYachtGameProps {
     mode: 'random' | 'room';
     roomId?: string;
-    playerName: string;
-    playerId: string;
     onBack?: () => void;
 }
 
-export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName, playerId, onBack }: ColyseusYachtGameProps) {
+export default function ColyseusYachtGame({ mode, roomId: propRoomId, onBack }: ColyseusYachtGameProps) {
+    const { playerName, playerId, isLoaded: playerLoaded } = usePlayer();
+    const { loading: authLoading } = useAuth();
     const [room, setRoom] = useState<Room | null>(null);
     const [gameState, setGameState] = useState<any>(null);
     const [myRole, setMyRole] = useState<'P1' | 'P2' | 'spectator'>('spectator');
@@ -93,6 +95,7 @@ export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName
     const dataEffectCalled = useRef(false);
 
     useEffect(() => {
+        if (authLoading || !playerLoaded) return;
         if (dataEffectCalled.current) return;
         dataEffectCalled.current = true;
 
@@ -135,7 +138,7 @@ export default function ColyseusYachtGame({ mode, roomId: propRoomId, playerName
         return () => {
             if (roomRef.current) roomRef.current.leave();
         };
-    }, []);
+    }, [mode, propRoomId, playerName, playerId, authLoading, playerLoaded]);
 
     const updateState = (state: any, sessionId: string) => {
         const p1 = Array.from(state.players.values()).find((p: any) => p.role === 'P1');

@@ -45,7 +45,7 @@ export const usePlayer = () => {
         let isMounted = true;
 
         getUserProfile(user.uid).then(profile => {
-            if (isMounted && profile && profile.displayName) {
+            if (isMounted && profile && typeof profile.displayName === 'string') {
                 setProfileName(profile.displayName);
             }
             if (isMounted) setProfileLoaded(true);

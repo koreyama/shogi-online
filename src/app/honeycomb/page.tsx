@@ -78,13 +78,14 @@ export default function HoneycombPage() {
     // Firebase Logic Removed (Colyseus Migration)
     // AI Turn Effect
     useEffect(() => {
-        if (roomId === 'ai-match' && currentPlayer === 2 && gameState === 'playing') {
+        if (roomId === 'ai-match' && currentPlayer === 2 && gameState === 'playing' && status === 'playing') {
+            // Delay slightly for visual effect then trigger async AI
             const timer = setTimeout(() => {
                 makeAIMove();
-            }, 500);
+            }, 300);
             return () => clearTimeout(timer);
         }
-    }, [roomId, currentPlayer, gameState, board]); // Depend on board to ensure fresh state
+    }, [roomId, currentPlayer, gameState, status]);
 
     const applyMove = (q: number, r: number, s: number, player: Player) => {
         const key = getHexKey({ q, r, s });
@@ -122,7 +123,7 @@ export default function HoneycombPage() {
         if (roomId === 'ai-match') {
             if (currentPlayer === 1) {
                 applyMove(hex.q, hex.r, hex.s, 1);
-                // AI is now triggered by useEffect
+                // AI is trigger via useEffect
             }
         } else if (roomId) {
             push(ref(db, `honeycomb_rooms/${roomId}/moves`), { ...hex, player: myRole });
@@ -132,9 +133,10 @@ export default function HoneycombPage() {
         }
     };
 
-    const makeAIMove = () => {
+    const makeAIMove = async () => {
         // Pass a copy of the board to avoid mutation issues
-        const bestMove = getBestMove(new Map(board), 2, BOARD_RADIUS);
+        // The AI is now async and yields, preventing freeze.
+        const bestMove = await getBestMove(new Map(board), 2, BOARD_RADIUS);
         if (bestMove) {
             applyMove(bestMove.q, bestMove.r, bestMove.s, 2);
         }
@@ -239,13 +241,22 @@ export default function HoneycombPage() {
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>
                         <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
-                                <p>AI (相手)</p>
-                                <p>赤 (後攻)</p>
+                            {/* Opponent (AI - Player 2 - Red) */}
+                            <div className={`${styles.playerInfo} ${currentPlayer === 2 ? styles.playerInfoActive : ''}`}>
+                                <div>
+                                    <p>AI (相手)</p>
+                                    <p style={{ fontSize: '0.9rem', color: '#666' }}>赤 (後攻)</p>
+                                </div>
+                                {currentPlayer === 2 && <div className={styles.turnBadge}>思考中...</div>}
                             </div>
-                            <div className={styles.playerInfo}>
-                                <p>{playerName} (自分)</p>
-                                <p>青 (先攻)</p>
+
+                            {/* Player (Self - Player 1 - Blue) */}
+                            <div className={`${styles.playerInfo} ${currentPlayer === 1 ? styles.playerInfoActive : ''}`}>
+                                <div>
+                                    <p>{playerName} (自分)</p>
+                                    <p style={{ fontSize: '0.9rem', color: '#666' }}>青 (先攻)</p>
+                                </div>
+                                {currentPlayer === 1 && <div className={styles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                         <div className={styles.chatSection}>
@@ -253,10 +264,7 @@ export default function HoneycombPage() {
                         </div>
                     </div>
                     <div className={styles.centerPanel}>
-                        <div className={styles.turnIndicator}>
-                            {currentPlayer === 1 ? '青の番' : '赤の番'}
-                            {currentPlayer === 1 && ' (あなた)'}
-                        </div>
+                        {/* Turn Indicator Removed */}
                         <svg width="600" height="500" viewBox="-450 -400 900 800" className={styles.hexGrid}>
                             {hexes.map(hex => {
                                 const { x, y } = hexToPixel(hex);

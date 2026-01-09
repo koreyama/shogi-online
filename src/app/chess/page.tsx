@@ -164,11 +164,11 @@ export default function ChessPage() {
 
     // --- GAME VIEWS ---
     if (joinMode === 'colyseus_random') {
-        return <><HideChatBot /><ColyseusChessGame mode="random" userData={{ name: savedName, id: playerId }} /></>;
+        return <><HideChatBot /><ColyseusChessGame mode="random" /></>;
     }
 
     if (joinMode === 'colyseus_room_active') {
-        return <><HideChatBot /><ColyseusChessGame mode="room" roomId={customRoomId || undefined} userData={{ name: savedName, id: playerId }} /></>;
+        return <><HideChatBot /><ColyseusChessGame mode="room" roomId={customRoomId || undefined} /></>;
     }
 
     if (joinMode === 'ai' && gameState) {

@@ -110,7 +110,7 @@ export default function YachtPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="random" onBack={handleBackToMenu} />
+                <ColyseusYachtGame mode="random" onBack={handleBackToMenu} />
             </main>
         );
     }
@@ -120,7 +120,7 @@ export default function YachtPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" onBack={handleBackToMenu} />
+                <ColyseusYachtGame mode="room" onBack={handleBackToMenu} />
             </main>
         );
     }
@@ -130,7 +130,7 @@ export default function YachtPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <ColyseusYachtGame playerName={playerName} playerId={playerId} mode="room" roomId={targetRoomId} onBack={handleBackToMenu} />
+                <ColyseusYachtGame mode="room" roomId={targetRoomId} onBack={handleBackToMenu} />
             </main>
         );
     }

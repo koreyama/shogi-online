@@ -7,17 +7,20 @@
     display: block;
     /* changed from inline-block */
 
-    /* Fluid Sizing:
-       Always try to fill the width (100%), but cap it at 80% of viewport height (80vh).
-       This ensures it fits on screen without scrolling, while maximizing size.
-       Using 'width' instead of 'max-width' forces it to take this space.
+    /* Responsive Sizing:
+       On Mobile: 95vw
+       On Desktop: Grow up to 70vh (leaves room for header/indicators)
     */
-    width: min(100%, 80vh);
-    max-width: none;
-    /* Remove explicit max-width limit */
+    width: min(95vw, 70vh);
+    max-width: 800px;
+    /* Cap strictly at 800px */
 
     box-sizing: border-box;
     margin: 0 auto;
+
+    /* Ensure board is above background elements */
+    position: relative;
+    z-index: 10;
 }
 
 

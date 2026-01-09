@@ -146,8 +146,6 @@ export default function MinesweeperPage() {
                     roomId={multiplayerOptions?.roomId}
                     options={multiplayerOptions}
                     onLeave={() => { setStatus('menu'); setMultiplayerOptions(null); }}
-                    myPlayerId={(user?.uid || 'guest') + '-' + Math.floor(Math.random() * 10000)}
-                    myPlayerName={playerName}
                 />
             </>
         );
