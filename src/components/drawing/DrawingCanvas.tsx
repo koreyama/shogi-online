@@ -433,13 +433,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         setDebugInfo({ x: e.clientX, y: e.clientY, b: e.buttons, target: (e.target as HTMLElement).tagName });
         // Update Cursor Position using direct DOM manipulation (No React Render!)
         if (cursorRef.current && isDrawer && !isSpacePressed && !isCtrlPressed) {
-            const rect = viewportRef.current?.getBoundingClientRect();
-            if (rect) {
-                const sx = e.clientX - rect.left;
-                const sy = e.clientY - rect.top;
-                cursorRef.current.style.left = `${sx}px`;
-                cursorRef.current.style.top = `${sy}px`;
-            }
+            // Use Fixed Position (Screen Coords) for perfect alignment
+            cursorRef.current.style.left = `${e.clientX}px`;
+            cursorRef.current.style.top = `${e.clientY}px`;
         }
 
         const clientX = e.clientX;
