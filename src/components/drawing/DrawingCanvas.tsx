@@ -72,6 +72,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const [isSpacePressed, setIsSpacePressed] = useState(false);
     const [isCtrlPressed, setIsCtrlPressed] = useState(false);
     const [isPanning, setIsPanning] = useState(false);
+    const [debugInfo, setDebugInfo] = useState({ x: 0, y: 0, b: 0, target: '' });
     const lastMousePos = useRef<{ x: number, y: number } | null>(null);
 
     const [activeLayer, setActiveLayer] = useState(0);
@@ -429,6 +430,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
+        setDebugInfo({ x: e.clientX, y: e.clientY, b: e.buttons, target: (e.target as HTMLElement).tagName });
         // Update Cursor Position using direct DOM manipulation (No React Render!)
         if (cursorRef.current && isDrawer && !isSpacePressed && !isCtrlPressed) {
             const rect = viewportRef.current?.getBoundingClientRect();
@@ -890,10 +892,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 </div>
             )}
             {/* Debug Info */}
-            <div style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', color: 'white', padding: 5, fontSize: 10, pointerEvents: 'none', zIndex: 9999 }}>
+            <div style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', color: 'white', padding: 5, fontSize: 10, pointerEvents: 'none', zIndex: 9999, textAlign: 'right' }}>
                 Pos: {Math.round(pan.x)},{Math.round(pan.y)} <br />
-                Rot: {Math.round(rotation)}deg <br />
-                Ctrl: {isCtrlPressed ? 'ON' : 'OFF'}
+                Rot: {Math.round(rotation)}° Sc: {scale.toFixed(2)} <br />
+                Ctrl: {isCtrlPressed ? 'ON' : 'OFF'} <br />
+                Mouse: {debugInfo.x},{debugInfo.y} B:{debugInfo.b} <br />
+                Tgt: {debugInfo.target} Dim: {width}x{height}
             </div>
         </div>
     );
