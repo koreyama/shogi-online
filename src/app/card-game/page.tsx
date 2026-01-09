@@ -357,7 +357,7 @@ function CardGameContent() {
                     // My `ColyseusCardGame` handles `roomId` vs `options.create`.
                     // If mode='random', we pass neither `roomId` nor `create:true` (or create:false), so it does `joinOrCreate`.
                     playerId={playerId}
-                    playerName={user?.displayName || 'Player'}
+                    playerName={localPlayerName}
                     avatarId={avatarId}
                     deck={myDeck}
                     onLeave={() => router.push('/card-game/lobby')}
