@@ -78,6 +78,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const pendingPoints = useRef<Point[]>([]);
     const lastPoint = useRef<Point | null>(null);
     const inputBuffer = useRef<Point[]>([]);
+    const lastTouchDistance = useRef<number | null>(null); // For pinch zoom
+    const lastTouchCenter = useRef<Point | null>(null); // For pinch pan
 
     const [isDrawing, setIsDrawing] = useState(false);
 
@@ -87,6 +89,30 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const [isDraggingSelection, setIsDraggingSelection] = useState(false);
     const [selectionOffset, setSelectionOffset] = useState({ x: 0, y: 0 });
     const [dragStartPos, setDragStartPos] = useState<Point | null>(null);
+
+    // Auto-Fit Canvas on Mount
+    useEffect(() => {
+        if (viewportRef.current) {
+            const rect = viewportRef.current.getBoundingClientRect();
+            // Fit with margin
+            const margin = 20;
+            const availableW = rect.width - margin * 2;
+            const availableH = rect.height - margin * 2;
+
+            if (availableW > 0 && availableH > 0) {
+                const scaleX = availableW / width;
+                const scaleY = availableH / height;
+                const newScale = Math.min(scaleX, scaleY, 0.9); // Max 0.9 to ensure visibility
+
+                // Center
+                const panX = (rect.width - width * newScale) / 2;
+                const panY = (rect.height - height * newScale) / 2;
+
+                setScale(newScale);
+                setPan({ x: panX, y: panY });
+            }
+        }
+    }, [width, height]);
 
     useEffect(() => { layerRefs.current = Array(3).fill(null); }, []);
 
@@ -574,6 +600,52 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         };
     }, [performZoom]);
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (e.cancelable) e.preventDefault();
+        if (e.touches.length === 2) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            lastTouchDistance.current = dist;
+            lastTouchCenter.current = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+            return;
+        }
+        handleMouseDown(e as unknown as React.MouseEvent);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (e.cancelable) e.preventDefault();
+        if (e.touches.length === 2 && lastTouchDistance.current && lastTouchCenter.current) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            const center = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+
+            const delta = dist / lastTouchDistance.current;
+            // newScale calculation
+            const newScale = Math.min(Math.max(scale * delta, 0.1), 5.0);
+
+            // Simple pan adjustments (drag feeling)
+            const deltaX = center.x - lastTouchCenter.current.x;
+            const deltaY = center.y - lastTouchCenter.current.y;
+
+            setScale(newScale);
+            setPan(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+
+            lastTouchDistance.current = dist;
+            lastTouchCenter.current = center;
+            return;
+        }
+        handleMouseMove(e as unknown as React.MouseEvent);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (e.cancelable) e.preventDefault();
+        lastTouchDistance.current = null;
+        lastTouchCenter.current = null;
+        handleMouseUp();
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
             <div
@@ -582,9 +654,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={() => { handleMouseUp(); }}
-                onTouchStart={(e) => { if (e.cancelable) e.preventDefault(); handleMouseDown(e as unknown as React.MouseEvent); }}
-                onTouchMove={(e) => { if (e.cancelable) e.preventDefault(); handleMouseMove(e as unknown as React.MouseEvent); }}
-                onTouchEnd={(e) => { if (e.cancelable) e.preventDefault(); handleMouseUp(); }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 onMouseLeave={() => { stopDrawing(); setIsPanning(false); if (cursorRef.current) cursorRef.current.style.display = 'none'; }}
                 onMouseEnter={() => { if (cursorRef.current) cursorRef.current.style.display = 'block'; }}
                 style={{

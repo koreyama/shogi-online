@@ -328,8 +328,10 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
                             // @ts-ignore
                             room={room}
                             isDrawer={(gameMode === 'free') || (amIDrawer && gameStatus === 'drawing')}
-                            width={3000}
-                            height={2000}
+                            room={room}
+                            isDrawer={(gameMode === 'free') || (amIDrawer && gameStatus === 'drawing')}
+                            width={800}
+                            height={600}
                         />
                     </div>
 
