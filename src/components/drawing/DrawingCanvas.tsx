@@ -399,6 +399,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         return { x: Math.round(sum.x / len), y: Math.round(sum.y / len) };
     };
 
+    const isInternal = (p: Point) => p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height;
+
     const handleMouseDown = (e: React.MouseEvent) => {
         lastMousePos.current = { x: e.clientX, y: e.clientY };
         if (isSpacePressed || e.ctrlKey) {
@@ -406,6 +408,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             return;
         }
         const raw = getRawPoint(e);
+        if (!isInternal(raw)) return; // Ignore outside
 
         if (tool === 'lasso') {
             setIsDrawing(true);
@@ -480,6 +483,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
 
         lastMousePos.current = { x: clientX, y: clientY };
         const raw = getRawPoint(e);
+        if (!isInternal(raw)) return;
 
         if (tool === 'lasso') {
             if (isDraggingSelection && dragStartPos) {
