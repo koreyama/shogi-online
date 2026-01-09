@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css'; // Reuse existing styles or update
 import { useAuth } from '@/hooks/useAuth';
-import { IconUser, IconBack, IconPalette, IconSearch, IconPlus, IconDoorEnter } from '@/components/Icons'; // Ensure icons exist
+import { IconUser, IconBack, IconPalette, IconSearch, IconPlus, IconDoorEnter } from '@/components/Icons';
+import { usePlayer } from '@/hooks/usePlayer';
 import dynamic from 'next/dynamic';
 import HideChatBot from '@/components/HideChatBot';
 
@@ -24,6 +25,7 @@ const DRAWING_THEME = {
 export default function DrawingPage() {
     const router = useRouter();
     const { user, signInWithGoogle, loading: authLoading } = useAuth();
+    const { playerName } = usePlayer();
 
     // Modes:
     // 'menu': Main Menu
@@ -50,7 +52,7 @@ export default function DrawingPage() {
     if (view === 'game_random') {
         return <><HideChatBot /><ColyseusDrawingGame
             playerId={user.uid}
-            playerName={user.displayName || 'Guest'}
+            playerName={playerName || user.displayName || 'Guest'}
             mode="random"
             onBack={handleExit}
         /></>;
@@ -59,7 +61,7 @@ export default function DrawingPage() {
     if (view === 'game_room') {
         return <><HideChatBot /><ColyseusDrawingGame
             playerId={user.uid}
-            playerName={user.displayName || 'Guest'}
+            playerName={playerName || user.displayName || 'Guest'}
             mode="room"
             roomId={targetRoomId}
             onBack={handleExit}
@@ -80,7 +82,7 @@ export default function DrawingPage() {
                 </div>
                 <div className={styles.userInfo}>
                     <IconUser size={20} />
-                    <span>{user.displayName}</span>
+                    <span>{playerName || user.displayName}</span>
                 </div>
             </div>
 
