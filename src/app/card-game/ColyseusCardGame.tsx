@@ -226,6 +226,7 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                     money: p.money,
                     ultimateUsed: p.ultimateUsed,
                     isManaChargeMode: p.isManaChargeMode,
+                    selectedForCharge: Array.from(p.selectedForCharge || []),
                     hand: Array.from(p.hand || []),
                     deck: Array.from(p.deck || []),
                     discardPile: Array.from(p.discardPile || []),
@@ -444,26 +445,7 @@ export function ColyseusCardGame({ roomId, options, playerId, playerName, avatar
                 onCancelCharge={handleCancelCharge}
                 onSurrender={handleSurrender}
             />
-            {gameState.phase !== 'end' && (
-                <button
-                    onClick={handleSurrender}
-                    style={{
-                        position: 'fixed',
-                        top: '1rem',
-                        left: '1rem',
-                        padding: '0.5rem 1rem',
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        zIndex: 1000
-                    }}
-                >
-                    あきらめる
-                </button>
-            )}
+            {/* Surrender button moved to GameBoard */}
 
             {gameState.phase === 'end' && (
                 <div style={{

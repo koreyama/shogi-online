@@ -203,6 +203,8 @@
     /* Ensure high visibility */
     pointer-events: none;
     /* Let clicks pass through */
+    padding-left: 50px;
+    /* Shift right to avoid overlapping menu */
 }
 
 .playedCard {

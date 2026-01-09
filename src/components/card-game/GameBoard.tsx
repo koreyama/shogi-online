@@ -156,12 +156,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
             {/* Center Field / Info */}
             <div className={styles.centerField}>
-                <button
-                    className={styles.logToggleBtn}
-                    onClick={() => setShowLog(!showLog)}
-                >
-                    {showLog ? 'ログを閉じる' : 'ログを表示'}
-                </button>
+                <div className={styles.logControls} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <button
+                        className={styles.logToggleBtn}
+                        onClick={() => setShowLog(!showLog)}
+                    >
+                        {showLog ? 'ログを閉じる' : 'ログを表示'}
+                    </button>
+                    <button
+                        className={styles.surrenderBtn}
+                        onClick={() => {
+                            if (confirm('本当にあきらめますか？')) {
+                                onSurrender();
+                            }
+                        }}
+                        style={{
+                            padding: '0.4rem 0.8rem',
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        降参
+                    </button>
+                </div>
 
                 <div className={`${styles.logArea} ${showLog ? styles.showLog : ''}`}>
                     {(gameState.log || []).map(entry => (
