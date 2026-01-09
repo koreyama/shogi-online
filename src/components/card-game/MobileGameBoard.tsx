@@ -188,6 +188,18 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
                     </div>
                 )}
 
+                {/* Played Card */}
+                <div className={styles.playedCardContainer}>
+                    {gameState.lastPlayedCard && CARDS[gameState.lastPlayedCard.cardId] && (
+                        <CardDisplay
+                            card={CARDS[gameState.lastPlayedCard.cardId]}
+                            size="small"
+                            variant="battle"
+                            className={styles.playedCard}
+                        />
+                    )}
+                </div>
+
 
             </div>
 
@@ -247,17 +259,7 @@ export const MobileGameBoard: React.FC<MobileGameBoardProps> = ({
                 </div>
             </div>
 
-            {/* Played Card (Overlay) */}
-            <div className={styles.playedCardContainer}>
-                {gameState.lastPlayedCard && CARDS[gameState.lastPlayedCard.cardId] && (
-                    <CardDisplay
-                        card={CARDS[gameState.lastPlayedCard.cardId]}
-                        size="small"
-                        variant="battle"
-                        className={styles.playedCard}
-                    />
-                )}
-            </div>
+
 
         </div>
     );
