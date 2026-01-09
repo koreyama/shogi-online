@@ -328,6 +328,13 @@
     text-align: center;
 }
 
+.modeBtnText {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 /* Room Actions Expanded */
 .roomModeContainer {
     display: flex;
@@ -762,6 +769,17 @@
 
     .modeBtnTitle {
         font-size: 1.1rem;
+    }
+
+    .modeBtnText {
+        align-items: flex-start;
+        text-align: left;
+        flex: 1;
+        gap: 0.2rem;
+    }
+
+    .modeBtnDesc {
+        text-align: left;
     }
 
     /* Room Mode specific */

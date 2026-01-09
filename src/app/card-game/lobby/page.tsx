@@ -399,21 +399,27 @@ export default function LobbyPage() {
                         <span className={styles.modeBtnIcon} style={{ background: '#fef3c7' }}>
                             <IconTrophy size={48} color="#d97706" />
                         </span>
-                        <span className={styles.modeBtnTitle} style={{ color: '#b45309' }}>ランクマッチ</span>
-                        <span className={styles.modeBtnDesc}>レートを懸けて真剣勝負</span>
+                        <div className={styles.modeBtnText}>
+                            <span className={styles.modeBtnTitle} style={{ color: '#b45309' }}>ランクマッチ</span>
+                            <span className={styles.modeBtnDesc}>レートを懸けて真剣勝負</span>
+                        </div>
                     </button>
 
                     <button onClick={() => handleStartGame('casual')} className={styles.modeBtn}>
                         <span className={styles.modeBtnIcon}><IconDice size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>カジュアルマッチ</span>
-                        <span className={styles.modeBtnDesc}>気軽にランダム対戦</span>
+                        <div className={styles.modeBtnText}>
+                            <span className={styles.modeBtnTitle}>カジュアルマッチ</span>
+                            <span className={styles.modeBtnDesc}>気軽にランダム対戦</span>
+                        </div>
                     </button>
 
                     <div className={styles.roomModeContainer}>
                         <button onClick={() => setIsCreatingRoom(!isCreatingRoom)} className={styles.modeBtn}>
                             <span className={styles.modeBtnIcon}><IconKey size={48} color="var(--color-primary)" /></span>
-                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={styles.modeBtnDesc}>友達と対戦</span>
+                            <div className={styles.modeBtnText}>
+                                <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                                <span className={styles.modeBtnDesc}>友達と対戦</span>
+                            </div>
                         </button>
                         {isCreatingRoom && (
                             <div className={styles.roomActionsExpanded}>
@@ -446,8 +452,10 @@ export default function LobbyPage() {
 
                     <button onClick={() => handleStartGame('cpu')} className={styles.modeBtn}>
                         <span className={styles.modeBtnIcon}><IconRobot size={48} color="var(--color-primary)" /></span>
-                        <span className={styles.modeBtnTitle}>AI対戦</span>
-                        <span className={styles.modeBtnDesc}>CPUと練習</span>
+                        <div className={styles.modeBtnText}>
+                            <span className={styles.modeBtnTitle}>AI対戦</span>
+                            <span className={styles.modeBtnDesc}>CPUと練習</span>
+                        </div>
                     </button>
                 </div>
 
