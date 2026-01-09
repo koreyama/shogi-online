@@ -788,7 +788,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                         className={styles.canvasContainer}
                         style={{
                             width: width, height: height,
-                            cursor: isSpacePressed ? 'inherit' : 'none'
+                            cursor: 'inherit'
                         }}
                     >
                         {layers.map((layer) => (
@@ -805,24 +805,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                             height={height}
                             style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 100 }}
                         />
-                        {/* Cursor (Optimized, no state) */}
-                        <div
-                            ref={cursorRef}
-                            style={{
-                                position: 'fixed',
-                                left: 0, top: 0,
-                                width: lineWidth * scale,
-                                height: lineWidth * scale,
-                                borderRadius: '50%',
-                                border: '2px solid magenta',
-                                transform: 'translate(-50%, -50%)',
-                                pointerEvents: 'none',
-                                zIndex: 9999,
-                                backgroundColor: isEraser ? 'white' : color,
-                                opacity: 0.5,
-                                display: (isDrawer && tool === 'pen' && !isSpacePressed) ? 'block' : 'none'
-                            }}
-                        />
+
                     </div>
                 </div>
 
@@ -880,14 +863,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                     <button onClick={() => { if (confirm('全消去しますか？')) clearCanvas(); }} className={styles.toolBtn} style={{ color: '#ef4444' }}><IconTrash size={20} /></button>
                 </div>
             )}
-            {/* Debug Info */}
-            <div style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', color: 'white', padding: 5, fontSize: 10, pointerEvents: 'none', zIndex: 9999, textAlign: 'right' }}>
-                Pos: {Math.round(pan.x)},{Math.round(pan.y)} <br />
-                Rot: {Math.round(rotation)}° Sc: {scale.toFixed(2)} <br />
-                Ctrl: {isCtrlPressed ? 'ON' : 'OFF'} <br />
-                Mouse: {debugInfo.x},{debugInfo.y} B:{debugInfo.b} <br />
-                Tgt: {debugInfo.target} Dim: {width}x{height}
-            </div>
+
         </div>
     );
 };
