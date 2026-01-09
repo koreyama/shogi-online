@@ -358,6 +358,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         // Use native HW accelerated coordinates for Mouse (PC)
         if (!('touches' in e) && e.nativeEvent && e.target) {
             const target = e.target as HTMLElement;
+            // console.log('getRawPoint Target:', target.tagName);
             if (target.tagName === 'CANVAS') {
                 return { x: Math.round(e.nativeEvent.offsetX), y: Math.round(e.nativeEvent.offsetY) };
             }
