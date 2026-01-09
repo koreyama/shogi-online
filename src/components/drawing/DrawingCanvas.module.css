@@ -36,12 +36,21 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     z-index: 20;
     max-width: 95%;
+    overflow-x: auto;
+    /* Allow scrolling on PC if window is narrow */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.toolbar::-webkit-scrollbar {
+    display: none;
 }
 
 .toolGroup {
     display: flex;
     gap: 6px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .separator {

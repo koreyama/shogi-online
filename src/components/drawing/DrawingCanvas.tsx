@@ -731,7 +731,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                         <button onClick={handleRedo} disabled={redoStack.length === 0} className={styles.toolBtn} style={{ cursor: redoStack.length > 0 ? 'pointer' : 'not-allowed', opacity: redoStack.length > 0 ? 1 : 0.3 }}><IconRedo size={24} color="#64748b" /></button>
                     </div>
                     <div className={styles.separator} />
-                    <div className={styles.toolGroup} style={{ flexWrap: 'wrap' }}>
+                    <div className={styles.toolGroup}>
                         {['#000000', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'].map(c => (
                             <button key={c} onClick={() => { setColor(c); setIsEraser(false); if (tool === 'lasso') setTool('pen'); else setTool('pen'); }} className={styles.colorBtn} style={{ background: c, border: color === c && !isEraser ? '2px solid black' : '1px solid #ccc' }} />
                         ))}
