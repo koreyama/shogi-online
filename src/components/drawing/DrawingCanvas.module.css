@@ -23,36 +23,37 @@
 /* Toolbar */
 .toolbar {
     position: absolute;
-    bottom: 20px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 10px 20px;
-    border-radius: 20px;
+    padding: 8px 16px;
+    border-radius: 16px;
     display: flex;
-    gap: 15px;
+    gap: 8px;
     align-items: center;
     justify-content: flex-start;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     z-index: 20;
-    max-width: 90%;
+    max-width: 95%;
 }
 
 .toolGroup {
     display: flex;
-    gap: 10px;
+    gap: 6px;
     align-items: center;
 }
 
 .separator {
     width: 1px;
-    height: 24px;
+    height: 20px;
     background: #ccc;
+    margin: 0 4px;
 }
 
 .colorBtn {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
@@ -64,8 +65,8 @@
 }
 
 .toolBtn {
-    padding: 8px;
-    border-radius: 8px;
+    padding: 6px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
     display: flex;
