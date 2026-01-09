@@ -86,14 +86,19 @@
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .toolbar {
-        bottom: 10px;
-        padding: 0.5rem;
-        border-radius: 12px;
-        gap: 0.4rem;
-        max-width: 95vw;
+        bottom: 0;
+        left: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        padding: 8px 12px;
+        gap: 8px;
+        /* Slightly more gap if we have full width */
         overflow-x: auto;
         flex-wrap: nowrap;
         justify-content: flex-start;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
         /* Hide scrollbar */
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -104,7 +109,7 @@
     }
 
     .toolGroup {
-        gap: 5px;
+        gap: 8px;
     }
 
     .colorBtn {
@@ -117,6 +122,6 @@
     }
 
     .rangeInput {
-        width: 80px;
+        width: 60px;
     }
 }
