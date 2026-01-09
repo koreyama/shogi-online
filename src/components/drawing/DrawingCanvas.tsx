@@ -817,14 +817,15 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                         <div
                             ref={cursorRef}
                             style={{
-                                position: 'absolute',
-                                left: 0, top: 0, // Initial, updated by JS
-                                width: lineWidth, height: lineWidth,
+                                position: 'fixed',
+                                left: 0, top: 0,
+                                width: lineWidth * scale,
+                                height: lineWidth * scale,
                                 borderRadius: '50%',
-                                border: '1px solid rgba(0,0,0,0.5)',
+                                border: '2px solid magenta',
                                 transform: 'translate(-50%, -50%)',
                                 pointerEvents: 'none',
-                                zIndex: 101,
+                                zIndex: 9999,
                                 backgroundColor: isEraser ? 'white' : color,
                                 opacity: 0.5,
                                 display: (isDrawer && tool === 'pen' && !isSpacePressed) ? 'block' : 'none'
