@@ -1,0 +1,118 @@
+/* DrawingCanvas.module.css */
+
+.viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: none;
+}
+
+.canvasContainer {
+    position: relative;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    touch-action: none;
+}
+
+/* Toolbar */
+.toolbar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: flex-start;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    max-width: 90%;
+}
+
+.toolGroup {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.separator {
+    width: 1px;
+    height: 24px;
+    background: #ccc;
+}
+
+.colorBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.1s;
+}
+
+.colorBtn:hover {
+    transform: scale(1.1);
+}
+
+.toolBtn {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.rangeInput {
+    width: 100px;
+    cursor: pointer;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .toolbar {
+        bottom: 10px;
+        padding: 0.5rem;
+        border-radius: 12px;
+        gap: 0.4rem;
+        max-width: 95vw;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        /* Hide scrollbar */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .toolGroup {
+        gap: 5px;
+    }
+
+    .colorBtn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .toolBtn {
+        padding: 6px;
+    }
+
+    .rangeInput {
+        width: 80px;
+    }
+}

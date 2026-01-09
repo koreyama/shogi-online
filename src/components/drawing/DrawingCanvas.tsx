@@ -4,6 +4,7 @@ import { ref, push, onValue, remove, child } from 'firebase/database';
 import { Stroke, Point } from '@/lib/drawing/types';
 import { IconPalette, IconEraser, IconTrash, IconLayers, IconPen, IconUndo, IconRedo, IconEye, IconEyeOff, IconLasso } from '@/components/Icons';
 import { Room } from 'colyseus.js';
+import styles from './DrawingCanvas.module.css';
 
 interface DrawingCanvasProps {
     roomId?: string; // Firebase
@@ -650,7 +651,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
             <div
                 ref={viewportRef}
-                className="viewport"
+                className={styles.viewport}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={() => { handleMouseUp(); }}
@@ -660,10 +661,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 onMouseLeave={() => { stopDrawing(); setIsPanning(false); if (cursorRef.current) cursorRef.current.style.display = 'none'; }}
                 onMouseEnter={() => { if (cursorRef.current) cursorRef.current.style.display = 'block'; }}
                 style={{
-                    flex: 1, overflow: 'hidden', position: 'relative',
-                    background: '#ccc', display: 'flex', justifyContent: 'center', alignItems: 'center',
-                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (tool === 'lasso' ? 'crosshair' : 'none'),
-                    touchAction: 'none'
+                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (tool === 'lasso' ? 'crosshair' : 'none')
                 }}
             >
                 <div style={{
@@ -671,12 +669,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                     transformOrigin: 'top left',
                     transition: isPanning ? 'none' : 'transform 0.05s linear'
                 }}>
-                    <div style={{
-                        position: 'relative', width: width, height: height,
-                        background: 'white', overflow: 'hidden', boxShadow: '0 0 10px rgba(0,0,0,0.3)',
-                        flexShrink: 0, touchAction: 'none',
-                        cursor: isSpacePressed ? 'inherit' : 'none'
-                    }}>
+                    <div
+                        className={styles.canvasContainer}
+                        style={{
+                            width: width, height: height,
+                            cursor: isSpacePressed ? 'inherit' : 'none'
+                        }}
+                    >
                         {layers.map((layer) => (
                             <canvas
                                 key={layer.id}
@@ -719,51 +718,39 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             </div>
 
             {isDrawer && (
-                <div style={{
-                    position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
-                    background: 'white', padding: '0.5rem', borderRadius: 12,
-                    display: 'flex', gap: '0.4rem', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                    zIndex: 20,
-                    maxWidth: '95vw',
-                    overflowX: 'auto',
-                    flexWrap: 'nowrap',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    scrollbarWidth: 'none' // Hide scrollbar for cleaner look
-                }}>
+                <div className={styles.toolbar}>
                     {/* ... Toolbar Buttons (Same) ... */}
-                    <div style={{ display: 'flex', gap: '5px' }}>
-                        <button onClick={() => { setTool('pen'); setIsEraser(false); }} style={{ padding: '8px', borderRadius: '8px', background: tool === 'pen' && !isEraser ? '#e0f2fe' : 'transparent', border: 'none', cursor: 'pointer' }}><IconPen size={24} color={tool === 'pen' && !isEraser ? '#0ea5e9' : '#64748b'} /></button>
-                        <button onClick={() => { setTool('pen'); setIsEraser(true); }} style={{ padding: '8px', borderRadius: '8px', background: isEraser ? '#fee2e2' : 'transparent', border: 'none', cursor: 'pointer' }}><IconEraser size={24} color={isEraser ? '#ef4444' : '#64748b'} /></button>
-                        {/* Bucket Removed */}
-                        <button onClick={() => setTool('lasso')} style={{ padding: '8px', borderRadius: '8px', background: tool === 'lasso' ? '#f0fdf4' : 'transparent', border: 'none', cursor: 'pointer' }}><IconLasso size={24} color={tool === 'lasso' ? '#16a34a' : '#64748b'} /></button>
+                    <div className={styles.toolGroup}>
+                        <button onClick={() => { setTool('pen'); setIsEraser(false); }} className={styles.toolBtn} style={{ background: tool === 'pen' && !isEraser ? '#e0f2fe' : 'transparent' }}><IconPen size={24} color={tool === 'pen' && !isEraser ? '#0ea5e9' : '#64748b'} /></button>
+                        <button onClick={() => { setTool('pen'); setIsEraser(true); }} className={styles.toolBtn} style={{ background: isEraser ? '#fee2e2' : 'transparent' }}><IconEraser size={24} color={isEraser ? '#ef4444' : '#64748b'} /></button>
+                        <button onClick={() => setTool('lasso')} className={styles.toolBtn} style={{ background: tool === 'lasso' ? '#f0fdf4' : 'transparent' }}><IconLasso size={24} color={tool === 'lasso' ? '#16a34a' : '#64748b'} /></button>
                     </div>
-                    <div style={{ width: 1, height: 24, background: '#ccc' }} />
-                    <div style={{ display: 'flex', gap: '5px' }}>
-                        <button onClick={handleUndo} disabled={history.length === 0} style={{ padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: history.length > 0 ? 'pointer' : 'not-allowed', opacity: history.length > 0 ? 1 : 0.3 }}><IconUndo size={24} color="#64748b" /></button>
-                        <button onClick={handleRedo} disabled={redoStack.length === 0} style={{ padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: redoStack.length > 0 ? 'pointer' : 'not-allowed', opacity: redoStack.length > 0 ? 1 : 0.3 }}><IconRedo size={24} color="#64748b" /></button>
+                    <div className={styles.separator} />
+                    <div className={styles.toolGroup}>
+                        <button onClick={handleUndo} disabled={history.length === 0} className={styles.toolBtn} style={{ cursor: history.length > 0 ? 'pointer' : 'not-allowed', opacity: history.length > 0 ? 1 : 0.3 }}><IconUndo size={24} color="#64748b" /></button>
+                        <button onClick={handleRedo} disabled={redoStack.length === 0} className={styles.toolBtn} style={{ cursor: redoStack.length > 0 ? 'pointer' : 'not-allowed', opacity: redoStack.length > 0 ? 1 : 0.3 }}><IconRedo size={24} color="#64748b" /></button>
                     </div>
-                    <div style={{ width: 1, height: 24, background: '#ccc' }} />
-                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    <div className={styles.separator} />
+                    <div className={styles.toolGroup} style={{ flexWrap: 'wrap' }}>
                         {['#000000', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'].map(c => (
-                            <button key={c} onClick={() => { setColor(c); setIsEraser(false); if (tool === 'lasso') setTool('pen'); else setTool('pen'); }} style={{ width: 24, height: 24, borderRadius: '50%', background: c, border: color === c && !isEraser ? '2px solid black' : '1px solid #ccc', cursor: 'pointer' }} />
+                            <button key={c} onClick={() => { setColor(c); setIsEraser(false); if (tool === 'lasso') setTool('pen'); else setTool('pen'); }} className={styles.colorBtn} style={{ background: c, border: color === c && !isEraser ? '2px solid black' : '1px solid #ccc' }} />
                         ))}
-                        <div style={{ position: 'relative', width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #ccc' }}>
+                        <div style={{ position: 'relative', width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #ccc', flexShrink: 0 }}>
                             <input type="color" value={color} onChange={(e) => { setColor(e.target.value); setIsEraser(false); }} style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', cursor: 'pointer', padding: 0, border: 'none' }} />
                             <div style={{ pointerEvents: 'none', position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconPalette size={16} color="white" /></div>
                         </div>
                     </div>
-                    <div style={{ width: 1, height: 24, background: '#ccc' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>サイズ: {lineWidth}px</span>
-                        <input type="range" min="1" max="50" value={lineWidth} onChange={e => setLineWidth(Number(e.target.value))} style={{ width: 80, cursor: 'pointer', accentColor: isEraser ? '#ef4444' : color }} />
+                    <div className={styles.separator} />
+                    <div className={styles.toolGroup} style={{ whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>サイズ: {lineWidth}px</span>
+                        <input type="range" min="1" max="50" value={lineWidth} onChange={e => setLineWidth(Number(e.target.value))} className={styles.rangeInput} style={{ accentColor: isEraser ? '#ef4444' : color }} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div className={styles.toolGroup}>
                         <span style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>ズーム: {Math.round(scale * 100)}%</span>
                         <input type="range" min="0.1" max="3" step="0.1" value={scale} onChange={e => setScale(Number(e.target.value))} style={{ width: 60, cursor: 'pointer' }} />
                     </div>
-                    <div style={{ width: 1, height: 24, background: '#ccc' }} />
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div className={styles.separator} />
+                    <div className={styles.toolGroup} style={{ gap: '10px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             {layers.slice().reverse().map(l => (
                                 <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
