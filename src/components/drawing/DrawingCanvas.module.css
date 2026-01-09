@@ -92,24 +92,28 @@
         width: 100%;
         max-width: 100%;
         border-radius: 16px 16px 0 0;
-        padding: 8px 12px;
+        padding: 12px 6px;
+        /* slightly more padding */
         gap: 8px;
-        /* Slightly more gap if we have full width */
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
+        flex-wrap: wrap;
+        justify-content: center;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        /* Hide scrollbar */
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        overflow-x: visible;
+        height: auto;
     }
 
     .toolbar::-webkit-scrollbar {
         display: none;
     }
 
+    .separator {
+        display: none;
+    }
+
     .toolGroup {
         gap: 8px;
+        justify-content: center;
+        margin-bottom: 4px;
     }
 
     .colorBtn {
