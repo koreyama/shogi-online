@@ -70,7 +70,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const [rotation, setRotation] = useState(0); // Degrees
     const [isSpacePressed, setIsSpacePressed] = useState(false);
+    const [isCtrlPressed, setIsCtrlPressed] = useState(false);
     const [isPanning, setIsPanning] = useState(false);
+    const lastMousePos = useRef<{ x: number, y: number } | null>(null);
 
     const [activeLayer, setActiveLayer] = useState(0);
     const [layers, setLayers] = useState<Layer[]>([{ id: 0, visible: true, name: '下書き' }, { id: 1, visible: true, name: '線画' }, { id: 2, visible: true, name: '着色' }]);
@@ -191,6 +193,23 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             });
         });
     }, [layers, history, selectedStrokeIds, drawStroke, width, height]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space') setIsSpacePressed(true);
+            if (e.key === 'Control' || e.metaKey) setIsCtrlPressed(true);
+        };
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.code === 'Space') { setIsSpacePressed(false); setIsPanning(false); }
+            if (e.key === 'Control' || e.metaKey) setIsCtrlPressed(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []);
 
     useEffect(() => {
         renderAllLayers(isDraggingSelection);
@@ -398,7 +417,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
 
     const handleMouseMove = (e: React.MouseEvent) => {
         // Update Cursor Position using direct DOM manipulation (No React Render!)
-        if (cursorRef.current && isDrawer && !isSpacePressed) {
+        if (cursorRef.current && isDrawer && !isSpacePressed && !isCtrlPressed) {
             const rect = viewportRef.current?.getBoundingClientRect();
             if (rect) {
                 const sx = e.clientX - rect.left;
@@ -408,14 +427,48 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
             }
         }
 
-        if (isPanning) {
-            const movementX = (e as any).movementX || 0;
-            const movementY = (e as any).movementY || 0;
-            if (movementX || movementY) {
-                setPan(prev => ({ x: prev.x + movementX, y: prev.y + movementY }));
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+
+        if (isPanning || (isDrawer && e.buttons === 1 && (e.ctrlKey || isCtrlPressed))) {
+            if (lastMousePos.current) {
+                const deltaX = clientX - lastMousePos.current.x;
+                const deltaY = clientY - lastMousePos.current.y;
+
+                if (e.ctrlKey || isCtrlPressed) {
+                    // Rotation
+                    const deltaAngle = deltaX * 0.5;
+                    const rect = viewportRef.current?.getBoundingClientRect();
+                    if (rect) {
+                        const cx = rect.width / 2;
+                        const cy = rect.height / 2;
+
+                        // World Center
+                        const dx = cx - pan.x;
+                        const dy = cy - pan.y;
+                        const rad = -rotation * Math.PI / 180;
+                        const wx = (dx * Math.cos(rad) - dy * Math.sin(rad)) / scale;
+                        const wy = (dx * Math.sin(rad) + dy * Math.cos(rad)) / scale;
+
+                        const newRot = rotation + deltaAngle;
+                        const newRad = newRot * Math.PI / 180;
+
+                        const rotX = wx * scale * Math.cos(newRad) - wy * scale * Math.sin(newRad);
+                        const rotY = wx * scale * Math.sin(newRad) + wy * scale * Math.cos(newRad);
+
+                        setRotation(newRot);
+                        setPan({ x: cx - rotX, y: cy - rotY });
+                    }
+                } else if (isPanning) {
+                    // Pan
+                    setPan(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+                }
             }
+            lastMousePos.current = { x: clientX, y: clientY };
             return;
         }
+
+        lastMousePos.current = { x: clientX, y: clientY };
         const raw = getRawPoint(e);
 
         if (tool === 'lasso') {
@@ -718,7 +771,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                 onMouseLeave={() => { stopDrawing(); setIsPanning(false); if (cursorRef.current) cursorRef.current.style.display = 'none'; }}
                 onMouseEnter={() => { if (cursorRef.current) cursorRef.current.style.display = 'block'; }}
                 style={{
-                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (tool === 'lasso' ? 'crosshair' : 'none')
+                    cursor: isSpacePressed ? (isPanning ? 'grabbing' : 'grab') : (isCtrlPressed ? 'ew-resize' : (tool === 'lasso' ? 'crosshair' : 'none'))
                 }}
             >
                 <div style={{
