@@ -253,6 +253,13 @@ export class CardGameRoom extends Room<CardGameState> {
             }
         };
 
+        const syncNumberArray = (schemaArray: ArraySchema<number>, sourceArray: number[]) => {
+            schemaArray.clear();
+            if (sourceArray) {
+                sourceArray.forEach(item => schemaArray.push(item));
+            }
+        };
+
         // Players
         for (const pid in g.players) {
             const pSource = g.players[pid];
@@ -278,6 +285,7 @@ export class CardGameRoom extends Room<CardGameState> {
             syncStringArray(pSchema.deck, pSource.deck);
             syncStringArray(pSchema.discardPile, pSource.discardPile);
             syncStringArray(pSchema.manaZone, pSource.manaZone || []);
+            syncNumberArray(pSchema.selectedForCharge, pSource.selectedForCharge || []);
 
             // Equipment
             pSchema.equipment.weapon = pSource.equipment.weapon || "";

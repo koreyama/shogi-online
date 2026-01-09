@@ -44,9 +44,7 @@ export class PlayerStateSchema extends Schema {
     @type(EquipmentSchema) equipment = new EquipmentSchema();
     @type([StatusEffectSchema]) statusEffects = new ArraySchema<StatusEffectSchema>();
 
-    // Note: selectedForCharge is UI state mostly, but we can sync it if needed. 
-    // Usually selection is local until confirmed, but for "Mode" persistence we might need it.
-    // Let's skip precise selection sync for now unless required.
+    @type(["number"]) selectedForCharge = new ArraySchema<number>();
 }
 
 export class FieldSchema extends Schema {
