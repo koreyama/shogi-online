@@ -355,6 +355,14 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
     useEffect(() => { layers.forEach(l => renderLayer(l.id, history)); }, [width, height, history, layers, renderLayer]);
 
     const getRawPoint = (e: React.MouseEvent | React.TouchEvent): Point => {
+        // Use native HW accelerated coordinates for Mouse (PC)
+        if (!('touches' in e) && e.nativeEvent && e.target) {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'CANVAS') {
+                return { x: Math.round(e.nativeEvent.offsetX), y: Math.round(e.nativeEvent.offsetY) };
+            }
+        }
+
         if (!viewportRef.current) return { x: 0, y: 0 };
         const rect = viewportRef.current.getBoundingClientRect();
 
