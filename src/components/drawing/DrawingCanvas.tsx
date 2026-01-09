@@ -443,7 +443,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
         const clientX = e.clientX;
         const clientY = e.clientY;
 
-        if (isPanning || (isDrawer && e.buttons === 1 && (e.ctrlKey || isCtrlPressed))) {
+        if (isPanning || (e.buttons === 1 && (e.ctrlKey || isCtrlPressed))) {
             if (lastMousePos.current) {
                 const deltaX = clientX - lastMousePos.current.x;
                 const deltaY = clientY - lastMousePos.current.y;
