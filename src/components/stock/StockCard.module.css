@@ -89,3 +89,418 @@
         font-size: 1rem;
     }
 }
+
+/* ===== PANELS COMMON ===== */
+.orderPanel,
+.watchlistPanel,
+.stopLossPanel,
+.analysisPanel,
+.performancePanel {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.orderPanel h3,
+.watchlistPanel h3,
+.stopLossPanel h3,
+.analysisPanel h3,
+.performancePanel h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 12px 0;
+}
+
+.emptyState,
+.loadingState {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 16px;
+}
+
+.input,
+.select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.input:focus,
+.select:focus {
+    border-color: #3b82f6;
+}
+
+/* ===== ORDER PANEL ===== */
+.orderPanelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.orderPanelHeader h3 {
+    margin: 0;
+}
+
+.addOrderBtn,
+.submitBtn,
+.addBtn,
+.saveBtn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.addOrderBtn:hover,
+.submitBtn:hover,
+.addBtn:hover,
+.saveBtn:hover {
+    background: #2563eb;
+}
+
+.orderForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.formRow {
+    display: flex;
+    gap: 8px;
+}
+
+.formRow .input,
+.formRow .select {
+    flex: 1;
+}
+
+.orderList,
+.watchlistItems,
+.stopLossList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.orderItem,
+.watchlistItem,
+.stopLossItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+    overflow: hidden;
+}
+
+.orderInfo,
+.watchlistInfo,
+.stopLossInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.orderType {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.buyOrder {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.sellOrder {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.orderSymbol,
+.watchlistSymbol {
+    font-weight: 600;
+    color: #334155;
+}
+
+.orderDetails,
+.watchlistPrice {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.watchlistChange {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.cancelBtn,
+.removeBtn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.editBtn,
+.setStopLossBtn {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ===== WATCHLIST ===== */
+.addWatchlist {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.addWatchlist .input {
+    flex: 1;
+}
+
+/* ===== STOP LOSS ===== */
+.stopLossActive,
+.stopLossEdit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.stopLossEdit .input {
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.triggerPrice {
+    font-size: 0.85rem;
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.shares,
+.currentPrice {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* ===== PORTFOLIO ANALYSIS ===== */
+.diversificationScore {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.scoreLabel {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.scoreBar {
+    flex: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.scoreFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.scoreValue {
+    font-weight: 600;
+    color: #334155;
+    min-width: 50px;
+}
+
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.metric {
+    text-align: center;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.metricLabel {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.metricValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.sectorAllocation h4 {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 8px 0;
+}
+
+.allocationChart {
+    display: flex;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.allocationSegment {
+    transition: width 0.3s;
+}
+
+.allocationLegend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+}
+
+.legendColor {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legendLabel {
+    color: #64748b;
+}
+
+.legendPercent {
+    font-weight: 600;
+    color: #334155;
+}
+
+/* ===== PERFORMANCE CHART ===== */
+.returnsSummary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.returnItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    min-width: 80px;
+}
+
+.returnItem.positive {
+    background: #dcfce7;
+}
+
+.returnItem.negative {
+    background: #fee2e2;
+}
+
+.returnLabel {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.returnValue {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.returnItem.positive .returnValue,
+.returnItem.positive .returnPercent {
+    color: #16a34a;
+}
+
+.returnItem.negative .returnValue,
+.returnItem.negative .returnPercent {
+    color: #dc2626;
+}
+
+.returnPercent {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.chartContainer {
+    position: relative;
+}
+
+.performanceSvg {
+    width: 100%;
+    height: 80px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.chartLabels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.positive {
+    color: #16a34a;
+}
+
+.negative {
+    color: #dc2626;
+}

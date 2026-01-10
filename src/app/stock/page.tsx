@@ -8,6 +8,11 @@ import { PortfolioEngine } from '@/lib/stock/engine';
 import { fetchFeaturedStocks, searchStock, searchStocks, fetchStockPrice, fetchExchangeRate } from '@/lib/stock/api';
 import { StockCard } from '@/components/stock/StockCard';
 import { TradeModal } from '@/components/stock/TradeModal';
+import { LimitOrderPanel } from '@/components/stock/LimitOrderPanel';
+import { WatchlistPanel } from '@/components/stock/WatchlistPanel';
+import { StopLossPanel } from '@/components/stock/StopLossPanel';
+import { PortfolioAnalysis } from '@/components/stock/PortfolioAnalysis';
+import { PerformanceChart } from '@/components/stock/PerformanceChart';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
 import { getUserProfile } from '@/lib/firebase/users';
@@ -55,6 +60,7 @@ export default function StockTradePage() {
     const [engine, setEngine] = useState<PortfolioEngine | null>(null);
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
     const [showTradeModal, setShowTradeModal] = useState(false);
+    const [activeTab, setActiveTab] = useState<'positions' | 'orders' | 'watchlist' | 'analysis'>('positions');
 
     // Ref to track latest engine for async operations
     const engineRef = React.useRef<PortfolioEngine | null>(null);
@@ -325,6 +331,53 @@ export default function StockTradePage() {
         return `¥${value.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}`;
     };
 
+    // New feature handlers
+    const handleCreateLimitOrder = (symbol: string, type: 'buy' | 'sell', shares: number, targetPrice: number) => {
+        if (!engine) return;
+        const stock = stocks.find(s => s.symbol === symbol);
+        engine.createLimitOrder(symbol, stock?.name || symbol, type, shares, targetPrice);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+        setMessage({ type: 'success', text: `${symbol} の${type === 'buy' ? '買い' : '売り'}指値注文を作成しました` });
+    };
+
+    const handleCancelOrder = (orderId: string) => {
+        if (!engine) return;
+        engine.cancelLimitOrder(orderId);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+        setMessage({ type: 'success', text: '注文をキャンセルしました' });
+    };
+
+    const handleAddToWatchlist = (symbol: string) => {
+        if (!engine) return;
+        engine.addToWatchlist(symbol);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+    };
+
+    const handleRemoveFromWatchlist = (symbol: string) => {
+        if (!engine) return;
+        engine.removeFromWatchlist(symbol);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+    };
+
+    const handleSetStopLoss = (symbol: string, triggerPrice: number) => {
+        if (!engine) return;
+        engine.setStopLoss(symbol, triggerPrice);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+        setMessage({ type: 'success', text: `${symbol} にストップロスを設定しました` });
+    };
+
+    const handleRemoveStopLoss = (symbol: string) => {
+        if (!engine) return;
+        engine.removeStopLoss(symbol);
+        setPortfolio(engine.getPortfolio());
+        savePortfolio(engine);
+    };
+
     // Loading state
     if (authLoading || !user) {
         return <main className={styles.main}><div className={styles.loading}>Loading...</div></main>;
@@ -487,36 +540,102 @@ export default function StockTradePage() {
 
                 {/* Sidebar */}
                 <aside className={styles.sidebar}>
-                    {/* Positions */}
-                    <div className={styles.positionsCard}>
-                        <h3>POSITIONS</h3>
-                        {Object.values(portfolio.positions).length === 0 ? (
-                            <p className={styles.noPositions}>ポジションがありません</p>
-                        ) : (
-                            <ul className={styles.positionList}>
-                                {Object.values(portfolio.positions).map(pos => (
-                                    <li
-                                        key={pos.symbol}
-                                        className={styles.positionItem}
-                                        onClick={() => handlePositionClick(pos.symbol)}
-                                    >
-                                        <div className={styles.positionHeader}>
-                                            <span className={styles.positionSymbol}>{pos.symbol.replace('.T', '')}</span>
-                                            <span className={styles.positionShares}>{pos.shares}株</span>
-                                        </div>
-                                        <div className={styles.positionValue}>
-                                            {formatCurrency(pos.marketValue)}
-                                            <span className={pos.profit >= 0 ? styles.up : styles.down}>
-                                                ({pos.profit >= 0 ? '+' : ''}{pos.profitPercent.toFixed(1)}%)
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                    {/* Tab Navigation */}
+                    <div className={styles.tabNav}>
+                        <button
+                            className={`${styles.tabBtn} ${activeTab === 'positions' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('positions')}
+                        >ポジション</button>
+                        <button
+                            className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('orders')}
+                        >注文</button>
+                        <button
+                            className={`${styles.tabBtn} ${activeTab === 'watchlist' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('watchlist')}
+                        >ウォッチ</button>
+                        <button
+                            className={`${styles.tabBtn} ${activeTab === 'analysis' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('analysis')}
+                        >分析</button>
                     </div>
 
-                    {/* Leaderboard */}
+                    {activeTab === 'positions' && (
+                        <>
+                            {/* Positions */}
+                            <div className={styles.positionsCard}>
+                                <h3>POSITIONS</h3>
+                                {Object.values(portfolio.positions).length === 0 ? (
+                                    <p className={styles.noPositions}>ポジションがありません</p>
+                                ) : (
+                                    <ul className={styles.positionList}>
+                                        {Object.values(portfolio.positions).map(pos => (
+                                            <li
+                                                key={pos.symbol}
+                                                className={styles.positionItem}
+                                                onClick={() => handlePositionClick(pos.symbol)}
+                                            >
+                                                <div className={styles.positionHeader}>
+                                                    <span className={styles.positionSymbol}>{pos.symbol.replace('.T', '')}</span>
+                                                    <span className={styles.positionShares}>{pos.shares}株</span>
+                                                </div>
+                                                <div className={styles.positionValue}>
+                                                    {formatCurrency(pos.marketValue)}
+                                                    <span className={pos.profit >= 0 ? styles.up : styles.down}>
+                                                        ({pos.profit >= 0 ? '+' : ''}{pos.profitPercent.toFixed(1)}%)
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+
+                            {/* Stop Loss Panel */}
+                            <StopLossPanel
+                                positions={portfolio.positions}
+                                stopLosses={portfolio.stopLosses || {}}
+                                onSetStopLoss={handleSetStopLoss}
+                                onRemoveStopLoss={handleRemoveStopLoss}
+                            />
+                        </>
+                    )}
+
+                    {activeTab === 'orders' && (
+                        <LimitOrderPanel
+                            pendingOrders={engine?.getPendingOrders() || []}
+                            onCancelOrder={handleCancelOrder}
+                            onCreateOrder={handleCreateLimitOrder}
+                        />
+                    )}
+
+                    {activeTab === 'watchlist' && (
+                        <WatchlistPanel
+                            watchlist={portfolio.watchlist || []}
+                            onRemove={handleRemoveFromWatchlist}
+                            onAdd={handleAddToWatchlist}
+                            onSelectStock={(stock) => {
+                                setSelectedStock(stock);
+                                setShowTradeModal(true);
+                            }}
+                        />
+                    )}
+
+                    {activeTab === 'analysis' && (
+                        <>
+                            <PortfolioAnalysis
+                                positions={portfolio.positions}
+                                cash={portfolio.cash}
+                                totalValue={portfolio.totalValue}
+                            />
+                            <PerformanceChart
+                                history={portfolio.history || []}
+                                currentValue={portfolio.totalValue}
+                            />
+                        </>
+                    )}
+
+                    {/* Leaderboard - always visible */}
                     <div className={styles.leaderboardCard}>
                         <h3>RANKING</h3>
                         {leaderboard.length === 0 ? (

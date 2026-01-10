@@ -378,6 +378,38 @@
     gap: 16px;
 }
 
+/* Tab Navigation */
+.tabNav {
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.tabBtn {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.tabBtn:hover {
+    background: #f1f5f9;
+}
+
+.tabBtn.active {
+    background: #3b82f6;
+    color: white;
+}
+
 .positionsCard,
 .leaderboardCard {
     background: white;

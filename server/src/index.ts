@@ -63,6 +63,10 @@ gameServer.define("minesweeper_room", MinesweeperRoom)
 import { DrawingRoom } from "./rooms/DrawingRoom";
 gameServer.define("drawing", DrawingRoom);
 
+import { WerewolfRoom } from "./rooms/WerewolfRoom";
+gameServer.define("werewolf", WerewolfRoom)
+    .filterBy(['mode']);
+
 import { BackgammonRoom } from "./rooms/BackgammonRoom";
 gameServer.define("backgammon", BackgammonRoom);
 

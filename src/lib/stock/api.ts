@@ -20,6 +20,13 @@ const BASE_PRICES: Record<string, number> = {
 
 const currentPrices: Record<string, { price: number; previousClose: number; history: number[] }> = {};
 
+// Stock price cache (short TTL for responsiveness)
+const stockCache: Record<string, { stock: Stock; timestamp: number }> = {};
+const STOCK_CACHE_DURATION = 30 * 1000; // 30 seconds
+
+// Internal API route (no CORS issues, faster than external proxies)
+const INTERNAL_API = '/api/stock';
+
 // Yahoo Finance API endpoints
 const YAHOO_CHART_API = 'https://query1.finance.yahoo.com/v8/finance/chart';
 const YAHOO_SEARCH_API = 'https://query1.finance.yahoo.com/v1/finance/search';
@@ -74,18 +81,62 @@ export async function fetchExchangeRate(): Promise<number> {
     return USD_JPY_RATE;
 }
 
-// Fetch stock price via client-side CORS proxy
+// Fetch stock price via internal API first, then CORS proxy fallback
 export async function fetchStockPrice(symbol: string, exchangeRate?: number): Promise<Stock | null> {
-    const url = `${YAHOO_CHART_API}/${symbol}?interval=1d&range=5d`;
+    // Check cache first
+    const cached = stockCache[symbol];
+    if (cached && (Date.now() - cached.timestamp < STOCK_CACHE_DURATION)) {
+        return cached.stock;
+    }
 
-    // Use provided rate, cached rate, or default
     const currentRate = exchangeRate || (cachedExchangeRate?.rate || USD_JPY_RATE);
+
+    // Try internal API route first (faster, no CORS issues)
+    try {
+        const response = await fetch(`${INTERNAL_API}?symbol=${encodeURIComponent(symbol)}`, {
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.price) {
+                const featuredInfo = FEATURED_STOCKS.find(s => s.symbol === symbol);
+                const isJP = symbol.includes('.T');
+                const currency = data.currency || (isJP ? 'JPY' : 'USD');
+                const priceInJPY = currency === 'USD' ? data.price * currentRate : data.price;
+
+                const stock: Stock = {
+                    symbol,
+                    name: featuredInfo?.name || data.shortName || symbol,
+                    price: data.price,
+                    priceInJPY: Math.round(priceInJPY),
+                    previousClose: data.previousClose,
+                    change: data.change,
+                    changePercent: data.changePercent,
+                    high: data.high,
+                    low: data.low,
+                    volume: data.volume,
+                    sector: featuredInfo?.sector,
+                    currency: currency,
+                    lastUpdated: Date.now()
+                };
+                // Cache the result
+                stockCache[symbol] = { stock, timestamp: Date.now() };
+                return stock;
+            }
+        }
+    } catch (err) {
+        console.warn(`Internal API failed for ${symbol}, trying CORS proxies:`, err);
+    }
+
+    // Fallback to CORS proxies
+    const url = `${YAHOO_CHART_API}/${symbol}?interval=1d&range=5d`;
 
     for (const proxyFn of CORS_PROXIES) {
         try {
             const proxyUrl = proxyFn(url);
             const response = await fetch(proxyUrl, {
-                headers: { 'Accept': 'application/json' }
+                headers: { 'Accept': 'application/json' },
+                signal: AbortSignal.timeout(8000) // 8 second timeout per proxy
             });
 
             if (!response.ok) continue;
@@ -109,7 +160,7 @@ export async function fetchStockPrice(symbol: string, exchangeRate?: number): Pr
             const currency = meta.currency || (isJP ? 'JPY' : 'USD');
             const priceInJPY = currency === 'USD' ? currentPrice * currentRate : currentPrice;
 
-            return {
+            const stock: Stock = {
                 symbol,
                 name: featuredInfo?.name || meta.shortName || meta.longName || symbol,
                 price: currentPrice,
@@ -124,6 +175,9 @@ export async function fetchStockPrice(symbol: string, exchangeRate?: number): Pr
                 currency: currency,
                 lastUpdated: Date.now()
             };
+            // Cache the result
+            stockCache[symbol] = { stock, timestamp: Date.now() };
+            return stock;
         } catch (err) {
             console.warn(`CORS proxy failed for ${symbol}:`, err);
             continue;

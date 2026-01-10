@@ -48,6 +48,33 @@ export interface Trade {
     timestamp: number;
 }
 
+// 指値注文
+export interface LimitOrder {
+    id: string;
+    symbol: string;
+    name: string;
+    type: 'buy' | 'sell';
+    shares: number;
+    targetPrice: number;
+    createdAt: number;
+    status: 'pending' | 'executed' | 'cancelled';
+}
+
+// ストップロス（損切り）
+export interface StopLoss {
+    symbol: string;
+    triggerPrice: number;
+    shares: number; // 0 = all shares
+}
+
+// ポートフォリオ履歴スナップショット
+export interface PortfolioSnapshot {
+    timestamp: number;
+    totalValue: number;
+    cash: number;
+    positionCount: number;
+}
+
 export interface Portfolio {
     cash: number;
     positions: Record<string, Position>;
@@ -55,6 +82,11 @@ export interface Portfolio {
     totalProfit: number;
     totalProfitPercent: number;
     trades: Trade[];
+    // New features
+    limitOrders: LimitOrder[];
+    stopLosses: Record<string, StopLoss>;
+    watchlist: string[];
+    history: PortfolioSnapshot[];
 }
 
 export interface UserData {

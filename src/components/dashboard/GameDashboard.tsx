@@ -122,6 +122,16 @@ const IconBlocksLocal = ({ size = 32, color = "currentColor" }: { size?: number,
         <rect x="13" y="13" width="7" height="7" rx="1" fill={color} stroke="none" />
     </svg>
 );
+const IconSlotLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <line x1="8" y1="4" x2="8" y2="20" />
+        <line x1="16" y1="4" x2="16" y2="20" />
+        <text x="5" y="14" fontSize="6" fill={color} stroke="none">7</text>
+        <text x="12" y="14" fontSize="6" fill={color} stroke="none">7</text>
+        <text x="18" y="14" fontSize="6" fill={color} stroke="none">7</text>
+    </svg>
+);
 
 type GameDashboardProps = {
     user: any;
@@ -296,6 +306,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
+                            <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                             <GameCard href="/trump" title="トランプ" desc="大富豪など" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
                         </GameSection>
 
@@ -355,4 +366,13 @@ const GameCard = ({ href, title, desc, icon, color }: { href: string, title: str
             {desc && <p style={{ fontSize: '0.7rem', color: '#718096', fontWeight: 500 }}>{desc}</p>}
         </motion.div>
     </Link>
+);
+
+const IconWolfLocal = ({ size = 24, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l4 7h-8l4-7z" />
+        <path d="M8.5 9l-1.5 6 5 3 5-3-1.5-6" />
+        <circle cx="10" cy="13" r="1" fill={color} />
+        <circle cx="14" cy="13" r="1" fill={color} />
+    </svg>
 );

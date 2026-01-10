@@ -29,6 +29,12 @@
                 ".write": "auth != null && auth.uid === $userId"
             }
         },
+        "juggler": {
+            "$userId": {
+                ".read": "auth != null && auth.uid === $userId",
+                ".write": "auth != null && auth.uid === $userId"
+            }
+        },
         "leaderboard": {
             ".read": true,
             ".indexOn": [
