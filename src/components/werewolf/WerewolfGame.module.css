@@ -665,3 +665,269 @@
     box-shadow: 0 4px 12px var(--accent-glow);
     transform: translateX(6px);
 }
+
+/* --- Mobile Responsive --- */
+@media (max-width: 900px) {
+    .mainContent {
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+        max-height: calc(100vh - 70px);
+        /* Adjust for header */
+        overflow-y: auto;
+        /* Enable scroll for main content if needed */
+    }
+
+    .container {
+        height: 100vh;
+        overflow: hidden;
+        /* Prevent body scroll */
+    }
+
+    .playersPanel,
+    .chatPanel,
+    .actionPanel {
+        width: 100%;
+        max-width: none;
+        flex: none;
+        /* Reset flex */
+    }
+
+    /* Mobile Layout Ordering & Sizing */
+
+    /* LOBBY PHASE */
+    /* LOBBY PHASE */
+    .container[data-phase="lobby"] .mainContent {
+        overflow-y: auto;
+    }
+
+    .container[data-phase="lobby"] .playersPanel {
+        order: 1;
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        max-height: none;
+        padding: 24px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        margin-bottom: 24px;
+    }
+
+    .container[data-phase="lobby"] .chatPanel {
+        order: 2;
+        height: 400px;
+        /* Fixed height for chat in lobby */
+        flex: none;
+    }
+
+    .container[data-phase="lobby"] .playerList {
+        flex-direction: column;
+        /* Vertical list in lobby */
+        overflow-x: hidden;
+        overflow-y: auto;
+        gap: 12px;
+    }
+
+    .container[data-phase="lobby"] .playerCard {
+        min-width: 0;
+        flex-direction: row;
+        padding: 12px;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .container[data-phase="lobby"] .playerStatus {
+        display: block;
+        /* Show status in lobby */
+    }
+
+    .container[data-phase="lobby"] .playersPanel h3 {
+        display: flex;
+        /* Show header in lobby */
+    }
+
+    /* GAME PHASE (Day/Night) */
+    .container[data-phase*="day"] .mainContent,
+    .container[data-phase*="night"] .mainContent,
+    .container[data-phase="result"] .mainContent {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        padding-bottom: 0;
+        /* Remove padding at bottom for chat input */
+    }
+
+    /* 1. Action Panel (Top) - Only show if necessary or collapsible? 
+       Actually, Action might be better at bottom? 
+       Let's put Action at TOP for importance, or maintain visibility.
+    */
+    .container[data-phase*="day"] .actionPanel,
+    .container[data-phase*="night"] .actionPanel {
+        order: 1;
+        padding: 12px;
+        max-height: 25vh;
+        /* Limit height */
+        overflow-y: auto;
+    }
+
+    /* 2. Chat Panel (Middle -> Fill) */
+    .container[data-phase*="day"] .chatPanel,
+    .container[data-phase*="night"] .chatPanel,
+    .container[data-phase="result"] .chatPanel {
+        order: 2;
+        flex: 1;
+        min-height: 0;
+        /* Allow shrinking */
+        border-radius: 12px 12px 0 0;
+        /* Rounded top only */
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    /* 3. Players Panel (Bottom - Collapsed/Horizontal) */
+    .container[data-phase*="day"] .playersPanel,
+    .container[data-phase*="night"] .playersPanel,
+    .container[data-phase="result"] .playersPanel {
+        order: 3;
+        height: auto;
+        padding: 8px;
+        background: var(--bg-secondary);
+        /* Distinct logic */
+        border-radius: 0;
+        /* User square for bottom bar feel? Or rounded */
+        border-top: 1px solid var(--border-color);
+        display: none;
+        /* Hide standard list, maybe show via drawer or icon? */
+        /* Alternatively, show as horizontal strip at VERY TOP? */
+    }
+
+    /* REVISION: Put Player List at TOP as Horizontal Scroll Strip */
+    .container[data-phase*="day"] .playersPanel,
+    .container[data-phase*="night"] .playersPanel,
+    .container[data-phase="result"] .playersPanel {
+        display: flex;
+        /* Show it */
+        order: 0;
+        /* Very top */
+        width: 100%;
+        padding: 8px;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        max-height: 80px;
+    }
+
+    .container[data-phase*="day"] .playersPanel h3,
+    .container[data-phase*="night"] .playersPanel h3,
+    .container[data-phase="result"] .playersPanel h3 {
+        display: none;
+        /* Hide header "Participants" */
+    }
+
+    .container[data-phase*="day"] .playerList,
+    .container[data-phase*="night"] .playerList,
+    .container[data-phase="result"] .playerList {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 8px;
+        padding-bottom: 0;
+    }
+
+    .container[data-phase*="day"] .playerCard,
+    .container[data-phase*="night"] .playerCard,
+    .container[data-phase="result"] .playerCard {
+        min-width: 60px;
+        padding: 4px;
+        flex-direction: column;
+        gap: 2px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+    }
+
+    .container[data-phase*="day"] .avatarPlaceholder,
+    .container[data-phase*="night"] .avatarPlaceholder,
+    .container[data-phase="result"] .avatarPlaceholder {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+
+    .container[data-phase*="day"] .playerName,
+    .container[data-phase*="night"] .playerName,
+    .container[data-phase="result"] .playerName {
+        font-size: 0.7rem;
+        max-width: 50px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .container[data-phase*="day"] .playerStatus,
+    .container[data-phase*="night"] .playerStatus,
+    .container[data-phase="result"] .playerStatus {
+        display: none;
+        /* Hide status text to save space, rely on visual dimming/style */
+    }
+
+    /* Header Adjustments */
+    .header {
+        height: auto;
+        min-height: 56px;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .gameInfo {
+        gap: 8px;
+    }
+
+    .backButton {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .roomIdInfo {
+        display: none;
+        /* Hide ID on mobile */
+    }
+
+    .phaseInfo {
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        gap: 6px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .roleBadge {
+        position: fixed;
+        bottom: 70px;
+        /* Above chat input */
+        right: 12px;
+        z-index: 50;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        opacity: 0.9;
+    }
+
+    /* Chat Input Area Fixed to Bottom?  */
+    /* Actually current layout has chatPanel flex 1, so input is at bottom of that panel. 
+       We just need to ensure keyboard doesn't break layout.
+    */
+    .chatInput {
+        padding: 8px;
+    }
+
+    .chatInput input {
+        font-size: 16px;
+        /* Prevent zoom */
+        padding: 8px 12px;
+    }
+
+    .announcementContent h2 {
+        font-size: 1.8rem;
+    }
+}

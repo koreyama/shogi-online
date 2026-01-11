@@ -219,7 +219,7 @@ export default function WerewolfGame({ client, room, initialPlayers, onLeave, on
     });
 
     return (
-        <div className={styles.container} data-phase={phase.includes('night') ? 'night' : phase === 'result' ? 'result' : 'day'}>
+        <div className={styles.container} data-phase={phase === 'lobby' ? 'lobby' : phase.includes('night') ? 'night' : phase === 'result' ? 'result' : 'day'}>
             {/* Cinematic Phase Announcement Overlay */}
             <div className={`${styles.phaseAnnouncement} ${showPhaseAnnouncement ? styles.visible : ''}`}>
                 <div className={styles.announcementContent}>

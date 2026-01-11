@@ -6,6 +6,22 @@ import { IconBack } from '@/components/Icons';
 
 const RELEASES = [
     {
+        version: '2.2.0',
+        date: '2026.01.11',
+        title: '人狼ゲーム (Werewolf) リリース & 公式Discord開設',
+        categories: ['New Game', 'Community', 'Feature'],
+        content: [
+            {
+                head: '人狼ゲーム (Werewolf) リリース',
+                text: 'オンラインで遊べる「人狼ゲーム」をリリースしました。配役設定、投票システム、チャット機能など、ブラウザだけで本格的な人狼が楽しめます。友達とルームを作って遊ぶことも、ランダムマッチで対戦することも可能です。'
+            },
+            {
+                head: '公式Discordサーバー開設',
+                text: 'Asobi Loungeの公式Discordサーバーを開設しました。開発情報の先行公開や、ユーザー同士の交流、フィードバックの受付を行っています。ヘッダーのアイコンから参加できます。'
+            }
+        ]
+    },
+    {
         version: '2.1.0',
         date: '2026.01.09',
         title: 'カードゲームUI改善 & Stock Simulator更新',

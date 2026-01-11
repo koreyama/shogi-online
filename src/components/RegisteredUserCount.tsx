@@ -8,11 +8,11 @@ export const RegisteredUserCount = ({ style, className, prefix = '登録者数: 
     useEffect(() => {
         const statsRef = ref(db, 'site_stats/user_count');
 
-        // Initial check and set if missing
+        // Initial check and set if missing or less than 8 (manual correction)
         get(statsRef).then((snapshot) => {
-            if (!snapshot.exists()) {
-                // Initialize to 6 as per user request if missing
-                set(statsRef, 6).catch(console.error);
+            const val = snapshot.val();
+            if (!snapshot.exists() || (typeof val === 'number' && val < 8)) {
+                set(statsRef, 8).catch(console.error);
             }
         }).catch(console.error);
 
@@ -23,9 +23,9 @@ export const RegisteredUserCount = ({ style, className, prefix = '登録者数: 
             }
         }, (error) => {
             // Permission denied is expected if rules aren't updated yet.
-            // Be silent to avoid alarming the user, and fallback to 6.
+            // Be silent to avoid alarming the user, and fallback to 8.
             // console.warn("User count read failed (likely permission):", error.message);
-            setCount((prev) => prev === null ? 6 : prev);
+            setCount((prev) => prev === null ? 8 : prev);
         });
 
         return () => {

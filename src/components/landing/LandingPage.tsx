@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
     IconCards, IconPalette, IconCoin,
-    IconBomb
+    IconBomb, IconDiscord, IconXLogo
 } from '@/components/Icons';
 import { FloatingShapes } from './FloatingShapes';
 import { RegisteredUserCount } from '@/components/RegisteredUserCount';
@@ -185,6 +185,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <Link href="/about" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
                         About
                     </Link>
+                    <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#5865F2' }} title="Discord Community">
+                        <IconDiscord size={24} color="#5865F2" />
+                    </a>
+                    <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'black' }} title="Official X (Twitter)">
+                        <IconXLogo size={20} color="black" />
+                    </a>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

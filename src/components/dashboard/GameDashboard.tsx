@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
     IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
     IconCards, IconPalette, IconCoin,
-    IconBomb, IconTrophy
+    IconBomb, IconTrophy, IconDiscord, IconXLogo
 } from '@/components/Icons';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
@@ -164,23 +164,29 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                 animate={{ y: 0, opacity: 1 }}
                 style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '1rem 1.5rem',
+                    padding: '1.5rem 2.5rem',
                     background: 'rgba(255, 255, 255, 0.85)',
                     backdropFilter: 'blur(12px)',
                     position: 'sticky', top: 0, zIndex: 50,
                     borderBottom: '1px solid rgba(226, 232, 240, 0.6)'
                 }}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: '32px', height: '32px', position: 'relative', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '48px', height: '48px', position: 'relative', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                         <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                     </div>
-                    <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em', color: '#1a202c' }}>
+                    <span style={{ fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: '#1a202c' }}>
                         Asobi Lounge
                     </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#5865F2' }} title="Discord Community">
+                        <IconDiscord size={24} color="#5865F2" />
+                    </a>
+                    <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'black' }} title="Official X (Twitter)">
+                        <IconXLogo size={20} color="black" />
+                    </a>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.8)', padding: '0.35rem 0.75rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
                         {user.photoURL && (
                             <img src={user.photoURL} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
@@ -189,10 +195,10 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             {playerName}
                         </span>
                         <style jsx>{`
-                 @media (min-width: 640px) {
-                   .desktop-only-name { display: block !important; }
-                 }
-               `}</style>
+                  @media (min-width: 640px) {
+                    .desktop-only-name { display: block !important; }
+                  }
+                `}</style>
                     </div>
 
                     <Link href={`/profile?id=${user.uid}`} title="プロフィール">
@@ -243,7 +249,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#2d3748', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        UIリニューアル & ゲームリスト大幅追加 (v2.0.0)
+                                        人狼ゲームリリース & 公式Discord開設 (v2.2.0)
                                     </div>
                                 </div>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e0" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
