@@ -10,6 +10,8 @@ import {
 } from '@/components/Icons';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
+import styles from './GameDashboard.module.css';
+import GlobalChat from './GlobalChat';
 
 // --- Local SVG Icons Definitions ---
 const IconStockLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
@@ -159,54 +161,43 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
             </div>
 
             {/* Header */}
+
             <motion.header
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '1.5rem 2.5rem',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    position: 'sticky', top: 0, zIndex: 50,
-                    borderBottom: '1px solid rgba(226, 232, 240, 0.6)'
-                }}
+                className={styles.header}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '48px', height: '48px', position: 'relative', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div className={styles.logoSection}>
+                    <div className={styles.logoContainer}>
                         <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                     </div>
-                    <span style={{ fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: '#1a202c' }}>
+                    <span className={styles.logoText}>
                         Asobi Lounge
                     </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#5865F2' }} title="Discord Community">
+                <div className={styles.actionsSection}>
+                    <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" className={styles.socialLink} style={{ color: '#5865F2' }} title="Discord Community">
                         <IconDiscord size={24} color="#5865F2" />
                     </a>
-                    <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'black' }} title="Official X (Twitter)">
+                    <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" className={styles.socialLink} style={{ color: 'black' }} title="Official X (Twitter)">
                         <IconXLogo size={20} color="black" />
                     </a>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.8)', padding: '0.35rem 0.75rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div className={styles.profileBox}>
                         {user.photoURL && (
                             <img src={user.photoURL} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
                         )}
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'none', paddingRight: '0.2rem' }} className="desktop-only-name">
+                        <span className={styles.profileName}>
                             {playerName}
                         </span>
-                        <style jsx>{`
-                  @media (min-width: 640px) {
-                    .desktop-only-name { display: block !important; }
-                  }
-                `}</style>
                     </div>
 
                     <Link href={`/profile?id=${user.uid}`} title="プロフィール">
-                        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} style={{ background: '#4299e1', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(66, 153, 225, 0.3)' }}>
+                        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className={`${styles.iconButton} ${styles.profileBtn}`}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </motion.button>
                     </Link>
-                    <motion.button onClick={signOut} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="ログアウト" style={{ background: '#cbd5e0', color: '#4a5568', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <motion.button onClick={signOut} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="ログアウト" className={`${styles.iconButton} ${styles.logoutBtn}`}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </motion.button>
                 </div>
@@ -318,6 +309,12 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
 
                     </div>
                 </motion.div>
+            </div>
+            {/* Global Chat Widget */}
+            <div style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, pointerEvents: 'none' }}>
+                <div style={{ pointerEvents: 'auto' }}>
+                    <GlobalChat user={user} />
+                </div>
             </div>
         </main>
     );

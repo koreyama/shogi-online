@@ -3,11 +3,11 @@ import * as Colyseus from "colyseus.js";
 // Determine the WebSocket URL based on environment
 // For local development, use localhost:2567
 // For production, use the Render URL (to be configured later)
-const host = "shogi-server.onrender.com";
-const protocol = "wss";
-// const host = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
-//     ? "localhost:2567"
-//     : "shogi-server.onrender.com";
+// Determine the WebSocket URL based on environment
+const protocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss" : "ws";
+const host = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
+    ? "localhost:2567"
+    : "shogi-server.onrender.com";
 
 export const client = new Colyseus.Client(`${protocol}://${host}`);
 

@@ -79,5 +79,9 @@ gameServer.define("go", GoRoom);
 import { StatsRoom } from "./rooms/StatsRoom";
 gameServer.define("stats", StatsRoom);
 
+import { LobbyRoom } from "./rooms/LobbyRoom";
+gameServer.define("lobby", LobbyRoom);
+console.log("Registered LobbyRoom");
+
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);
