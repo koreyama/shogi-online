@@ -12,6 +12,7 @@ import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
 import styles from './GameDashboard.module.css';
 import GlobalChat from './GlobalChat';
+import { RELEASES } from '@/lib/releases';
 
 // --- Local SVG Icons Definitions ---
 const IconStockLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
@@ -240,7 +241,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#2d3748', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        人狼ゲームリリース & 公式Discord開設 (v2.2.0)
+                                        {RELEASES[0].title} (v{RELEASES[0].version})
                                     </div>
                                 </div>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e0" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>

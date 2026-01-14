@@ -38,12 +38,16 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
     const [friends, setFriends] = useState<string[]>([]); // Keep this for easy filtering
 
     const [isOpen, setIsOpen] = useState(initialIsOpen);
-    const [activeTab, setActiveTab] = useState<'chat' | 'friends' | 'bot'>('chat');
+    const [activeTab, setActiveTab] = useState<'chat' | 'friends' | 'bot' | 'dm'>('chat');
     const [input, setInput] = useState('');
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
     const connectionIdRef = useRef<number>(0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const botMessagesEndRef = useRef<HTMLDivElement>(null);
+    const dmMessagesEndRef = useRef<HTMLDivElement>(null);
+
+    // ... (existing Bot State lines are below, skipped in replacement)
+
 
     // Bot State
     const [botMessages, setBotMessages] = useState<BotMessage[]>([
@@ -57,16 +61,36 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
     const [botInput, setBotInput] = useState('');
     const [isBotTyping, setIsBotTyping] = useState(false);
 
+    // Direct Message State
+    const [directMessages, setDirectMessages] = useState<any[]>([]);
+    const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
+    const [unreadDMs, setUnreadDMs] = useState<Record<string, number>>({});
+
+    const [toast, setToast] = useState<{ senderId: string; senderName: string; content: string } | null>(null);
+
+    // Refs for accessing state in socket callbacks
+    const stateRef = useRef({ isOpen, activeTab, selectedFriend, friendProfiles });
+    useEffect(() => {
+        stateRef.current = { isOpen, activeTab, selectedFriend, friendProfiles };
+    }, [isOpen, activeTab, selectedFriend, friendProfiles]);
+
+    const toggleChat = () => {
+        setIsOpen(!isOpen);
+    };
+
+
+
 
     // Auto-scroll to bottom
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         botMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        dmMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, botMessages, isOpen, activeTab]);
+    }, [messages, botMessages, directMessages, isOpen, activeTab, selectedFriend]);
 
     // Fetch Friends
     useEffect(() => {
@@ -142,6 +166,35 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                 setStatus('connected');
                 console.log("Joined lobby", r.sessionId);
 
+                r.onMessage("private_message", (msg: any) => {
+                    setDirectMessages(prev => [...prev, msg]);
+
+                    if (msg.senderId !== user.uid) {
+                        const { isOpen, activeTab, selectedFriend, friendProfiles } = stateRef.current;
+                        const isChatOpenWithUser = isOpen && activeTab === 'dm' && selectedFriend === msg.senderId && !document.hidden;
+
+                        if (!isChatOpenWithUser) {
+                            setUnreadDMs(prev => ({
+                                ...prev,
+                                [msg.senderId]: (prev[msg.senderId] || 0) + 1
+                            }));
+
+                            // Show In-App Toast
+                            const senderName = friendProfiles[msg.senderId]?.displayName || msg.senderName;
+                            setToast({
+                                senderId: msg.senderId,
+                                senderName: senderName,
+                                content: msg.content
+                            });
+
+                            // Auto-hide after 5 seconds
+                            setTimeout(() => {
+                                setToast(prev => (prev && prev.senderId === msg.senderId && prev.content === msg.content) ? null : prev);
+                            }, 5000);
+                        }
+                    }
+                });
+
             } catch (e) {
                 // Squelch error if we are cancelled OR if we somehow managed to connect anyway in a parallel universe (unlikely but safe)
                 if (currentConnectionId === connectionIdRef.current) {
@@ -166,7 +219,12 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
     const sendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || !room) return;
-        room.send("chat", { content: input });
+
+        if (activeTab === 'dm' && selectedFriend) {
+            room.send("private_message", { targetUserId: selectedFriend, content: input });
+        } else {
+            room.send("chat", { content: input });
+        }
         setInput('');
     };
 
@@ -211,6 +269,9 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
 
     // Filter Online Friends
     const onlineFriendList = onlineUsers.filter(u => friends.includes(u.userId));
+
+    // Calculate total unread DMs
+    const totalUnread = Object.values(unreadDMs).reduce((a, b) => a + b, 0);
 
     return (
         <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, fontFamily: 'Inter, sans-serif', alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
@@ -262,11 +323,25 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                             fontWeight: 600,
                                             fontSize: '0.8rem',
                                             cursor: 'pointer',
-                                            whiteSpace: 'nowrap'
+                                            whiteSpace: 'nowrap',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
                                         }}
                                     >
-                                        {tab === 'chat' && 'チャット'}
-                                        {tab === 'friends' && `フレンド(${onlineFriendList.length})`}
+                                        {tab === 'chat' && 'Global'}
+                                        {tab === 'friends' && (
+                                            <>
+                                                フレンド
+                                                {totalUnread > 0 ? (
+                                                    <span style={{ background: '#ef4444', color: 'white', fontSize: '0.7rem', padding: '0 4px', borderRadius: '10px', minWidth: '16px', textAlign: 'center' }}>
+                                                        {totalUnread}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>({onlineFriendList.length})</span>
+                                                )}
+                                            </>
+                                        )}
                                         {tab === 'bot' && 'サポート'}
                                     </button>
                                 ))}
@@ -317,19 +392,42 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                             // So I will change friends state to store objects.
                                             const friendProfile = friendProfiles[u.userId];
                                             const displayName = friendProfile?.displayName || u.name;
+                                            const unreadCount = unreadDMs[u.userId] || 0;
 
                                             return (
-                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                    <div style={{ width: '32px', height: '32px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                                <div
+                                                    key={i}
+                                                    onClick={() => {
+                                                        setSelectedFriend(u.userId);
+                                                        setActiveTab('dm');
+                                                        setUnreadDMs(prev => ({ ...prev, [u.userId]: 0 }));
+                                                    }}
+                                                    style={{
+                                                        display: 'flex', alignItems: 'center', gap: '10px', padding: '8px',
+                                                        background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                                        cursor: 'pointer', transition: 'background 0.2s'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                                >
+                                                    <div style={{ position: 'relative', width: '32px', height: '32px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
                                                         {friendProfile?.photoURL ? (
                                                             <img src={friendProfile.photoURL} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
                                                         ) : (
                                                             <IconUser size={16} />
                                                         )}
+                                                        {unreadCount > 0 && (
+                                                            <div style={{ position: 'absolute', top: -2, right: -2, background: '#ef4444', color: 'white', fontSize: '10px', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                                                                {unreadCount}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div style={{ flex: 1 }}>
                                                         <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#334155' }}>{displayName}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#10b981' }}>● Online</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span>● Online</span>
+                                                            <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• クリックしてDM</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )
@@ -373,19 +471,63 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                     <div ref={botMessagesEndRef} />
                                 </div>
                             )}
+
+                            {/* DM CHAT */}
+                            {activeTab === 'dm' && selectedFriend && (
+                                <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    {/* DM Header */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9', marginBottom: '10px' }}>
+                                        <button
+                                            onClick={() => setActiveTab('friends')}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                                        >
+                                            ← 戻る
+                                        </button>
+                                        <div style={{ fontWeight: 700, color: '#334155' }}>
+                                            {friendProfiles[selectedFriend]?.displayName || "Friend"}
+                                        </div>
+                                    </div>
+
+                                    {/* Messages */}
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {directMessages
+                                            .filter(msg =>
+                                                (msg.senderId === user.uid && msg.targetId === selectedFriend) ||
+                                                (msg.senderId === selectedFriend && msg.targetId === user.uid)
+                                            )
+                                            .map((msg, i) => (
+                                                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.senderId === user.uid ? 'flex-end' : 'flex-start' }}>
+                                                    <div style={{
+                                                        padding: '8px 12px',
+                                                        background: msg.senderId === user.uid ? '#8b5cf6' : '#f3e8ff', // Purple for DMs
+                                                        color: msg.senderId === user.uid ? 'white' : '#581c87',
+                                                        borderRadius: msg.senderId === user.uid ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                                                        maxWidth: '85%',
+                                                        fontSize: '0.9rem',
+                                                        wordBreak: 'break-word',
+                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                                    }}>
+                                                        {msg.content}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        <div ref={dmMessagesEndRef} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Input Area */}
-                        {(activeTab === 'chat' || activeTab === 'bot') && (
+                        {(activeTab === 'chat' || activeTab === 'bot' || activeTab === 'dm') && (
                             <form
-                                onSubmit={activeTab === 'chat' ? sendMessage : sendBotMessage}
+                                onSubmit={activeTab === 'bot' ? sendBotMessage : sendMessage}
                                 style={{ padding: '12px', borderTop: '1px solid #e2e8f0', background: 'white' }}
                             >
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <input
-                                        value={activeTab === 'chat' ? input : botInput}
-                                        onChange={e => activeTab === 'chat' ? setInput(e.target.value) : setBotInput(e.target.value)}
-                                        placeholder={activeTab === 'chat' ? "メッセージを入力..." : "質問を入力..."}
+                                        value={activeTab === 'chat' || activeTab === 'dm' ? input : botInput}
+                                        onChange={e => (activeTab === 'chat' || activeTab === 'dm') ? setInput(e.target.value) : setBotInput(e.target.value)}
+                                        placeholder={activeTab === 'chat' ? "メッセージを入力..." : activeTab === 'dm' ? "DMを入力..." : "質問を入力..."}
                                         style={{
                                             flex: 1,
                                             padding: '8px 12px',
@@ -405,10 +547,52 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                 )}
             </AnimatePresence>
 
+            {/* Toast Notification */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                        onClick={() => {
+                            setToast(null);
+                            setSelectedFriend(toast.senderId);
+                            setActiveTab('dm');
+                            setIsOpen(true);
+                            setUnreadDMs(prev => ({ ...prev, [toast.senderId]: 0 }));
+                        }}
+                        style={{
+                            marginBottom: '16px',
+                            background: 'white',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            border: '1px solid #e2e8f0',
+                            maxWidth: '300px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{toast.senderName}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 600 }}>新着メッセージ</div>
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#475569', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {toast.content}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#3b82f6', marginTop: '6px', fontWeight: 600 }}>
+                            クリックして返信する
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={toggleChat}
                 style={{
                     width: '56px',
                     height: '56px',
@@ -421,11 +605,32 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    float: 'right'
+                    float: 'right',
+                    position: 'relative'
                 }}
             >
                 <IconChat size={28} />
-                {onlineFriendList.length > 0 && !isOpen && (
+                {totalUnread > 0 ? (
+                    <div style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        right: '-4px',
+                        background: '#ef4444',
+                        color: 'white',
+                        fontSize: '11px',
+                        minWidth: '20px',
+                        height: '20px',
+                        borderRadius: '10px',
+                        border: '2px solid white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        padding: '0 4px'
+                    }}>
+                        {totalUnread}
+                    </div>
+                ) : onlineFriendList.length > 0 && !isOpen && (
                     <span style={{
                         position: 'absolute',
                         top: '0',

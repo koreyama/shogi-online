@@ -47,6 +47,39 @@ export class LobbyRoom extends Room<LobbyState> {
             }
         });
 
+        this.onMessage("private_message", (client, message) => {
+            const sender = this.state.users.get(client.sessionId);
+            if (!sender || !message.targetUserId || !message.content) return;
+
+            // Find target sessionId
+            let targetSessionId = "";
+            this.state.users.forEach((u, sessionId) => {
+                if (u.userId === message.targetUserId) {
+                    targetSessionId = sessionId;
+                }
+            });
+
+            const payload = {
+                id: Math.random().toString(36).substr(2, 9),
+                senderId: sender.userId,
+                senderName: sender.name,
+                targetId: message.targetUserId,
+                content: message.content,
+                timestamp: Date.now()
+            };
+
+            // Send to target if online
+            if (targetSessionId) {
+                const targetClient = this.clients.find(c => c.sessionId === targetSessionId);
+                if (targetClient) {
+                    targetClient.send("private_message", payload);
+                }
+            }
+
+            // Echo back to sender
+            client.send("private_message", payload);
+        });
+
         this.onMessage("update_status", (client, status) => {
             const user = this.state.users.get(client.sessionId);
             if (user) {
