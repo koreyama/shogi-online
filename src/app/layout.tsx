@@ -83,6 +83,8 @@ export const metadata: Metadata = {
   },
 };
 
+import GlobalChatWrapper from "@/components/GlobalChatWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -93,8 +95,10 @@ export default function RootLayout({
       <body className="notranslate" suppressHydrationWarning={true} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <ChatVisibilityProvider>
           {children}
+          <GlobalChatWrapper />
           <Footer />
         </ChatVisibilityProvider>
+
         {/* Google AdSense */}
         <Script
           async

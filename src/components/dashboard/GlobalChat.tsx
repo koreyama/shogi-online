@@ -4,6 +4,7 @@ import { IconChat, IconUser } from '@/components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFriends } from '@/lib/firebase/users';
 import { findAnswer } from '@/lib/chatbot/knowledge';
+import { subscribeToUnread, subscribeToConversation, sendPrivateMessageWithRoomId, markAsRead, ChatMessage as FSChatMessage } from '@/lib/firebase/chat';
 import Link from 'next/link';
 
 interface ChatMessage {
@@ -61,12 +62,38 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
     const [botInput, setBotInput] = useState('');
     const [isBotTyping, setIsBotTyping] = useState(false);
 
-    // Direct Message State
-    const [directMessages, setDirectMessages] = useState<any[]>([]);
+    // Direct Message State (Firestore)
+    const [conversationMessages, setConversationMessages] = useState<FSChatMessage[]>([]);
     const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
     const [unreadDMs, setUnreadDMs] = useState<Record<string, number>>({});
-
     const [toast, setToast] = useState<{ senderId: string; senderName: string; content: string } | null>(null);
+
+    // Subscribe to Unread Messages (Global)
+    useEffect(() => {
+        if (!user) return;
+
+        // Listen to RTDB Unread Counts
+        const unsubscribe = subscribeToUnread(user.uid, (counts) => {
+            setUnreadDMs(counts);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
+    // Subscribe to Active Conversation
+    useEffect(() => {
+        if (!user || !selectedFriend || activeTab !== 'dm') return;
+
+        // @ts-ignore
+        const unsubscribe = subscribeToConversation(user.uid, selectedFriend, (messages) => {
+            setConversationMessages(messages);
+            // Read marking is handled by the subscription internal side-effect (mostly).
+        });
+
+        // @ts-ignore
+        return () => unsubscribe();
+    }, [user, selectedFriend, activeTab]);
+
 
     // Refs for accessing state in socket callbacks
     const stateRef = useRef({ isOpen, activeTab, selectedFriend, friendProfiles });
@@ -90,7 +117,7 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, botMessages, directMessages, isOpen, activeTab, selectedFriend]);
+    }, [messages, botMessages, conversationMessages, isOpen, activeTab, selectedFriend]);
 
     // Fetch Friends
     useEffect(() => {
@@ -167,18 +194,15 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                 console.log("Joined lobby", r.sessionId);
 
                 r.onMessage("private_message", (msg: any) => {
-                    setDirectMessages(prev => [...prev, msg]);
+                    // Hybrid: Use Colyseus mostly for "Toast" when online.
+                    // Data source is Firestore.
 
                     if (msg.senderId !== user.uid) {
                         const { isOpen, activeTab, selectedFriend, friendProfiles } = stateRef.current;
                         const isChatOpenWithUser = isOpen && activeTab === 'dm' && selectedFriend === msg.senderId && !document.hidden;
 
+                        // Only Toast if we are not looking at it
                         if (!isChatOpenWithUser) {
-                            setUnreadDMs(prev => ({
-                                ...prev,
-                                [msg.senderId]: (prev[msg.senderId] || 0) + 1
-                            }));
-
                             // Show In-App Toast
                             const senderName = friendProfiles[msg.senderId]?.displayName || msg.senderName;
                             setToast({
@@ -216,11 +240,16 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
         };
     }, [user]);
 
-    const sendMessage = (e: React.FormEvent) => {
+    const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || !room) return;
 
         if (activeTab === 'dm' && selectedFriend) {
+            // 1. Write to Firestore (Persistence & Offline support)
+            await sendPrivateMessageWithRoomId(user.uid, user.displayName, selectedFriend, input);
+
+            // 2. Send signal to Lobby (for Instant Toast if online)
+            // Note: We don't rely on this for data anymore, just notification.
             room.send("private_message", { targetUserId: selectedFriend, content: input });
         } else {
             room.send("chat", { content: input });
@@ -268,10 +297,13 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
     };
 
     // Filter Online Friends
-    const onlineFriendList = onlineUsers.filter(u => friends.includes(u.userId));
+
 
     // Calculate total unread DMs
     const totalUnread = Object.values(unreadDMs).reduce((a, b) => a + b, 0);
+
+    // Calculate online friends count
+    const onlineFriendCount = friends.filter(uid => onlineUsers.some(u => u.userId === uid)).length;
 
     return (
         <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, fontFamily: 'Inter, sans-serif', alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
@@ -338,7 +370,7 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                                         {totalUnread}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>({onlineFriendList.length})</span>
+                                                    <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>({onlineFriendCount})</span>
                                                 )}
                                             </>
                                         )}
@@ -379,33 +411,31 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                             {/* FRIENDS */}
                             {activeTab === 'friends' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    {onlineFriendList.length === 0 ? (
+                                    {friends.length === 0 ? (
                                         <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '20px', fontSize: '0.9rem' }}>
-                                            オンラインのフレンドはいません
+                                            フレンドがいません
                                         </div>
                                     ) : (
-                                        onlineFriendList.map((u, i) => {
-                                            // Prioritize the name from our friend list (checking by ID) if available
-                                            // We need to keep the friends state as a map for this lookup. 
-                                            // Ideally we refactor 'friends' state to be a Map<string, FriendProfile>.
-                                            // But for minimum diff, we can do a lookup or just trust that `u.name` *should* be right? No user said it's wrong.
-                                            // So I will change friends state to store objects.
-                                            const friendProfile = friendProfiles[u.userId];
-                                            const displayName = friendProfile?.displayName || u.name;
-                                            const unreadCount = unreadDMs[u.userId] || 0;
+                                        friends.map((uid, i) => {
+                                            const friendProfile = friendProfiles[uid];
+                                            const displayName = friendProfile?.displayName || "Unknown";
+                                            const unreadCount = unreadDMs[uid] || 0;
+                                            // Check online status
+                                            const isOnline = onlineUsers.some(u => u.userId === uid);
 
                                             return (
                                                 <div
-                                                    key={i}
+                                                    key={uid}
                                                     onClick={() => {
-                                                        setSelectedFriend(u.userId);
+                                                        setSelectedFriend(uid);
                                                         setActiveTab('dm');
-                                                        setUnreadDMs(prev => ({ ...prev, [u.userId]: 0 }));
+                                                        setUnreadDMs(prev => ({ ...prev, [uid]: 0 }));
                                                     }}
                                                     style={{
                                                         display: 'flex', alignItems: 'center', gap: '10px', padding: '8px',
                                                         background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0',
-                                                        cursor: 'pointer', transition: 'background 0.2s'
+                                                        cursor: 'pointer', transition: 'background 0.2s',
+                                                        opacity: isOnline ? 1 : 0.8
                                                     }}
                                                     onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
                                                     onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
@@ -421,12 +451,25 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                                                 {unreadCount}
                                                             </div>
                                                         )}
+                                                        {/* Status Indicator on Avatar */}
+                                                        <div style={{
+                                                            position: 'absolute', bottom: -2, right: -2,
+                                                            width: '10px', height: '10px', borderRadius: '50%',
+                                                            background: isOnline ? '#10b981' : '#cbd5e0',
+                                                            border: '2px solid white'
+                                                        }} />
                                                     </div>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#334155' }}>{displayName}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                            <span>● Online</span>
-                                                            <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• クリックしてDM</span>
+                                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#334155' }}>
+                                                            {displayName}
+                                                        </div>
+                                                        <div style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            {isOnline ? (
+                                                                <span style={{ color: '#10b981' }}>● Online</span>
+                                                            ) : (
+                                                                <span style={{ color: '#94a3b8' }}>● Offline</span>
+                                                            )}
+                                                            <span style={{ color: '#cbd5e0', fontSize: '0.7rem' }}>• {isOnline ? '今すぐチャット' : 'メッセージを送る'}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -489,12 +532,8 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                     </div>
 
                                     {/* Messages */}
-                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        {directMessages
-                                            .filter(msg =>
-                                                (msg.senderId === user.uid && msg.targetId === selectedFriend) ||
-                                                (msg.senderId === selectedFriend && msg.targetId === user.uid)
-                                            )
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
+                                        {conversationMessages
                                             .map((msg, i) => (
                                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.senderId === user.uid ? 'flex-end' : 'flex-start' }}>
                                                     <div style={{
@@ -509,8 +548,12 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                                                     }}>
                                                         {msg.content}
                                                     </div>
+                                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>
+                                                        {msg.read && msg.senderId === user.uid ? '既読' : ''}
+                                                    </div>
                                                 </div>
                                             ))}
+                                        {/* Dummy div to scroll to bottom */}
                                         <div ref={dmMessagesEndRef} />
                                     </div>
                                 </div>
@@ -630,7 +673,7 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                     }}>
                         {totalUnread}
                     </div>
-                ) : onlineFriendList.length > 0 && !isOpen && (
+                ) : onlineFriendCount > 0 && !isOpen && (
                     <span style={{
                         position: 'absolute',
                         top: '0',

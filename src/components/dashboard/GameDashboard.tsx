@@ -11,7 +11,7 @@ import {
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
 import styles from './GameDashboard.module.css';
-import GlobalChat from './GlobalChat';
+
 import { RELEASES } from '@/lib/releases';
 
 // --- Local SVG Icons Definitions ---
@@ -311,12 +311,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                     </div>
                 </motion.div>
             </div>
-            {/* Global Chat Widget */}
-            <div style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, pointerEvents: 'none' }}>
-                <div style={{ pointerEvents: 'auto' }}>
-                    <GlobalChat user={user} />
-                </div>
-            </div>
+            {/* Global Chat Widget - Moved to Layout */}
         </main>
     );
 };

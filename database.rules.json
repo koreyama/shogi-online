@@ -195,6 +195,21 @@
                 ".read": true,
                 ".write": true
             }
+        },
+        "private_messages": {
+            "$chatRoomId": {
+                ".read": "auth != null && $chatRoomId.contains(auth.uid)",
+                ".write": "auth != null && $chatRoomId.contains(auth.uid)"
+            }
+        },
+        "unread_counts": {
+            "$userId": {
+                ".read": "auth != null && auth.uid === $userId",
+                "$senderId": {
+                    ".read": "auth != null && auth.uid === $senderId",
+                    ".write": "auth != null && (auth.uid === $senderId || auth.uid === $userId)"
+                }
+            }
         }
     }
 }
