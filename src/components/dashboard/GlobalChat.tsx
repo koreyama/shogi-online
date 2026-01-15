@@ -6,6 +6,7 @@ import { getFriends } from '@/lib/firebase/users';
 import { findAnswer } from '@/lib/chatbot/knowledge';
 import { subscribeToUnread, subscribeToConversation, sendPrivateMessageWithRoomId, markAsRead, ChatMessage as FSChatMessage } from '@/lib/firebase/chat';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface ChatMessage {
     id: string;
@@ -304,6 +305,12 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
 
     // Calculate online friends count
     const onlineFriendCount = friends.filter(uid => onlineUsers.some(u => u.userId === uid)).length;
+
+    // Visibility Logic: Hide button on Game Pages (Show only on Dashboard, Profile, Releases, Auth)
+    const pathname = usePathname();
+    const isDashboard = pathname === '/';
+    const isSystemPage = pathname.startsWith('/profile') || pathname.startsWith('/releases') || pathname.startsWith('/auth') || pathname.startsWith('/login') || pathname.startsWith('/signup');
+    const shouldShowChatButton = isDashboard || isSystemPage;
 
     return (
         <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, fontFamily: 'Inter, sans-serif', alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
@@ -632,60 +639,62 @@ export default function GlobalChat({ user, initialIsOpen = false }: { user: any,
                 )}
             </AnimatePresence>
 
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleChat}
-                style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: 'white',
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    float: 'right',
-                    position: 'relative'
-                }}
-            >
-                <IconChat size={28} />
-                {totalUnread > 0 ? (
-                    <div style={{
-                        position: 'absolute',
-                        top: '-4px',
-                        right: '-4px',
-                        background: '#ef4444',
+            {shouldShowChatButton && (
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleChat}
+                    style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                         color: 'white',
-                        fontSize: '11px',
-                        minWidth: '20px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        border: '2px solid white',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontWeight: 'bold',
-                        padding: '0 4px'
-                    }}>
-                        {totalUnread}
-                    </div>
-                ) : onlineFriendCount > 0 && !isOpen && (
-                    <span style={{
-                        position: 'absolute',
-                        top: '0',
-                        right: '0',
-                        background: '#10b981',
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        border: '2px solid white'
-                    }} />
-                )}
-            </motion.button>
+                        cursor: 'pointer',
+                        float: 'right',
+                        position: 'relative'
+                    }}
+                >
+                    <IconChat size={28} />
+                    {totalUnread > 0 ? (
+                        <div style={{
+                            position: 'absolute',
+                            top: '-4px',
+                            right: '-4px',
+                            background: '#ef4444',
+                            color: 'white',
+                            fontSize: '11px',
+                            minWidth: '20px',
+                            height: '20px',
+                            borderRadius: '10px',
+                            border: '2px solid white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            padding: '0 4px'
+                        }}>
+                            {totalUnread}
+                        </div>
+                    ) : onlineFriendCount > 0 && !isOpen && (
+                        <span style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '0',
+                            background: '#10b981',
+                            width: '14px',
+                            height: '14px',
+                            borderRadius: '50%',
+                            border: '2px solid white'
+                        }} />
+                    )}
+                </motion.button>
+            )}
         </div>
     );
 }
