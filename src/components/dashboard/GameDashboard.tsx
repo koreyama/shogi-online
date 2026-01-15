@@ -136,6 +136,14 @@ const IconSlotLocal = ({ size = 32, color = "currentColor" }: { size?: number, c
     </svg>
 );
 
+const IconBilliardsLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+    </svg>
+);
+
 type GameDashboardProps = {
     user: any;
     playerName: string;
@@ -303,6 +311,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
+                            <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
                             <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                             <GameCard href="/trump" title="トランプ" desc="大富豪など" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
