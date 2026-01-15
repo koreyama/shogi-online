@@ -69,16 +69,23 @@ export default function BilliardsGame({ mode, room, playerName }: BilliardsGameP
         if (typeof window === 'undefined') return;
 
         const updateSize = () => {
-            setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
+            const dpr = window.devicePixelRatio || 1;
+            setCanvasSize({ width: window.innerWidth * dpr, height: window.innerHeight * dpr });
             setIsPortrait(window.innerHeight > window.innerWidth);
             setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
         };
         updateSize();
         window.addEventListener('resize', updateSize);
         window.addEventListener('orientationchange', updateSize);
+
+        // Scroll to top and lock
+        window.scrollTo(0, 0);
+        document.body.style.overflow = 'hidden';
+
         return () => {
             window.removeEventListener('resize', updateSize);
             window.removeEventListener('orientationchange', updateSize);
+            document.body.style.overflow = '';
         };
     }, []);
 
@@ -647,11 +654,18 @@ export default function BilliardsGame({ mode, room, playerName }: BilliardsGameP
 
     return (
         <div
-            style={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#2d2d2d', overflow: 'hidden', userSelect: 'none' }}
+            style={{
+                position: 'fixed', inset: 0,
+                width: '100%', height: '100%',
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                background: '#2d2d2d',
+                overflow: 'hidden', userSelect: 'none',
+                touchAction: 'none'
+            }}
             onMouseDown={handleInputStart} onMouseMove={handleInputMove} onMouseUp={handleInputEnd} onMouseLeave={() => isDraggingRef.current = false}
             onTouchStart={handleInputStart} onTouchMove={handleInputMove} onTouchEnd={handleInputEnd}
         >
-            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} style={{ touchAction: 'none' }} />
+            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
 
             {/* Game Info - Compact on mobile, positioned at bottom */}
             {isMobile ? (
