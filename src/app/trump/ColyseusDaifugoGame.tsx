@@ -573,8 +573,8 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
 
                     <div className={styles.controls}>
                         {amHost ? (
-                            <button onClick={startGame} className={styles.startBtn} disabled={players.length < 2 && process.env.NODE_ENV === 'production'}>
-                                {players.length < 2 ? '人数不足' : 'ゲーム開始'}
+                            <button onClick={startGame} className={styles.startBtn} disabled={players.length < 4}>
+                                {players.length < 4 ? '4人揃うまで待機中' : 'ゲーム開始'}
                             </button>
                         ) : (
                             <div className={styles.waitingMessage}>

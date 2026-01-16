@@ -37,7 +37,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.onMessage("startGame", (client, options) => {
             const player = this.state.players.get(client.sessionId);
             if (player && player.role === 'host') {
-                if (this.state.players.size >= 1) {
+                if (this.state.players.size >= 4) {
                     this.startGame();
                 }
             }
