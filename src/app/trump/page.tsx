@@ -101,7 +101,7 @@ export default function TrumpLobbyPage() {
                     options={creationOptions}
                     onLeave={handleExitGame}
                     myPlayerId={user.uid}
-                    myPlayerName={user.displayName || user.email?.split('@')[0] || 'Guest'}
+                    myPlayerName={user.displayName || (user.email ? user.email.split('@')[0] : 'Guest')}
                 />
             </>
         );

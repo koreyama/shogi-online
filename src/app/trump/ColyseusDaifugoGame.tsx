@@ -8,7 +8,7 @@ import { IconBack, IconUser, IconSettings } from '@/components/Icons';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, set, onDisconnect, remove, update } from 'firebase/database';
-import { getUserProfile } from '@/lib/firebase/users';
+
 
 // Type definition for Schema (Simplified mapping)
 interface SchemaCard {
@@ -82,6 +82,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 // Resolve Player Name from Firebase Profile (Firestore) - Fix for "Player name not changing"
                 let playerName = myPlayerName;
                 try {
+                    const { getUserProfile } = await import('@/lib/firebase/users');
                     const profile = await getUserProfile(myPlayerId);
                     if (profile?.displayName) {
                         playerName = profile.displayName;
