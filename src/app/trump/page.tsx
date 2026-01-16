@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, remove } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
 import { TrumpRoom } from '@/lib/trump/types';
 import { IconBack, IconCards, IconUser } from '@/components/Icons';
-import { ColyseusDaifugoGame } from './ColyseusDaifugoGame';
+
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 import HideChatBot from '@/components/HideChatBot';
 
@@ -19,6 +20,11 @@ const TRUMP_THEME = {
     '--theme-bg-light': '#fff1f2',
     '--theme-text-title': 'linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%)',
 } as React.CSSProperties;
+
+const ColyseusDaifugoGame = dynamic(() => import('./ColyseusDaifugoGame').then(mod => mod.ColyseusDaifugoGame), {
+    ssr: false,
+    loading: () => <div className={styles.loading}>読み込み中...</div>
+});
 
 export default function TrumpLobbyPage() {
     const router = useRouter();
