@@ -101,7 +101,7 @@ export default function TrumpLobbyPage() {
                     options={creationOptions}
                     onLeave={handleExitGame}
                     myPlayerId={user.uid}
-                    myPlayerName={user.displayName || 'Guest'}
+                    myPlayerName={user.displayName || user.email?.split('@')[0] || 'Guest'}
                 />
             </>
         );
@@ -242,14 +242,6 @@ export default function TrumpLobbyPage() {
                         <div className={styles.infoCard}>
                             <span className={styles.cardTitle}>スぺ3返し</span>
                             <p className={styles.cardText}>ジョーカーが1枚出しされた時、スペードの3で返すことができます。</p>
-                        </div>
-                        <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>階段</span>
-                            <p className={styles.cardText}>同じマークで連続した数字（例：♠3, ♠4, ♠5）をまとめて出すことができます。</p>
-                        </div>
-                        <div className={styles.infoCard}>
-                            <span className={styles.cardTitle}>縛り（激森）</span>
-                            <p className={styles.cardText}>同じマークが連続して出された場合、そのマークしか出せなくなります。</p>
                         </div>
                     </div>
                 </div>

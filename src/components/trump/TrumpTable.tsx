@@ -64,6 +64,19 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
         return styles.top; // Fallback
     };
 
+    // Window size tracking for dynamic layout
+    const [windowWidth, setWindowWidth] = React.useState(1000); // Default to desktop logic initially to match server roughly or avoid huge shift
+    React.useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        handleResize(); // Set initial
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isMobile = windowWidth <= 768;
+    const CARD_WIDTH = isMobile ? 60 : 100;
+    const CONTAINER_MAX_WIDTH = isMobile ? windowWidth * 0.92 : Math.min(windowWidth * 0.8, 900);
+
     return (
         <div className={`${styles.table} ${isRevolution ? styles.revolutionMode : ''}`}>
             <AnimatePresence>
@@ -107,6 +120,27 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                 const hand = hands[player.id] || [];
                 const positionClass = getPositionClass(index, players.length);
 
+                // --- NEW DYNAMIC CALCULATION ---
+                let dynamicMarginLeft = isMobile ? -35 : -50; // Default CSS value
+
+                if (isMe && hand.length > 1) {
+                    // Calculate optimal margin to fit all cards
+                    // Formula: (count * visibleWidth) + (overlap) <= MaxWidth
+                    // Actually: TotalWidth = CardWidth + (Count - 1) * (CardWidth + Margin)
+                    // We solve for Margin:
+                    // Margin <= [(MaxWidth - CardWidth) / (Count - 1)] - CardWidth
+
+                    const maxMargin = ((CONTAINER_MAX_WIDTH - CARD_WIDTH) / (hand.length - 1)) - CARD_WIDTH;
+                    const standardMargin = isMobile ? -25 : -40; // A bit looser than CSS default for better visibility if space allows
+
+                    // Use the tighter of the two constraints (fit container OR standard look)
+                    dynamicMarginLeft = Math.min(standardMargin, maxMargin);
+                } else if (!isMe) {
+                    // For opponents, keep tight overlap
+                    dynamicMarginLeft = isMobile ? -45 : -80;
+                }
+                // -------------------------------
+
                 return (
                     <div key={player.id} className={`${styles.playerArea} ${positionClass}`}>
                         <motion.div
@@ -115,7 +149,24 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                                 scale: isTurn ? 1.1 : 1,
                                 boxShadow: isTurn ? "0 0 20px rgba(255, 215, 0, 0.6)" : "0 4px 6px rgba(0, 0, 0, 0.1)"
                             }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
                         >
+                            {player.rank && ['daifugo', 'fugou', 'heimin', 'binbou', 'daihinmin'].includes(player.rank) && (
+                                <span style={{
+                                    fontSize: '0.8rem',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    backgroundColor: player.rank === 'daifugo' ? '#FCD34D' : player.rank === 'daihinmin' ? '#1F2937' : '#4B5563',
+                                    color: player.rank === 'daifugo' ? '#92400E' : 'white',
+                                    fontWeight: 'bold',
+                                    border: player.rank === 'daifugo' ? '1px solid #F59E0B' : 'none'
+                                }}>
+                                    {player.rank === 'daifugo' ? '大富豪' :
+                                        player.rank === 'fugou' ? '富豪' :
+                                            player.rank === 'heimin' ? '平民' :
+                                                player.rank === 'binbou' ? '貧民' : '大貧民'}
+                                </span>
+                            )}
                             {player.name}
                             {isTurn && (
                                 <motion.span
@@ -138,20 +189,14 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
 
                                     const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
 
-                                    // Dynamic overlap calculation for large hands
-                                    let marginLeft = -50; // Default overlap from CSS
-                                    if (hand.length > 8) marginLeft = -60;
-                                    if (hand.length > 12) marginLeft = -70;
-                                    if (hand.length > 20) marginLeft = -80;
-
-                                    const cardStyle = i === 0 ? {} : { marginLeft: marginLeft };
+                                    const cardStyle = i === 0 ? {} : { marginLeft: dynamicMarginLeft };
 
                                     return (
                                         <motion.div
-                                            // KEY FIX: Ensure uniqueness for multiple Jokers.
-                                            key={isMe ? `${card.suit}-${card.rank}-${hand.slice(0, i).filter(c => c.suit === card.suit && c.rank === card.rank).length}` : `opponent-${i}`}
+                                            // Ensure uniqueness for multiple Jokers or identical cards
+                                            key={`${player.id}-hand-${i}-${card.suit}-${card.rank}`}
                                             className={styles.cardWrapper}
-                                            layout // ADDING layout prop back for smooth reordering
+                                            layout // Smooth reordering
                                             initial={{ opacity: 0, scale: 0.8, y: 50 }}
                                             animate={{
                                                 opacity: 1,

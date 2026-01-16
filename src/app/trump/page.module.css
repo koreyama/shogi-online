@@ -644,18 +644,25 @@
 
 @media (max-width: 768px) {
     .actionControls {
-        bottom: 280px;
-        /* High enough to clear hand/name on mobile */
-        right: auto;
+        position: fixed;
+        bottom: 15px;
         left: 50%;
+        right: auto;
         transform: translateX(-50%);
         flex-direction: row;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+        z-index: 500;
     }
 
     .actionBtn {
-        padding: 0.8rem 2rem;
-        font-size: 1rem;
-        min-width: 120px;
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+        min-width: 90px;
+        letter-spacing: 0.05em;
     }
 }
 
@@ -785,6 +792,28 @@
     margin: 0;
     font-size: 0.9rem;
     color: #4a5568;
+}
+
+@media (max-width: 768px) {
+    .notificationBar {
+        top: 60px;
+        width: 90%;
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+    }
+
+    .notificationContent h2 {
+        font-size: 1rem;
+    }
+
+    .notificationContent p {
+        font-size: 0.8rem;
+    }
+
+    .notificationContent button {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
 }
 
 /* Q Bomber Styles */

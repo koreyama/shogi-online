@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Client, Room } from 'colyseus.js';
+import { AnimatePresence, motion } from 'framer-motion'; // Added AnimatePresence, motion
 import { TrumpTable } from '@/components/trump/TrumpTable';
 import { DaifugoEngine } from '@/lib/trump/daifugo/engine';
 import { Card, TrumpPlayer } from '@/lib/trump/types'; // UI types
@@ -7,6 +8,7 @@ import { IconBack, IconUser, IconSettings } from '@/components/Icons';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, set, onDisconnect, remove, update } from 'firebase/database';
+import { getUserProfile } from '@/lib/firebase/users';
 
 // Type definition for Schema (Simplified mapping)
 interface SchemaCard {
@@ -37,15 +39,13 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         revolution: true,
         is8Cut: true,
         is11Back: true,
-        isStaircase: false,
-        isShibari: false,
         isSpade3: false,
         jokerCount: 2,
-        isRokurokubi: false,
-        isKyukyusha: false,
         is5Skip: false,
         is7Watashi: false,
-        isQBomber: false
+        isQBomber: false,
+        miyakoOchi: true,
+        is10Sute: false
     });
 
     // Local State
@@ -61,6 +61,10 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     const [pendingActionPlayerId, setPendingActionPlayerId] = useState<string>('');
     const [pendingActionCount, setPendingActionCount] = useState<number>(0);
 
+    // Visual Effects State
+    const [effectEvent, setEffectEvent] = useState<{ type: string, message: string, id: number } | null>(null);
+    const lastEventTimestampRef = useRef<number>(0);
+
     const clientRef = useRef<Client | null>(null);
     const roomRef = useRef<Room | null>(null);
 
@@ -75,13 +79,25 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 // If we already have a room, don't join again
                 if (roomRef.current) return;
 
+                // Resolve Player Name from Firebase Profile (Firestore) - Fix for "Player name not changing"
+                let playerName = myPlayerName;
+                try {
+                    const profile = await getUserProfile(myPlayerId);
+                    if (profile?.displayName) {
+                        playerName = profile.displayName;
+                    }
+                } catch (e) {
+                    console.warn("Failed to fetch user profile:", e);
+                }
+
                 let r: Room;
                 if (roomId) {
-                    r = await client.joinById(roomId, { playerId: myPlayerId, name: myPlayerName });
+                    r = await client.joinById(roomId, { ...options, playerId: myPlayerId, name: playerName });
                 } else if (options?.roomId) {
-                    r = await client.joinById(options.roomId, { playerId: myPlayerId, name: myPlayerName });
+                    // FIX: Spread options to include password!
+                    r = await client.joinById(options.roomId, { ...options, playerId: myPlayerId, name: playerName });
                 } else {
-                    r = await client.create("daifugo_room", { ...options, playerId: myPlayerId, name: myPlayerName });
+                    r = await client.create("daifugo_room", { ...options, playerId: myPlayerId, name: playerName });
                 }
 
                 if (!isMounted) {
@@ -186,7 +202,12 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
             setIsRevolution(state.isRevolution);
             setIs11Back(state.is11Back);
             setGameState(state.status);
-            setFinishedPlayers(state.finishedPlayers || []);
+            // finishedPlayers is ArraySchema - convert to plain array
+            const fp: string[] = [];
+            if (state.finishedPlayers && typeof state.finishedPlayers.forEach === 'function') {
+                state.finishedPlayers.forEach((id: string) => fp.push(id));
+            }
+            setFinishedPlayers(fp);
 
             // Pending Actions
             setPendingAction(state.pendingAction || '');
@@ -195,7 +216,18 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
 
             // Exchange State
             if (state.exchangePending) {
-                const myPending = state.exchangePending[myPlayerId] ?? 0;
+                // MapSchema access: try .get() first, fallback to forEach iteration
+                let myPending = 0;
+                if (typeof state.exchangePending.get === 'function') {
+                    myPending = state.exchangePending.get(myPlayerId) ?? 0;
+                } else if (typeof state.exchangePending.forEach === 'function') {
+                    state.exchangePending.forEach((val: number, key: string) => {
+                        if (key === myPlayerId) myPending = val;
+                    });
+                } else {
+                    // Fallback for plain object (shouldn't happen but safe)
+                    myPending = state.exchangePending[myPlayerId] ?? 0;
+                }
                 setExchangePendingCount(myPending);
             }
 
@@ -204,15 +236,13 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 revolution: state.ruleRevolution,
                 is8Cut: state.rule8Cut,
                 is11Back: state.rule11Back,
-                isStaircase: state.ruleStaircase,
-                isShibari: state.ruleShibari,
                 isSpade3: state.ruleSpade3,
                 jokerCount: state.jokerCount,
-                isRokurokubi: state.ruleRokurokubi,
-                isKyukyusha: state.ruleKyukyusha,
                 is5Skip: state.rule5Skip,
                 is7Watashi: state.rule7Watashi,
-                isQBomber: state.ruleQBomber
+                isQBomber: state.ruleQBomber,
+                miyakoOchi: state.ruleMiyakoOchi,
+                is10Sute: state.rule10Sute
             });
 
             // 3. Last Move
@@ -241,22 +271,71 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     isReady: p.isReady,
                     isAi: p.isAi,
                     sessionId: key,
-                    hand: []
+                    hand: [],
+                    rank: p.rank,
+                    score: p.score,
+                    lastScoreChange: p.lastScoreChange
                 });
 
                 const pHand: Card[] = [];
                 p.hand.forEach((c: any) => pHand.push({ suit: c.suit, rank: c.rank }));
 
                 // Sort hand using engine
-                const sortedHand = engine.sortHand(pHand, state.isRevolution, state.is11Back);
+                // FORCE STANDARD SORT: User requested (3 -> 2 -> Joker) always, regardless of Revolution/11Back
+                const sortedHand = engine.sortHand(pHand, false, false);
                 newHands[p.id] = sortedHand;
             });
 
             setPlayers(pList);
             setHands(newHands);
+
+            // 6. Events (Visual Effects)
+            if (state.lastEvent && state.lastEvent.timestamp > lastEventTimestampRef.current) {
+                lastEventTimestampRef.current = state.lastEvent.timestamp;
+
+                const eventType = state.lastEvent.type;
+                const eventPlayerId = state.lastEvent.playerId;
+
+                // For rank and miyakoochi events, only show to the affected player
+                if ((eventType === 'rank' || eventType === 'miyakoochi') && eventPlayerId !== myPlayerId) {
+                    // Don't show rank effects to other players
+                    return;
+                }
+
+                setEffectEvent({
+                    type: eventType,
+                    message: state.lastEvent.message,
+                    id: state.lastEvent.timestamp
+                });
+                // Auto-clear logic handled by AnimatePresence or local timeout if needed, 
+                // but setting a new object triggers the animation key.
+                setTimeout(() => setEffectEvent(null), 2500);
+            }
         });
 
         r.onMessage("error", (msg: string) => alert(msg));
+    };
+
+    // Helper for Effects
+    // POLISH: Removed emojis, using sleek text colors for gradient/shadow effects in CSS
+    const getEffectContent = (type: string, message: string = "") => {
+        if (type === 'rank') {
+            switch (message) {
+                case '大富豪': return { text: "大富豪", color: "#FFD700", gradient: "linear-gradient(to bottom, #FFD700, #B8860B)" };
+                case '富豪': return { text: "富豪", color: "#C0C0C0", gradient: "linear-gradient(to bottom, #E0E0E0, #A9A9A9)" };
+                case '平民': return { text: "平民", color: "#87CEEB", gradient: "linear-gradient(to bottom, #87CEEB, #4682B4)" };
+                case '貧民': return { text: "貧民", color: "#CD7F32", gradient: "linear-gradient(to bottom, #CD7F32, #8B4513)" };
+                case '大貧民': return { text: "大貧民", color: "#A0A0A0", gradient: "linear-gradient(to bottom, #696969, #000000)" };
+                default: return { text: message, color: "#FFFFFF", gradient: "linear-gradient(to bottom, #FFFFFF, #CCCCCC)" };
+            }
+        }
+        switch (type) {
+            case '8cut': return { text: "8切り", color: "#EF4444", gradient: "linear-gradient(to bottom, #EF4444, #B91C1C)" };
+            case 'revolution': return { text: "革命", color: "#F59E0B", gradient: "linear-gradient(to bottom, #F59E0B, #D97706)" };
+            case '11back': return { text: "11バック", color: "#3B82F6", gradient: "linear-gradient(to bottom, #3B82F6, #1D4ED8)" };
+            case 'miyakoochi': return { text: "都落ち", color: "#9333EA", gradient: "linear-gradient(to bottom, #9333EA, #581C87)" };
+            default: return { text: type, color: "#FFFFFF", gradient: "linear-gradient(to bottom, #FFFFFF, #999999)" };
+        }
     };
 
     // Game Logic Wrappers
@@ -281,6 +360,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     };
 
     const executePass = () => {
+        if (!lastMove) return; // Should be disabled in UI, but safety check
         room?.send("pass");
         setSelectedIndices([]);
     };
@@ -303,9 +383,15 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         setSelectedIndices([]);
     };
 
+    const handleEndGame = () => {
+        room?.send("endGame");
+    };
+
     const handle7WatashiSubmit = () => {
-        if (selectedIndices.length !== pendingActionCount) {
-            alert(`${pendingActionCount}枚選択してください`);
+        const myHand = hands[myPlayerId] || [];
+        const required = Math.min(pendingActionCount, myHand.length);
+        if (selectedIndices.length !== required) {
+            alert(`${required}枚選択してください`);
             return;
         }
         room?.send("7watashiPass", { cards: getSelectedCardsObjects() });
@@ -327,6 +413,15 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         setSelectedRanks([]);
     };
 
+    const handle10SuteSubmit = () => {
+        if (selectedIndices.length !== pendingActionCount) {
+            alert(`${pendingActionCount}枚選択してください`);
+            return;
+        }
+        room?.send("10suteDiscard", { cards: getSelectedCardsObjects() });
+        setSelectedIndices([]);
+    };
+
     const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
 
     // Calculate Playable Cards
@@ -338,21 +433,26 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
             return myHand; // All cards are selectable/playable for exchange UI
         }
 
-        // Allow selection for 7 watashi (pending action)
-        if (pendingAction === '7watashi' && pendingActionPlayerId === myPlayerId) {
-            return myHand; // Any card can be selected for passing
+        // Allow selection for 7 watashi / 10 sute
+        if ((pendingAction === '7watashi' || pendingAction === '10sute') && pendingActionPlayerId === myPlayerId) {
+            return myHand;
         }
 
         // Allow checking playable status even when it's not my turn
+        // User Request: Only dim cards on my turn. Otherwise show all full opacity.
+        if (gameState === 'playing' && turnPlayerId !== myPlayerId && !pendingAction) {
+            return myHand;
+        }
+
         if (!room) return [];
 
         const currentRules = { // Use local synced rules or server state
-            isShibari: room.state.ruleShibari,
+            isShibari: false,
             isSpade3: room.state.ruleSpade3,
-            isStaircase: room.state.ruleStaircase,
+            isStaircase: false,
             is11Back: room.state.rule11Back
         };
-        const isShibariActive = room.state.isShibari;
+        const isShibariActive = false;
 
         return myHand.filter(card =>
             engine.isCardPlayable(card, myHand, isRevolution, is11Back, lastMove, currentRules, isShibariActive)
@@ -421,31 +521,11 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                                     11バック
                                 </label>
                                 <label className={styles.checkboxLabel}>
-                                    <input type="checkbox" checked={rules.isStaircase} disabled={!amHost}
-                                        onChange={e => room.send('updateRules', { isStaircase: e.target.checked })} />
-                                    階段
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input type="checkbox" checked={rules.isShibari} disabled={!amHost}
-                                        onChange={e => room.send('updateRules', { isShibari: e.target.checked })} />
-                                    縛り
-                                </label>
-                                <label className={styles.checkboxLabel}>
                                     <input type="checkbox" checked={rules.isSpade3} disabled={!amHost}
                                         onChange={e => room.send('updateRules', { isSpade3: e.target.checked })} />
                                     スペ3返し
                                 </label>
                                 {/* Local Rules */}
-                                <label className={styles.checkboxLabel}>
-                                    <input type="checkbox" checked={rules.isRokurokubi} disabled={!amHost}
-                                        onChange={e => room.send('updateRules', { isRokurokubi: e.target.checked })} />
-                                    ろくろ首 (66)
-                                </label>
-                                <label className={styles.checkboxLabel}>
-                                    <input type="checkbox" checked={rules.isKyukyusha} disabled={!amHost}
-                                        onChange={e => room.send('updateRules', { isKyukyusha: e.target.checked })} />
-                                    救急車 (99)
-                                </label>
                                 <label className={styles.checkboxLabel}>
                                     <input type="checkbox" checked={rules.is5Skip} disabled={!amHost}
                                         onChange={e => room.send('updateRules', { is5Skip: e.target.checked })} />
@@ -460,6 +540,16 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                                     <input type="checkbox" checked={rules.isQBomber} disabled={!amHost}
                                         onChange={e => room.send('updateRules', { isQBomber: e.target.checked })} />
                                     Qボンバー
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.miyakoOchi} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { miyakoOchi: e.target.checked })} />
+                                    都落ち
+                                </label>
+                                <label className={styles.checkboxLabel}>
+                                    <input type="checkbox" checked={rules.is10Sute} disabled={!amHost}
+                                        onChange={e => room.send('updateRules', { is10Sute: e.target.checked })} />
+                                    10捨て
                                 </label>
                             </div>
                             <div className={styles.rulesRow} style={{ marginTop: '10px' }}>
@@ -523,24 +613,28 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
 
                 {/* Exchange Overlay */}
                 {gameState === 'exchanging' && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modalContent}>
+
+                    <div className={styles.notificationBar}>
+                        <div className={styles.notificationContent}>
                             <h2>カード交換タイム</h2>
+                            {(() => {
+                                const myRank = players.find(p => p.id === myPlayerId)?.rank;
+                                const rankLabel = myRank === 'daifugo' ? '大富豪' : myRank === 'fugou' ? '富豪' : '';
+                                return rankLabel ? <p style={{ fontWeight: 'bold', color: '#FCD34D' }}>あなたは【{rankLabel}】です</p> : null;
+                            })()}
                             {exchangePendingCount > 0 ? (
                                 <>
-                                    <p>指定された枚数の不要なカードを選択してください</p>
-                                    <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>残り: {exchangePendingCount - selectedIndices.length}枚</p>
+                                    <p>下位のプレイヤーに渡すカードを{exchangePendingCount}枚選んでください ({selectedIndices.length}/{exchangePendingCount})</p>
                                     <button
                                         onClick={handleExchangeSubmit}
                                         disabled={selectedIndices.length !== exchangePendingCount}
                                         className={styles.actionBtn}
-                                        style={{ marginTop: '20px' }}
                                     >
                                         交換する
                                     </button>
                                 </>
                             ) : (
-                                <p>相手の選択を待っています...</p>
+                                <p>他のプレイヤーの交換を待っています...</p>
                             )}
                         </div>
                     </div>
@@ -555,7 +649,11 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                             <button
                                 onClick={handle7WatashiSubmit}
                                 className={styles.actionBtn}
-                                disabled={selectedIndices.length !== pendingActionCount}
+                                disabled={(() => {
+                                    const myHand = hands[myPlayerId] || [];
+                                    const required = Math.min(pendingActionCount, myHand.length);
+                                    return selectedIndices.length !== required;
+                                })()}
                             >
                                 渡す
                             </button>
@@ -615,49 +713,277 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     </div>
                 )}
 
-                {/* Result Overlay */}
-                {gameState === 'finished' && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modalContent}>
-                            <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>ゲーム終了</h1>
-                            <div style={{ display: 'grid', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-                                {players
-                                    .sort((a, b) => {
-                                        // Sort by Rank Logic (Daifugo -> Daihinmin)
-                                        const rankOrder = ['daifugo', 'fugou', 'heimin', 'binbou', 'daihinmin'];
-                                        return rankOrder.indexOf(a.rank || '') - rankOrder.indexOf(b.rank || '');
-                                    })
-                                    .map(p => (
-                                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-                                            <span style={{ fontWeight: 'bold' }}>{p.rank?.toUpperCase() || 'ー'}</span>
-                                            <span>{p.name}</span>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                            {amHost && (
-                                <button onClick={handleNextGame} className={styles.actionBtn} style={{ marginTop: '30px' }}>
-                                    次のゲームへ
-                                </button>
-                            )}
-                            {!amHost && <p style={{ marginTop: '20px' }}>ホストの操作を待っています...</p>}
+                {/* 10 Sute: Non-blocking Notification Bar */}
+                {pendingAction === '10sute' && pendingActionPlayerId === myPlayerId && (
+                    <div className={styles.notificationBar}>
+                        <div className={styles.notificationContent}>
+                            <h2>10捨て</h2>
+                            <p>捨てるカードを選んでください ({selectedIndices.length}/{pendingActionCount})</p>
+                            <button
+                                onClick={handle10SuteSubmit}
+                                className={styles.actionBtn}
+                                disabled={selectedIndices.length !== pendingActionCount}
+                            >
+                                捨てる
+                            </button>
                         </div>
+                    </div>
+                )}
+                {/* 10 Sute Waiting Message */}
+                {pendingAction === '10sute' && pendingActionPlayerId !== myPlayerId && (
+                    <div className={styles.notificationBar}>
+                        <p>他のプレイヤーが10捨てを行っています...</p>
                     </div>
                 )}
             </div>
 
+            <AnimatePresence>
+                {gameState === 'finished' && (
+                    <ResultModal
+                        players={players}
+                        finishedPlayers={finishedPlayers}
+                        myPlayerId={myPlayerId}
+                        isHost={amHost}
+                        onNextGame={handleNextGame}
+                        onEndGame={handleEndGame}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Visual Effects Overlay */}
+            <AnimatePresence>
+                {effectEvent && (
+                    <motion.div
+                        key={effectEvent.id}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1.2 }}
+                        exit={{ opacity: 0, scale: 1.5, filter: 'blur(10px)' }}
+                        transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 9999,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            pointerEvents: 'none'
+                        }}
+                    >
+                        {(() => {
+                            const { text, color, gradient } = getEffectContent(effectEvent.type, effectEvent.message);
+                            return (
+                                <>
+                                    <span style={{
+                                        fontSize: 'clamp(2rem, 10vw, 5rem)',
+                                        fontWeight: '900',
+                                        background: gradient,
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+                                        whiteSpace: 'nowrap',
+                                        fontFamily: '"Hiragino Mincho ProN", "Yu Mincho", serif',
+                                        letterSpacing: '0.05em',
+                                        padding: '0 1rem'
+                                    }}>
+                                        {text}
+                                    </span>
+                                </>
+                            );
+                        })()}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className={styles.actionControls}>
                 {isMyTurn && (
                     <>
+                        <button
+                            onClick={executePass}
+                            className={`${styles.actionBtn} ${styles.passBtn}`}
+                            disabled={!lastMove} // Disable pass if I am leading (start of trick)
+                        >
+                            パス
+                        </button>
                         <button onClick={executePlay} className={styles.actionBtn} disabled={selectedIndices.length === 0}>
                             出す
-                        </button>
-                        <button onClick={executePass} className={`${styles.actionBtn} ${styles.passBtn}`}>
-                            パス
                         </button>
                     </>
                 )}
             </div>
         </main>
     );
+}
+
+function ResultModal({
+    players,
+    finishedPlayers,
+    myPlayerId,
+    isHost,
+    onNextGame,
+    onEndGame
+}: {
+    players: TrumpPlayer[];
+    finishedPlayers: string[];
+    myPlayerId: string;
+    isHost?: boolean;
+    onNextGame: () => void;
+    onEndGame: () => void;
+}) {
+    // Sort logic: rely on finishedPlayers order!
+    // finishedPlayers[0] is 1st place (Daifugo next)
+    const sortedPlayers = [...players].sort((a, b) => {
+        const idxA = finishedPlayers.indexOf(a.id);
+        const idxB = finishedPlayers.indexOf(b.id);
+
+        // If both finished, lower index (earlier finish) is better
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+
+        // If one finished, they rank higher than one who didn't
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+
+        // If neither finished (shouldn't happen on finished screen usually, but for incomplete games), fallback
+        return (b.score || 0) - (a.score || 0);
+    });
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', inset: 0,
+                backgroundColor: 'rgba(0,0,0,0.85)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 99999, // Super high z-index
+                backdropFilter: 'blur(5px)'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                style={{
+                    backgroundColor: '#111827', // Darker gray/black
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    border: '1px solid #4B5563', // Lighter border
+                    maxWidth: '800px',
+                    width: '90%',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)' // Stronger shadow
+                }}
+            >
+                <h2 style={{
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    marginBottom: '2rem',
+                    background: 'linear-gradient(to right, #FCD34D, #F59E0B)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                }}>
+                    ゲーム終了
+                </h2>
+
+                <div style={{ marginBottom: '2rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid #374151', textAlign: 'left' }}>
+                                <th style={{ padding: '1rem' }}>順位</th>
+                                <th style={{ padding: '1rem' }}>プレイヤー</th>
+                                <th style={{ padding: '1rem', textAlign: 'right' }}>変動</th>
+                                <th style={{ padding: '1rem', textAlign: 'right' }}>総スコア</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sortedPlayers.map((p, idx) => (
+                                <tr key={p.id} style={{
+                                    borderBottom: '1px solid #374151',
+                                    backgroundColor: p.id === myPlayerId ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+                                }}>
+                                    <td style={{ padding: '1rem' }}>
+                                        {getRankDisplay(p.rank || '')}
+                                    </td>
+                                    <td style={{ padding: '1rem', fontWeight: p.id === myPlayerId ? 'bold' : 'normal' }}>
+                                        {p.name} {p.role === 'host' && '👑'}
+                                    </td>
+                                    <td style={{ padding: '1rem', textAlign: 'right', color: (p.lastScoreChange || 0) > 0 ? '#10B981' : (p.lastScoreChange || 0) < 0 ? '#EF4444' : '#9CA3AF' }}>
+                                        {(p.lastScoreChange || 0) > 0 ? '+' : ''}{p.lastScoreChange || 0}
+                                    </td>
+                                    <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 'bold' }}>
+                                        {p.score || 0}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {isHost ? (
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <button
+                            onClick={onEndGame}
+                            style={{
+                                padding: '1rem 2rem',
+                                borderRadius: '0.5rem',
+                                backgroundColor: '#EF4444', // Red for visibility/danger
+                                color: 'white',
+                                fontWeight: 'bold',
+                                border: '2px solid #B91C1C', // Stronger border
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.5)'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#DC2626';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#EF4444';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            終了
+                        </button>
+                        <button
+                            onClick={onNextGame}
+                            style={{
+                                padding: '1rem 3rem',
+                                borderRadius: '0.5rem',
+                                backgroundColor: '#2563EB',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                border: '2px solid #1D4ED8',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.5)'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#1D4ED8';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#2563EB';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            次のゲームへ
+                        </button>
+                    </div>
+                ) : (
+                    <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: '1.2rem', fontWeight: 'bold' }}>ホストが次の操作を選択中...</p>
+                )}
+            </motion.div>
+        </motion.div>
+    );
+}
+
+function getRankDisplay(rank: string) {
+    switch (rank) {
+        case 'daifugo': case '大富豪': return '大富豪';
+        case 'fugou': case '富豪': return '富豪';
+        case 'heimin': case '平民': return '平民';
+        case 'binbou': case '貧民': return '貧民';
+        case 'daihinmin': case '大貧民': return '大貧民';
+        default: return '－';
+    }
 }

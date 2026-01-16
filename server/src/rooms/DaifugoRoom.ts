@@ -8,10 +8,12 @@ export class DaifugoRoom extends Room<DaifugoState> {
     maxClients = 6;
     private engine: DaifugoEngine;
     private password?: string;
+    private exchangeMoves: { from: string, to: string, cards: SchemaCard[] }[] = [];
 
     onCreate(options: any) {
         this.setState(new DaifugoState());
         this.engine = new DaifugoEngine();
+        this.exchangeMoves = [];
 
         if (options.password) {
             this.password = options.password;
@@ -23,16 +25,13 @@ export class DaifugoRoom extends Room<DaifugoState> {
             this.state.rule8Cut = options.rules.is8Cut ?? true;
             this.state.rule11Back = options.rules.is11Back ?? true;
             this.state.ruleMiyakoOchi = options.rules.miyakoOchi ?? true;
-            this.state.ruleStaircase = options.rules.isStaircase ?? false;
-            this.state.ruleShibari = options.rules.isShibari ?? false;
             this.state.ruleSpade3 = options.rules.isSpade3 ?? false;
             this.state.jokerCount = options.rules.jokerCount ?? 2;
             // Local Rules
-            this.state.ruleRokurokubi = options.rules.isRokurokubi ?? false;
-            this.state.ruleKyukyusha = options.rules.isKyukyusha ?? false;
             this.state.rule5Skip = options.rules.is5Skip ?? false;
             this.state.rule7Watashi = options.rules.is7Watashi ?? false;
             this.state.ruleQBomber = options.rules.isQBomber ?? false;
+            this.state.rule10Sute = options.rules.is10Sute ?? false;
         }
 
         this.onMessage("startGame", (client, options) => {
@@ -50,16 +49,13 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 if (rules.revolution !== undefined) this.state.ruleRevolution = rules.revolution;
                 if (rules.is8Cut !== undefined) this.state.rule8Cut = rules.is8Cut;
                 if (rules.is11Back !== undefined) this.state.rule11Back = rules.is11Back;
-                if (rules.isStaircase !== undefined) this.state.ruleStaircase = rules.isStaircase;
-                if (rules.isShibari !== undefined) this.state.ruleShibari = rules.isShibari;
                 if (rules.isSpade3 !== undefined) this.state.ruleSpade3 = rules.isSpade3;
                 if (rules.miyakoOchi !== undefined) this.state.ruleMiyakoOchi = rules.miyakoOchi;
                 if (rules.jokerCount !== undefined) this.state.jokerCount = rules.jokerCount;
-                if (rules.isRokurokubi !== undefined) this.state.ruleRokurokubi = rules.isRokurokubi;
-                if (rules.isKyukyusha !== undefined) this.state.ruleKyukyusha = rules.isKyukyusha;
                 if (rules.is5Skip !== undefined) this.state.rule5Skip = rules.is5Skip;
                 if (rules.is7Watashi !== undefined) this.state.rule7Watashi = rules.is7Watashi;
                 if (rules.isQBomber !== undefined) this.state.ruleQBomber = rules.isQBomber;
+                if (rules.is10Sute !== undefined) this.state.rule10Sute = rules.is10Sute;
             }
         });
 
@@ -100,6 +96,21 @@ export class DaifugoRoom extends Room<DaifugoState> {
             const player = this.state.players.get(client.sessionId);
             if (!player) return;
             this.handleCardExchange(player, options.cards);
+        });
+
+        this.onMessage("10suteDiscard", (client, options: { cards: Card[] }) => {
+            const player = this.state.players.get(client.sessionId);
+            if (!player || this.state.pendingAction !== '10sute' || this.state.pendingActionPlayerId !== player.id) return;
+            this.handle10Sute(player, options.cards);
+        });
+
+        this.onMessage("endGame", (client) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player && player.role === 'host') {
+                // Reset everything for a fresh start or just keep current state but allow re-entry?
+                // For now, let's just reset the game state to 'waiting' and clear hands/ranks
+                this.resetGame();
+            }
         });
     }
 
@@ -158,9 +169,15 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.passCount = 0;
         this.state.isRevolution = false;
         this.state.is11Back = false;
-        this.state.isShibari = false;
         this.state.finishedPlayers.clear();
         this.state.pendingAction = '';
+    }
+
+    private broadcastEvent(type: string, message: string = "", playerId: string = "") {
+        this.state.lastEvent.type = type;
+        this.state.lastEvent.message = message;
+        this.state.lastEvent.playerId = playerId;
+        this.state.lastEvent.timestamp = Date.now();
     }
 
     private handlePlayCard(playerId: string, cards: Card[]) {
@@ -177,9 +194,9 @@ export class DaifugoRoom extends Room<DaifugoState> {
         } : null;
 
         const rules = {
-            isShibari: this.state.ruleShibari,
+            isShibari: false,
             isSpade3: this.state.ruleSpade3,
-            isStaircase: this.state.ruleStaircase,
+            isStaircase: false,
             is11Back: this.state.rule11Back
         };
 
@@ -190,7 +207,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
             this.state.is11Back,
             lastMove,
             rules,
-            this.state.isShibari
+            false
         );
 
         if (!result.isValid) {
@@ -222,28 +239,48 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.lastMovePlayerId = playerId;
         this.state.passCount = 0;
 
-        if (result.isRevolution) this.state.isRevolution = !this.state.isRevolution;
-        if (result.is11Back) this.state.is11Back = true;
-        if (result.isShibari) this.state.isShibari = true;
+        if (result.isRevolution) {
+            this.state.isRevolution = !this.state.isRevolution;
+            this.broadcastEvent('revolution');
+        }
+        if (result.is11Back) {
+            this.state.is11Back = true;
+            this.broadcastEvent('11back');
+        }
 
         const isFinished = playerSchema.hand.length === 0;
         if (isFinished) {
             this.state.finishedPlayers.push(playerId);
+            const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+            this.broadcastEvent('rank', rankName, playerId);
+
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = playerId;
             }
+
+            // Check if Game Over (Only 1 player left)
+            if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
+                const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
+                if (loser) {
+                    this.state.finishedPlayers.push(loser.id);
+                    const loserRank = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+                    this.broadcastEvent('rank', loserRank, loser.id);
+                }
+                this.finishGame();
+                return;
+            }
         }
 
-        const isRokurokubi = this.state.ruleRokurokubi && result.isRokurokubi;
-        const isKyukyusha = this.state.ruleKyukyusha && result.isKyukyusha;
         const is8Cut = this.state.rule8Cut && result.is8Cut;
 
-        if (is8Cut || isRokurokubi || isKyukyusha) {
+        if (is8Cut) {
+            this.broadcastEvent('8cut');
+
             this.clearField();
             if (isFinished) {
                 const nextId = this.getNextActivePlayer(playerId);
                 if (nextId) this.state.turnPlayerId = nextId;
-                else this.state.status = 'finished';
+                else this.finishGame();
             } else {
                 this.state.turnPlayerId = playerId;
             }
@@ -253,7 +290,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         if (!isFinished && this.state.rule7Watashi && result.watashiCount && result.watashiCount > 0) {
             this.state.pendingAction = '7watashi';
             this.state.pendingActionPlayerId = playerId;
-            this.state.pendingActionCount = result.watashiCount;
+            this.state.pendingActionCount = Math.min(result.watashiCount, playerSchema.hand.length);
             return;
         }
 
@@ -264,6 +301,14 @@ export class DaifugoRoom extends Room<DaifugoState> {
             return;
         }
 
+        // Check 10-Sute
+        if (this.state.rule10Sute && !isFinished && cards.some(c => c.rank === '10')) {
+            this.state.pendingAction = '10sute';
+            this.state.pendingActionPlayerId = playerId;
+            this.state.pendingActionCount = Math.min(cards.length, playerSchema.hand.length);
+            return;
+        }
+
         let skipStep = 0;
         if (this.state.rule5Skip && result.skipCount && result.skipCount > 0) {
             skipStep = result.skipCount;
@@ -271,7 +316,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         const nextId = this.getNextActivePlayer(playerId, skipStep);
         if (nextId) this.state.turnPlayerId = nextId;
-        else this.state.status = 'finished';
+        else this.finishGame();
     }
 
     private handlePass(playerId: string) {
@@ -286,12 +331,18 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         const nextId = this.getNextActivePlayer(playerId);
         if (!nextId) {
-            this.state.status = 'finished';
+            this.finishGame();
             return;
         }
 
         if (nextId === this.state.lastMovePlayerId && this.state.passCount >= activePlayers - 1) {
             this.clearField();
+        } else {
+            // FIX: If last player finished, and everyone else passed, we must clear
+            const isLastPlayerFinished = this.state.finishedPlayers.includes(this.state.lastMovePlayerId);
+            if (isLastPlayerFinished && this.state.passCount >= activePlayers) {
+                this.clearField();
+            }
         }
 
         this.state.turnPlayerId = nextId;
@@ -303,11 +354,21 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.lastMovePlayerId = "";
         this.state.passCount = 0;
         this.state.is11Back = false;
-        this.state.isShibari = false;
     }
 
     private handle7Watashi(player: Player, cards: Card[]) {
-        if (cards.length !== this.state.pendingActionCount) return;
+        // FIX: Allow passing less cards if hand has fewer than required
+        const requiredCount = Math.min(this.state.pendingActionCount, player.hand.length);
+        if (cards.length > requiredCount) return; // Allow EXACT match or LESS is logically implied by checks, but strict strict equality blocked it.
+        // Actually, logic said "if (cards.length !== requiredCount) return;" which is correct IF requiredCount is min(pending, hand).
+        // BUT if pending is 2 and hand is 1, required is 1. sending 1 should work.
+        // User says "cannot pass last card".
+        // If pending is 2, hand is 1. required = 1.
+        // Client sends 1 card. 1 !== 1 is false. returns. Wait, it passes.
+        // Maybe client sends 0? No.
+        // Issue might be `pendingActionCount` not being updated?
+        // Let's trust the fix: just ensure we use 'requiredCount' calculated correctly.
+        if (cards.length !== requiredCount) return;
 
         for (const c of cards) {
             if (!player.hand.some(h => h.suit === c.suit && h.rank === c.rank)) return;
@@ -330,7 +391,86 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.pendingActionPlayerId = '';
         this.state.pendingActionCount = 0;
 
+        // Check if finished after passing
+        const isFinished = player.hand.length === 0;
+        if (isFinished) {
+            this.state.finishedPlayers.push(player.id);
+            const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+            this.broadcastEvent('rank', rankName);
+
+            if (this.state.finishedPlayers.length === 1) {
+                this.state.winner = player.id;
+            }
+        }
+
+
+
         if (this.state.turnPlayerId) this.state.turnPlayerId = nextId;
+
+        // If game over check
+        if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
+            const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
+            if (loser) {
+                this.state.finishedPlayers.push(loser.id);
+                const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+                this.broadcastEvent('rank', rankName);
+            }
+            this.finishGame();
+        }
+    }
+
+    private handle10Sute(player: Player, cards: Card[]) {
+        if (cards.length !== this.state.pendingActionCount) return;
+
+        // Remove cards
+        const toRemove: number[] = [];
+        cards.forEach(c => {
+            // Find exact match in hand
+            const idx = player.hand.findIndex(h => h.suit === c.suit && h.rank === c.rank);
+            // Safety: Ensure index not already marked (duplicate cards in request?)
+            // Though findIndex finds first. If multiple same cards, we must be careful.
+            // But suit/rank are unique per deck usually? DAIFUGO uses 1 deck?
+            // If 2 decks, unique cards?
+            // Usually Daifugo is 1 deck. Unique suit/rank combos.
+            if (idx !== -1) toRemove.push(idx);
+        });
+
+        if (toRemove.length !== this.state.pendingActionCount) return; // Must own cards
+
+        // Sort descending to splice
+        toRemove.sort((a, b) => b - a);
+        toRemove.forEach(idx => player.hand.splice(idx, 1));
+
+        this.state.pendingAction = '';
+        this.state.pendingActionPlayerId = '';
+        this.state.pendingActionCount = 0;
+
+        // Check finish again
+        if (player.hand.length === 0) {
+            this.state.finishedPlayers.push(player.id);
+            const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+            this.broadcastEvent('rank', rankName);
+
+            if (this.state.finishedPlayers.length === 1) {
+                this.state.winner = player.id;
+            }
+
+            if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
+                const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
+                if (loser) {
+                    this.state.finishedPlayers.push(loser.id);
+                    const loserRank = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+                    this.broadcastEvent('rank', loserRank);
+                }
+                this.finishGame();
+                return;
+            }
+        }
+
+        // Advance turn
+        const nextId = this.getNextActivePlayer(this.state.turnPlayerId);
+        if (nextId) this.state.turnPlayerId = nextId;
+        else this.finishGame();
     }
 
     private handleQBomber(player: Player, ranks: string[]) {
@@ -362,13 +502,25 @@ export class DaifugoRoom extends Room<DaifugoState> {
             }
         });
 
-        newlyFinished.forEach(pid => this.state.finishedPlayers.push(pid));
+        newlyFinished.forEach(pid => {
+            this.state.finishedPlayers.push(pid);
+            const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+            this.broadcastEvent('rank', rankName);
+
+            if (this.state.finishedPlayers.length === 1) {
+                this.state.winner = pid;
+            }
+        });
         if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
             // Game ends if only 1 player left
             // Find loser
             const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
-            if (loser) this.state.finishedPlayers.push(loser.id); // Add loser last
-            this.state.status = 'finished';
+            if (loser) {
+                this.state.finishedPlayers.push(loser.id); // Add loser last
+                const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+                this.broadcastEvent('rank', rankName);
+            }
+            this.finishGame();
         }
 
         this.state.pendingAction = '';
@@ -377,7 +529,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         const nextId = this.getNextActivePlayer(player.id);
         if (nextId) this.state.turnPlayerId = nextId;
-        else this.state.status = 'finished';
+        else this.finishGame();
     }
 
     private getNextActivePlayer(currentId: string, skipCount: number = 0): string | null {
@@ -422,6 +574,9 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.ruleMiyakoOchi && previousDaifugo) {
                 if (finalOrder[0] !== previousDaifugo.id) {
+                    // Miyako ochi happened - previous daifugo didn't finish first
+                    this.broadcastEvent('miyakoochi', '都落ち', previousDaifugo.id);
+
                     const newDaihinmin = allPlayers.find(p => p.rank === 'daihinmin');
                     const fallenAngel = previousDaifugo;
                     if (fallenAngel && newDaihinmin && fallenAngel.id !== newDaihinmin.id) {
@@ -432,6 +587,14 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 }
             }
         }
+
+        // Cleanup for new game
+        this.state.finishedPlayers.clear();
+        this.state.passCount = 0;
+        this.state.turnPlayerId = "";
+        this.state.isRevolution = false;
+        this.state.is11Back = false;
+        this.clearField(); // Resets field and lastMove
 
         this.dealCards();
         this.setupExchangeOrStart();
@@ -445,26 +608,37 @@ export class DaifugoRoom extends Room<DaifugoState> {
             return;
         }
 
+        this.exchangeMoves = [];
         this.state.status = 'exchanging';
         this.state.exchangePending.clear();
 
         players.forEach(p => {
             if (p.rank === 'daifugo') this.state.exchangePending.set(p.id, 2);
             else if (p.rank === 'fugou') this.state.exchangePending.set(p.id, 1);
-            else if (p.rank === 'daihinmin') this.autoExchangeBestCards(p, 2, 'daifugo');
-            else if (p.rank === 'binbou') this.autoExchangeBestCards(p, 1, 'fugou');
+            else if (p.rank === 'daihinmin') this.queueAutoExchange(p, 2, 'daifugo');
+            else if (p.rank === 'binbou') this.queueAutoExchange(p, 1, 'fugou');
         });
 
+        // If no one needs to input (e.g. only auto players? impossible in Daifugo usually), check start
         if (this.state.exchangePending.size === 0) {
+            this.executeExchanges();
             this.startPlaying();
         }
     }
 
-    private autoExchangeBestCards(giver: Player, count: number, receiverRank: string) {
+    private queueAutoExchange(giver: Player, count: number, receiverRank: string) {
         const sortedHand = this.sortHandByStrength([...giver.hand]);
         const cardsToGive = sortedHand.slice(sortedHand.length - count);
         const receiver = Array.from(this.state.players.values()).find(p => p.rank === receiverRank);
-        if (receiver) this.moveCards(giver, receiver, cardsToGive);
+
+        if (receiver) {
+            const schemaCards: SchemaCard[] = [];
+            cardsToGive.forEach(c => {
+                const sc = new SchemaCard(); sc.suit = c.suit; sc.rank = c.rank;
+                schemaCards.push(sc);
+            });
+            this.exchangeMoves.push({ from: giver.id, to: receiver.id, cards: schemaCards });
+        }
     }
 
     private handleCardExchange(player: Player, selectedCards: Card[]) {
@@ -485,12 +659,33 @@ export class DaifugoRoom extends Room<DaifugoState> {
             cardsToGive.push(heldCard);
         }
 
-        this.moveCards(player, receiver, cardsToGive);
+        this.exchangeMoves.push({ from: player.id, to: receiver.id, cards: cardsToGive });
         this.state.exchangePending.delete(player.id);
 
         if (this.state.exchangePending.size === 0) {
+            this.executeExchanges();
             this.startPlaying();
         }
+    }
+
+    private executeExchanges() {
+        this.exchangeMoves.forEach(move => {
+            const from = this.state.players.get(move.from); // SessionID? No id is sessionId?
+            // Wait, this.state.players is Map<SessionId, Player>.
+            // Player.id IS usually sessionId, but logic might store custom id?
+            // "player.id = options.playerId || client.sessionId"
+            // So I should look up by iterating or Map?
+            // this.state.players is Map<string, Player>. Key is SessionId.
+            // Move stores `from: giver.id`.
+
+            const fromPlayer = Array.from(this.state.players.values()).find(p => p.id === move.from);
+            const toPlayer = Array.from(this.state.players.values()).find(p => p.id === move.to);
+
+            if (fromPlayer && toPlayer) {
+                this.moveCards(fromPlayer, toPlayer, move.cards);
+            }
+        });
+        this.exchangeMoves = [];
     }
 
     private moveCards(from: Player, to: Player, cards: SchemaCard[]) {
@@ -522,6 +717,51 @@ export class DaifugoRoom extends Room<DaifugoState> {
         return hand.sort((a, b) => strength(a) - strength(b));
     }
 
+    private calculateScores() {
+        const playerCount = this.state.players.size;
+        this.state.finishedPlayers.forEach((pid, index) => {
+            const player = Array.from(this.state.players.values()).find(p => p.id === pid);
+            if (!player) return;
+
+            // Simple Scoring Rules
+            // 1st: +20, 2nd: +10, ..., Last: -20
+            // Or better: based on rank names
+            const rankName = this.getProvisionalRank(index, playerCount);
+            let diff = 0;
+            switch (rankName) {
+                case '大富豪': diff = 20; break;
+                case '富豪': diff = 10; break;
+                case '平民': diff = 0; break;
+                case '貧民': diff = -10; break;
+                case '大貧民': diff = -20; break;
+            }
+            player.score += diff;
+            player.lastScoreChange = diff;
+        });
+    }
+
+
+    private finishGame() {
+        this.calculateScores();
+        this.state.status = 'finished';
+    }
+
+    private resetGame() {
+        this.state.status = "waiting";
+        this.state.players.forEach(p => {
+            p.hand.clear();
+            p.isReady = false;
+            p.rank = "";
+            // score is KEPT
+        });
+        this.state.fieldCards.clear();
+        this.state.lastMoveCards.clear();
+        this.state.lastMovePlayerId = "";
+        this.state.passCount = 0;
+        this.state.finishedPlayers.clear();
+        this.broadcastEvent("reset", "Game Session Reset");
+    }
+
     private startPlaying() {
         this.state.status = 'playing';
         this.state.fieldCards.clear();
@@ -531,7 +771,6 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.finishedPlayers.clear();
         this.state.isRevolution = false;
         this.state.is11Back = false;
-        this.state.isShibari = false;
         this.state.pendingAction = '';
 
         const winner = Array.from(this.state.players.values()).find(p => p.rank === 'daifugo');
@@ -555,5 +794,15 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 });
             }
         });
+    }
+    private getProvisionalRank(finishIndex: number, totalPlayers: number): string {
+        // finishIndex is 0-based index in finishedPlayers
+        if (finishIndex === 0) return '大富豪';
+        if (totalPlayers >= 4) {
+            if (finishIndex === 1) return '富豪';
+            if (finishIndex === totalPlayers - 2) return '貧民';
+        }
+        if (finishIndex === totalPlayers - 1) return '大貧民';
+        return '平民';
     }
 }

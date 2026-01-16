@@ -18,6 +18,8 @@ export interface TrumpPlayer {
     rank?: string; // 'daifugo', 'heimin', etc.
     finishedRank?: number; // 1st, 2nd, etc.
     sessionId?: string; // Colyseus session ID (unique per connection)
+    score?: number;
+    lastScoreChange?: number;
 }
 
 export interface GameState {
