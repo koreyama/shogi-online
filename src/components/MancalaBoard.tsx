@@ -46,7 +46,6 @@ const Pit = ({
     }, [seeds]);
 
     // Generate seeds for visualization
-    const seedElements = [];
     // Generate seeds for visualization
     const seedElements = [];
     const safeSeeds = isNaN(seeds) ? 0 : seeds;
