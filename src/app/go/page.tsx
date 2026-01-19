@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import navStyles from '@/styles/GameMenu.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
@@ -14,12 +14,33 @@ type GameMode = 'select' | 'ai' | 'online-random' | 'online-room';
 
 export default function GoPage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [mode, setMode] = useState<GameMode>('select');
     const [roomIdInput, setRoomIdInput] = useState('');
     const [showRoomInput, setShowRoomInput] = useState(false);
+    const [profileName, setProfileName] = useState<string>("Guest");
 
-    const userName = user?.displayName || "Guest";
+    // Fetch profile name from Firestore
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (user?.uid) {
+                try {
+                    const { getUserProfile } = await import('@/lib/firebase/users');
+                    const profile = await getUserProfile(user.uid);
+                    if (profile?.displayName) {
+                        setProfileName(profile.displayName);
+                    }
+                } catch (e) {
+                    console.warn("Failed to fetch user profile:", e);
+                }
+            }
+        };
+        if (!authLoading) {
+            fetchProfile();
+        }
+    }, [user, authLoading]);
+
+    const userName = profileName;
     const userId = user?.uid || "guest-" + Math.floor(Math.random() * 10000);
 
     const handleBack = () => {
@@ -70,7 +91,7 @@ export default function GoPage() {
                         <IconBack size={18} /> 終了
                     </button>
                 </div>
-                <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '100vw', display: 'flex', justifyContent: 'center', overflow: 'visible' }}>
                     <ColyseusGoGame
                         mode={mode === 'online-random' ? 'random' : 'room'}
                         roomId={mode === 'online-room' && roomIdInput ? roomIdInput : undefined}
