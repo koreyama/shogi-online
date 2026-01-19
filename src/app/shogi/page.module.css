@@ -17,8 +17,10 @@
   max-width: 1000px;
   width: 100%;
   height: 100%;
+  width: 100%;
+  height: 100%;
   justify-content: center;
-  /* Center vertically */
+  align-items: center;
 }
 
 /* Setup Screen */
@@ -365,6 +367,7 @@
     flex-direction: row;
     align-items: stretch;
     justify-content: center;
+    gap: 2rem;
   }
 
   .goteSide {
@@ -375,7 +378,13 @@
   }
 
   .boardWrapper {
+    width: 600px;
+    /* 固定サイズで大きく表示 */
+    height: 600px;
     order: unset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .senteSide {

@@ -36,7 +36,7 @@ interface ColyseusShogiGameProps {
 
 export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: ColyseusShogiGameProps) {
     const { playerName, isLoaded: playerLoaded } = usePlayer();
-    const { loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const [gameClient, setGameClient] = useState<Colyseus.Client | null>(null);
     const [room, setRoom] = useState<Colyseus.Room<ShogiSchema> | null>(null);
@@ -71,20 +71,34 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
                 // client is already initialized in lib/colyseus
                 setGameClient(client);
 
+                // Fetch User Profile Name dynamically
+                let currentName = playerName || "Player";
+                if (user?.uid) {
+                    try {
+                        const { getUserProfile } = await import('@/lib/firebase/users');
+                        const profile = await getUserProfile(user.uid);
+                        if (profile?.displayName) {
+                            currentName = profile.displayName;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch user profile:", e);
+                    }
+                }
+
                 let r: Colyseus.Room<ShogiSchema>;
 
                 try {
                     if (mode === 'room') {
                         if (targetRoomId) {
                             console.log(`Joining Room by ID: ${targetRoomId}`);
-                            r = await client.joinById<ShogiSchema>(targetRoomId, { name: playerName || "Player" });
+                            r = await client.joinById<ShogiSchema>(targetRoomId, { name: currentName });
                         } else {
                             console.log("Creating new private room...");
-                            r = await client.create<ShogiSchema>("shogi", { name: playerName || "Player", isPrivate: true });
+                            r = await client.create<ShogiSchema>("shogi", { name: currentName, isPrivate: true });
                         }
                     } else {
                         console.log("Joining/Creating Random Match...");
-                        r = await client.joinOrCreate<ShogiSchema>("shogi", { name: playerName || "Player" });
+                        r = await client.joinOrCreate<ShogiSchema>("shogi", { name: currentName });
                     }
                 } catch (err: any) {
                     console.error("Matchmaking error:", err);
