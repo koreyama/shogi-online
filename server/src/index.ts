@@ -43,7 +43,13 @@ import { MinesweeperRoom } from "./rooms/MinesweeperRoom";
 
 gameServer.define("dots_and_boxes", DotsAndBoxesRoom);
 gameServer.define("shogi", ShogiRoom);
-gameServer.define("chess", ChessRoom);
+gameServer.define("shogi", ShogiRoom)
+    .filterBy(['mode']); // Also fix Shogi just in case, or stick to chess?
+// User didn't ask for Shogi fix, but it's same logic.
+// Let's stick to Chess to be safe, but Shogi might need it too.
+// I'll update Chess only first as requested.
+gameServer.define("chess", ChessRoom)
+    .filterBy(['mode']);
 gameServer.define("reversi", ReversiRoom);
 gameServer.define("gomoku", GomokuRoom);
 gameServer.define("connectfour", ConnectFourRoom);

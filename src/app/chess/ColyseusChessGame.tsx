@@ -74,12 +74,12 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                 let r: Room;
                 if (mode === 'room') {
                     if (propRoomId) {
-                        r = await client.joinById(propRoomId, { name: playerName });
+                        r = await client.joinById(propRoomId, { name: playerName, mode: 'room' });
                     } else {
-                        r = await client.create("chess", { name: playerName, isPrivate: true });
+                        r = await client.create("chess", { name: playerName, isPrivate: true, mode: 'room' });
                     }
                 } else {
-                    r = await client.joinOrCreate("chess", { name: playerName });
+                    r = await client.joinOrCreate("chess", { name: playerName, mode: 'random' });
                 }
 
                 setRoom(r);
