@@ -171,6 +171,7 @@ export default function ColyseusBackgammonGame({ mode, roomId: initialRoomId, pl
 
             <div className={styles.gameContainer} style={{ maxWidth: '1200px' }}>
                 <div className={styles.header}>
+                    <button onClick={() => { if (roomRef.current) roomRef.current.leave(); window.location.reload(); }} className={styles.backButton}><IconBack size={18} /> 終了</button>
                     <h1 className={styles.compactTitle}>Backgammon</h1>
                     <button onClick={() => setHelpOpen(true)} style={{ marginLeft: 'auto', background: 'none', border: '1px solid #ccc', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer' }}>?</button>
 
