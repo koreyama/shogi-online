@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState, useRef } from 'react';
 import styles from './MancalaBoard.module.css';
 import { BoardState, Player, FIRST_STORE, SECOND_STORE } from '@/lib/mancala/types';

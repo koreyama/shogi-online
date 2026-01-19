@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState, useRef } from 'react';
 import * as Colyseus from 'colyseus.js';
 import styles from './page.module.css';
