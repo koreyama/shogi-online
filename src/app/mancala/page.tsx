@@ -11,7 +11,12 @@ import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import MancalaBoard from '@/components/MancalaBoard';
 import navStyles from '@/styles/GameMenu.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
-import ColyseusMancalaGame from './ColyseusMancalaGame';
+import dynamic from 'next/dynamic';
+
+const ColyseusMancalaGame = dynamic(() => import('./ColyseusMancalaGame'), {
+    ssr: false,
+    loading: () => <div className={navStyles.main}>Loading Game...</div>
+});
 import HideChatBot from '@/components/HideChatBot';
 
 export default function MancalaPage() {
