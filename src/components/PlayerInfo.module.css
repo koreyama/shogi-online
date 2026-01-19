@@ -104,3 +104,54 @@
         opacity: 0.3;
     }
 }
+
+/* PC Optimization: Horizontal Layout */
+@media (min-width: 768px) {
+    .playerInfo {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.8rem 1rem;
+        gap: 1rem;
+    }
+
+    .playerHeader {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+        justify-content: flex-start;
+    }
+
+    .playerRole {
+        order: 1;
+        /* Bring Role to front if desired, or keep as is */
+    }
+
+    .playerName {
+        order: 2;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+    }
+
+    .playerStats {
+        flex: 0 0 auto;
+        gap: 1rem;
+    }
+
+    .statItem {
+        gap: 0.3rem;
+    }
+
+    .turnIndicator {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}
