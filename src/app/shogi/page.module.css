@@ -270,6 +270,26 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.roomIdBadge {
+  margin-left: 1rem;
+  background-color: #f1f5f9;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roomIdText {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
 .backButton:hover {
   background: #f5f5f5;
   border-color: var(--color-text);
