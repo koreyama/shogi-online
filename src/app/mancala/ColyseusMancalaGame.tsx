@@ -56,29 +56,35 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
                 roomRef.current = r;
 
                 r.onStateChange((state) => {
-                    setBoard(Array.from(state.board));
-                    setTurn(state.turn as Player);
+                    try {
+                        if (!state || !state.board) return;
 
-                    if (state.winner !== "") {
-                        setWinner(state.winner as Player | 'draw');
-                        setStatus('finished');
-                    } else if (state.gameStarted) {
-                        setStatus('playing');
-                    } else {
-                        setStatus('waiting');
-                    }
+                        setBoard(Array.from(state.board));
+                        setTurn(state.turn as Player);
 
-                    // Players
-                    const newPlayersInfo = { first: "待機中...", second: "待機中..." };
-                    state.players.forEach((p: any, sessionId: string) => {
-                        if (p.role === "first") newPlayersInfo.first = p.name;
-                        if (p.role === "second") newPlayersInfo.second = p.name;
-
-                        if (sessionId === r.sessionId) {
-                            setMyRole(p.role as Player);
+                        if (state.winner !== "") {
+                            setWinner(state.winner as Player | 'draw');
+                            setStatus('finished');
+                        } else if (state.gameStarted) {
+                            setStatus('playing');
+                        } else {
+                            setStatus('waiting');
                         }
-                    });
-                    setPlayersInfo(newPlayersInfo);
+
+                        // Players
+                        const newPlayersInfo = { first: "待機中...", second: "待機中..." };
+                        state.players.forEach((p: any, sessionId: string) => {
+                            if (p.role === "first") newPlayersInfo.first = p.name;
+                            if (p.role === "second") newPlayersInfo.second = p.name;
+
+                            if (sessionId === r.sessionId) {
+                                setMyRole(p.role as Player);
+                            }
+                        });
+                        setPlayersInfo(newPlayersInfo);
+                    } catch (err) {
+                        console.warn("State update error:", err);
+                    }
                 });
 
                 r.onMessage("chat", (message) => {
