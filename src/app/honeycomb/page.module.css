@@ -272,6 +272,11 @@
 .hexGrid {
     overflow: visible;
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    width: 100%;
+    height: auto;
+    max-width: 600px;
+    display: block;
+    /* Removes SVG gap */
 }
 
 .hex {
@@ -408,7 +413,9 @@
     .hexGrid {
         max-height: 60vh;
         /* Limit height to fit screen */
-        width: auto;
+        width: 100%;
+        /* Ensure full width on mobile */
+        height: auto;
     }
 }
 

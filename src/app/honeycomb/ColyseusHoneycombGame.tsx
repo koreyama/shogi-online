@@ -189,8 +189,8 @@ export default function ColyseusHoneycombGame({ mode, roomId: targetRoomId }: Pr
                         {turn === 1 ? '青の番' : '赤の番'}
                         {turn === myRole && ' (あなた)'}
                     </div>
-                    {/* Increased viewBox for larger HEX_SIZE */}
-                    <svg width="600" height="500" viewBox="-450 -400 900 800" className={styles.hexGrid}>
+                    {/* Responsive SVG with viewBox */}
+                    <svg viewBox="-450 -400 900 800" className={styles.hexGrid}>
                         {hexes.map(hex => {
                             const { x, y } = hexToPixel(hex);
                             const key = getHexKey(hex);
