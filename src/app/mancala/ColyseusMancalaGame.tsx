@@ -95,7 +95,7 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
                 r.onMessage("roomDissolved", () => setShowDissolvedDialog(true));
 
             } catch (e: any) {
-                console.error("Join error:", e);
+                console.warn("Join error:", e);
                 setError("ルームへの参加に失敗しました。");
             }
         };
