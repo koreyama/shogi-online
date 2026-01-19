@@ -117,13 +117,37 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
         window.location.reload();
     };
 
+    // Portrait Check
+    const [isPortrait, setIsPortrait] = useState(false);
+    useEffect(() => {
+        const checkOrientation = () => {
+            // Simple check: height > width and width < 768 (mobile/tablet)
+            setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
+        };
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        return () => window.removeEventListener('resize', checkOrientation);
+    }, []);
+
     if (error) return <div className={styles.main}>{error}</div>;
     if (!room) return <div className={styles.main}>Loading...</div>;
 
-
-
     return (
         <main className={styles.main}>
+            {/* Landscape Enforcement Overlay */}
+            {isPortrait && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center', color: 'white', padding: '20px', textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>↻</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>画面を横向きにしてください</div>
+                    <p style={{ marginTop: '10px', color: '#ccc' }}>マンカラは横画面でのプレイを推奨しています。</p>
+                </div>
+            )}
+
             <div className={styles.header}><button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
             <div className={styles.gameLayout}>
                 <div className={styles.leftPanel}>

@@ -226,51 +226,60 @@
     color: #ffd700;
 }
 
-@media (max-width: 600px) {
+/* Mobile Landscape Optimization */
+@media (max-width: 900px) and (orientation: landscape) {
     .boardContainer {
-        padding: 5px;
-        border-radius: 20px;
-        border-width: 3px;
-        max-width: 98vw;
-    }
-
-    .board {
-        gap: 6px;
+        width: 95vw;
+        height: 70vh;
+        /* Maximize height in landscape */
+        aspect-ratio: auto;
+        /* Allow flexible ratio */
+        padding: 10px;
+        max-width: none;
     }
 
     .pit {
-        width: 15.5%;
+        width: 13%;
+        /* Make pits slightly smaller relative to width to fit */
+    }
+
+    .store {
+        flex: 0 0 12%;
     }
 
     .seedCount {
-        font-size: 0.9rem;
-        top: -8px;
-        right: -8px;
-        padding: 2px 8px;
-        min-width: 20px;
-        text-align: center;
-    }
-
-    .seed {
-        width: 12px;
-        height: 12px;
-    }
-
-    .storeLabel {
-        font-size: 0.7rem;
-        top: 8px;
-        background: rgba(0, 0, 0, 0.4);
+        font-size: 0.8rem;
         padding: 2px 6px;
-        border-radius: 4px;
+        top: -10px;
+        right: -5px;
     }
 
     .playerLabel {
-        display: none;
-        /* Too cluttered on small mobile screens */
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        top: -25px;
     }
 
-    .topLabel,
     .bottomLabel {
-        display: none;
+        bottom: -25px;
+        top: auto;
+    }
+
+    .board {
+        /* Ensure pits don't get too squashed vertically */
+        height: 100%;
+    }
+}
+
+/* Small Mobile Fixes (if portrait forced check fails or on huge tablets) */
+@media (max-width: 600px) {
+    .boardContainer {
+        padding: 10px;
+        width: 98vw;
+    }
+
+    .seedCount {
+        font-size: 0.8rem;
+        padding: 2px 5px;
     }
 }
