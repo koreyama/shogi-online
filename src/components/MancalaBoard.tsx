@@ -47,7 +47,10 @@ const Pit = ({
 
     // Generate seeds for visualization
     const seedElements = [];
-    for (let i = 0; i < seeds; i++) {
+    // Generate seeds for visualization
+    const seedElements = [];
+    const safeSeeds = isNaN(seeds) ? 0 : seeds;
+    for (let i = 0; i < safeSeeds; i++) {
         // Deterministic random based on index and seed index
         // Use a slightly different seed calculation to avoid pattern artifacts
         const seedId = index * 1000 + i;
