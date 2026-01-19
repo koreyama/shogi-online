@@ -91,14 +91,14 @@ export default function ColyseusShogiGame({ mode, roomId: targetRoomId }: Colyse
                     if (mode === 'room') {
                         if (targetRoomId) {
                             console.log(`Joining Room by ID: ${targetRoomId}`);
-                            r = await client.joinById<ShogiSchema>(targetRoomId, { name: currentName });
+                            r = await client.joinById<ShogiSchema>(targetRoomId, { name: currentName, mode: 'room' });
                         } else {
                             console.log("Creating new private room...");
-                            r = await client.create<ShogiSchema>("shogi", { name: currentName, isPrivate: true });
+                            r = await client.create<ShogiSchema>("shogi", { name: currentName, isPrivate: true, mode: 'room' });
                         }
                     } else {
                         console.log("Joining/Creating Random Match...");
-                        r = await client.joinOrCreate<ShogiSchema>("shogi", { name: currentName });
+                        r = await client.joinOrCreate<ShogiSchema>("shogi", { name: currentName, mode: 'random' });
                     }
                 } catch (err: any) {
                     console.error("Matchmaking error:", err);
