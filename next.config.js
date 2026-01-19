@@ -3,5 +3,4 @@ const nextConfig = {
     output: 'standalone',
 };
 
-export default nextConfig;
-// Force rebuild
+module.exports = nextConfig;
