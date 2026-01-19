@@ -13,12 +13,12 @@ export function GoBoard({ board, myColor, isMyTurn, onMove }: GoBoardProps) {
     const { size, grid } = board;
     const [hoverPos, setHoverPos] = useState<{ x: number, y: number } | null>(null);
 
-    // Dynamic grid template
+    // Dynamic grid template - responds to window resize
     const gridStyle = {
         gridTemplateColumns: `repeat(${size}, 1fr)`,
         gridTemplateRows: `repeat(${size}, 1fr)`,
-        width: 'min(90vw, 600px)',
-        height: 'min(90vw, 600px)',
+        width: 'min(80vw, 80vh, 650px)',
+        height: 'min(80vw, 80vh, 650px)',
     };
 
     const handleMouseEnter = (x: number, y: number) => {

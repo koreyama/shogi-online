@@ -268,22 +268,28 @@
 /* Game Layout */
 .gameLayout {
     display: flex;
-    gap: 3rem;
+    flex-wrap: wrap;
+    gap: clamp(1rem, 2vw, 3rem);
     align-items: flex-start;
-    padding: 2rem;
+    justify-content: center;
+    padding: clamp(1rem, 2vw, 2rem);
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 1200px;
 }
 
 .infoPanel {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    min-width: 280px;
+    min-width: 250px;
+    max-width: 320px;
+    flex: 1 1 250px;
     background: white;
-    padding: 2rem;
+    padding: clamp(1rem, 2vw, 2rem);
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
@@ -467,6 +473,14 @@
     }
 }
 
+/* Large screens - side by side layout */
+@media (min-width: 1025px) {
+    .gameLayout {
+        flex-wrap: nowrap;
+    }
+}
+
+/* Medium screens - flexible wrapping */
 @media (max-width: 1024px) {
     .gameLayout {
         flex-direction: column;
@@ -482,9 +496,27 @@
     }
 }
 
+/* Small screens */
 @media (max-width: 600px) {
     .goban {
         padding: 4vw;
-        /* Reduce padding on mobile */
+    }
+
+    .turnIndicator {
+        width: 100%;
+        max-width: 280px;
+        height: auto;
+        min-height: 50px;
+        font-size: 1.2rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+    }
+
+    .actionBtn {
+        flex: 1 1 45%;
+        font-size: 0.85rem;
     }
 }
