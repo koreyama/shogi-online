@@ -155,11 +155,13 @@
     }
 
     .header {
-        padding: 0 1rem;
+        padding: 0 0.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .gameArea {
         width: 100%;
+        gap: 0.5rem;
     }
 
     .playerInfo {
