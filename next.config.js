@@ -1,8 +1,6 @@
-console.log("--- Loading next.config.js ---");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
+    // output: 'standalone', // Disabled for debugging
 };
 
 module.exports = nextConfig;

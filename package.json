@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && echo '--- DEBUG LS .next ---' && ls -F .next && echo '--- DEBUG LS .next/standalone ---' && ls -F .next/standalone || echo 'Standalone not found'",
-    "start": "echo '--- DEBUG START LS .next ---' && ls -F .next && node .next/standalone/server.js",
+    "build": "rm -rf .next && next build && echo '--- DEBUG LS .next ---' && ls -F .next || echo 'Build failed'",
+    "start": "next start",
     "lint": "eslint",
     "pages:build": "npx @cloudflare/next-on-pages"
   },
