@@ -179,7 +179,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                             if (!winner) setWinner(win);
                         }
                     } catch (e) {
-                        console.error("Invalid FEN sync", e);
+                        console.warn("Invalid FEN sync", e);
                     }
                 }
                 setTurn(state.turn === 'w' ? 'white' : 'black');
