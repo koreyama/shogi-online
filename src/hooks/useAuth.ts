@@ -35,7 +35,7 @@ export function useAuth() {
             if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
                 console.warn("Popup closed by user");
             } else {
-                console.error("Error signing in with Google", error);
+                console.warn("Error signing in with Google", error);
             }
         }
     };
@@ -44,7 +44,7 @@ export function useAuth() {
         try {
             await firebaseSignOut(auth);
         } catch (error) {
-            console.error("Error signing out", error);
+            console.warn("Error signing out", error);
         }
     };
 

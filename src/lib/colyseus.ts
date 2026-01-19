@@ -17,7 +17,7 @@ export const joinColyseusRoom = async (roomName: string, options?: any) => {
         console.log("Joined Colyseus room:", room.name, room.sessionId);
         return room;
     } catch (e) {
-        console.error("Failed to join Colyseus room:", e);
+        console.warn("Failed to join Colyseus room:", e);
         throw e;
     }
 };
