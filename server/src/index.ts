@@ -46,7 +46,8 @@ gameServer.define("shogi", ShogiRoom)
     .filterBy(['mode']);
 gameServer.define("chess", ChessRoom)
     .filterBy(['mode']);
-gameServer.define("reversi", ReversiRoom);
+gameServer.define("reversi", ReversiRoom)
+    .filterBy(['mode']);
 gameServer.define("gomoku", GomokuRoom);
 gameServer.define("connectfour", ConnectFourRoom);
 gameServer.define("simpleshogi", SimpleShogiRoom);
