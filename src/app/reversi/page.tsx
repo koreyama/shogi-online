@@ -180,7 +180,6 @@ export default function ReversiPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="random" />
             </main>
         );
@@ -191,7 +190,6 @@ export default function ReversiPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
-                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}>戻る</button></div>
                 <ColyseusReversiGame mode="room" roomId={customRoomId || undefined} />
             </main>
         );
