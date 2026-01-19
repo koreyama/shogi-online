@@ -37,6 +37,18 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
     const roomRef = useRef<Colyseus.Room<any> | null>(null);
 
     useEffect(() => {
+        // Aggressively suppress console.error to prevent Next.js overlay
+        const originalError = console.error;
+        console.error = (...args) => {
+            console.warn("[Suppressed Error]", ...args);
+        };
+
+        return () => {
+            console.error = originalError;
+        };
+    }, []);
+
+    useEffect(() => {
         if (authLoading || !playerLoaded) return;
 
         const init = async () => {
