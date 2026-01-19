@@ -652,24 +652,143 @@
     transform: translateY(0);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+/* Responsive - Enhanced for Mobile */
+@media (max-width: 768px) {
+    .boardContainer {
+        gap: 0.5rem;
+        padding: 0.25rem;
+    }
+
     .board {
-        aspect-ratio: 1/1.6;
-        /* Portrait on mobile */
-        border-width: 10px;
-        padding: 5px;
+        max-width: 100%;
+        aspect-ratio: 1.4;
+        border-width: 8px;
+        padding: 4px;
+        border-radius: 6px;
+    }
+
+    .bar {
+        width: 35px;
+        border-left-width: 1px;
+        border-right-width: 1px;
+    }
+
+    .offBoard {
+        width: 45px;
+        margin-left: 2px;
+        padding: 5px 0;
+        border-left-width: 3px;
+    }
+
+    .offSection {
+        padding: 3px;
+        margin: 3px;
     }
 
     .checker {
         width: 90%;
-        margin: -15% 0;
+        margin: -12% 0;
+        font-size: 0.7rem;
+    }
+
+    .validMoveIndicator {
+        width: 14px;
+        height: 14px;
     }
 
     .controls {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+    }
+
+    .diceContainer {
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .die {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2rem;
+        border-radius: 4px;
+    }
+
+    .turnIndicator {
+        font-size: 0.9rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
         border-radius: 20px;
-        padding: 1rem;
-        gap: 1rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .board {
+        aspect-ratio: 1.2;
+        border-width: 6px;
+        padding: 2px;
+    }
+
+    .bar {
+        width: 28px;
+    }
+
+    .offBoard {
+        width: 35px;
+    }
+
+    .checker {
+        width: 95%;
+        margin: -15% 0;
+        font-size: 0.6rem;
+    }
+
+    .controls {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .die {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+
+    .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Landscape mode optimization for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .boardContainer {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .board {
+        max-width: 85vw;
+        max-height: 85vh;
+        aspect-ratio: 1.6;
+    }
+
+    .controls {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        background: rgba(62, 39, 35, 0.95);
     }
 }
