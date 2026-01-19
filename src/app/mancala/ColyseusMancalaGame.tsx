@@ -11,6 +11,7 @@ import { Chat } from '@/components/Chat';
 import MancalaBoard from '@/components/MancalaBoard';
 import { GameState, Player, BoardState } from '@/lib/mancala/types';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
+import { SuppressErrorBoundary } from '@/components/SuppressErrorBoundary';
 
 interface Props {
     mode: 'random' | 'room';
@@ -201,24 +202,26 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
                 </div>
                 <div className={styles.centerPanel}>
                     <div className={styles.turnIndicator}>
-                        {turn === 'first' ? 'Firstの番 (下)' : 'Secondの番 (上)'}
+                        {turn === 'first' ? `${playersInfo.first}の番 (下)` : `${playersInfo.second}の番 (上)`}
                         {turn === myRole && ' (あなた)'}
                     </div>
-                    <MancalaBoard
-                        board={board}
-                        onPitClick={handlePitClick}
-                        turn={turn}
-                        isMyTurn={turn === myRole}
-                        winner={winner}
-                        myRole={myRole}
-                    />
+                    <SuppressErrorBoundary>
+                        <MancalaBoard
+                            board={board}
+                            onPitClick={handlePitClick}
+                            turn={turn}
+                            isMyTurn={turn === myRole}
+                            winner={winner}
+                            myRole={myRole}
+                        />
+                    </SuppressErrorBoundary>
                 </div>
             </div>
             {status === 'finished' && winner && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <h2>勝負あり！</h2>
-                        <p>勝者: {winner === 'draw' ? '引き分け' : (winner === 'first' ? 'First (下)' : 'Second (上)')}</p>
+                        <p>勝者: {winner === 'draw' ? '引き分け' : (winner === 'first' ? `${playersInfo.first}` : `${playersInfo.second}`)}</p>
                         <button onClick={handleBackToTop} className={styles.primaryBtn}>終了</button>
                     </div>
                 </div>
