@@ -331,6 +331,19 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
 
             <div className={styles.header}>
                 <button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button>
+                {mode === 'room' && room?.roomId && (
+                    <div style={{
+                        marginLeft: '1rem',
+                        padding: '0.3rem 0.8rem',
+                        background: '#f1f5f9',
+                        borderRadius: '6px',
+                        fontSize: '0.9rem',
+                        border: '1px solid #e2e8f0',
+                        color: '#4a5568'
+                    }}>
+                        Room ID: <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{room.roomId}</span>
+                    </div>
+                )}
                 {status === 'playing' && myRole !== 'spectator' && (
                     <button onClick={handleResign} className={styles.resignButton} style={{ marginLeft: 'auto', backgroundColor: '#e53e3e', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.25rem', border: 'none', cursor: 'pointer' }}>
                         投了
