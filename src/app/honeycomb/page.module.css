@@ -272,11 +272,10 @@
 .hexGrid {
     overflow: visible;
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-    width: 100%;
-    height: auto;
-    max-width: 600px;
+    /* PC: Fixed size to match original design */
+    width: 600px;
+    height: 500px;
     display: block;
-    /* Removes SVG gap */
 }
 
 .hex {
@@ -414,8 +413,8 @@
         max-height: 60vh;
         /* Limit height to fit screen */
         width: 100%;
-        /* Ensure full width on mobile */
         height: auto;
+        max-width: 600px;
     }
 }
 
