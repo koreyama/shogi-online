@@ -165,9 +165,34 @@
     }
 
     .playerInfo {
-        flex-direction: column;
-        gap: 1rem;
+        flex-direction: row;
+        gap: 0.5rem;
         width: 100%;
+        justify-content: center;
+    }
+
+    .playerCard {
+        min-width: auto;
+        padding: 0.5rem;
+        flex: 1;
+        max-width: 140px;
+    }
+
+    .playerIcon {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 0px;
+        margin-right: 4px;
+    }
+
+    .playerCard {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .vs {
+        font-size: 1rem;
+        margin: 0 4px;
     }
 
     .statusDisplay {

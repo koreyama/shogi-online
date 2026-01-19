@@ -29,7 +29,7 @@ const COLS = 7;
 
 export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: Props) {
     const { playerName, isLoaded: playerLoaded } = usePlayer();
-    const { loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const [room, setRoom] = useState<Colyseus.Room<ConnectFourSchema> | null>(null);
     const [board, setBoard] = useState<Board>(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
@@ -43,6 +43,7 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
     const [showDissolvedDialog, setShowDissolvedDialog] = useState(false);
 
     const roomRef = useRef<Colyseus.Room<ConnectFourSchema> | null>(null);
+    const dataEffectCalled = useRef(false);
 
     // Convert Server 1D (0,1,2) -> Client 2D ('red','yellow',null)
     const updateBoard = (serverBoard: number[]) => {
@@ -56,19 +57,9 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
             }
         }
         setBoard(newBoard);
-        calculateWinningLine(newBoard);
     };
 
-    // Client-side visual calculation
-    const calculateWinningLine = (board: Board) => {
-        // We can use the checkWinner logic from engine if exported,
-        // but simpler to minimal copy for visual ONLY.
-        // Actually, if winner is set, we find the line.
-        // Let's defer this specific check or use heuristic:
-        // If a winner exists, scan board for 4 connected of that color.
-    };
-
-    // Better: Helper function to find winning line
+    // Helper function to find winning line
     const findWinningLine = (board: Board, player: Player): Coordinates[] | null => {
         const directions = [
             { r: 0, c: 1 }, { r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: -1 }
@@ -95,18 +86,34 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
 
     useEffect(() => {
         if (authLoading || !playerLoaded) return;
+        if (dataEffectCalled.current) return;
+        dataEffectCalled.current = true;
 
         const init = async () => {
             try {
+                // Fetch User Profile Name dynamically
+                let currentName = playerName || "Player";
+                if (user?.uid) {
+                    try {
+                        const { getUserProfile } = await import('@/lib/firebase/users');
+                        const profile = await getUserProfile(user.uid);
+                        if (profile?.displayName) {
+                            currentName = profile.displayName;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch user profile:", e);
+                    }
+                }
+
                 let r: Colyseus.Room<ConnectFourSchema>;
                 if (mode === 'room') {
                     if (targetRoomId) {
-                        r = await client.joinById(targetRoomId, { name: playerName });
+                        r = await client.joinById(targetRoomId, { name: currentName });
                     } else {
-                        r = await client.create("connectfour", { name: playerName, isPrivate: true });
+                        r = await client.create("connectfour", { name: currentName, isPrivate: true });
                     }
                 } else {
-                    r = await client.joinOrCreate("connectfour", { name: playerName });
+                    r = await client.joinOrCreate("connectfour", { name: currentName });
                 }
 
                 setRoom(r);
@@ -132,22 +139,9 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
                         setWinner(state.winner === 'draw' ? 'draw' : state.winner as Player);
                         setStatus('finished');
                         soundManager.playWinSound();
-                        if (state.winner !== 'draw') {
-                            // Wait for board update to finish, then calc line?
-                            // updateBoard is synchronous state set.
-                            // We should pass board to findWinningLine.
-                            // But state.board is 1D.
-                            // We need to pass the CONVERTED board.
-                            // updateBoard does that, but setBoard is async.
-                            // We should split updateBoard logic.
-                            // For now, let's trigger it in a separate effect or just run it here on 2D converted.
-                        }
-                    } else if (state.isDraw) { // Note state.winner probably handles draw string too in schema? I used string.
-                        // My schema has isDraw boolean.
-                        if (state.isDraw) {
-                            setWinner('draw');
-                            setStatus('finished');
-                        }
+                    } else if (state.isDraw) {
+                        setWinner('draw');
+                        setStatus('finished');
                     } else if (state.gameStarted) {
                         if (status !== 'playing') {
                             setStatus('playing');
@@ -194,17 +188,18 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
     };
 
     if (error) return <div className={styles.main}>{error}</div>;
-    if (!room) return <div className={styles.main}>読み込み中...</div>;
 
     return (
         <div className={styles.main}>
-            <div className={styles.header}>
-                <button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button>
-                <div className={styles.headerContent}>
-                    <h1 className={styles.title}>Connect Four</h1>
-                    <div className={styles.roomBadge}>ID: {room.roomId}</div>
+            {status !== 'waiting' && status !== 'connecting' && (
+                <div className={styles.header}>
+                    <button onClick={handleBackToTop} className={styles.backButton}><IconBack size={18} /> 終了</button>
+                    <div className={styles.headerContent}>
+                        <h1 className={styles.title} style={{ fontSize: '1.2rem', margin: 0 }}>Connect Four</h1>
+                        {room?.roomId && <div className={styles.roomBadge}>ID: {room.roomId}</div>}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className={styles.gameArea}>
                 <div className={styles.playerInfo}>
@@ -232,8 +227,6 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
                 />
 
                 <div className={styles.statusDisplay}>
-                    {status === 'waiting' && "対戦相手を待っています..."}
-                    {status === 'playing' && (turn === myRole ? "あなたの番です！" : "相手の番です")}
                     {status === 'finished' && (
                         winner === 'draw' ? "引き分け！" : `${winner === 'red' ? '赤' : '黄'} の勝ち！`
                     )}
@@ -248,7 +241,7 @@ export default function ColyseusConnectFourGame({ mode, roomId: targetRoomId }: 
                     </div>
                 </div>
             )}
-            {/* Matching Screen Overlay */}
+
             {(status === 'waiting' || status === 'connecting') && (
                 <MatchingWaitingScreen
                     status={status}
