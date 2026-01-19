@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import * as Colyseus from 'colyseus.js';
 import styles from './page.module.css';
 import { client } from '@/lib/colyseus';
-import { Room } from 'colyseus.js';
 import { Chess } from 'chess.js';
 import ChessBoard from '@/components/ChessBoard';
-import { IconHourglass, IconBack } from '@/components/Icons';
+import { IconBack } from '@/components/Icons';
 import { Chat } from '@/components/Chat';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -37,18 +37,28 @@ interface ColyseusChessGameProps {
     roomId?: string;
 }
 
-export default function ColyseusChessGame({ mode, roomId: propRoomId }: ColyseusChessGameProps) {
-    // Use passed props for player info to avoid race conditions
+interface ChessSchema {
+    players: any; // MapSchema
+    fen: string;
+    turn: string;
+    winner: string;
+    isGameOver: boolean;
+    lastMove: string;
+    isCheck: boolean;
+}
+
+export default function ColyseusChessGame({ mode, roomId: targetRoomId }: ColyseusChessGameProps) {
     const { playerName, isLoaded: playerLoaded } = usePlayer();
-    const { loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     // Core State
-    const [room, setRoom] = useState<Room | null>(null);
+    const [room, setRoom] = useState<Colyseus.Room<ChessSchema> | null>(null);
     const [chess] = useState(new Chess()); // Single instance
     const [board, setBoard] = useState<any>(mapChessJsBoardToUI(chess));
     const [myRole, setMyRole] = useState<'white' | 'black' | 'spectator'>('spectator');
     const [status, setStatus] = useState<'connecting' | 'waiting' | 'playing' | 'finished'>('connecting');
     const [error, setError] = useState<string | null>(null);
+    const [sessionId, setSessionId] = useState<string>("");
 
     // Game State
     const [selectedPos, setSelectedPos] = useState<{ x: number, y: number } | null>(null);
@@ -62,7 +72,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
 
     // Refs
     const dataEffectCalled = useRef(false);
-    const roomRef = useRef<Room | null>(null);
+    const roomRef = useRef<Colyseus.Room<ChessSchema> | null>(null);
 
     useEffect(() => {
         if (authLoading || !playerLoaded) return;
@@ -71,28 +81,108 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
 
         const connect = async () => {
             try {
-                let r: Room;
-                if (mode === 'room') {
-                    if (propRoomId) {
-                        r = await client.joinById(propRoomId, { name: playerName, mode: 'room' });
-                    } else {
-                        r = await client.create("chess", { name: playerName, isPrivate: true, mode: 'room' });
+                // Fetch User Profile Name dynamically (like Shogi)
+                let currentName = playerName || "Player";
+                if (user?.uid) {
+                    try {
+                        const { getUserProfile } = await import('@/lib/firebase/users');
+                        const profile = await getUserProfile(user.uid);
+                        if (profile?.displayName) {
+                            currentName = profile.displayName;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch user profile:", e);
                     }
-                } else {
-                    r = await client.joinOrCreate("chess", { name: playerName, mode: 'random' });
+                }
+
+                let r: Colyseus.Room<ChessSchema>;
+
+                try {
+                    if (mode === 'room') {
+                        if (targetRoomId) {
+                            console.log(`Joining Room by ID: ${targetRoomId}`);
+                            r = await client.joinById<ChessSchema>(targetRoomId, { name: currentName, mode: 'room' });
+                        } else {
+                            console.log("Creating new private room...");
+                            r = await client.create<ChessSchema>("chess", { name: currentName, isPrivate: true, mode: 'room' });
+                        }
+                    } else {
+                        console.log("Joining/Creating Random Match...");
+                        r = await client.joinOrCreate<ChessSchema>("chess", { name: currentName, mode: 'random' });
+                    }
+                } catch (err: any) {
+                    console.error("Matchmaking error:", err);
+                    if (err.message && (err.message.includes("not found") || err.message.includes("Room not found"))) {
+                        throw new Error("指定されたルームが見つかりませんでした。");
+                    }
+                    throw err;
                 }
 
                 setRoom(r);
                 roomRef.current = r;
+                setSessionId(r.sessionId);
                 console.log("Joined Chess room:", r.roomId);
 
-                // Initial State Sync
-                if (r.state.players) {
-                    updateState(r.state, r.sessionId);
-                }
+                // Initial State Sync is handled by onStateChange immediately usually, 
+                // but we can manually trigger if needed. Shogi relies on onStateChange.
 
                 r.onStateChange((state: any) => {
-                    updateState(state, r.sessionId);
+                    // console.log("State Change:", state);
+                    try {
+                        // Sync FEN
+                        if (state.fen) {
+                            const currentFen = chess.fen();
+                            if (currentFen !== state.fen) {
+                                // Validate FEN
+                                if (!state.fen || typeof state.fen !== 'string') {
+                                    console.warn("Invalid FEN from server:", state.fen);
+                                } else {
+                                    try {
+                                        chess.load(state.fen);
+                                        setBoard(mapChessJsBoardToUI(chess));
+                                    } catch (e) {
+                                        console.warn("Failed to load FEN:", state.fen, e);
+                                    }
+                                }
+                            }
+                            setInCheck(state.isCheck || chess.inCheck());
+                        }
+
+                        setTurn(state.turn === 'w' ? 'white' : 'black');
+
+                        // Players
+                        if (state.players && typeof state.players.forEach === 'function') {
+                            const newPlayersInfo = { white: "Waiting...", black: "Waiting..." };
+                            let w = false, b = false;
+
+                            state.players.forEach((p: any) => {
+                                if (p.color === 'w') {
+                                    w = true;
+                                    newPlayersInfo.white = p.name || "Unknown";
+                                }
+                                if (p.color === 'b') {
+                                    b = true;
+                                    newPlayersInfo.black = p.name || "Unknown";
+                                }
+                                if (p.id === r.sessionId) {
+                                    setMyRole(p.color === 'w' ? 'white' : p.color === 'b' ? 'black' : 'spectator');
+                                }
+                            });
+                            setPlayersInfo(newPlayersInfo);
+
+                            // Status
+                            if (state.isGameOver) {
+                                setStatus('finished');
+                                setWinner(state.winner === 'w' ? 'white' : state.winner === 'b' ? 'black' : 'draw');
+                            } else if (w && b) {
+                                setStatus('playing');
+                            } else {
+                                setStatus('waiting');
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Error in onStateChange:", e);
+                    }
                 });
 
                 r.onMessage("gameStart", (msg: any) => {
@@ -119,103 +209,16 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                 });
 
             } catch (e: any) {
-                console.warn("Connection failed raw:", e);
-                // Attempt to extract meaningful error info
-                let errorDetails = "";
-                if (e instanceof Error) {
-                    errorDetails = e.message;
-                    console.warn("Connection failed Error:", e.name, e.message, e.stack);
-                } else if (e instanceof CloseEvent) { // WebSocket close
-                    errorDetails = `WebSocket Closed: Code=${e.code}, Reason=${e.reason}`;
-                    console.warn("Connection failed CloseEvent:", e.code, e.reason);
-                } else {
-                    errorDetails = JSON.stringify(e);
-                    console.warn("Connection failed Unknown:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+                console.warn("Connection failed:", e);
+                let errorMsg = "サーバーに接続できませんでした。";
+                if (e instanceof Error) errorMsg += " " + e.message;
+                else if (typeof e === 'string') errorMsg += " " + e;
+
+                if (JSON.stringify(e).includes("locked")) {
+                    errorMsg = "ルームが満員か、ロックされています。";
                 }
 
-                let msg = "接続に失敗しました。";
-                if (errorDetails.includes("locked")) {
-                    msg = "ルームが満員か、ロックされています。";
-                }
-
-                // Show detailed error in UI for debugging
-                setError(`${msg} (${errorDetails})`);
-            }
-        };
-
-        const updateState = (state: any, sessionId: string) => {
-            try {
-                // Sync FEN & Turn
-                if (state.fen) {
-                    try {
-                        const currentFen = chess.fen();
-                        if (currentFen !== state.fen) {
-                            console.log("Syncing FEN:", state.fen);
-                            if (!state.fen || typeof state.fen !== 'string') {
-                                console.warn("Received invalid FEN (empty or non-string):", state.fen);
-                                return;
-                            }
-                            // Attempt to validate/load
-                            try {
-                                // chess.js v1+ throws on invalid load
-                                chess.load(state.fen);
-                            } catch (e) {
-                                console.warn("chess.load failed for FEN:", state.fen, e);
-                                return; // Stop here to avoid mapChessJsBoardToUI error
-                            }
-                            setBoard(mapChessJsBoardToUI(chess));
-                        }
-
-                        // Check state (always check after load)
-                        setInCheck(chess.inCheck());
-
-                        // Check local game over after sync
-                        if (chess.isGameOver()) {
-                            setStatus('finished');
-                            let win = 'draw';
-                            if (chess.isCheckmate()) {
-                                win = chess.turn() === 'w' ? 'black' : 'white';
-                            }
-                            if (!winner) setWinner(win);
-                        }
-                    } catch (e) {
-                        console.warn("Invalid FEN sync", e);
-                    }
-                }
-                setTurn(state.turn === 'w' ? 'white' : 'black');
-
-                // Determine Role & Player Info
-                if (state.players && typeof state.players.forEach === 'function') {
-                    const newPlayersInfo = { white: "Waiting...", black: "Waiting..." };
-                    let w = false, b = false;
-
-                    state.players.forEach((p: any) => {
-                        if (p.color === 'w') {
-                            w = true;
-                            newPlayersInfo.white = p.name || "Unknown";
-                        }
-                        if (p.color === 'b') {
-                            b = true;
-                            newPlayersInfo.black = p.name || "Unknown";
-                        }
-                        if (p.id === sessionId) {
-                            setMyRole(p.color === 'w' ? 'white' : p.color === 'b' ? 'black' : 'spectator');
-                        }
-                    });
-                    setPlayersInfo(newPlayersInfo);
-
-                    // Determine Status
-                    if (state.isGameOver) {
-                        setStatus('finished');
-                        setWinner(state.winner === 'w' ? 'white' : state.winner === 'b' ? 'black' : 'draw');
-                    } else if (w && b && !chess.isGameOver()) {
-                        setStatus('playing');
-                    } else if (!w || !b) {
-                        setStatus('waiting');
-                    }
-                }
-            } catch (e) {
-                console.warn("Error updating state", e);
+                setError(errorMsg);
             }
         };
 
@@ -227,7 +230,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                 roomRef.current = null;
             }
         };
-    }, [mode, propRoomId, playerName, authLoading, playerLoaded]);
+    }, [mode, targetRoomId, playerName, authLoading, playerLoaded]);
 
     const handleCellClick = (x: number, y: number) => {
         if (status === 'connecting') return;
@@ -246,9 +249,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
             const file = String.fromCharCode(97 + x);
             const square = `${file}${rank}` as any;
 
-            // Generate legal moves only
             const moves = chess.moves({ square, verbose: true });
-
             const validCoords = moves.map(m => {
                 const tx = m.to.charCodeAt(0) - 97;
                 const ty = 8 - parseInt(m.to[1]);
@@ -269,22 +270,17 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                 const from = `${fromFile}${fromRank}`;
                 const to = `${toFile}${toRank}`;
 
-                // Validate locally first via chess.js to ensure no illegal moves (like King suicide)
-                // Although 'validMoves' are generation based, a double check doesn't hurt, 
-                // but 'chess.moves' above ALREADY respects check.
-                // The issue of "King suicide" usually happens if using raw logic without chess.js validation.
-                // Here we rely on `chess.moves` which is correct.
-
                 room?.send("move", { from, to });
 
                 // Optimistic Update
                 try {
                     chess.move({ from, to, promotion: 'q' });
                     setBoard(mapChessJsBoardToUI(chess));
-                    setInCheck(chess.inCheck()); // Update check status immediately
+                    setInCheck(chess.inCheck());
 
                     if (chess.isGameOver()) {
-                        setStatus('finished');
+                        // Wait for server state usually, but local check is fine
+                        // setStatus('finished'); // Let server confirm
                     }
                 } catch (e) {
                     console.warn("Client move error", e);
