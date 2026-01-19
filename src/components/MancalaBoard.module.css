@@ -11,8 +11,8 @@
     border-radius: 50px;
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.5),
-        inset 0 -5px 15px rgba(0, 0, 0, 0.3),
-        width: 98vw;
+        inset 0 -5px 15px rgba(0, 0, 0, 0.3);
+    width: 98vw;
     max-width: 1400px;
     height: 85vh;
     margin: 0 auto;
