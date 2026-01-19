@@ -19,7 +19,7 @@ interface Props {
 
 export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Props) {
     const { playerName, isLoaded: playerLoaded } = usePlayer();
-    const { loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [room, setRoom] = useState<Colyseus.Room<any> | null>(null);
 
     // Game State
@@ -41,15 +41,29 @@ export default function ColyseusMancalaGame({ mode, roomId: targetRoomId }: Prop
 
         const init = async () => {
             try {
+                // Fetch User Profile Name dynamically
+                let currentName = playerName || "Player";
+                if (user?.uid) {
+                    try {
+                        const { getUserProfile } = await import('@/lib/firebase/users');
+                        const profile = await getUserProfile(user.uid);
+                        if (profile?.displayName) {
+                            currentName = profile.displayName;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch user profile:", e);
+                    }
+                }
+
                 let r: Colyseus.Room<any>;
                 if (mode === 'room') {
                     if (targetRoomId) {
-                        r = await client.joinById(targetRoomId, { name: playerName });
+                        r = await client.joinById(targetRoomId, { name: currentName });
                     } else {
-                        r = await client.create("mancala", { name: playerName, isPrivate: true });
+                        r = await client.create("mancala", { name: currentName, isPrivate: true });
                     }
                 } else {
-                    r = await client.joinOrCreate("mancala", { name: playerName });
+                    r = await client.joinOrCreate("mancala", { name: currentName });
                 }
 
                 setRoom(r);
