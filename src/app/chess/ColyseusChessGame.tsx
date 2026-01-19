@@ -151,7 +151,18 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                         const currentFen = chess.fen();
                         if (currentFen !== state.fen) {
                             console.log("Syncing FEN:", state.fen);
-                            chess.load(state.fen);
+                            if (!state.fen || typeof state.fen !== 'string') {
+                                console.warn("Received invalid FEN (empty or non-string):", state.fen);
+                                return;
+                            }
+                            // Attempt to validate/load
+                            try {
+                                // chess.js v1+ throws on invalid load
+                                chess.load(state.fen);
+                            } catch (e) {
+                                console.warn("chess.load failed for FEN:", state.fen, e);
+                                return; // Stop here to avoid mapChessJsBoardToUI error
+                            }
                             setBoard(mapChessJsBoardToUI(chess));
                         }
 
