@@ -119,18 +119,18 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                 });
 
             } catch (e: any) {
-                console.error("Connection failed raw:", e);
+                console.warn("Connection failed raw:", e);
                 // Attempt to extract meaningful error info
                 let errorDetails = "";
                 if (e instanceof Error) {
                     errorDetails = e.message;
-                    console.error("Connection failed Error:", e.name, e.message, e.stack);
+                    console.warn("Connection failed Error:", e.name, e.message, e.stack);
                 } else if (e instanceof CloseEvent) { // WebSocket close
                     errorDetails = `WebSocket Closed: Code=${e.code}, Reason=${e.reason}`;
-                    console.error("Connection failed CloseEvent:", e.code, e.reason);
+                    console.warn("Connection failed CloseEvent:", e.code, e.reason);
                 } else {
                     errorDetails = JSON.stringify(e);
-                    console.error("Connection failed Unknown:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+                    console.warn("Connection failed Unknown:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
                 }
 
                 let msg = "接続に失敗しました。";
@@ -215,7 +215,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                     }
                 }
             } catch (e) {
-                console.error("Error updating state", e);
+                console.warn("Error updating state", e);
             }
         };
 
@@ -287,7 +287,7 @@ export default function ColyseusChessGame({ mode, roomId: propRoomId }: Colyseus
                         setStatus('finished');
                     }
                 } catch (e) {
-                    console.error("Client move error", e);
+                    console.warn("Client move error", e);
                 }
 
                 setSelectedPos(null);
