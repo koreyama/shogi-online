@@ -1,0 +1,41 @@
+/* LandingPage.module.css */
+
+.navRight {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+    flex-shrink: 0;
+}
+
+.desktopOnly {
+    display: flex;
+    align-items: center;
+    gap: inherit;
+}
+
+/* Hide extra links on mobile */
+@media (max-width: 768px) {
+    .desktopOnly {
+        display: none;
+    }
+}
+
+/* Drawer styles */
+.drawerFooterLinks {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    border-top: 1px solid #edf2f7;
+    background: #f8fafc;
+}
+
+.drawerLink {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #4a5568;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}

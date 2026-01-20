@@ -11,6 +11,7 @@ import {
 import { FloatingShapes } from './FloatingShapes';
 import { RegisteredUserCount } from '@/components/RegisteredUserCount';
 import Image from 'next/image';
+import styles from './LandingPage.module.css';
 
 // Local Definitions
 const IconStockLocal = ({ size = 24 }: { size?: number }) => (
@@ -181,16 +182,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         <span style={{ whiteSpace: 'nowrap' }}>Asobi Lounge</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1.5rem)', flexShrink: 0 }}>
-                    <Link href="/about" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
-                        About
-                    </Link>
-                    <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#5865F2' }} title="Discord Community">
-                        <IconDiscord size={24} color="#5865F2" />
-                    </a>
-                    <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'black' }} title="Official X (Twitter)">
-                        <IconXLogo size={20} color="black" />
-                    </a>
+                import styles from './LandingPage.module.css';
+
+                // ... (existing imports)
+
+                // ...
+
+                <div className={styles.navRight}>
+                    <div className={styles.desktopOnly}>
+                        <Link href="/about" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
+                            About
+                        </Link>
+                        <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#5865F2' }} title="Discord Community">
+                            <IconDiscord size={24} color="#5865F2" />
+                        </a>
+                        <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'black' }} title="Official X (Twitter)">
+                            <IconXLogo size={20} color="black" />
+                        </a>
+                    </div>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -312,6 +321,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                     </motion.div>
                                 ))}
                             </div>
+                            <div className={styles.drawerFooterLinks}>
+                                <Link href="/about" className={styles.drawerLink}>
+                                    About
+                                </Link>
+                                <a href="https://discord.gg/gj7fvCBzHg" target="_blank" rel="noopener noreferrer" className={styles.drawerLink} title="Discord">
+                                    <IconDiscord size={24} color="#5865F2" />
+                                </a>
+                                <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" className={styles.drawerLink} title="X (Twitter)">
+                                    <IconXLogo size={20} color="black" />
+                                </a>
+                            </div>
+
                             <div style={{ padding: '2rem', borderTop: '1px solid #edf2f7', background: '#f8fafc' }}>
                                 <button
                                     onClick={onLogin}
