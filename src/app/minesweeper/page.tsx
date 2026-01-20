@@ -175,19 +175,12 @@ export default function MinesweeperPage() {
                 <div className={styles.gameContainer}>
                     {menuView === 'top' && (
                         <>
-                            <h2 className={styles.subtitle} style={{ marginTop: '0', marginBottom: '1rem' }}>難易度選択</h2>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2.5rem', background: 'white', padding: '0.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                            <h2 className={styles.subtitle} style={{ marginTop: '0', marginBottom: '1.5rem' }}>難易度選択</h2>
+                            <div className={gameStyles.difficultySelector}>
                                 {Object.values(DIFFICULTIES).map((diff) => (
                                     <button
                                         key={diff.name}
-                                        className={styles.secondaryBtn}
-                                        style={{
-                                            background: difficulty.name === diff.name ? 'var(--theme-primary)' : 'transparent',
-                                            color: difficulty.name === diff.name ? 'white' : 'var(--theme-secondary)',
-                                            border: 'none',
-                                            boxShadow: difficulty.name === diff.name ? '0 4px 6px rgba(0,0,0,0.1)' : 'none',
-                                            minWidth: '80px'
-                                        }}
+                                        className={`${gameStyles.difficultyOption} ${difficulty.name === diff.name ? gameStyles.active : ''}`}
                                         onClick={() => setDifficulty(diff)}
                                     >
                                         {diff.name}
