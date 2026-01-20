@@ -654,8 +654,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     >
                         Googleでログイン
                     </button>
-                    <div style={{ marginTop: '4rem', opacity: 0.6, fontSize: '0.9rem' }}>
-                        &copy; {new Date().getFullYear()} Asobi Lounge. All rights reserved.
+                    <div style={{ marginTop: '4rem', opacity: 0.6, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <Link href="/privacy" style={{ color: 'white', textDecoration: 'underline' }}>プライバシーポリシー</Link>
+                            <Link href="/terms" style={{ color: 'white', textDecoration: 'underline' }}>利用規約</Link>
+                            <Link href="/contact" style={{ color: 'white', textDecoration: 'underline' }}>お問い合わせ</Link>
+                        </div>
+                        <div>
+                            &copy; {new Date().getFullYear()} Asobi Lounge. All rights reserved.
+                        </div>
                     </div>
                 </motion.div>
             </section>
