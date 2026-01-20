@@ -156,17 +156,16 @@ export default function MinesweeperPage() {
         return (
             <main className={styles.main} style={MINESWEEPER_THEME}>
                 <FloatingShapes />
-                <div className={styles.header} style={{ position: 'relative', justifyContent: 'center' }}>
+                <div className={gameStyles.header}>
                     <button
                         onClick={() => menuView === 'top' ? router.push('/') : setMenuView('top')}
-                        className={styles.backButton}
-                        style={{ position: 'absolute', left: 0 }}
+                        className={gameStyles.backButton}
                     >
                         <IconBack size={18} /> 戻る
                     </button>
-                    <div style={{ textAlign: 'center' }}>
-                        <h1 className={styles.title}>マインスイーパー</h1>
-                        <p className={styles.subtitle}>
+                    <div className={gameStyles.headerContent}>
+                        <h1 className={gameStyles.title}>マインスイーパー</h1>
+                        <p className={gameStyles.subtitle}>
                             {menuView === 'room_select' ? 'ルーム作成・参加' : '難易度を選択してモードを開始'}
                         </p>
                     </div>
@@ -188,29 +187,29 @@ export default function MinesweeperPage() {
                                 ))}
                             </div>
 
-                            <div className={styles.modeSelection}>
-                                <button onClick={startSinglePlayer} className={styles.modeBtn}>
-                                    <div className={styles.modeBtnIcon}>
+                            <div className={gameStyles.modeSelection}>
+                                <button onClick={startSinglePlayer} className={gameStyles.modeBtn}>
+                                    <div className={gameStyles.modeBtnIcon}>
                                         <IconUser size={48} />
                                     </div>
-                                    <span className={styles.modeBtnTitle}>シングルプレイ</span>
-                                    <span className={styles.modeBtnDesc}>ランキング対応</span>
+                                    <span className={gameStyles.modeBtnTitle}>シングルプレイ</span>
+                                    <span className={gameStyles.modeBtnDesc}>ランキング対応</span>
                                 </button>
 
-                                <button onClick={startMultiplayerRandom} className={styles.modeBtn}>
-                                    <div className={styles.modeBtnIcon}>
+                                <button onClick={startMultiplayerRandom} className={gameStyles.modeBtn}>
+                                    <div className={gameStyles.modeBtnIcon}>
                                         <IconDice size={48} />
                                     </div>
-                                    <span className={styles.modeBtnTitle}>ランダム対戦</span>
-                                    <span className={styles.modeBtnDesc}>早解き勝負</span>
+                                    <span className={gameStyles.modeBtnTitle}>ランダム対戦</span>
+                                    <span className={gameStyles.modeBtnDesc}>早解き勝負</span>
                                 </button>
 
-                                <button onClick={() => setMenuView('room_select')} className={styles.modeBtn}>
-                                    <div className={styles.modeBtnIcon}>
+                                <button onClick={() => setMenuView('room_select')} className={gameStyles.modeBtn}>
+                                    <div className={gameStyles.modeBtnIcon}>
                                         <IconKey size={48} />
                                     </div>
-                                    <span className={styles.modeBtnTitle}>ルーム対戦</span>
-                                    <span className={styles.modeBtnDesc}>友達と対戦</span>
+                                    <span className={gameStyles.modeBtnTitle}>ルーム対戦</span>
+                                    <span className={gameStyles.modeBtnDesc}>友達と対戦</span>
                                 </button>
                             </div>
                         </>
