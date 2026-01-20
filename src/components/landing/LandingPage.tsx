@@ -182,12 +182,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         <span style={{ whiteSpace: 'nowrap' }}>Asobi Lounge</span>
                     </div>
                 </div>
-                import styles from './LandingPage.module.css';
-
-                // ... (existing imports)
-
-                // ...
-
                 <div className={styles.navRight}>
                     <div className={styles.desktopOnly}>
                         <Link href="/about" style={{ fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)', color: '#4a5568', textDecoration: 'none', fontWeight: 600 }}>
