@@ -18,7 +18,8 @@ export default function GoPage() {
     const [mode, setMode] = useState<GameMode>('select');
     const [roomIdInput, setRoomIdInput] = useState('');
     const [showRoomInput, setShowRoomInput] = useState(false);
-    const [profileName, setProfileName] = useState<string>("Guest");
+    const [profileName, setProfileName] = useState<string | null>(null);
+    const [profileLoading, setProfileLoading] = useState(true);
 
     // Fetch profile name from Firestore
     useEffect(() => {
@@ -29,19 +30,26 @@ export default function GoPage() {
                     const profile = await getUserProfile(user.uid);
                     if (profile?.displayName) {
                         setProfileName(profile.displayName);
+                    } else {
+                        setProfileName("Guest");
                     }
                 } catch (e) {
                     console.warn("Failed to fetch user profile:", e);
+                    setProfileName("Guest");
                 }
+            } else {
+                setProfileName("Guest");
             }
+            setProfileLoading(false);
         };
         if (!authLoading) {
             fetchProfile();
         }
     }, [user, authLoading]);
 
-    const userName = profileName;
+    const userName = profileName || "Guest";
     const userId = user?.uid || "guest-" + Math.floor(Math.random() * 10000);
+    const isLoading = authLoading || profileLoading;
 
     const handleBack = () => {
         if (mode !== 'select') {
@@ -82,8 +90,19 @@ export default function GoPage() {
     }
 
     if (mode === 'online-random' || mode === 'online-room') {
+        // Wait for profile to load before starting game
+        if (isLoading) {
+            return (
+                <main className={navStyles.main}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <p>Loading...</p>
+                    </div>
+                </main>
+            );
+        }
+
         return (
-            <main className={navStyles.main}>
+            <main className={navStyles.main} style={{ padding: 0 }}>
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={navStyles.header}>
@@ -91,7 +110,7 @@ export default function GoPage() {
                         <IconBack size={18} /> 終了
                     </button>
                 </div>
-                <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '100vw', display: 'flex', justifyContent: 'center', overflow: 'visible' }}>
+                <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: '0 1rem', boxSizing: 'border-box' }}>
                     <ColyseusGoGame
                         mode={mode === 'online-random' ? 'random' : 'room'}
                         roomId={mode === 'online-room' && roomIdInput ? roomIdInput : undefined}
