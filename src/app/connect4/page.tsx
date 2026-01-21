@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import navStyles from '@/styles/GameMenu.module.css';
+import gameStyles from './page.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -107,32 +108,36 @@ export default function ConnectFourPage() {
                     </div>
                 </div>
 
-                <div className={navStyles.gameArea}>
-                    <div className={navStyles.playerInfo}>
-                        <div className={`${navStyles.playerCard} ${gameState.turn === 'red' ? navStyles.active : ''}`}>
-                            <div className={`${navStyles.playerIcon} ${navStyles.redIcon}`} />
-                            <span className={navStyles.playerName}>あなた (赤)</span>
-                        </div>
-                        <div className={navStyles.vs}>VS</div>
-                        <div className={`${navStyles.playerCard} ${gameState.turn === 'yellow' ? navStyles.active : ''}`}>
-                            <div className={`${navStyles.playerIcon} ${navStyles.yellowIcon}`} />
-                            <span className={navStyles.playerName}>AI (黄)</span>
+                <div className={gameStyles.gameLayout}>
+                    <div className={gameStyles.leftPanel}>
+                        <div className={gameStyles.playersSection}>
+                            {/* AI (Yellow) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'yellow' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>AI (黄色)</div>
+                                <div className={gameStyles.playerRole}>後攻</div>
+                                {gameState.turn === 'yellow' && <div className={gameStyles.turnBadge}>思考中...</div>}
+                            </div>
+
+                            {/* Player (Red) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'red' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>あなた (赤色)</div>
+                                <div className={gameStyles.playerRole}>先攻</div>
+                                {gameState.turn === 'red' && <div className={gameStyles.turnBadge}>あなたの番</div>}
+                            </div>
                         </div>
                     </div>
 
-                    <Connect4Board
-                        board={gameState.board}
-                        onColumnClick={handleLocalClick}
-                        turn={gameState.turn}
-                        isMyTurn={gameState.turn === 'red' && aiStatus === 'playing'}
-                        myRole="red"
-                        winner={gameState.winner}
-                        winningLine={gameState.winningLine}
-                    />
-
-                    <div className={navStyles.statusDisplay}>
-                        {aiStatus === 'playing' ? (gameState.turn === 'red' ? "あなたの番です" : "AIが思考中...") :
-                            (gameState.winner === 'draw' ? "引き分け！" : `${gameState.winner === 'red' ? 'あなたの勝ち！' : 'AIの勝ち！'}`)}
+                    <div className={gameStyles.centerPanel}>
+                        <Connect4Board
+                            board={gameState.board}
+                            onColumnClick={handleLocalClick}
+                            turn={gameState.turn}
+                            isMyTurn={gameState.turn === 'red' && aiStatus === 'playing'}
+                            myRole="red"
+                            winner={gameState.winner}
+                            winningLine={gameState.winningLine}
+                        />
+                        {/* Status text removed as it's now redundant with badges, or keep it subtle? Badges are better. */}
                     </div>
                 </div>
             </main>

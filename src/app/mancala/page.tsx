@@ -10,6 +10,7 @@ import { getBestMove } from '@/lib/mancala/ai';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import MancalaBoard from '@/components/MancalaBoard';
 import navStyles from '@/styles/GameMenu.module.css';
+import gameStyles from './page.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import dynamic from 'next/dynamic';
 
@@ -99,28 +100,42 @@ export default function MancalaPage() {
 
     if (joinMode === 'ai') {
         return (
-            <main className={navStyles.main}>
+            <main className={`${navStyles.main} ${gameStyles.landscapeRestriction}`}>
+                <div className={gameStyles.landscapeOnlyOverlay}>
+                    <div className={gameStyles.rotateIcon}>⟳</div>
+                    <h2>画面を横にしてください</h2>
+                    <p>このゲームは横画面専用です</p>
+                </div>
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={navStyles.gameLayout}>
-                    <div className={navStyles.leftPanel}>
-                        <div className={navStyles.playersSection}>
-                            <div className={navStyles.playerInfo}>
-                                <p>AI</p>
-                                <p>Second (上)</p>
+                <div className={gameStyles.gameLayout}>
+                    <div className={gameStyles.leftPanel}>
+                        <div className={gameStyles.playersSection}>
+                            {/* AI (Second) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'second' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>AI (相手)</div>
+                                <div className={gameStyles.playerRole}>後攻 (Top)</div>
+                                {gameState.turn === 'second' && <div className={gameStyles.turnBadge}>思考中...</div>}
                             </div>
-                            <div className={navStyles.playerInfo}>
-                                <p>{playerName} (自分)</p>
-                                <p>First (下)</p>
+
+                            {/* Player (First) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'first' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>{playerName} (自分)</div>
+                                <div className={gameStyles.playerRole}>先攻 (Bottom)</div>
+                                {gameState.turn === 'first' && <div className={gameStyles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                     </div>
-                    <div className={navStyles.centerPanel}>
-                        <div className={navStyles.turnIndicator}>
-                            {gameState.turn === 'first' ? 'Firstの番 (下)' : 'Secondの番 (上)'}
-                            {gameState.turn === 'first' && ' (あなた)'}
-                        </div>
+                    <div className={gameStyles.centerPanel}>
+                        {/* Turn indicator removed or integrated? Board has no turn indicator inside it usually. 
+                            Let's keep the pill but styled nicer. 
+                            Actually, Gomoku has a pill too in CSS but I didn't see it used in the JSX I copied? 
+                            Wait, Gomoku JSX line 139 doesn't show a pill. It relies on card badges.
+                            Reversi used to have a pill.
+                            If I remove the pill, is it clear enough? Yes, "Your Turn" badge is very clear.
+                            I will remove the pill to be cleaner, similar to Connect4 update.
+                        */}
                         <MancalaBoard
                             board={gameState.board}
                             onPitClick={handlePitClick}

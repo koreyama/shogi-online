@@ -130,21 +130,20 @@
 /* Game Layout */
 .gameLayout {
     display: flex;
-    gap: var(--spacing-xl);
-    max-width: 1600px;
+    gap: 2rem;
     width: 100%;
-    flex-wrap: wrap;
+    /* Allow layout to grow to fit large boards */
+    max-width: 1400px;
     justify-content: center;
     align-items: flex-start;
+    flex-wrap: nowrap;
 }
 
 .leftPanel {
+    flex: 0 0 250px;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    min-width: 300px;
-    max-width: 350px;
-    flex: 0 0 auto;
+    gap: 1.5rem;
 }
 
 .centerPanel {
@@ -152,71 +151,135 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    min-width: 0;
 }
 
+/* Player Cards */
 .playersSection {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1rem;
 }
 
-.chatSection {
-    flex: 1;
-    min-height: 300px;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: var(--spacing-md);
-}
-
-.backButton {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem 1rem;
+.playerCard {
     background: white;
-    border: 1px solid #ddd;
-    color: var(--color-text);
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 2px solid #cbd5e0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    z-index: 9999;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    width: 100%;
 }
 
-.backButton:hover {
-    background: #f5f5f5;
-    border-color: var(--color-text);
+/* Active State Highlighting */
+.playerCardActive {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 3px #c2410c, 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Rust/Orange for Mancala */
+    background: #fff7ed;
+    z-index: 10;
+    border-color: #c2410c;
 }
 
-.title {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
+.playerName {
+    font-weight: 800;
+    font-size: 1.25rem;
     color: var(--color-text);
-    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
 }
 
-.turnIndicator {
-    font-size: 1.5rem;
-    font-weight: bold;
+.playerRole {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.turnBadge {
+    background: #c2410c;
+    /* Mancala Orange */
     color: white;
-    background-color: #333;
-    padding: 0.5rem 2rem;
-    border-radius: 30px;
-    display: flex;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 4px rgba(194, 65, 12, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Turn Indicator Pill */
+.turnIndicator {
+    font-size: 1.25rem;
+    font-weight: 800;
+    padding: 0.75rem 3rem;
+    border-radius: 50px;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
-    min-width: 300px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border: 2px solid #555;
+    /* Fix overlap with board */
+    position: relative;
+    z-index: 50;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    min-width: 280px;
+    color: #1f2937;
+}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+    .gameLayout {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .leftPanel {
+        display: contents;
+    }
+
+    .playersSection {
+        order: 1;
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .playerCard {
+        padding: 1rem;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .centerPanel {
+        order: 2;
+        width: 100%;
+    }
 }
 
 /* Modal */
@@ -227,11 +290,65 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
+
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
     backdrop-filter: blur(5px);
+}
+
+/* Landscape Restriction Overlay */
+.landscapeOnlyOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+}
+
+.rotateIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: rotatePhone 2s infinite;
+}
+
+@keyframes rotatePhone {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(90deg);
+    }
+
+    75% {
+        transform: rotate(90deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@media (orientation: portrait) {
+    .landscapeRestriction .landscapeOnlyOverlay {
+        display: flex;
+    }
+
+    .landscapeRestriction .gameLayout,
+    .landscapeRestriction .header {
+        display: none !important;
+    }
 }
 
 .modal {

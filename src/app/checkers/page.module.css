@@ -137,21 +137,20 @@
 /* Game Layout */
 .gameLayout {
     display: flex;
-    gap: var(--spacing-xl);
-    max-width: 1600px;
+    gap: 2rem;
     width: 100%;
-    flex-wrap: wrap;
+    /* Allow layout to grow to fit large boards */
+    max-width: 1400px;
     justify-content: center;
     align-items: flex-start;
+    flex-wrap: nowrap;
 }
 
 .leftPanel {
+    flex: 0 0 250px;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    min-width: 300px;
-    max-width: 350px;
-    flex: 0 0 auto;
+    gap: 1.5rem;
 }
 
 .centerPanel {
@@ -159,24 +158,115 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    min-width: 0;
 }
 
+/* Player Cards */
 .playersSection {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1rem;
 }
 
-.playerInfo {
+.playerCard {
     background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 2px solid #cbd5e0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    font-weight: bold;
+    position: relative;
+    width: 100%;
+}
+
+/* Active State Highlighting */
+.playerCardActive {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 3px #dc2626, 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Red for Checkers Active */
+    background: #fef2f2;
+    z-index: 10;
+    border-color: #dc2626;
+}
+
+.playerCardActive.black {
+    /* Override for Black Player if active (though Checkers typically highlights current turn) */
+    box-shadow: 0 0 0 3px #1f2937, 0 10px 20px rgba(0, 0, 0, 0.1);
+    background: #f3f4f6;
+    border-color: #1f2937;
+}
+
+.playerName {
+    font-weight: 800;
+    font-size: 1.25rem;
     color: var(--color-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+.playerRole {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.turnBadge {
+    background: #dc2626;
+    /* Checkers Red */
+    color: white;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
+.turnBadge.black {
+    background: #1f2937;
+    box-shadow: 0 2px 4px rgba(31, 41, 55, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Turn Indicator Pill (Improved) */
+.turnIndicator {
+    font-size: 1.25rem;
+    font-weight: 800;
+    padding: 0.75rem 3rem;
+    border-radius: 50px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    /* Fix overlap with board */
+    position: relative;
+    z-index: 50;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    min-width: 280px;
+    color: #1f2937;
 }
 
 .chatSection {
@@ -214,21 +304,7 @@
     border-color: var(--color-text);
 }
 
-.turnIndicator {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: white;
-    background-color: #333;
-    padding: 0.5rem 2rem;
-    border-radius: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 300px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border: 2px solid #555;
-}
+
 
 /* Modal */
 .modalOverlay {
@@ -303,41 +379,40 @@
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
     .gameLayout {
         flex-direction: column;
         align-items: center;
-    }
-
-    .chatSection {
-        min-height: 250px;
-    }
-}
-
-@media (max-width: 767px) {
-    .main {
-        padding: var(--spacing-sm);
-    }
-
-    .gameLayout {
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-md);
+        gap: 1.5rem;
     }
 
     .leftPanel {
+        display: contents;
+    }
+
+    .playersSection {
+        order: 1;
         width: 100%;
-        max-width: 100%;
-        min-width: auto;
-        order: 2;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .playerCard {
+        padding: 1rem;
+        flex: 1;
+        max-width: 300px;
     }
 
     .centerPanel {
-        order: 1;
+        order: 2;
+        width: 100%;
     }
 
     .chatSection {
-        min-height: 200px;
+        order: 3;
+        width: 100%;
+        margin-top: 1rem;
     }
 }
 

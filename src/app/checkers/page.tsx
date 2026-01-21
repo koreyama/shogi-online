@@ -155,13 +155,18 @@ export default function CheckersPage() {
                 <div className={styles.gameLayout}>
                     <div className={styles.leftPanel}>
                         <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
-                                <p>AI</p>
-                                <p>黒 (Black)</p>
+                            {/* AI (Black) */}
+                            <div className={`${styles.playerCard} ${gameState.turn === 'black' ? `${styles.playerCardActive} ${styles.black}` : ''}`}>
+                                <div className={styles.playerName}>AI (相手)</div>
+                                <div className={styles.playerRole}>後攻 (黒)</div>
+                                {gameState.turn === 'black' && <div className={`${styles.turnBadge} ${styles.black}`}>思考中...</div>}
                             </div>
-                            <div className={styles.playerInfo}>
-                                <p>{playerName} (自分)</p>
-                                <p>赤 (Red)</p>
+
+                            {/* Player (Red) */}
+                            <div className={`${styles.playerCard} ${gameState.turn === 'red' ? styles.playerCardActive : ''}`}>
+                                <div className={styles.playerName}>{playerName} (自分)</div>
+                                <div className={styles.playerRole}>先攻 (赤)</div>
+                                {gameState.turn === 'red' && <div className={styles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                     </div>

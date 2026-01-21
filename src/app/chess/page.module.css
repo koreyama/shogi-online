@@ -1,152 +1,20 @@
-.main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--spacing-lg);
-    background-color: var(--color-bg);
-    /* Allow scrolling on mobile */
-    overflow-y: auto;
-}
-
-.gameContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-lg);
-    max-width: 1000px;
-    width: 100%;
-}
-
-/* Setup Screen */
-.setupContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-xl);
-    max-width: 500px;
-    width: 100%;
-    margin-top: 10vh;
-    padding: var(--spacing-xl);
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.setupForm {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    width: 100%;
-}
-
-.input {
-    padding: 0.8rem 1.2rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    color: var(--color-text);
-    font-size: 1rem;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
-}
-
-/* Mode Selection */
-.modeSelection {
-    display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.modeBtn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 2rem 2.5rem;
-    background: white;
-    border: 2px solid var(--color-primary);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 200px;
-}
-
-.modeBtn:hover {
-    transform: translateY(-2px);
-    background: #f8f8f8;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.modeBtnTitle {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.joinSection {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: center;
-    width: 100%;
-    max-width: 400px;
-}
-
-/* Waiting Screen */
-.waitingAnimation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2rem 0;
-}
-
-.waitingAnimation svg {
-    animation: spin 3s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.roomId {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--color-primary);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.1em;
-}
-
 /* Game Layout */
 .gameLayout {
     display: flex;
-    gap: var(--spacing-xl);
-    max-width: 1600px;
+    gap: 2rem;
     width: 100%;
-    flex-wrap: wrap;
+    /* Allow layout to grow to fit large boards */
+    max-width: 1400px;
     justify-content: center;
     align-items: flex-start;
+    flex-wrap: nowrap;
 }
 
 .leftPanel {
+    flex: 0 0 250px;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    min-width: 300px;
-    max-width: 350px;
-    flex: 0 0 auto;
+    gap: 1.5rem;
 }
 
 .centerPanel {
@@ -154,291 +22,145 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    min-width: 0;
 }
 
+/* Player Cards */
 .playersSection {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1rem;
 }
 
+.playerCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 2px solid #cbd5e0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    width: 100%;
+}
+
+/* Active State Highlighting */
+.playerCardActive {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 3px #4338ca, 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Indigo for Chess */
+    background: #e0e7ff;
+    z-index: 10;
+    border-color: #4338ca;
+}
+
+.playerName {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+.playerRole {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.turnBadge {
+    background: #4338ca;
+    /* Chess Indigo */
+    color: white;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 4px rgba(67, 56, 202, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Turn Indicator Pill */
+.turnIndicator {
+    font-size: 1.25rem;
+    font-weight: 800;
+    padding: 0.75rem 3rem;
+    border-radius: 50px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    /* Fix overlap with board */
+    position: relative;
+    z-index: 50;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    min-width: 280px;
+    color: #1f2937;
+}
+
+/* Chat Section override if needed */
 .chatSection {
     flex: 1;
     min-height: 300px;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: var(--spacing-md);
-}
-
-.backButton {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.5rem 1rem;
-    background: white;
-    border: 1px solid #ddd;
-    color: var(--color-text);
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    z-index: 9999;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.backButton:hover {
-    background: #f5f5f5;
-    border-color: var(--color-text);
-}
-
-.title {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-text);
-    letter-spacing: 0.2em;
-}
-
-.turnIndicator {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: white;
-    background-color: #333;
-    padding: 0.5rem 2rem;
-    border-radius: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 300px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    border: 2px solid #555;
-}
-
-/* Modal */
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    backdrop-filter: blur(5px);
-}
-
-.modal {
-    background: white;
-    padding: var(--spacing-xl);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    border: 2px solid var(--color-primary);
-    min-width: 300px;
-}
-
-.primaryBtn,
-.secondaryBtn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-
-.primaryBtn {
-    background: var(--color-primary);
-    color: white;
-    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.2);
-}
-
-.secondaryBtn {
-    background: white;
-    color: var(--color-text);
-    border: 2px solid #ddd;
-}
-
-.playerInfo {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-    text-align: center;
-    font-weight: bold;
-    color: var(--color-text);
-}
-
-@media (max-width: 767px) {
-    .main {
-        padding: var(--spacing-sm);
-    }
-
+/* Media Queries */
+@media (max-width: 1024px) {
     .gameLayout {
         flex-direction: column;
         align-items: center;
-        gap: 1rem;
-        /* Natural gap */
-        height: auto;
-        /* Allow growth */
-        padding-bottom: 2rem;
+        gap: 1.5rem;
     }
 
     .leftPanel {
+        display: contents;
+    }
+
+    .playersSection {
+        order: 1;
         width: 100%;
-        max-width: 100%;
-        order: 2;
-        /* Info below board */
-        flex: 0 0 auto;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .playerCard {
+        padding: 1rem;
+        flex: 1;
+        max-width: 300px;
     }
 
     .centerPanel {
-        order: 1;
-        /* Board on top */
+        order: 2;
         width: 100%;
-        flex: 1;
-        overflow: visible;
-        /* Ensure board isn't clipped */
-        min-height: 0;
     }
-}
 
-/* Content Section Styles for AdSense */
-.contentSection {
-    margin-top: 4rem;
-    padding: 3rem;
-    background-color: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    max-width: 900px;
-    width: 100%;
-    border: 1px solid #f0f0f0;
-}
-
-.contentTitle {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    border-bottom: 3px solid var(--color-primary);
-    padding-bottom: 0.5rem;
-    color: var(--color-text);
-    text-align: center;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-}
-
-.sectionBlock {
-    margin-bottom: 3rem;
-}
-
-.sectionHeader {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    background: #f8fafc;
-    padding: 1rem;
-    border-radius: 8px;
-    border-left: 5px solid var(--color-primary);
-}
-
-.sectionIcon {
-    font-size: 1.5rem;
-}
-
-.sectionTitle {
-    font-size: 1.5rem;
-    color: var(--color-text);
-    font-weight: 700;
-    margin: 0;
-}
-
-.textBlock {
-    line-height: 1.8;
-    color: #4a5568;
-    margin-bottom: 1.5rem;
-    font-size: 1.05rem;
-    text-align: left;
-}
-
-.highlightBox {
-    background-color: #ebf8ff;
-    border: 1px solid #bee3f8;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-}
-
-.highlightTitle {
-    font-weight: bold;
-    color: #2b6cb0;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.list {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: 1rem;
-}
-
-.listItem {
-    position: relative;
-    padding-left: 1.5rem;
-    line-height: 1.6;
-    color: #4a5568;
-}
-
-.listItem::before {
-    content: "✔";
-    position: absolute;
-    left: 0;
-    color: var(--color-primary);
-    font-weight: bold;
-}
-
-.cardGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-}
-
-.infoCard {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: transform 0.2s;
-}
-
-.infoCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cardTitle {
-    font-weight: bold;
-    color: var(--color-text);
-    margin-bottom: 0.5rem;
-    display: block;
-    font-size: 1.1rem;
-}
-
-.cardText {
-    font-size: 0.95rem;
-    color: #718096;
-    line-height: 1.5;
+    .chatSection {
+        order: 3;
+        width: 100%;
+        margin-top: 1rem;
+    }
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import navStyles from '@/styles/GameMenu.module.css';
+import gameStyles from './page.module.css';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { ReversiBoard } from '@/components/ReversiBoard';
 import ColyseusReversiGame from './ColyseusReversiGame';
@@ -259,26 +260,30 @@ export default function ReversiPage() {
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={navStyles.header}><button onClick={handleBackToTop} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={navStyles.gameLayout}>
-                    <div className={navStyles.leftPanel}>
-                        <div className={navStyles.playersSection}>
-                            <div className={navStyles.playerInfo}>
-                                <p>AI (相手)</p>
-                                <p>白: {gameState?.whiteCount}</p>
+                <div className={gameStyles.gameLayout}>
+                    <div className={gameStyles.leftPanel}>
+                        <div className={gameStyles.playersSection}>
+                            {/* AI (White) */}
+                            <div className={`${gameStyles.playerCard} ${gameState?.turn === 'white' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>AI (相手)</div>
+                                <div className={gameStyles.playerRole}>後手 (白)</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{gameState?.whiteCount}個</div>
+                                {gameState?.turn === 'white' && <div className={gameStyles.turnBadge}>思考中...</div>}
                             </div>
-                            <div className={navStyles.playerInfo}>
-                                <p>{playerName} (自分)</p>
-                                <p>黒: {gameState?.blackCount}</p>
+
+                            {/* Player (Black) */}
+                            <div className={`${gameStyles.playerCard} ${gameState?.turn === 'black' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>{playerName} (自分)</div>
+                                <div className={gameStyles.playerRole}>先手 (黒)</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{gameState?.blackCount}個</div>
+                                {gameState?.turn === 'black' && <div className={gameStyles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                         <div className={navStyles.chatSection}>
                             <Chat messages={messages} onSendMessage={handleSendMessage} myName={playerName} />
                         </div>
                     </div>
-                    <div className={navStyles.centerPanel}>
-                        <div className={navStyles.turnIndicator}>
-                            {gameState?.turn === 'black' ? '黒の番 (あなた)' : '白の番'}
-                        </div>
+                    <div className={gameStyles.centerPanel}>
                         <ReversiBoard
                             board={gameState?.board || []}
                             validMoves={validMoves}

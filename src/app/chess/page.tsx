@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/GameMenu.module.css';
+import gameStyles from './page.module.css';
 import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconDice, IconKey, IconRobot } from '@/components/Icons';
 import ColyseusChessGame from './ColyseusChessGame';
@@ -177,24 +178,29 @@ export default function ChessPage() {
                 <FloatingShapes />
                 <HideChatBot />
                 <div className={styles.header}><button onClick={handleBackToMenu} className={styles.backButton}><IconBack size={18} /> 終了</button></div>
-                <div className={styles.gameLayout}>
-                    <div className={styles.leftPanel}>
-                        <div className={styles.playersSection}>
-                            <div className={styles.playerInfo}>
-                                <p>AI (相手)</p>
-                                <p>黒 (後手)</p>
+                <div className={gameStyles.gameLayout}>
+                    <div className={gameStyles.leftPanel}>
+                        <div className={gameStyles.playersSection}>
+                            {/* AI (Black) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'black' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>AI (相手)</div>
+                                <div className={gameStyles.playerRole}>後手 (黒)</div>
+                                {gameState.turn === 'black' && <div className={gameStyles.turnBadge}>思考中...</div>}
                             </div>
-                            <div className={styles.playerInfo}>
-                                <p>{savedName} (自分)</p>
-                                <p>白 (先手)</p>
+
+                            {/* Player (White) */}
+                            <div className={`${gameStyles.playerCard} ${gameState.turn === 'white' ? gameStyles.playerCardActive : ''}`}>
+                                <div className={gameStyles.playerName}>{savedName} (自分)</div>
+                                <div className={gameStyles.playerRole}>先手 (白)</div>
+                                {gameState.turn === 'white' && <div className={gameStyles.turnBadge}>あなたの番</div>}
                             </div>
                         </div>
                         <div className={styles.chatSection}>
                             <Chat messages={messages} onSendMessage={handleSendMessage} myName={savedName} />
                         </div>
                     </div>
-                    <div className={styles.centerPanel}>
-                        <div className={styles.turnIndicator}>
+                    <div className={gameStyles.centerPanel}>
+                        <div className={gameStyles.turnIndicator}>
                             {gameState.turn === 'white' ? '白の番' : '黒の番'}
                             {gameState.turn === myRole && ' (あなた)'}
                         </div>
