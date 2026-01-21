@@ -5,7 +5,8 @@ export const TABLE_WIDTH = 800;
 export const TABLE_HEIGHT = 400;
 export const BALL_RADIUS = 10;
 export const WALL_THICKNESS = 30;
-export const POCKET_RADIUS = 14; // Slightly larger than ball radius (10)
+export const POCKET_RADIUS = 16; // Slightly larger than ball radius (10)
+export const CORNER_POCKET_RADIUS = 22; // Much larger for corners to make them easier
 
 // Pocket positions (center of each pocket zone)
 export const POCKETS = [
@@ -124,15 +125,48 @@ const createBall = (x: number, y: number, id: number) => {
     });
 };
 
-// Utility function to check if a ball is in a pocket
+// Physics Constants for Pockets
+export const FALL_RADIUS = 14; // Increased from 10 to make falling easier once close
+export const GRAVITY_RADIUS = 24;
+export const GRAVITY_RADIUS_CORNER = 32;
+export const GRAVITY_STRENGTH = 0.0005; // Reduced strength per feedback
+
+// Utility to handle pocket physics (Gravity well + Falling)
+export const resolvePocketCollision = (body: Matter.Body): boolean => {
+    for (let i = 0; i < POCKETS.length; i++) {
+        const pocket = POCKETS[i];
+        const dx = pocket.x - body.position.x;
+        const dy = pocket.y - body.position.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+
+        const isCorner = (i === 0 || i === 2 || i === 3 || i === 5);
+        const slurpRadius = isCorner ? GRAVITY_RADIUS_CORNER : GRAVITY_RADIUS;
+
+        // 1. Check if fell in
+        if (dist < FALL_RADIUS) {
+            return true;
+        }
+
+        // 2. Check gravity well
+        if (dist < slurpRadius) {
+            // Apply gentle force towards pocket center
+            const forceX = (dx / dist) * GRAVITY_STRENGTH * body.mass;
+            const forceY = (dy / dist) * GRAVITY_STRENGTH * body.mass;
+            Matter.Body.applyForce(body, body.position, { x: forceX, y: forceY });
+        }
+    }
+    return false;
+};
+
+// Deprecated simple check (kept for compatibility)
 export const isInPocket = (ballX: number, ballY: number): boolean => {
-    for (const pocket of POCKETS) {
+    for (let i = 0; i < POCKETS.length; i++) {
+        const pocket = POCKETS[i];
         const dx = ballX - pocket.x;
         const dy = ballY - pocket.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < POCKET_RADIUS) {
-            return true;
-        }
+        if (dist < FALL_RADIUS) return true;
     }
     return false;
 };

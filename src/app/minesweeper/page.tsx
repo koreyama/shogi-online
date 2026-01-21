@@ -48,12 +48,20 @@ export default function MinesweeperPage() {
     const [time, setTime] = useState(0);
     const [isFlagMode, setIsFlagMode] = useState(false);
     const [rankings, setRankings] = useState<ScoreEntry[]>([]);
+    const [leaderboardTab, setLeaderboardTab] = useState<Difficulty>(DIFFICULTIES.EASY);
 
     // Navigation State
     const [status, setStatus] = useState<'setup' | 'menu' | 'playing' | 'multiplayer'>('setup');
-    const [menuView, setMenuView] = useState<'top' | 'room_select'>('top');
+    const [menuView, setMenuView] = useState<'top' | 'room_select' | 'ranking'>('top');
     const [joinRoomId, setJoinRoomId] = useState('');
     const [multiplayerOptions, setMultiplayerOptions] = useState<any>(null);
+
+    // Fetch Rankings when tab changes or view is 'ranking'
+    useEffect(() => {
+        if (menuView === 'ranking') {
+            getRankings(leaderboardTab).then(setRankings);
+        }
+    }, [menuView, leaderboardTab]);
 
     // Auth Check
     useEffect(() => {
@@ -103,6 +111,14 @@ export default function MinesweeperPage() {
         setTime(0);
         setStatus('playing');
     };
+
+    // Save Score on Win
+    useEffect(() => {
+        if (gameState.status === 'won' && user && playerName) {
+            const finalTime = Math.floor((Date.now() - (gameState.startTime || Date.now())) / 1000);
+            submitScore(user.uid, playerName, difficulty, finalTime);
+        }
+    }, [gameState.status, user, playerName, difficulty, gameState.startTime]);
 
     const startMultiplayerCreate = () => {
         setMultiplayerOptions({ create: true, difficulty: difficulty.name });
@@ -156,6 +172,7 @@ export default function MinesweeperPage() {
         return (
             <main className={styles.main} style={MINESWEEPER_THEME}>
                 <FloatingShapes />
+
                 <div className={gameStyles.header}>
                     <button
                         onClick={() => menuView === 'top' ? router.push('/') : setMenuView('top')}
@@ -166,12 +183,61 @@ export default function MinesweeperPage() {
                     <div className={gameStyles.headerContent}>
                         <h1 className={gameStyles.title}>マインスイーパー</h1>
                         <p className={gameStyles.subtitle}>
-                            {menuView === 'room_select' ? 'ルーム作成・参加' : '難易度を選択してモードを開始'}
+                            {menuView === 'room_select' ? 'ルーム作成・参加' :
+                                menuView === 'ranking' ? 'タイムアタックランキング' : '難易度を選択してモードを開始'}
                         </p>
                     </div>
+                    {/* Ranking Button (Top Right) */}
+                    {menuView !== 'ranking' && (
+                        <button
+                            onClick={() => setMenuView('ranking')}
+                            className={gameStyles.backButton}
+                            style={{ color: '#d97706', borderColor: '#fcd34d', background: '#fffbeb' }}
+                        >
+                            <IconTrophy size={18} /> ランキング
+                        </button>
+                    )}
                 </div>
 
                 <div className={styles.gameContainer}>
+                    {menuView === 'ranking' && (
+                        <div className={gameStyles.rankingContainer}>
+                            <div className={gameStyles.leaderboardTabs}>
+                                {Object.values(DIFFICULTIES).map((diff) => (
+                                    <button
+                                        key={diff.name}
+                                        className={`${gameStyles.leaderboardTab} ${leaderboardTab.name === diff.name ? gameStyles.active : ''}`}
+                                        onClick={() => setLeaderboardTab(diff)}
+                                    >
+                                        {diff.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className={gameStyles.leaderboardList}>
+                                {rankings.length === 0 ? (
+                                    <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📉</div>
+                                        データがありません
+                                    </div>
+                                ) : (
+                                    rankings.map((entry, index) => (
+                                        <div key={entry.id} className={`${gameStyles.rankingItem} ${index === 0 ? gameStyles.top1 : index === 1 ? gameStyles.top2 : index === 2 ? gameStyles.top3 : ''}`}>
+                                            <div className={gameStyles.rankIcon}>
+                                                {index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                            </div>
+                                            <div className={gameStyles.rankName}>{entry.userName}</div>
+                                            <div className={gameStyles.rankTime}>{entry.time}秒</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', width: '80px', textAlign: 'right' }}>
+                                                {new Date(entry.timestamp).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {menuView === 'top' && (
                         <>
                             <h2 className={styles.subtitle} style={{ marginTop: '0', marginBottom: '1.5rem' }}>難易度選択</h2>
@@ -325,6 +391,7 @@ export default function MinesweeperPage() {
                     <div className={gameStyles.modalOverlay}>
                         <div className={gameStyles.modal}>
                             <h2>{gameState.status === 'won' ? 'CLEAR! 🎉' : 'GAME OVER 💣'}</h2>
+                            {gameState.status === 'won' && <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>タイム: {time}秒</p>}
                             <button onClick={startSinglePlayer} className={styles.primaryBtn}>もう一度</button>
                             <button onClick={() => setStatus('menu')} className={styles.secondaryBtn}>メニューへ</button>
                         </div>

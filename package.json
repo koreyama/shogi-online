@@ -24,6 +24,7 @@
     "matter-js": "^0.20.0",
     "next": "15.0.3",
     "nodemailer": "^7.0.11",
+    "phaser": "^3.90.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "resend": "^6.5.2",

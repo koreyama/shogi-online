@@ -1,5 +1,21 @@
 export const RELEASES = [
     {
+        version: '2.5.0',
+        date: '2026.01.21',
+        title: 'Trash Factory リリース & ビリヤード物理改善',
+        categories: ['New Game', 'Update'],
+        content: [
+            {
+                head: 'Trash Factory リリース',
+                text: 'ゴミを圧縮して資源に変えるシミュレーションゲーム「Trash Factory」をリリースしました。PC専用の本格的な生産管理ゲームです。'
+            },
+            {
+                head: 'ビリヤード物理挙動改善',
+                text: 'ポケットの吸い込み判定を導入し、ボールがより自然にポケットに入るように調整しました。'
+            }
+        ]
+    },
+    {
         version: '2.4.0',
         date: '2026.01.15',
         title: 'ビリヤード (8-Ball) 正式リリース',

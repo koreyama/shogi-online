@@ -141,3 +141,10 @@
         height: 16px;
     }
 }
+
+/* Utility to show element only on Desktop (>= 768px) */
+@media (max-width: 768px) {
+    .desktopOnly {
+        display: none !important;
+    }
+}

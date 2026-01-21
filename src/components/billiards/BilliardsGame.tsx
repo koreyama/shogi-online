@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
 import { Room } from 'colyseus.js';
-import { setupBilliardsWorld, TABLE_WIDTH, TABLE_HEIGHT, BALL_RADIUS, WALL_THICKNESS, POCKETS, POCKET_RADIUS } from '@/lib/billiards/BilliardsPhysics';
+import { setupBilliardsWorld, TABLE_WIDTH, TABLE_HEIGHT, BALL_RADIUS, WALL_THICKNESS, POCKETS, resolvePocketCollision, FALL_RADIUS, GRAVITY_RADIUS, GRAVITY_RADIUS_CORNER } from '@/lib/billiards/BilliardsPhysics';
 
 interface BilliardsGameProps {
     mode: 'solo' | 'multiplayer';
@@ -121,25 +121,19 @@ export default function BilliardsGame({ mode, room, playerName }: BilliardsGameP
                     if (!body.label.startsWith('ball_')) return;
                     const id = parseInt(body.label.split('_')[1]);
 
-                    for (const pocket of POCKETS) {
-                        const dx = body.position.x - pocket.x;
-                        const dy = body.position.y - pocket.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-
-                        if (dist < POCKET_RADIUS) {
-                            if (id === 0) {
-                                Matter.Body.setPosition(body, { x: -200, y: -200 });
-                                Matter.Body.setVelocity(body, { x: 0, y: 0 });
-                                setSoloPlacingCueBall(true);
-                                setFoulMessage('SCRATCH!');
-                                setTimeout(() => setFoulMessage(''), 2000);
-                            } else {
-                                if (!localPocketed.includes(id)) {
-                                    localPocketed.push(id);
-                                    setPocketedBalls([...localPocketed]);
-                                }
-                                Matter.World.remove(engine.world, body);
+                    if (resolvePocketCollision(body)) {
+                        if (id === 0) {
+                            Matter.Body.setPosition(body, { x: -200, y: -200 });
+                            Matter.Body.setVelocity(body, { x: 0, y: 0 });
+                            setSoloPlacingCueBall(true);
+                            setFoulMessage('SCRATCH!');
+                            setTimeout(() => setFoulMessage(''), 2000);
+                        } else {
+                            if (!localPocketed.includes(id)) {
+                                localPocketed.push(id);
+                                setPocketedBalls([...localPocketed]);
                             }
+                            Matter.World.remove(engine.world, body);
                         }
                     }
                 });
@@ -307,6 +301,8 @@ export default function BilliardsGame({ mode, room, playerName }: BilliardsGameP
             ctx.arc(p.x, p.y, pocketSize - 5, 0, Math.PI * 2);
             ctx.fill();
         });
+
+
 
         // === PLAYING SURFACE (Green Felt) ===
         ctx.fillStyle = '#2d8f4e';

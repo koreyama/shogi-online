@@ -64,13 +64,14 @@ export default function ColyseusBilliardsGame({ mode, isPrivate, roomId, onBack 
                     // Create private room
                     currentRoom = await colyseusClientInstance.create("billiards", {
                         playerName: playerName,
-                        mode: "private"
+                        mode: "room"
                     });
                 } else {
                     // Join random public room
+                    console.log("Joining/Creating Random Match...");
                     currentRoom = await colyseusClientInstance.joinOrCreate("billiards", {
                         playerName: playerName,
-                        mode: "public"
+                        mode: "random"
                     });
                 }
 

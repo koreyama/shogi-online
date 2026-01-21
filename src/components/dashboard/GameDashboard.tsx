@@ -144,6 +144,19 @@ const IconBilliardsLocal = ({ size = 32, color = "currentColor" }: { size?: numb
     </svg>
 );
 
+const IconFactoryLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 20h20" />
+        <path d="M6 20v-8h4v8" />
+        <path d="M14 20v-6h4v6" />
+        <path d="M6 12l2-4h2l2 4" />
+        <path d="M14 14l2-4h2l2 4" />
+        <path d="M10 4v2" />
+        <path d="M12 2v2" />
+        <path d="M14 4v2" />
+    </svg>
+);
+
 type GameDashboardProps = {
     user: any;
     playerName: string;
@@ -269,6 +282,9 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/stock" title="Stock Simulator" desc="本格株取引シミュ" icon={<IconStockLocal size={32} color="#38a169" />} color="#38a169" />
                             <GameCard href="/clicker" title="Civilization Builder" desc="資源管理＆文明発展" icon={<IconCoin size={32} color="#d69e2e" />} color="#d69e2e" />
                             <GameCard href="/card-game/lobby" title="Divine Duel" desc="戦略カードバトル" icon={<IconCards size={32} color="#805ad5" />} color="#805ad5" />
+                            <div className={styles.desktopOnly}>
+                                <GameCard href="/trash" title="Trash Factory" desc="ゴミ圧縮シミュ" icon={<IconFactoryLocal size={32} color="#718096" />} color="#718096" />
+                            </div>
                         </GameSection>
 
                         {/* Section 2: Puzzle & Brain */}
@@ -311,6 +327,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
+
                             <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
                             <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />

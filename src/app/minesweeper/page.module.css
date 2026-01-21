@@ -270,6 +270,136 @@
     margin: 0 auto;
 }
 
+/* Ranking Page */
+.rankingContainer {
+    background: white;
+    padding: 2rem;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.leaderboardTabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: #f1f5f9;
+    padding: 0.5rem;
+    border-radius: 12px;
+}
+
+.leaderboardTab {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #64748b;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.leaderboardTab.active {
+    background: white;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboardList {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.rankingItem {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s;
+}
+
+.rankingItem:hover {
+    transform: translateX(4px);
+    border-color: #cbd5e0;
+}
+
+.rankingItem.top1 {
+    background: linear-gradient(to right, #fffbeb, #fff);
+    border-color: #fcd34d;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.1);
+}
+
+.rankingItem.top2 {
+    background: linear-gradient(to right, #f8fafc, #fff);
+    border-color: #cbd5e1;
+}
+
+.rankingItem.top3 {
+    background: linear-gradient(to right, #fff7ed, #fff);
+    border-color: #fdba74;
+}
+
+.rankIcon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.top1 .rankIcon {
+    background: #fbbf24;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.top2 .rankIcon {
+    background: #94a3b8;
+    color: white;
+    font-size: 1.4rem;
+}
+
+.top3 .rankIcon {
+    background: #d97706;
+    color: white;
+    font-size: 1.3rem;
+}
+
+.rankName {
+    flex: 1;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rankTime {
+    font-family: monospace;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #3b82f6;
+    margin-left: 1rem;
+}
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
     .main {
