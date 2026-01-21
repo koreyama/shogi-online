@@ -696,6 +696,32 @@ export default function ShogiPage() {
             </div>
           </div>
         </div>
+
+        {showAILevelDialog && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h2>AIレベル選択</h2>
+              <p style={{ fontSize: '1rem', margin: '1rem 0', color: '#333' }}>対戦相手の強さを選んでください</p>
+              <div className={styles.levelButtons}>
+                <button onClick={() => confirmAIGame(1)} className={styles.levelBtn}>
+                  <span className={styles.levelTitle}>Lv.1 入門 (Beginner)</span>
+                  <span className={styles.levelDesc}>ランダム要素あり。将棋を覚えたての方に。</span>
+                </button>
+                <button onClick={() => confirmAIGame(2)} className={styles.levelBtn}>
+                  <span className={styles.levelTitle}>Lv.2 初級 (Intermediate)</span>
+                  <span className={styles.levelDesc}>1手先を読みます。基本的な攻めを行います。</span>
+                </button>
+                <button onClick={() => confirmAIGame(3)} className={styles.levelBtn}>
+                  <span className={styles.levelTitle}>Lv.3 中級 (Advanced)</span>
+                  <span className={styles.levelDesc}>2手先を読み、評価関数で判断します。</span>
+                </button>
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <button onClick={() => setShowAILevelDialog(false)} className={styles.secondaryBtn}>キャンセル</button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     );
   }
