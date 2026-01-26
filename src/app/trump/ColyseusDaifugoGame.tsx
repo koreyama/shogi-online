@@ -796,22 +796,27 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                         {(() => {
                             const { text, color, gradient } = getEffectContent(effectEvent.type, effectEvent.message);
                             return (
-                                <>
+                                <div style={{
+                                    padding: '1.5rem 3rem',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(0, 0, 0, 0.8)',
+                                    border: `2px solid ${color}`,
+                                    boxShadow: `0 0 30px ${color}40, 0 0 60px ${color}20`
+                                }}>
                                     <span style={{
                                         fontSize: 'clamp(2rem, 10vw, 5rem)',
                                         fontWeight: '900',
                                         background: gradient,
                                         WebkitBackgroundClip: 'text',
                                         WebkitTextFillColor: 'transparent',
-                                        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+                                        textShadow: `0 0 20px ${color}`,
                                         whiteSpace: 'nowrap',
                                         fontFamily: '"Hiragino Mincho ProN", "Yu Mincho", serif',
-                                        letterSpacing: '0.05em',
-                                        padding: '0 1rem'
+                                        letterSpacing: '0.05em'
                                     }}>
                                         {text}
                                     </span>
-                                </>
+                                </div>
                             );
                         })()}
                     </motion.div>

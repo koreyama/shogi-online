@@ -629,6 +629,10 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.isRevolution = false;
         this.state.is11Back = false;
         this.state.droppedDaifugoId = "";
+        this.state.pendingAction = "";
+        this.state.pendingActionPlayerId = "";
+        this.state.pendingActionCount = 0;
+        this.state.winner = "";
         this.clearField();
 
         this.dealCards();
