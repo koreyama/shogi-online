@@ -196,7 +196,7 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                                             // Ensure uniqueness for multiple Jokers or identical cards
                                             key={`${player.id}-hand-${i}-${card.suit}-${card.rank}`}
                                             className={styles.cardWrapper}
-                                            layout // Smooth reordering
+                                            // layout prop removed to prevent crash
                                             initial={{ opacity: 0, scale: 0.8, y: 50 }}
                                             animate={{
                                                 opacity: 1,
