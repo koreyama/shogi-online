@@ -316,6 +316,27 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         });
 
         r.onMessage("error", (msg: string) => alert(msg));
+
+        // Handle direct broadcast events (won't be overwritten like state)
+        r.onMessage("gameEvent", (event: { type: string, message: string, playerId: string, timestamp: number }) => {
+            console.log('[DEBUG] Received gameEvent:', event);
+
+            const eventType = event.type;
+            const eventPlayerId = event.playerId;
+
+            // For rank events, only show to the affected player
+            if (eventType === 'rank' && eventPlayerId !== myPlayerId) {
+                return;
+            }
+            // Miyako-ochi and other events visible to everyone
+
+            setEffectEvent({
+                type: eventType,
+                message: event.message,
+                id: event.timestamp
+            });
+            setTimeout(() => setEffectEvent(null), 2500);
+        });
     };
 
     // Helper for Effects

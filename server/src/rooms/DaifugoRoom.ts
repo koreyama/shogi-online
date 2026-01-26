@@ -174,6 +174,12 @@ export class DaifugoRoom extends Room<DaifugoState> {
     }
 
     private broadcastEvent(type: string, message: string = "", playerId: string = "") {
+        console.log('[DEBUG] broadcastEvent:', type, message, playerId);
+
+        // Use direct broadcast to send event immediately (won't be overwritten)
+        this.broadcast("gameEvent", { type, message, playerId, timestamp: Date.now() });
+
+        // Also update state for late joiners / state sync
         this.state.lastEvent.type = type;
         this.state.lastEvent.message = message;
         this.state.lastEvent.playerId = playerId;
