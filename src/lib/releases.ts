@@ -1,5 +1,17 @@
 export const RELEASES = [
     {
+        version: '2.6.0',
+        date: '2026.01.26',
+        title: 'Orbit Star リリース',
+        categories: ['New Game', 'Puzzle'],
+        content: [
+            {
+                head: '新作パズル Orbit Star',
+                text: '360°全方位から惑星を投入し、合体させて進化させる物理パズルゲーム「Orbit Star」をリリースしました。同じ惑星をぶつけて進化させ、ハイスコアを目指しましょう！'
+            }
+        ]
+    },
+    {
         version: '2.5.0',
         date: '2026.01.21',
         title: 'Trash Factory リリース & ビリヤード物理改善',
