@@ -68,4 +68,7 @@ export class DaifugoState extends Schema {
     @type({ map: "number" }) exchangePending = new MapSchema<number>();
 
     @type("boolean") rule10Sute: boolean = false;
+
+    // Miyako-ochi state
+    @type("string") droppedDaifugoId: string = "";
 }

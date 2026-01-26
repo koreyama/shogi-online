@@ -256,6 +256,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = playerId;
+                this.checkMiyakoOchi();
             }
 
             // Check if Game Over (Only 1 player left)
@@ -400,6 +401,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
+                this.checkMiyakoOchi();
             }
         }
 
@@ -453,6 +455,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
+                this.checkMiyakoOchi();
             }
 
             if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
@@ -509,6 +512,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = pid;
+                this.checkMiyakoOchi();
             }
         });
         if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
@@ -532,6 +536,21 @@ export class DaifugoRoom extends Room<DaifugoState> {
         else this.finishGame();
     }
 
+    private checkMiyakoOchi() {
+        if (!this.state.ruleMiyakoOchi) return;
+        if (this.state.finishedPlayers.length !== 1) return; // Only on first win
+        if (this.state.droppedDaifugoId) return;
+
+        const winnerId = this.state.finishedPlayers[0];
+        const daifugo = Array.from(this.state.players.values()).find(p => p.rank === 'daifugo');
+
+        if (daifugo && daifugo.id !== winnerId && !this.state.finishedPlayers.includes(daifugo.id)) {
+            // Trigger Miyako-ochi
+            this.state.droppedDaifugoId = daifugo.id;
+            this.broadcastEvent('miyakoochi', `${daifugo.name}は都落ちしました！`, daifugo.id);
+        }
+    }
+
     private getNextActivePlayer(currentId: string, skipCount: number = 0): string | null {
         const players = Array.from(this.state.players.values()).sort((a, b) => a.id.localeCompare(b.id));
         let currentIndex = players.findIndex(p => p.id === currentId);
@@ -542,13 +561,13 @@ export class DaifugoRoom extends Room<DaifugoState> {
         while (movesFound <= skipCount && loops < players.length * 2) {
             currentIndex = (currentIndex + 1) % players.length;
             const p = players[currentIndex];
-            if (!this.state.finishedPlayers.includes(p.id)) {
+            if (!this.state.finishedPlayers.includes(p.id) && p.id !== this.state.droppedDaifugoId) {
                 if (movesFound === skipCount) return p.id;
                 movesFound++;
             }
             loops++;
         }
-        return null;
+        return null; // Return null if no active player found
     }
 
     private startNextGame() {
@@ -562,6 +581,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
             const playerMap = new Map(allPlayers.map(p => [p.id, p]));
             const previousDaifugo = allPlayers.find(p => p.rank === 'daifugo');
 
+            // Assign ranks based on finish order
             finalOrder.forEach((pid, index) => {
                 const p = playerMap.get(pid);
                 if (!p) return;
@@ -572,10 +592,14 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 else p.rank = 'heimin';
             });
 
+            // Handle Miyako-ochi Swap (Legacy logic, mostly for non-immediate drops or safety)
+            // If droppedDaifugoId was set, we already handled the drop logic by making them last.
             if (this.state.ruleMiyakoOchi && previousDaifugo) {
                 if (finalOrder[0] !== previousDaifugo.id) {
-                    // Miyako ochi happened - previous daifugo didn't finish first
-                    this.broadcastEvent('miyakoochi', '都落ち', previousDaifugo.id);
+                    // Only broadcast if we haven't already noticed the drop during play
+                    if (!this.state.droppedDaifugoId) {
+                        this.broadcastEvent('miyakoochi', '都落ち', previousDaifugo.id);
+                    }
 
                     const newDaihinmin = allPlayers.find(p => p.rank === 'daihinmin');
                     const fallenAngel = previousDaifugo;
@@ -594,7 +618,8 @@ export class DaifugoRoom extends Room<DaifugoState> {
         this.state.turnPlayerId = "";
         this.state.isRevolution = false;
         this.state.is11Back = false;
-        this.clearField(); // Resets field and lastMove
+        this.state.droppedDaifugoId = "";
+        this.clearField();
 
         this.dealCards();
         this.setupExchangeOrStart();
