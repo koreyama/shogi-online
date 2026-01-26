@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import OrbitGame from '@/components/orbit/OrbitGame';
-import Leaderboard from '@/components/orbit/Leaderboard';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
+
+const OrbitGame = dynamic(() => import('@/components/orbit/OrbitGame'), { ssr: false });
+const Leaderboard = dynamic(() => import('@/components/orbit/Leaderboard'), { ssr: false });
 import navStyles from '@/styles/GameMenu.module.css';
 
 const IconArrowLeft = ({ size = 24 }: { size?: number }) => (
