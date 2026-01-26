@@ -183,7 +183,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
     };
 
     return (
-        <main style={{ minHeight: '100vh', background: '#f8fafc', color: '#1a202c', position: 'relative', paddingBottom: '4rem' }}>
+        <main style={{ flex: 1, background: '#f8fafc', color: '#1a202c', position: 'relative', paddingBottom: '4rem', display: 'flex', flexDirection: 'column' }}>
 
             {/* Background */}
             <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
