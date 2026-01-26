@@ -39,13 +39,7 @@ export default function OrbitPage() {
         } as React.CSSProperties}>
             <FloatingShapes />
 
-            {/* Header */}
-            <div className={navStyles.header} style={{ marginBottom: '1rem' }}>
-                <Link href="/" className={navStyles.backButton}>
-                    <IconArrowLeft size={18} />
-                    <span>ダッシュボードに戻る</span>
-                </Link>
-            </div>
+            {/* Header removed (merged below) */}
 
             <div className={navStyles.gameContainer} style={{ gap: '1rem' }}>
                 <h1 className={navStyles.title} style={{ color: '#805ad5', fontSize: '2.5rem', marginBottom: '0.2rem' }}>Orbit Star</h1>
@@ -58,8 +52,9 @@ export default function OrbitPage() {
                     maxWidth: '800px'
                 }}>
                     <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
-                        <Link href="/dashboard" className={navStyles.backButton}>
-                            ← Back to Dashboard
+                        <Link href="/" className={navStyles.backButton}>
+                            <IconArrowLeft size={18} />
+                            <span>ダッシュボードに戻る</span>
                         </Link>
 
                         <button
