@@ -260,16 +260,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
             }
 
             // Check if Game Over (Only 1 player left)
-            if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
-                const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
-                if (loser) {
-                    this.state.finishedPlayers.push(loser.id);
-                    const loserRank = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-                    this.broadcastEvent('rank', loserRank, loser.id);
-                }
-                this.finishGame();
-                return;
-            }
+            if (this.checkGameOver()) return;
         }
 
         const is8Cut = this.state.rule8Cut && result.is8Cut;
@@ -332,7 +323,8 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         const nextId = this.getNextActivePlayer(playerId);
         if (!nextId) {
-            this.finishGame();
+            this.checkGameOver(); // Ensure we run the proper finish logic including loser calc
+            if (this.state.status !== 'finished') this.finishGame(); // Fallback if checkGameOver didn't trigger (e.g. forced finish)
             return;
         }
 
@@ -409,16 +401,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         if (this.state.turnPlayerId) this.state.turnPlayerId = nextId;
 
-        // If game over check
-        if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
-            const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
-            if (loser) {
-                this.state.finishedPlayers.push(loser.id);
-                const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-                this.broadcastEvent('rank', rankName);
-            }
-            this.finishGame();
-        }
+        if (this.checkGameOver()) return;
     }
 
     private handle10Sute(player: Player, cards: Card[]) {
@@ -429,11 +412,6 @@ export class DaifugoRoom extends Room<DaifugoState> {
         cards.forEach(c => {
             // Find exact match in hand
             const idx = player.hand.findIndex(h => h.suit === c.suit && h.rank === c.rank);
-            // Safety: Ensure index not already marked (duplicate cards in request?)
-            // Though findIndex finds first. If multiple same cards, we must be careful.
-            // But suit/rank are unique per deck usually? DAIFUGO uses 1 deck?
-            // If 2 decks, unique cards?
-            // Usually Daifugo is 1 deck. Unique suit/rank combos.
             if (idx !== -1) toRemove.push(idx);
         });
 
@@ -458,16 +436,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 this.checkMiyakoOchi();
             }
 
-            if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
-                const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
-                if (loser) {
-                    this.state.finishedPlayers.push(loser.id);
-                    const loserRank = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-                    this.broadcastEvent('rank', loserRank);
-                }
-                this.finishGame();
-                return;
-            }
+            if (this.checkGameOver()) return;
         }
 
         // Advance turn
@@ -515,17 +484,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 this.checkMiyakoOchi();
             }
         });
-        if (this.state.finishedPlayers.length >= this.state.players.size - 1) {
-            // Game ends if only 1 player left
-            // Find loser
-            const loser = Array.from(this.state.players.values()).find(p => !this.state.finishedPlayers.includes(p.id));
-            if (loser) {
-                this.state.finishedPlayers.push(loser.id); // Add loser last
-                const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-                this.broadcastEvent('rank', rankName);
-            }
-            this.finishGame();
-        }
+        if (this.checkGameOver()) return;
 
         this.state.pendingAction = '';
         this.state.pendingActionPlayerId = '';
@@ -548,9 +507,31 @@ export class DaifugoRoom extends Room<DaifugoState> {
             // Trigger Miyako-ochi
             this.state.droppedDaifugoId = daifugo.id;
             this.broadcastEvent('miyakoochi', `${daifugo.name}は都落ちしました！`, daifugo.id);
-            // End the game immediately as requested
-            this.finishGame();
+            // Game continues for others
         }
+    }
+
+    private checkGameOver() {
+        const finishedCount = this.state.finishedPlayers.length;
+        const droppedCount = this.state.droppedDaifugoId ? 1 : 0;
+
+        if (finishedCount + droppedCount >= this.state.players.size - 1) {
+            // Game Over
+            // Find the actual loser who played until the end (not the dropped player)
+            const loser = Array.from(this.state.players.values()).find(p =>
+                !this.state.finishedPlayers.includes(p.id) &&
+                p.id !== this.state.droppedDaifugoId
+            );
+
+            if (loser) {
+                this.state.finishedPlayers.push(loser.id);
+                const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
+                this.broadcastEvent('rank', rankName, loser.id);
+            }
+            this.finishGame();
+            return true;
+        }
+        return false;
     }
 
     private getNextActivePlayer(currentId: string, skipCount: number = 0): string | null {
@@ -591,9 +572,9 @@ export class DaifugoRoom extends Room<DaifugoState> {
         const count = finalOrder.length;
         if (count >= 2) {
             const playerMap = new Map(allPlayers.map(p => [p.id, p]));
-            const previousDaifugo = allPlayers.find(p => p.rank === 'daifugo');
 
             // Assign ranks based on finish order
+            // Dropped player is already at end of finalOrder, so they get daihinmin
             finalOrder.forEach((pid, index) => {
                 const p = playerMap.get(pid);
                 if (!p) return;
@@ -603,26 +584,8 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 else if (index === count - 2 && count >= 4) p.rank = 'binbou';
                 else p.rank = 'heimin';
             });
-
-            // Note: Legacy swap logic removed/ignored because we forced the order directly above
-            // Handle Miyako-ochi Swap (Legacy logic, mostly for non-immediate drops or safety)
-            // If droppedDaifugoId was set, we already handled the drop logic by making them last.
-            if (this.state.ruleMiyakoOchi && previousDaifugo) {
-                if (finalOrder[0] !== previousDaifugo.id) {
-                    // Only broadcast if we haven't already noticed the drop during play
-                    if (!this.state.droppedDaifugoId) {
-                        this.broadcastEvent('miyakoochi', '都落ち', previousDaifugo.id);
-                    }
-
-                    const newDaihinmin = allPlayers.find(p => p.rank === 'daihinmin');
-                    const fallenAngel = previousDaifugo;
-                    if (fallenAngel && newDaihinmin && fallenAngel.id !== newDaihinmin.id) {
-                        const temp = fallenAngel.rank;
-                        fallenAngel.rank = newDaihinmin.rank;
-                        newDaihinmin.rank = temp;
-                    }
-                }
-            }
+            // Miyako-ochi notification was already sent during gameplay in checkMiyakoOchi()
+            // No need for legacy swap logic - finalOrder already has correct ordering
         }
 
         // Cleanup for new game
