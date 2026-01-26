@@ -548,6 +548,8 @@ export class DaifugoRoom extends Room<DaifugoState> {
             // Trigger Miyako-ochi
             this.state.droppedDaifugoId = daifugo.id;
             this.broadcastEvent('miyakoochi', `${daifugo.name}は都落ちしました！`, daifugo.id);
+            // End the game immediately as requested
+            this.finishGame();
         }
     }
 
@@ -561,6 +563,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         while (movesFound <= skipCount && loops < players.length * 2) {
             currentIndex = (currentIndex + 1) % players.length;
             const p = players[currentIndex];
+            // If dropped, they are effectively skipped (though game should end now)
             if (!this.state.finishedPlayers.includes(p.id) && p.id !== this.state.droppedDaifugoId) {
                 if (movesFound === skipCount) return p.id;
                 movesFound++;
@@ -573,7 +576,16 @@ export class DaifugoRoom extends Room<DaifugoState> {
     private startNextGame() {
         const finishedOrder = this.state.finishedPlayers.toArray();
         const allPlayers = Array.from(this.state.players.values());
-        const remaining = allPlayers.filter(p => !finishedOrder.includes(p.id)).map(p => p.id);
+
+        let remaining = allPlayers.filter(p => !finishedOrder.includes(p.id)).map(p => p.id);
+
+        // If Miyako-ochi occurred, force the dropped player to the very end
+        if (this.state.droppedDaifugoId) {
+            remaining = remaining.filter(id => id !== this.state.droppedDaifugoId);
+            // Append dropped player at the end of remaining
+            remaining.push(this.state.droppedDaifugoId);
+        }
+
         const finalOrder = [...finishedOrder, ...remaining];
 
         const count = finalOrder.length;
@@ -592,6 +604,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 else p.rank = 'heimin';
             });
 
+            // Note: Legacy swap logic removed/ignored because we forced the order directly above
             // Handle Miyako-ochi Swap (Legacy logic, mostly for non-immediate drops or safety)
             // If droppedDaifugoId was set, we already handled the drop logic by making them last.
             if (this.state.ruleMiyakoOchi && previousDaifugo) {

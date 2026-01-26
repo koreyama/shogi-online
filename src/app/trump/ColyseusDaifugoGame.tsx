@@ -297,11 +297,12 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 const eventType = state.lastEvent.type;
                 const eventPlayerId = state.lastEvent.playerId;
 
-                // For rank and miyakoochi events, only show to the affected player
-                if ((eventType === 'rank' || eventType === 'miyakoochi') && eventPlayerId !== myPlayerId) {
+                // For rank events, only show to the affected player
+                if (eventType === 'rank' && eventPlayerId !== myPlayerId) {
                     // Don't show rank effects to other players
                     return;
                 }
+                // Miyako-ochi should be visible to everyone
 
                 setEffectEvent({
                     type: eventType,
