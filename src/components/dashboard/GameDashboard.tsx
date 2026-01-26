@@ -233,7 +233,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                 </div>
             </motion.header>
 
-            <div style={{ padding: '2rem', width: '100%', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+            <div className={styles.contentContainer}>
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
@@ -360,12 +360,7 @@ const GameSection = ({ title, color, icon, children }: { title: string, color: s
             </div>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#2d3748' }}>{title}</h2>
         </div>
-        <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: '1.5rem',
-            width: '100%'
-        }}>
+        <div className={styles.gameGrid}>
             {children}
         </div>
     </section>
