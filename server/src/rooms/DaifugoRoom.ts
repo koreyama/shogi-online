@@ -408,6 +408,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
+                console.log('[DEBUG] First finisher in 7Watashi, calling checkMiyakoOchi');
                 this.checkMiyakoOchi();
             }
         }
@@ -448,6 +449,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
+                console.log('[DEBUG] First finisher in 10Sute, calling checkMiyakoOchi');
                 this.checkMiyakoOchi();
             }
 
@@ -496,6 +498,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = pid;
+                console.log('[DEBUG] First finisher in QBomber, calling checkMiyakoOchi');
                 this.checkMiyakoOchi();
             }
         });
@@ -520,9 +523,12 @@ export class DaifugoRoom extends Room<DaifugoState> {
 
         if (daifugo && daifugo.id !== winnerId && !this.state.finishedPlayers.includes(daifugo.id)) {
             // Trigger Miyako-ochi
+            console.log('[DEBUG] MIYAKO-OCHI TRIGGERED! Daifugo:', daifugo.name, 'Winner:', winnerId);
             this.state.droppedDaifugoId = daifugo.id;
             this.broadcastEvent('miyakoochi', `${daifugo.name}は都落ちしました！`, daifugo.id);
             // Game continues for others
+        } else {
+            console.log('[DEBUG] No Miyako-ochi: daifugo=', daifugo?.id, 'winner=', winnerId);
         }
     }
 
