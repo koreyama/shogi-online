@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import {
     IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
     IconCards, IconPalette, IconCoin,
-    IconBomb, IconTrophy, IconDiscord, IconXLogo
+    IconBomb, IconTrophy, IconDiscord, IconXLogo,
+    IconStar
 } from '@/components/Icons';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
@@ -144,13 +145,7 @@ const IconBilliardsLocal = ({ size = 32, color = "currentColor" }: { size?: numb
     </svg>
 );
 
-const IconMagnetLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 14v-7a8 8 0 1 1 16 0v7" />
-        <path d="M4 14h4v7h-4z" />
-        <path d="M16 14h4v7h-4z" />
-    </svg>
-);
+
 
 const IconFactoryLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -198,7 +193,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                 className={styles.header}
             >
                 <div className={styles.logoSection}>
-                    <div className={styles.logoContainer}>
+                    <div className={styles.logoContainer} style={{ width: 48, height: 48, position: 'relative', borderRadius: '50%', overflow: 'hidden' }}>
                         <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                     </div>
                     <span className={styles.logoText}>
@@ -335,7 +330,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
-                            <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconMagnetLocal size={32} color="#e53e3e" />} color="#e53e3e" />
+                            <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconStar size={32} color="#e53e3e" />} color="#e53e3e" />
 
                             <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
