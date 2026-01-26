@@ -191,12 +191,24 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 className={styles.header}
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.5rem 2.5rem',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 50,
+                    borderBottom: '1px solid rgba(226, 232, 240, 0.6)'
+                }}
             >
-                <div className={styles.logoSection}>
-                    <div className={styles.logoContainer} style={{ width: 48, height: 48, position: 'relative', borderRadius: '50%', overflow: 'hidden' }}>
+                <div className={styles.logoSection} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className={styles.logoContainer} style={{ width: 48, height: 48, position: 'relative', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
                         <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                     </div>
-                    <span className={styles.logoText}>
+                    <span className={styles.logoText} style={{ fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: '#1a202c' }}>
                         Asobi Lounge
                     </span>
                 </div>
