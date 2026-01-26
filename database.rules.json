@@ -1,5 +1,14 @@
 {
     "rules": {
+        "orbit_scores": {
+            ".read": true,
+            ".indexOn": [
+                "score"
+            ],
+            "$uid": {
+                ".write": "auth != null && auth.uid === $uid"
+            }
+        },
         "site_stats": {
             ".read": true,
             ".write": true
