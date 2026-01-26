@@ -6,8 +6,7 @@ import { motion } from 'framer-motion';
 import {
     IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
     IconCards, IconPalette, IconCoin,
-    IconBomb, IconTrophy, IconDiscord, IconXLogo,
-    IconStar
+    IconBomb, IconTrophy, IconDiscord, IconXLogo
 } from '@/components/Icons';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
@@ -145,7 +144,13 @@ const IconBilliardsLocal = ({ size = 32, color = "currentColor" }: { size?: numb
     </svg>
 );
 
-
+const IconMagnetLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 14v-7a8 8 0 1 1 16 0v7" />
+        <path d="M4 14h4v7h-4z" />
+        <path d="M16 14h4v7h-4z" />
+    </svg>
+);
 
 const IconFactoryLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -191,24 +196,12 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 className={styles.header}
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1.5rem 2.5rem',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 50,
-                    borderBottom: '1px solid rgba(226, 232, 240, 0.6)'
-                }}
             >
-                <div className={styles.logoSection} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div className={styles.logoContainer} style={{ width: 48, height: 48, position: 'relative', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                <div className={styles.logoSection}>
+                    <div className={styles.logoContainer}>
                         <Image src="/icon.png" alt="Logo" fill style={{ objectFit: 'cover' }} />
                     </div>
-                    <span className={styles.logoText} style={{ fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: '#1a202c' }}>
+                    <span className={styles.logoText}>
                         Asobi Lounge
                     </span>
                 </div>
@@ -220,19 +213,19 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                     <a href="https://x.com/GeZAN477888" target="_blank" rel="noopener noreferrer" className={styles.socialLink} style={{ color: 'black' }} title="Official X (Twitter)">
                         <IconXLogo size={20} color="black" />
                     </a>
-                    <div className={styles.profileBox}>
-                        {user.photoURL && (
-                            <img src={user.photoURL} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                        )}
-                        <span className={styles.profileName}>
-                            {playerName}
-                        </span>
-                    </div>
-
-                    <Link href={`/profile?id=${user.uid}`} title="プロフィール">
-                        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className={`${styles.iconButton} ${styles.profileBtn}`}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </motion.button>
+                    <Link href={`/profile?id=${user.uid}`} title="プロフィール" style={{ textDecoration: 'none' }}>
+                        <div className={styles.profileBox} style={{ cursor: 'pointer', transition: 'transform 0.2s' }}>
+                            {user.photoURL ? (
+                                <img src={user.photoURL} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#cbd5e0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                </div>
+                            )}
+                            <span className={styles.profileName}>
+                                {playerName}
+                            </span>
+                        </div>
                     </Link>
                     <motion.button onClick={signOut} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="ログアウト" className={`${styles.iconButton} ${styles.logoutBtn}`}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -342,7 +335,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
-                            <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconStar size={32} color="#e53e3e" />} color="#e53e3e" />
+                            <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconMagnetLocal size={32} color="#e53e3e" />} color="#e53e3e" />
 
                             <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
