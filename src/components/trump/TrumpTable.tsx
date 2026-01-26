@@ -189,7 +189,7 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
 
                                     const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
 
-                                    const cardStyle = i === 0 ? {} : { marginLeft: dynamicMarginLeft };
+                                    const cardStyle = i === 0 ? { marginLeft: 0 } : { marginLeft: dynamicMarginLeft };
 
                                     return (
                                         <motion.div
