@@ -333,6 +333,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         }
         switch (type) {
             case '8cut': return { text: "8切り", color: "#EF4444", gradient: "linear-gradient(to bottom, #EF4444, #B91C1C)" };
+            case 'spade3': return { text: "スペ3返し", color: "#1E3A5F", gradient: "linear-gradient(to bottom, #1E3A5F, #0A1929)" };
             case 'revolution': return { text: "革命", color: "#F59E0B", gradient: "linear-gradient(to bottom, #F59E0B, #D97706)" };
             case '11back': return { text: "11バック", color: "#3B82F6", gradient: "linear-gradient(to bottom, #3B82F6, #1D4ED8)" };
             case 'miyakoochi': return { text: "都落ち", color: "#9333EA", gradient: "linear-gradient(to bottom, #9333EA, #581C87)" };
@@ -887,37 +888,96 @@ function ResultModal({
                 </h2>
 
                 <div style={{ marginBottom: '2rem' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid #374151', textAlign: 'left' }}>
-                                <th style={{ padding: '1rem' }}>順位</th>
-                                <th style={{ padding: '1rem' }}>プレイヤー</th>
-                                <th style={{ padding: '1rem', textAlign: 'right' }}>変動</th>
-                                <th style={{ padding: '1rem', textAlign: 'right' }}>総スコア</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedPlayers.map((p, idx) => (
-                                <tr key={p.id} style={{
-                                    borderBottom: '1px solid #374151',
-                                    backgroundColor: p.id === myPlayerId ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
-                                }}>
-                                    <td style={{ padding: '1rem' }}>
-                                        {getRankDisplay(p.rank || '')}
-                                    </td>
-                                    <td style={{ padding: '1rem', fontWeight: p.id === myPlayerId ? 'bold' : 'normal' }}>
-                                        {p.name} {p.role === 'host' && '👑'}
-                                    </td>
-                                    <td style={{ padding: '1rem', textAlign: 'right', color: (p.lastScoreChange || 0) > 0 ? '#10B981' : (p.lastScoreChange || 0) < 0 ? '#EF4444' : '#9CA3AF' }}>
-                                        {(p.lastScoreChange || 0) > 0 ? '+' : ''}{p.lastScoreChange || 0}
-                                    </td>
-                                    <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 'bold' }}>
-                                        {p.score || 0}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {sortedPlayers.map((p, idx) => {
+                        // Calculate the rank for this game based on finish order
+                        const finishIndex = finishedPlayers.indexOf(p.id);
+                        const totalPlayers = players.length;
+                        let gameRank = '平民';
+                        let rankColor = '#6B7280'; // gray
+                        let rankBg = 'rgba(107, 114, 128, 0.2)';
+
+                        if (finishIndex === 0) {
+                            gameRank = '大富豪';
+                            rankColor = '#FCD34D';
+                            rankBg = 'rgba(252, 211, 77, 0.2)';
+                        } else if (finishIndex === 1 && totalPlayers >= 4) {
+                            gameRank = '富豪';
+                            rankColor = '#60A5FA';
+                            rankBg = 'rgba(96, 165, 250, 0.2)';
+                        } else if (finishIndex === totalPlayers - 1) {
+                            gameRank = '大貧民';
+                            rankColor = '#9CA3AF';
+                            rankBg = 'rgba(55, 65, 81, 0.4)';
+                        } else if (finishIndex === totalPlayers - 2 && totalPlayers >= 4) {
+                            gameRank = '貧民';
+                            rankColor = '#F87171';
+                            rankBg = 'rgba(248, 113, 113, 0.2)';
+                        } else {
+                            gameRank = '平民';
+                        }
+
+                        return (
+                            <div
+                                key={p.id}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '1rem 1.5rem',
+                                    marginBottom: '0.5rem',
+                                    borderRadius: '0.75rem',
+                                    background: p.id === myPlayerId
+                                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%)'
+                                        : 'rgba(31, 41, 55, 0.5)',
+                                    border: p.id === myPlayerId ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(75, 85, 99, 0.3)'
+                                }}
+                            >
+                                {/* Rank Badge */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                    <div style={{
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '0.5rem',
+                                        background: rankBg,
+                                        border: `1px solid ${rankColor}`,
+                                        color: rankColor,
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        minWidth: '80px',
+                                        textAlign: 'center'
+                                    }}>
+                                        {gameRank}
+                                    </div>
+                                    <span style={{
+                                        color: 'white',
+                                        fontWeight: p.id === myPlayerId ? 'bold' : 'normal',
+                                        fontSize: '1.1rem'
+                                    }}>
+                                        {p.name} {p.id === myPlayerId && <span style={{ color: '#60A5FA' }}>(あなた)</span>}
+                                    </span>
+                                </div>
+
+                                {/* Score Change */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                    <span style={{
+                                        color: (p.lastScoreChange || 0) > 0 ? '#10B981' : (p.lastScoreChange || 0) < 0 ? '#EF4444' : '#9CA3AF',
+                                        fontWeight: 'bold',
+                                        fontSize: '1rem'
+                                    }}>
+                                        {(p.lastScoreChange || 0) > 0 ? '+' : ''}{p.lastScoreChange || 0}pt
+                                    </span>
+                                    <span style={{
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        fontSize: '1.1rem',
+                                        minWidth: '60px',
+                                        textAlign: 'right'
+                                    }}>
+                                        {p.score || 0}pt
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {isHost ? (

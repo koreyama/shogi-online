@@ -279,6 +279,21 @@ export class DaifugoRoom extends Room<DaifugoState> {
             return;
         }
 
+        // Spade 3 beats Joker - clear field like 8-cut
+        const isSpade3Kill = this.state.ruleSpade3 && result.isSpade3;
+        if (isSpade3Kill) {
+            this.broadcastEvent('spade3');
+            this.clearField();
+            if (isFinished) {
+                const nextId = this.getNextActivePlayer(playerId);
+                if (nextId) this.state.turnPlayerId = nextId;
+                else this.finishGame();
+            } else {
+                this.state.turnPlayerId = playerId;
+            }
+            return;
+        }
+
         if (!isFinished && this.state.rule7Watashi && result.watashiCount && result.watashiCount > 0) {
             this.state.pendingAction = '7watashi';
             this.state.pendingActionPlayerId = playerId;
@@ -389,7 +404,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         if (isFinished) {
             this.state.finishedPlayers.push(player.id);
             const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-            this.broadcastEvent('rank', rankName);
+            this.broadcastEvent('rank', rankName, player.id);
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
@@ -429,7 +444,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         if (player.hand.length === 0) {
             this.state.finishedPlayers.push(player.id);
             const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-            this.broadcastEvent('rank', rankName);
+            this.broadcastEvent('rank', rankName, player.id);
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = player.id;
@@ -477,7 +492,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
         newlyFinished.forEach(pid => {
             this.state.finishedPlayers.push(pid);
             const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
-            this.broadcastEvent('rank', rankName);
+            this.broadcastEvent('rank', rankName, pid);
 
             if (this.state.finishedPlayers.length === 1) {
                 this.state.winner = pid;
@@ -528,6 +543,13 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 const rankName = this.getProvisionalRank(this.state.finishedPlayers.length - 1, this.state.players.size);
                 this.broadcastEvent('rank', rankName, loser.id);
             }
+
+            // Add dropped Daifugo as the LAST place (Daihinmin)
+            if (this.state.droppedDaifugoId) {
+                this.state.finishedPlayers.push(this.state.droppedDaifugoId);
+                this.broadcastEvent('rank', '大貧民', this.state.droppedDaifugoId);
+            }
+
             this.finishGame();
             return true;
         }
