@@ -27,12 +27,13 @@ export class EshiritoriPlayer extends Schema {
 export class EshiritoriState extends Schema {
     @type({ map: EshiritoriPlayer }) players = new MapSchema<EshiritoriPlayer>();
     @type("string") currentDrawerId: string = "";
-    @type("string") currentWord: string = "";      // Current word to draw
     @type("string") phase: string = "lobby";       // lobby, showWord, drawing, guessing, result
     @type("number") timeLeft: number = 0;
     @type("number") turnIndex: number = 0;         // Which player's turn
     @type([DrawingEntry]) drawingHistory = new ArraySchema<DrawingEntry>();
     @type("string") lastImageData: string = "";    // For displaying to guesser
+    @type("number") roundsPerPlayer: number = 1;   // Configurable rounds per player
+    @type("number") currentRound: number = 1;      // Current round
 }
 
 // Starting words for shiritori
@@ -48,6 +49,7 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
     maxClients = 8;
     timerInterval: any;
     playerOrder: string[] = [];
+    currentWord: string = "";  // Private - not in synced state
 
     onCreate(options: any) {
         const state = new EshiritoriState();
@@ -98,6 +100,34 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
 
                 if (client.sessionId === nextDrawerId) {
                     this.processGuess(data.guess);
+                }
+            }
+        });
+
+        // Skip current drawing (drawer can skip early)
+        this.onMessage("skipDrawing", (client) => {
+            if (client.sessionId === this.state.currentDrawerId &&
+                (this.state.phase === "drawing" || this.state.phase === "showWord")) {
+                // Request canvas snapshot and end drawing
+                const drawerClient = this.clients.find(c => c.sessionId === this.state.currentDrawerId);
+                if (drawerClient) {
+                    drawerClient.send("requestSnapshot");
+                    setTimeout(() => {
+                        if (this.state.phase === "drawing") {
+                            this.endDrawingPhase("");
+                        }
+                    }, 1000);
+                }
+            }
+        });
+
+        // Update game settings (host only, during lobby)
+        this.onMessage("updateSettings", (client, data: { roundsPerPlayer?: number }) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player?.isHost && this.state.phase === "lobby") {
+                if (data.roundsPerPlayer && data.roundsPerPlayer >= 1 && data.roundsPerPlayer <= 5) {
+                    this.state.roundsPerPlayer = data.roundsPerPlayer;
+                    this.broadcast("message", { system: true, text: `設定変更: 各プレイヤー${data.roundsPerPlayer}枚ずつ描きます` });
                 }
             }
         });
@@ -207,11 +237,14 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
 
         // Clear history
         this.state.drawingHistory.clear();
+        // Clear history
+        this.state.drawingHistory.clear();
         this.state.turnIndex = 0;
+        this.state.currentRound = 1;
 
         // Pick random starting word
         const startWord = SHIRITORI_WORDS[Math.floor(Math.random() * SHIRITORI_WORDS.length)];
-        this.state.currentWord = startWord;
+        this.currentWord = startWord;
 
         this.broadcast("message", { system: true, text: "ゲーム開始！" });
         this.startShowWordPhase();
@@ -231,7 +264,7 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         // Send word to drawer
         const drawerClient = this.clients.find(c => c.sessionId === drawerId);
         if (drawerClient) {
-            drawerClient.send("showWord", { word: this.state.currentWord });
+            drawerClient.send("showWord", { word: this.currentWord });
         }
 
         this.broadcast("message", {
@@ -283,7 +316,7 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         const entry = new DrawingEntry();
         entry.playerId = this.state.currentDrawerId;
         entry.playerName = this.state.players.get(this.state.currentDrawerId)?.name || "?";
-        entry.targetWord = this.state.currentWord;
+        entry.targetWord = this.currentWord;
         entry.imageData = imageData;
         this.state.drawingHistory.push(entry);
         this.state.lastImageData = imageData;
@@ -292,12 +325,9 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         const drawer = this.state.players.get(this.state.currentDrawerId);
         if (drawer) drawer.hasDrawn = true;
 
-        // Check if this was the last player
-        if (this.state.turnIndex >= this.playerOrder.length - 1) {
-            this.showResults();
-        } else {
-            this.startGuessingPhase();
-        }
+        // Always proceed to guessing phase, even for the last player
+        // The game end condition is checked in processGuess
+        this.startGuessingPhase();
     }
 
     startGuessingPhase() {
@@ -342,12 +372,21 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
 
         // Determine next word based on last character of guess
         const lastChar = this.getLastChar(guess);
-        this.state.currentWord = guess; // Next person draws what was guessed
+        this.currentWord = guess; // Next person draws what was guessed
 
         // Move to next turn
         this.state.turnIndex++;
 
+        // Check if round is complete
         if (this.state.turnIndex >= this.playerOrder.length) {
+            this.state.turnIndex = 0;
+            this.state.currentRound++;
+
+            this.broadcast("message", { system: true, text: `ラウンド ${this.state.currentRound} 開始！` });
+        }
+
+        // Check if end of game (should have been caught in endDrawingPhase but just in case)
+        if (this.state.currentRound > this.state.roundsPerPlayer) {
             this.showResults();
         } else {
             this.startShowWordPhase();
@@ -404,8 +443,9 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         clearInterval(this.timerInterval);
         this.state.phase = "lobby";
         this.state.currentDrawerId = "";
-        this.state.currentWord = "";
+        this.currentWord = "";
         this.state.turnIndex = 0;
+        this.state.currentRound = 1;
         this.state.lastImageData = "";
         this.state.drawingHistory.clear();
         this.playerOrder = [];

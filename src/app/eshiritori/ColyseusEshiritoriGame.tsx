@@ -44,22 +44,24 @@ defineTypes(EshiritoriPlayer, {
 class EshiritoriState extends Schema {
     players = new MapSchema<EshiritoriPlayer>();
     currentDrawerId: string = "";
-    currentWord: string = "";
     phase: string = "lobby";
     timeLeft: number = 0;
     turnIndex: number = 0;
     drawingHistory = new ArraySchema<DrawingEntry>();
     lastImageData: string = "";
+    roundsPerPlayer: number = 1;
+    currentRound: number = 1;
 }
 defineTypes(EshiritoriState, {
     players: { map: EshiritoriPlayer },
     currentDrawerId: "string",
-    currentWord: "string",
     phase: "string",
     timeLeft: "number",
     turnIndex: "number",
     drawingHistory: [DrawingEntry],
-    lastImageData: "string"
+    lastImageData: "string",
+    roundsPerPlayer: "number",
+    currentRound: "number"
 });
 
 interface Props {
@@ -76,15 +78,15 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const [players, setPlayers] = useState<any[]>([]);
     const [phase, setPhase] = useState<string>('lobby');
     const [currentDrawerId, setCurrentDrawerId] = useState<string>('');
-    const [currentWord, setCurrentWord] = useState<string>('');
     const [timeLeft, setTimeLeft] = useState<number>(0);
     const [lastImageData, setLastImageData] = useState<string>('');
     const [drawingHistory, setDrawingHistory] = useState<any[]>([]);
+    const [roundsPerPlayer, setRoundsPerPlayer] = useState<number>(1);
 
     // UI state
     const [messages, setMessages] = useState<{ text: string, system?: boolean }[]>([]);
     const [guessInput, setGuessInput] = useState('');
-    const [showingWord, setShowingWord] = useState('');
+    const [showingWord, setShowingWord] = useState('');  // Word only shown to drawer via message
     const [previousDrawer, setPreviousDrawer] = useState('');
     const [error, setError] = useState<string | null>(null);
 
@@ -141,9 +143,9 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                     setPhase(state.phase);
                     setCurrentDrawerId(state.currentDrawerId);
-                    setCurrentWord(state.currentWord);
                     setTimeLeft(state.timeLeft);
                     setLastImageData(state.lastImageData);
+                    setRoundsPerPlayer(state.roundsPerPlayer || 1);
 
                     // Firebase room tracking for lobby listing
                     const myPlayer = pList.find(p => p.id === r.sessionId);
@@ -260,6 +262,14 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
         }
     };
 
+    const handleSkipDrawing = () => {
+        room?.send("skipDrawing");
+    };
+
+    const handleUpdateSettings = (rounds: number) => {
+        room?.send("updateSettings", { roundsPerPlayer: rounds });
+    };
+
     // Error screen
     if (error) {
         return (
@@ -321,9 +331,9 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     {/* Status overlay */}
                     <div className={styles.statusOverlay} style={{ top: '20px' }}>
                         {phase === 'lobby' && '参加者を待っています...'}
-                        {phase === 'showWord' && amIDrawer && `お題: ${showingWord || currentWord}`}
+                        {phase === 'showWord' && amIDrawer && `お題: ${showingWord}`}
                         {phase === 'showWord' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}がお題を確認中...`}
-                        {phase === 'drawing' && amIDrawer && `「${currentWord}」を描いてください！`}
+                        {phase === 'drawing' && amIDrawer && `「${showingWord}」を描いてください！`}
                         {phase === 'drawing' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}が描いています...`}
                         {phase === 'guessing' && amIGuesser && `${previousDrawer}の絵を見て推測してください`}
                         {phase === 'guessing' && !amIGuesser && '推測中...'}
@@ -380,9 +390,12 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                     {/* Action buttons */}
                     {phase === 'drawing' && amIDrawer && (
-                        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '1rem' }}>
                             <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981' }}>
                                 描き終わった！
+                            </button>
+                            <button onClick={handleSkipDrawing} className={styles.primaryBtn} style={{ background: '#ef4444' }}>
+                                スキップ
                             </button>
                         </div>
                     )}
@@ -417,6 +430,38 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                             <p style={{ marginBottom: '2rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
                                 参加者: {players.length}人
                             </p>
+
+                            <div style={{ marginBottom: '2rem' }}>
+                                <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#64748b' }}>
+                                    描く枚数: {roundsPerPlayer}枚 / 人
+                                </div>
+                                {isHost ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                        {[1, 2, 3, 4, 5].map(n => (
+                                            <button
+                                                key={n}
+                                                onClick={() => handleUpdateSettings(n)}
+                                                style={{
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '8px',
+                                                    border: 'none',
+                                                    background: roundsPerPlayer === n ? '#f59e0b' : '#e2e8f0',
+                                                    color: roundsPerPlayer === n ? 'white' : '#64748b',
+                                                    cursor: 'pointer',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {n}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+                                        ホストが設定中...
+                                    </div>
+                                )}
+                            </div>
+
                             {isHost ? (
                                 <button
                                     onClick={handleStartGame}
