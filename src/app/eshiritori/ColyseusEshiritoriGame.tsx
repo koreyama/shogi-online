@@ -105,6 +105,10 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
         if (roomRef.current) return;
 
         const connect = async () => {
+            // Debounce to prevent double connection in Strict Mode
+            await new Promise(r => setTimeout(r, 50));
+            if (ignore) return;
+
             try {
                 const options = { name: playerName, uid: playerId };
                 let r: Room<EshiritoriState>;
@@ -116,7 +120,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                 }
 
                 if (ignore) {
-                    r.leave();
+                    if (r) r.leave();
                     return;
                 }
 
@@ -190,7 +194,8 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                 });
 
                 r.onMessage("startDrawing", () => {
-                    setShowingWord('');
+                    // Do not clear showingWord here, we need it for display
+                    console.log("startDrawing received");
                 });
 
                 r.onMessage("showDrawing", (data: { imageData: string, previousDrawer: string }) => {
@@ -200,10 +205,18 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                 r.onMessage("requestSnapshot", () => {
                     // Canvas requests snapshot
-                    const canvas = document.querySelector('canvas');
-                    if (canvas) {
-                        const imageData = canvas.toDataURL('image/png');
-                        r.send("finishDrawing", { imageData });
+                    try {
+                        const canvas = document.querySelector('canvas');
+                        if (canvas) {
+                            const imageData = canvas.toDataURL('image/png');
+                            r.send("finishDrawing", { imageData });
+                        } else {
+                            // No canvas found, send empty
+                            r.send("finishDrawing", { imageData: "" });
+                        }
+                    } catch (err) {
+                        console.error("Snapshot error:", err);
+                        r.send("finishDrawing", { imageData: "" });
                     }
                 });
 
