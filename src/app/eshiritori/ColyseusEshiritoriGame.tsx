@@ -207,18 +207,41 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                 r.onMessage("requestSnapshot", () => {
                     // Canvas requests snapshot
                     try {
-                        const canvas = document.querySelector('canvas');
-                        if (canvas) {
-                            const imageData = canvas.toDataURL('image/png');
+                        const wrapper = document.getElementById('eshiritori-canvas-wrapper');
+                        const canvases = wrapper?.querySelectorAll('canvas');
+
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = 800; // Match game width
+                        tempCanvas.height = 600; // Match game height
+                        const ctx = tempCanvas.getContext('2d');
+
+                        if (ctx) {
+                            // Fill white background (important for JPEG)
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+                            // Draw all layers
+                            if (canvases) {
+                                canvases.forEach((c) => {
+                                    ctx.drawImage(c, 0, 0);
+                                });
+                            }
+
+                            // Use JPEG with 0.5 quality to reduce message size and prevent WS disconnect
+                            const imageData = tempCanvas.toDataURL('image/jpeg', 0.5);
                             r.send("finishDrawing", { imageData });
                         } else {
-                            // No canvas found, send empty
                             r.send("finishDrawing", { imageData: "" });
                         }
                     } catch (err) {
                         console.error("Snapshot error:", err);
                         r.send("finishDrawing", { imageData: "" });
                     }
+                });
+
+                r.onLeave((code) => {
+                    console.log("Room left:", code);
+                    setError("サーバーから切断されました (Code: " + code + ")");
                 });
 
                 r.onMessage("clear", () => {
@@ -354,7 +377,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         {phase === 'result' && '結果発表！'}
                     </div>
 
-                    <div className={styles.canvasWrapper}>
+                    <div className={styles.canvasWrapper} id="eshiritori-canvas-wrapper">
                         {/* Drawing canvas for drawer */}
                         {(phase === 'drawing' || phase === 'showWord') && (
                             <ErrorBoundary fallback={<div style={{ padding: '2rem', color: 'white', background: '#dc2626', borderRadius: '8px' }}>キャンバスエラーが発生しました。ページをリロードしてください。</div>}>
