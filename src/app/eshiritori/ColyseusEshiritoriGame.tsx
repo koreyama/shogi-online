@@ -191,7 +191,15 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
             } catch (e: any) {
                 console.error("Connection error:", e);
-                setError("接続エラー: " + (e?.message || "サーバーに接続できません"));
+                let errorMsg = "サーバーに接続できません";
+                if (e instanceof Event) {
+                    errorMsg = "WebSocket接続エラー: サーバーが起動していない可能性があります";
+                } else if (e?.message) {
+                    errorMsg = e.message;
+                } else if (typeof e === 'string') {
+                    errorMsg = e;
+                }
+                setError("接続エラー: " + errorMsg);
             }
         };
 
