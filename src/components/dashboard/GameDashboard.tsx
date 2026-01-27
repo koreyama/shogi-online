@@ -335,6 +335,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
                         >
                             <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
+                            <GameCard href="/eshiritori" title="絵しりとり" desc="絵で繋ぐしりとり" icon={<IconPalette size={32} color="#f59e0b" />} color="#f59e0b" />
                             <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconStar size={32} color="#e53e3e" />} color="#e53e3e" />
 
                             <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
