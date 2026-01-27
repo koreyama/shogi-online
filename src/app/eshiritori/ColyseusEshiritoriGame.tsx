@@ -9,6 +9,7 @@ import { IconBack, IconUser, IconPen } from '@/components/Icons';
 import { DrawingCanvas } from '@/components/drawing/DrawingCanvas';
 import { db } from '@/lib/firebase';
 import { ref, set, remove, onDisconnect } from 'firebase/database';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Schema definitions for client-side
 class DrawingEntry extends Schema {
@@ -356,13 +357,15 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     <div className={styles.canvasWrapper}>
                         {/* Drawing canvas for drawer */}
                         {(phase === 'drawing' || phase === 'showWord') && (
-                            <DrawingCanvas
-                                // @ts-ignore
-                                room={room}
-                                isDrawer={amIDrawer && phase === 'drawing'}
-                                width={800}
-                                height={600}
-                            />
+                            <ErrorBoundary fallback={<div style={{ padding: '2rem', color: 'white', background: '#dc2626', borderRadius: '8px' }}>キャンバスエラーが発生しました。ページをリロードしてください。</div>}>
+                                <DrawingCanvas
+                                    // @ts-ignore
+                                    room={room}
+                                    isDrawer={amIDrawer && phase === 'drawing'}
+                                    width={800}
+                                    height={600}
+                                />
+                            </ErrorBoundary>
                         )}
 
                         {/* Show previous drawing for guesser */}
