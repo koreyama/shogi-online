@@ -66,6 +66,9 @@ gameServer.define("minesweeper_room", MinesweeperRoom)
 import { DrawingRoom } from "./rooms/DrawingRoom";
 gameServer.define("drawing", DrawingRoom);
 
+import { EshiritoriRoom } from "./rooms/EshiritoriRoom";
+gameServer.define("eshiritori", EshiritoriRoom);
+
 import { WerewolfRoom } from "./rooms/WerewolfRoom";
 gameServer.define("werewolf", WerewolfRoom)
     .filterBy(['mode']);
