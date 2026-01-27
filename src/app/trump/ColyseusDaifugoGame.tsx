@@ -585,7 +585,10 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                                         max="4"
                                         value={rules.jokerCount}
                                         disabled={!amHost}
-                                        onChange={e => room.send('updateRules', { jokerCount: parseInt(e.target.value) })}
+                                        onChange={e => {
+                                            const val = Math.min(4, Math.max(0, parseInt(e.target.value) || 0));
+                                            room.send('updateRules', { jokerCount: val });
+                                        }}
                                         className={styles.numInput}
                                         style={{ marginLeft: '10px', width: '50px' }}
                                     />
