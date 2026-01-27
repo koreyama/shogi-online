@@ -892,20 +892,23 @@ function ResultModal({
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 style={{
-                    backgroundColor: '#111827', // Darker gray/black
-                    padding: '2rem',
-                    borderRadius: '1rem',
-                    border: '1px solid #4B5563', // Lighter border
-                    maxWidth: '800px',
-                    width: '90%',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)' // Stronger shadow
+                    backgroundColor: '#111827',
+                    padding: 'clamp(1rem, 4vw, 2rem)',
+                    borderRadius: 'clamp(0.75rem, 2vw, 1rem)',
+                    border: '1px solid #4B5563',
+                    maxWidth: '500px',
+                    width: '95%',
+                    maxHeight: '90vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
                 }}
             >
                 <h2 style={{
-                    fontSize: '2rem',
+                    fontSize: 'clamp(1.25rem, 5vw, 1.75rem)',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    marginBottom: '2rem',
+                    marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
                     background: 'linear-gradient(to right, #FCD34D, #F59E0B)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
@@ -913,7 +916,7 @@ function ResultModal({
                     ゲーム終了
                 </h2>
 
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto' }}>
                     {sortedPlayers.map((p, idx) => {
                         // Calculate the rank for this game based on finish order
                         const finishIndex = finishedPlayers.indexOf(p.id);
@@ -949,53 +952,59 @@ function ResultModal({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    padding: '1rem 1.5rem',
-                                    marginBottom: '0.5rem',
-                                    borderRadius: '0.75rem',
+                                    padding: '0.75rem 1rem',
+                                    marginBottom: '0.4rem',
+                                    borderRadius: '0.5rem',
                                     background: p.id === myPlayerId
                                         ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%)'
                                         : 'rgba(31, 41, 55, 0.5)',
-                                    border: p.id === myPlayerId ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(75, 85, 99, 0.3)'
+                                    border: p.id === myPlayerId ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(75, 85, 99, 0.3)',
+                                    flexWrap: 'wrap',
+                                    gap: '0.5rem'
                                 }}
                             >
-                                {/* Rank Badge */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                {/* Left: Rank + Name */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: '1 1 auto' }}>
                                     <div style={{
-                                        padding: '0.5rem 1rem',
-                                        borderRadius: '0.5rem',
+                                        padding: '0.3rem 0.6rem',
+                                        borderRadius: '0.4rem',
                                         background: rankBg,
                                         border: `1px solid ${rankColor}`,
                                         color: rankColor,
                                         fontWeight: 'bold',
-                                        fontSize: '0.9rem',
-                                        minWidth: '80px',
-                                        textAlign: 'center'
+                                        fontSize: 'clamp(0.7rem, 2.5vw, 0.85rem)',
+                                        whiteSpace: 'nowrap',
+                                        flexShrink: 0
                                     }}>
                                         {gameRank}
                                     </div>
                                     <span style={{
                                         color: 'white',
                                         fontWeight: p.id === myPlayerId ? 'bold' : 'normal',
-                                        fontSize: '1.1rem'
+                                        fontSize: 'clamp(0.85rem, 3vw, 1rem)',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
                                     }}>
-                                        {p.name} {p.id === myPlayerId && <span style={{ color: '#60A5FA' }}>(あなた)</span>}
+                                        {p.name}
+                                        {p.id === myPlayerId && <span style={{ color: '#60A5FA', marginLeft: '0.3rem' }}>(自分)</span>}
                                     </span>
                                 </div>
 
-                                {/* Score Change */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                {/* Right: Score */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                                     <span style={{
                                         color: (p.lastScoreChange || 0) > 0 ? '#10B981' : (p.lastScoreChange || 0) < 0 ? '#EF4444' : '#9CA3AF',
                                         fontWeight: 'bold',
-                                        fontSize: '1rem'
+                                        fontSize: 'clamp(0.75rem, 2.5vw, 0.9rem)'
                                     }}>
-                                        {(p.lastScoreChange || 0) > 0 ? '+' : ''}{p.lastScoreChange || 0}pt
+                                        {(p.lastScoreChange || 0) > 0 ? '+' : ''}{p.lastScoreChange || 0}
                                     </span>
                                     <span style={{
                                         color: 'white',
                                         fontWeight: 'bold',
-                                        fontSize: '1.1rem',
-                                        minWidth: '60px',
+                                        fontSize: 'clamp(0.85rem, 3vw, 1rem)',
+                                        minWidth: '45px',
                                         textAlign: 'right'
                                     }}>
                                         {p.score || 0}pt
@@ -1007,16 +1016,17 @@ function ResultModal({
                 </div>
 
                 {isHost ? (
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
                             onClick={onEndGame}
                             style={{
-                                padding: '1rem 2rem',
+                                padding: 'clamp(0.6rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem)',
                                 borderRadius: '0.5rem',
-                                backgroundColor: '#EF4444', // Red for visibility/danger
+                                backgroundColor: '#EF4444',
                                 color: 'white',
                                 fontWeight: 'bold',
-                                border: '2px solid #B91C1C', // Stronger border
+                                fontSize: 'clamp(0.85rem, 3vw, 1rem)',
+                                border: '2px solid #B91C1C',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s',
                                 boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.5)'
@@ -1035,11 +1045,12 @@ function ResultModal({
                         <button
                             onClick={onNextGame}
                             style={{
-                                padding: '1rem 3rem',
+                                padding: 'clamp(0.6rem, 2vw, 1rem) clamp(1.5rem, 5vw, 3rem)',
                                 borderRadius: '0.5rem',
                                 backgroundColor: '#2563EB',
                                 color: 'white',
                                 fontWeight: 'bold',
+                                fontSize: 'clamp(0.85rem, 3vw, 1rem)',
                                 border: '2px solid #1D4ED8',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s',
