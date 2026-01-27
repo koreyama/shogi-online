@@ -145,6 +145,23 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     setTimeLeft(state.timeLeft);
                     setLastImageData(state.lastImageData);
 
+                    // Firebase room tracking for lobby listing
+                    const myPlayer = pList.find(p => p.id === r.sessionId);
+                    if (myPlayer?.isHost && r.roomId) {
+                        const roomRef = ref(db, `eshiritori_rooms/${r.roomId}`);
+                        const roomData = {
+                            roomId: r.roomId,
+                            hostId: playerId,
+                            hostName: playerName,
+                            status: state.phase === 'lobby' ? 'waiting' : 'playing',
+                            playerCount: pList.length,
+                            isLocked: !!password,
+                            createdAt: Date.now()
+                        };
+                        set(roomRef, roomData).catch(err => console.warn("Firebase update failed:", err));
+                        onDisconnect(roomRef).remove().catch(err => console.warn("onDisconnect failed:", err));
+                    }
+
                     // Drawing history
                     const history: any[] = [];
                     if (state.drawingHistory) {

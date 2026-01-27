@@ -6,6 +6,7 @@ import styles from '@/app/trump/page.module.css';
 import { db } from '@/lib/firebase';
 import { ref, onValue, remove } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlayer } from '@/hooks/usePlayer';
 import { IconBack, IconUser } from '@/components/Icons';
 import HideChatBot from '@/components/HideChatBot';
 import dynamic from 'next/dynamic';
@@ -36,6 +37,7 @@ interface EshiritoriRoom {
 export default function EshiritoriLobby() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { playerName } = usePlayer();
 
     const [rooms, setRooms] = useState<EshiritoriRoom[]>([]);
     const [gameActive, setGameActive] = useState(false);
@@ -98,7 +100,7 @@ export default function EshiritoriLobby() {
                 <HideChatBot />
                 <ColyseusEshiritoriGame
                     playerId={user.uid}
-                    playerName={user.displayName || (user.email ? user.email.split('@')[0] : 'Guest')}
+                    playerName={playerName || user.displayName || 'Guest'}
                     mode={creationOptions?.create ? 'create' : 'join'}
                     roomId={creationOptions?.roomId}
                     password={creationOptions?.password}
