@@ -211,8 +211,16 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         const canvases = wrapper?.querySelectorAll('canvas');
 
                         const tempCanvas = document.createElement('canvas');
-                        tempCanvas.width = 800; // Match game width
-                        tempCanvas.height = 600; // Match game height
+
+                        // Resize to max 400px width to reduce size
+                        const MAX_WIDTH = 400;
+                        const originalWidth = 800;
+                        const originalHeight = 600;
+                        const scale = MAX_WIDTH / originalWidth;
+
+                        tempCanvas.width = MAX_WIDTH;
+                        tempCanvas.height = originalHeight * scale;
+
                         const ctx = tempCanvas.getContext('2d');
 
                         if (ctx) {
@@ -220,10 +228,10 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                             ctx.fillStyle = '#ffffff';
                             ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-                            // Draw all layers
+                            // Draw all layers scaled
                             if (canvases) {
                                 canvases.forEach((c) => {
-                                    ctx.drawImage(c, 0, 0);
+                                    ctx.drawImage(c, 0, 0, tempCanvas.width, tempCanvas.height);
                                 });
                             }
 
