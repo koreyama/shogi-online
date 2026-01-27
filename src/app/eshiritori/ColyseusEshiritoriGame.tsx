@@ -7,6 +7,8 @@ import { Schema, MapSchema, ArraySchema, defineTypes } from '@colyseus/schema';
 import styles from '../drawing/DrawingGame.module.css';
 import { IconBack, IconUser, IconPen } from '@/components/Icons';
 import { DrawingCanvas } from '@/components/drawing/DrawingCanvas';
+import { db } from '@/lib/firebase';
+import { ref, set, remove, onDisconnect } from 'firebase/database';
 
 // Schema definitions for client-side
 class DrawingEntry extends Schema {
@@ -65,10 +67,11 @@ interface Props {
     playerId: string;
     mode: 'create' | 'join';
     roomId?: string;
+    password?: string;
     onBack: () => void;
 }
 
-export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roomId, onBack }: Props) {
+export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roomId, password, onBack }: Props) {
     const [room, setRoom] = useState<Room<EshiritoriState> | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
     const [phase, setPhase] = useState<string>('lobby');
@@ -263,7 +266,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     }
 
     const amIDrawer = room.sessionId === currentDrawerId;
-    const amIHost = players.find(p => p.id === room.sessionId)?.isHost;
+    const isHost = players.find(p => p.id === room.sessionId)?.isHost;
 
     // Determine next guesser
     const playerOrder = players.map(p => p.id);
@@ -397,7 +400,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                             <p style={{ marginBottom: '2rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
                                 参加者: {players.length}人
                             </p>
-                            {amIHost ? (
+                            {isHost ? (
                                 <button
                                     onClick={handleStartGame}
                                     className={styles.primaryBtn}
@@ -413,7 +416,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     )}
 
                     {/* Result restart */}
-                    {phase === 'result' && amIHost && (
+                    {phase === 'result' && isHost && (
                         <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}>
                             <button onClick={handleStartGame} className={styles.primaryBtn} style={{ background: '#f59e0b' }}>
                                 もう一度遊ぶ

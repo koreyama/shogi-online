@@ -119,23 +119,59 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
     onLeave(client: Client, consented: boolean) {
         console.log(client.sessionId, "left eshiritori");
         const player = this.state.players.get(client.sessionId);
+        const leftPlayerId = client.sessionId;
 
         if (player) {
             this.broadcast("message", { system: true, text: `${player.name}が退出しました` });
-            this.state.players.delete(client.sessionId);
         }
 
-        // If current drawer left during game
-        if (this.state.currentDrawerId === client.sessionId &&
-            (this.state.phase === "drawing" || this.state.phase === "showWord")) {
-            this.broadcast("message", { system: true, text: "描いていたプレイヤーが退出しました。スキップします。" });
-            this.nextTurn();
+        // Remove from player order BEFORE deleting from state
+        const playerOrderIndex = this.playerOrder.indexOf(leftPlayerId);
+        if (playerOrderIndex !== -1) {
+            this.playerOrder.splice(playerOrderIndex, 1);
+            // Adjust turnIndex if needed
+            if (playerOrderIndex < this.state.turnIndex) {
+                this.state.turnIndex--;
+            }
+        }
+
+        // Now delete from state
+        if (player) {
+            this.state.players.delete(leftPlayerId);
         }
 
         // If less than 2 players and game is running, end game
         if (this.state.players.size < 2 && this.state.phase !== "lobby") {
             this.broadcast("message", { system: true, text: "プレイヤーが足りません。ロビーに戻ります。" });
             this.resetGame();
+            return;
+        }
+
+        // If current drawer left during game, move to next turn
+        if (this.state.currentDrawerId === leftPlayerId &&
+            (this.state.phase === "drawing" || this.state.phase === "showWord")) {
+            clearInterval(this.timerInterval);
+            this.broadcast("message", { system: true, text: "描いていたプレイヤーが退出しました。スキップします。" });
+
+            // Check if there are still players to continue
+            if (this.playerOrder.length > 0 && this.state.turnIndex < this.playerOrder.length) {
+                this.startShowWordPhase();
+            } else if (this.playerOrder.length > 0) {
+                this.showResults();
+            } else {
+                this.resetGame();
+            }
+            return;
+        }
+
+        // If the guesser left during guessing phase, auto-submit guess
+        if (this.state.phase === "guessing") {
+            const nextDrawerIndex = (this.state.turnIndex + 1) % (this.playerOrder.length + 1); // +1 because we already removed
+            // If the guesser was the one who left, auto-submit
+            if (leftPlayerId === this.playerOrder[nextDrawerIndex - 1]) {
+                clearInterval(this.timerInterval);
+                this.processGuess("？");
+            }
         }
 
         // Reassign host if needed
