@@ -51,7 +51,7 @@ export class DaifugoRoom extends Room<DaifugoState> {
                 if (rules.is11Back !== undefined) this.state.rule11Back = rules.is11Back;
                 if (rules.isSpade3 !== undefined) this.state.ruleSpade3 = rules.isSpade3;
                 if (rules.miyakoOchi !== undefined) this.state.ruleMiyakoOchi = rules.miyakoOchi;
-                if (rules.jokerCount !== undefined) this.state.jokerCount = rules.jokerCount;
+                if (rules.jokerCount !== undefined) this.state.jokerCount = Math.min(4, Math.max(0, rules.jokerCount));
                 if (rules.is5Skip !== undefined) this.state.rule5Skip = rules.is5Skip;
                 if (rules.is7Watashi !== undefined) this.state.rule7Watashi = rules.is7Watashi;
                 if (rules.isQBomber !== undefined) this.state.ruleQBomber = rules.isQBomber;
