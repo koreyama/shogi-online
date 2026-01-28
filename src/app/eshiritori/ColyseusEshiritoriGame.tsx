@@ -83,6 +83,8 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const [lastImageData, setLastImageData] = useState<string>('');
     const [drawingHistory, setDrawingHistory] = useState<any[]>([]);
     const [roundsPerPlayer, setRoundsPerPlayer] = useState<number>(1);
+    const [turnIndex, setTurnIndex] = useState<number>(0);
+    const [currentRound, setCurrentRound] = useState<number>(1);
 
     // UI state
     const [messages, setMessages] = useState<{ text: string, system?: boolean }[]>([]);
@@ -151,6 +153,8 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     setTimeLeft(state.timeLeft);
                     setLastImageData(state.lastImageData);
                     setRoundsPerPlayer(state.roundsPerPlayer || 1);
+                    setTurnIndex(state.turnIndex || 0);
+                    setCurrentRound(state.currentRound || 1);
 
                     // Firebase room tracking for lobby listing
                     const myPlayer = pList.find(p => p.id === r.sessionId);
@@ -376,9 +380,11 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     {/* Status overlay */}
                     <div className={styles.statusOverlay} style={{ top: '20px' }}>
                         {phase === 'lobby' && '参加者を待っています...'}
-                        {phase === 'showWord' && amIDrawer && `お題: ${showingWord}`}
-                        {phase === 'showWord' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}がお題を確認中...`}
-                        {phase === 'drawing' && amIDrawer && `🎨 「${showingWord}」`}
+                        {phase === 'showWord' && amIDrawer && turnIndex === 0 && currentRound === 1 && `お題: ${showingWord}`}
+                        {phase === 'showWord' && amIDrawer && !(turnIndex === 0 && currentRound === 1) && '次に描く準備をしてください'}
+                        {phase === 'showWord' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}が準備中...`}
+                        {phase === 'drawing' && amIDrawer && turnIndex === 0 && currentRound === 1 && `🎨 お題: 「${showingWord}」`}
+                        {phase === 'drawing' && amIDrawer && !(turnIndex === 0 && currentRound === 1) && '🎨 前の人の絵に続くものを描いてください'}
                         {phase === 'drawing' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}が描いています...`}
                         {phase === 'guessing' && amIGuesser && `${previousDrawer}の絵を見て推測してください`}
                         {phase === 'guessing' && !amIGuesser && '推測中...'}
