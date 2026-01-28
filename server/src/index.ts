@@ -44,7 +44,7 @@ const gameServer = new Server({
 });
 
 // Attach Express to stats/monitor/other routes
-gameServer.attach({ server: httpServer }); // Ensure transport listeners are attached (implicit in new Server but good to be safe if strictly separated?)
+// gameServer.attach({ server: httpServer }); // Removed to prevent double upgrade handling error
 // Actually new Server() with transport already sets it up. 
 // Just need to ensure app runs AFTER.
 
