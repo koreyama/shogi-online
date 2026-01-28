@@ -97,9 +97,9 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const canvasRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Auto scroll messages
+    // Auto scroll messages (only within chat container)
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }, [messages]);
 
     // Connect to room
@@ -358,10 +358,16 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     <IconBack size={24} /> 退出
                 </button>
 
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
                     <div className={styles.timerPill} style={{ color: timeLeft <= 10 && timeLeft > 0 ? '#ef4444' : '#f59e0b' }}>
                         {timeLeft > 0 ? `${timeLeft}s` : phase === 'lobby' ? '待機中' : ''}
                     </div>
+                    {/* Finish button in header for drawer */}
+                    {phase === 'drawing' && amIDrawer && (
+                        <button onClick={handleFinishDrawing} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '50px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}>
+                            ✓ 完了
+                        </button>
+                    )}
                 </div>
 
                 <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f59e0b' }}>
@@ -414,25 +420,17 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                         {/* Result screen */}
                         {phase === 'result' && (
-                            <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '12px', padding: '2rem', overflowY: 'auto' }}>
-                                <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#f59e0b' }}>🎨 しりとりチェーン</h2>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '12px', padding: '1rem', overflowY: 'auto' }}>
+                                <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#f59e0b', fontSize: '1.2rem' }}>🎨 しりとりチェーン</h2>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
                                     {drawingHistory.map((entry, idx) => (
-                                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem', background: '#fef3c7', borderRadius: '12px' }}>
-                                            <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{entry.playerName}</div>
+                                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem', background: '#fef3c7', borderRadius: '8px', width: '150px' }}>
+                                            <div style={{ fontWeight: 'bold', fontSize: '0.8rem', marginBottom: '0.25rem' }}>{entry.playerName}</div>
                                             {entry.imageData && (
-                                                <img src={entry.imageData} alt={`${entry.playerName}の絵`} style={{ width: '200px', height: '150px', objectFit: 'contain', background: 'white', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                                                <img src={entry.imageData} alt={`${entry.playerName}の絵`} style={{ width: '120px', height: '90px', objectFit: 'contain', background: 'white', borderRadius: '4px', marginBottom: '0.25rem' }} />
                                             )}
-                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.9rem' }}>
-                                                <span style={{ color: '#059669' }}>描いた: {entry.targetWord}</span>
-                                                {entry.guessedWord && (
-                                                    <>
-                                                        <span>→</span>
-                                                        <span style={{ color: entry.guessedWord === entry.targetWord ? '#059669' : '#dc2626' }}>
-                                                            推測: {entry.guessedWord}
-                                                        </span>
-                                                    </>
-                                                )}
+                                            <div style={{ fontSize: '0.9rem', color: '#b45309', fontWeight: 'bold' }}>
+                                                → {entry.guessedWord || '？'}
                                             </div>
                                         </div>
                                     ))}
@@ -440,15 +438,6 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                             </div>
                         )}
                     </div>
-
-                    {/* Action button - fixed positioning for guaranteed visibility */}
-                    {phase === 'drawing' && amIDrawer && (
-                        <div style={{ position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
-                            <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981', padding: '1rem 2rem', fontSize: '1.1rem' }}>
-                                ✓ 描き終わった！
-                            </button>
-                        </div>
-                    )}
 
                     {/* Guess input form */}
                     {phase === 'guessing' && amIGuesser && (
