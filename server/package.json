@@ -22,7 +22,8 @@
         "colyseus": "^0.16.5",
         "cors": "^2.8.5",
         "express": "^4.18.2",
-        "matter-js": "^0.20.0"
+        "matter-js": "^0.20.0",
+        "firebase": "^10.0.0"
     },
     "devDependencies": {
         "@types/cors": "^2.8.13",

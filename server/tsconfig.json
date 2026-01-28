@@ -9,7 +9,13 @@
         "target": "es2016",
         "esModuleInterop": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/lib/*": [
+                "src/lib/*"
+            ]
+        }
     },
     "include": [
         "src/**/*"
