@@ -10,8 +10,8 @@ import {
     toggleManaChargeMode,
     selectCardForCharge,
     discardAndDraw
-} from "../../../src/lib/card-game/engine"; // Relative import to shared logic
-import { GameState, PlayerState, GameLogEntry, StatusEffect, Trap, Field } from "../../../src/lib/card-game/types";
+} from "../lib/card-game/engine"; // Relative import to shared logic
+import { GameState, PlayerState, GameLogEntry, StatusEffect, Trap, Field } from "../lib/card-game/types";
 
 export class CardGameRoom extends Room<CardGameState> {
     maxClients = 2;

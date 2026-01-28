@@ -1,8 +1,8 @@
 import { Room, Client } from "colyseus";
 import { DaifugoState, Player, Card as SchemaCard } from "./schema/DaifugoState";
-import { DaifugoEngine, DaifugoState as EngineDaifugoState } from "../../../src/lib/trump/daifugo/engine";
-import { Deck } from "../../../src/lib/trump/deck";
-import { Card } from "../../../src/lib/trump/types";
+import { DaifugoEngine, DaifugoState as EngineDaifugoState } from "../lib/trump/daifugo/engine";
+import { Deck } from "../lib/trump/deck";
+import { Card } from "../lib/trump/types";
 
 export class DaifugoRoom extends Room<DaifugoState> {
     maxClients = 6;
