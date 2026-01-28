@@ -200,7 +200,7 @@
     gap: 1.5rem;
     align-items: center;
     width: 100%;
-    max-width: 420px;
+    max-width: 600px;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
     padding: clamp(2rem, 5vw, 3rem);
