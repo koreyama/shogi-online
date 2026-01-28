@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 // Colyseus Monitor
 app.use("/colyseus", monitor());
 
-const httpServer = createServer(app);
+const httpServer = createServer(); // Don't attach app here yet
 
 const gameServer = new Server({
     transport: new WebSocketTransport({
@@ -42,6 +42,12 @@ const gameServer = new Server({
         maxPayload: 10 * 1024 * 1024 // 10MB max payload
     })
 });
+
+// Attach Express to stats/monitor/other routes
+gameServer.attach({ server: httpServer }); // Ensure transport listeners are attached (implicit in new Server but good to be safe if strictly separated?)
+// Actually new Server() with transport already sets it up. 
+// Just need to ensure app runs AFTER.
+
 
 // Define Rooms
 import { DaifugoRoom } from "./rooms/DaifugoRoom";
@@ -102,4 +108,8 @@ gameServer.define("lobby", LobbyRoom);
 console.log("Registered LobbyRoom");
 
 gameServer.listen(port);
+
+// Attach Express AFTER Colyseus to ensure /matchmake routes are handled by Colyseus first
+httpServer.on("request", app);
+
 console.log(`Listening on ws://localhost:${port}`);
