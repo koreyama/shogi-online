@@ -166,21 +166,12 @@
 
     /* Fix for 2 columns layout on mobile */
     .contentContainer {
-        padding: 1rem 1rem 6rem 1rem;
-        /* Extra bottom padding */
+        padding: 1rem;
     }
 
     .gameGrid {
-        /* On very small screens, 1 column might be better for readability */
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         gap: 0.75rem;
-    }
-}
-
-@media (max-width: 400px) {
-    .gameGrid {
-        grid-template-columns: 1fr;
-        /* Single column on very small phones */
     }
 }
 
