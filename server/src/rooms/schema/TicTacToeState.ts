@@ -1,4 +1,4 @@
-import { Schema, Context, type, MapSchema, ArraySchema } from "@colyseus/schema";
+import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
 
 export class TicTacToeMove extends Schema {
     @type("number") index: number;
