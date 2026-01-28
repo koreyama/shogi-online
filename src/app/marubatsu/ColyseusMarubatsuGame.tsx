@@ -187,6 +187,9 @@ export default function ColyseusMarubatsuGame({ mode, roomId: propRoomId, player
                     onCellClick={handleCellClick}
                     disabled={status !== 'playing' || turn !== myRole}
                 />
+                <div style={{ marginTop: '1rem', color: '#718096', fontSize: '0.9rem' }}>
+                    ※3つまで。4つ目で古いコマが消えます。
+                </div>
                 {status === 'connecting' && <div className="text-center mt-2">接続中...</div>}
                 {status === 'waiting' && <h3 style={{ marginTop: '1rem' }}>対戦相手を待っています...</h3>}
             </div>

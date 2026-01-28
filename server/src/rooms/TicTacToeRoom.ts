@@ -1,5 +1,5 @@
 import { Room, Client } from "colyseus";
-import { TicTacToeState, TicTacToePlayer } from "./schema/TicTacToeState";
+import { TicTacToeState, TicTacToePlayer, TicTacToeMove } from "./schema/TicTacToeState";
 
 const BOARD_SIZE = 3;
 const EMPTY = 0;
@@ -12,13 +12,11 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
     onCreate(options: any) {
         this.setState(new TicTacToeState());
 
-        // Initial board setup (already handled by default ArraySchema values in State?)
-        // ArraySchema defaults to empty if not filled. Let's fill it.
+        // Initial board setup
         for (let i = 0; i < 9; i++) {
             this.state.board[i] = EMPTY;
         }
 
-        // Generate a 6-digit Room ID if not provided (though Colyseus usually handles roomId)
         this.roomId = Math.floor(100000 + Math.random() * 900000).toString();
 
         if (options.isPrivate) {
@@ -30,8 +28,6 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         });
 
         this.onMessage("reset", (client, message) => {
-            // Optional: Allow reset? Usually we just start next game or rely on client to re-join.
-            // For simplicity, let's allow a reset vote or simple reset if game over.
             if (this.state.isGameOver) {
                 this.resetGame();
                 this.broadcast("gameRestarted");
@@ -72,7 +68,6 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         if (this.state.players.has(client.sessionId)) {
             this.state.players.delete(client.sessionId);
             if (!this.state.isGameOver) {
-                // If game is in progress and player leaves, other wins or room closes
                 this.broadcast("roomDissolved", { leaver: client.sessionId });
                 this.disconnect();
             }
@@ -91,17 +86,25 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         if (index < 0 || index >= 9) return;
         if (this.state.board[index] !== EMPTY) return;
 
+        // FIFO Logic: Remove oldest move if count reaches 3
+        const playerMoves = this.state.moves.filter(m => m.mark === player.mark);
+        if (playerMoves.length >= 3) {
+            const oldMove = playerMoves[0]; // Oldest is first
+            const idxToRemove = this.state.moves.indexOf(oldMove);
+            if (idxToRemove !== -1) {
+                this.state.moves.splice(idxToRemove, 1);
+                this.state.board[oldMove.index] = EMPTY;
+            }
+        }
+
         const markCode = player.mark === "o" ? O_MARK : X_MARK;
         this.state.board[index] = markCode;
+        this.state.moves.push(new TicTacToeMove(index, player.mark));
 
         if (this.checkWin(player.mark)) {
             this.state.isGameOver = true;
             this.state.winner = player.mark;
             this.broadcast("gameOver", { winner: this.state.winner, reason: "win" });
-        } else if (this.checkDraw()) {
-            this.state.isGameOver = true;
-            this.state.winner = "draw";
-            this.broadcast("gameOver", { winner: "draw", reason: "draw" });
         } else {
             this.state.turn = this.state.turn === "o" ? "x" : "o";
         }
@@ -111,6 +114,7 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         for (let i = 0; i < 9; i++) {
             this.state.board[i] = EMPTY;
         }
+        this.state.moves.clear();
         this.state.turn = "o";
         this.state.isGameOver = false;
         this.state.winner = "";
@@ -129,9 +133,5 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         return wins.some(pattern =>
             pattern.every(idx => b[idx] === m)
         );
-    }
-
-    checkDraw(): boolean {
-        return this.state.board.every(cell => cell !== EMPTY);
     }
 }
