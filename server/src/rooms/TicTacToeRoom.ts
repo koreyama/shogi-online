@@ -35,7 +35,14 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
         });
 
         this.onMessage("chat", (client, message) => {
-            this.broadcast("chat", message);
+            const player = this.state.players.get(client.sessionId);
+            const chatMsg = {
+                id: Math.random().toString(36).substr(2, 9),
+                sender: player ? player.name : "Guest",
+                text: message, // client sends string
+                timestamp: Date.now()
+            };
+            this.broadcast("chat", chatMsg);
         });
 
         console.log(`[TicTacToeRoom] Created ${this.roomId}`);

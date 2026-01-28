@@ -94,6 +94,7 @@ export default function MarubatsuPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
                 <ColyseusMarubatsuGame mode="random" playerName={playerName} />
             </main>
         );
@@ -104,6 +105,7 @@ export default function MarubatsuPage() {
             <main className={navStyles.main}>
                 <FloatingShapes />
                 <HideChatBot />
+                <div className={navStyles.header}><button onClick={() => setJoinMode(null)} className={navStyles.backButton}><IconBack size={18} /> 終了</button></div>
                 <ColyseusMarubatsuGame mode="room" roomId={customRoomId || undefined} playerName={playerName} />
             </main>
         );
@@ -190,6 +192,7 @@ export default function MarubatsuPage() {
                                         onClick={() => { if (customRoomId) setJoinMode('colyseus_room_active'); }}
                                         className={navStyles.secondaryBtn}
                                         disabled={!customRoomId}
+                                        style={{ width: 'auto', padding: '0 3rem' }}
                                     >
                                         参加
                                     </button>

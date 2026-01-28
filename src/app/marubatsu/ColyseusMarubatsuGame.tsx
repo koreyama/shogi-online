@@ -8,6 +8,7 @@ import { MarubatsuBoard } from '@/components/MarubatsuBoard';
 import { IconHourglass, IconBack } from '@/components/Icons';
 import { MatchingWaitingScreen } from '@/components/game/MatchingWaitingScreen';
 import { useAuth } from '@/hooks/useAuth';
+import { Chat } from '@/components/Chat';
 
 interface ColyseusMarubatsuGameProps {
     mode: 'random' | 'room';
@@ -30,6 +31,7 @@ export default function ColyseusMarubatsuGame({ mode, roomId: propRoomId, player
     const [winner, setWinner] = useState<string | null>(null);
     const [showDissolvedDialog, setShowDissolvedDialog] = useState(false);
     const [playersInfo, setPlayersInfo] = useState<{ o: string, x: string }>({ o: "Waiting...", x: "Waiting..." });
+    const [messages, setMessages] = useState<any[]>([]);
 
     const roomRef = useRef<Room | null>(null);
     const dataEffectCalled = useRef(false);
@@ -122,6 +124,10 @@ export default function ColyseusMarubatsuGame({ mode, roomId: propRoomId, player
                     setShowDissolvedDialog(true);
                 });
 
+                r.onMessage("chat", (message) => {
+                    setMessages(prev => [...prev, message]);
+                });
+
             } catch (e: any) {
                 console.error("Connection failed", e);
                 setError("接続に失敗しました。");
@@ -192,6 +198,14 @@ export default function ColyseusMarubatsuGame({ mode, roomId: propRoomId, player
                 </div>
                 {status === 'connecting' && <div className="text-center mt-2">接続中...</div>}
                 {status === 'waiting' && <h3 style={{ marginTop: '1rem' }}>対戦相手を待っています...</h3>}
+            </div>
+
+            <div className={styles.rightPanel}>
+                <Chat
+                    messages={messages}
+                    onSendMessage={(text) => room?.send("chat", text)}
+                    myName={playerName}
+                />
             </div>
 
             {status === 'finished' && !showDissolvedDialog && (
