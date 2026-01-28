@@ -378,7 +378,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         {phase === 'lobby' && '参加者を待っています...'}
                         {phase === 'showWord' && amIDrawer && `お題: ${showingWord}`}
                         {phase === 'showWord' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}がお題を確認中...`}
-                        {phase === 'drawing' && amIDrawer && `「${showingWord}」を描いてください！`}
+                        {phase === 'drawing' && amIDrawer && `🎨 「${showingWord}」`}
                         {phase === 'drawing' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}が描いています...`}
                         {phase === 'guessing' && amIGuesser && `${previousDrawer}の絵を見て推測してください`}
                         {phase === 'guessing' && !amIGuesser && '推測中...'}
@@ -435,14 +435,11 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         )}
                     </div>
 
-                    {/* Action buttons - fixed positioning for guaranteed visibility */}
+                    {/* Action button - fixed positioning for guaranteed visibility */}
                     {phase === 'drawing' && amIDrawer && (
-                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '1rem', zIndex: 100 }}>
-                            <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981', padding: '1rem 2rem' }}>
-                                描き終わった！
-                            </button>
-                            <button onClick={handleSkipDrawing} className={styles.primaryBtn} style={{ background: '#ef4444', padding: '1rem 2rem' }}>
-                                スキップ
+                        <div style={{ position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+                            <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981', padding: '1rem 2rem', fontSize: '1.1rem' }}>
+                                ✓ 描き終わった！
                             </button>
                         </div>
                     )}
