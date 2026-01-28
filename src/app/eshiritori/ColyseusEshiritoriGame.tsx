@@ -435,13 +435,13 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         )}
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Action buttons - fixed positioning for guaranteed visibility */}
                     {phase === 'drawing' && amIDrawer && (
-                        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '1rem' }}>
-                            <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981' }}>
+                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '1rem', zIndex: 100 }}>
+                            <button onClick={handleFinishDrawing} className={styles.primaryBtn} style={{ background: '#10b981', padding: '1rem 2rem' }}>
                                 描き終わった！
                             </button>
-                            <button onClick={handleSkipDrawing} className={styles.primaryBtn} style={{ background: '#ef4444' }}>
+                            <button onClick={handleSkipDrawing} className={styles.primaryBtn} style={{ background: '#ef4444', padding: '1rem 2rem' }}>
                                 スキップ
                             </button>
                         </div>

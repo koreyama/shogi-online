@@ -1,4 +1,5 @@
 import { Server } from "colyseus";
+import { WebSocketTransport } from "@colyseus/ws-transport";
 import { createServer } from "http";
 import express from "express";
 import cors from "cors";
@@ -33,8 +34,13 @@ app.get("/", (req, res) => {
 // Colyseus Monitor
 app.use("/colyseus", monitor());
 
+const httpServer = createServer(app);
+
 const gameServer = new Server({
-    server: createServer(app),
+    transport: new WebSocketTransport({
+        server: httpServer,
+        maxPayload: 10 * 1024 * 1024 // 10MB max payload
+    })
 });
 
 // Define Rooms
