@@ -93,6 +93,16 @@ export default function Home() {
     { name: 'Dots & Boxes', category: 'パズル', description: '点と点を線で結び、四角を完成させたら自分の陣地。戦略的な陣取りゲームです。', color: '#ed64a6' },
     { name: 'バックギャモン', category: 'ボードゲーム', description: '5000年の歴史を持つ世界最古のボードゲーム。サイコロの運と戦略が融合した遊びです。', color: '#dd6b20' },
     { name: '囲碁', category: 'ボードゲーム', description: '黒と白の石を使って陣地を取り合う、東洋の伝統的な戦略ゲーム。シンプルながら無限の奥深さがあります。', color: '#1a202c' },
+    { name: 'ビリヤード', category: 'スポーツ', description: '物理演算を使ったリアルなビリヤード。ナインボールなどでオンライン対戦が楽しめます。', color: '#276749' },
+    { name: 'ハニカム', category: 'パズル', description: '六角形のマスを使った陣取り戦略ゲーム。隣接するマスを自分の色に変えていきましょう。', color: '#d69e2e' },
+    { name: '麻雀', category: 'テーブル', description: '本格的な対戦麻雀。リーチや鳴きに対応し、最大4人で熱い駆け引きが楽しめます。', color: '#2c5282' },
+    { name: 'Orbit', category: 'アクション', description: '重力を利用してボールを操るアクションパズル。惑星の引力を計算してゴールを目指そう。', color: '#4c51bf' },
+    { name: 'ピアノ', category: '音楽', description: 'ブラウザで弾けるオンラインピアノ。キーボード対応で、友達との合奏も可能です。', color: '#000000' },
+    { name: 'ポリオミノ', category: 'パズル', description: '様々な形のブロックを盤面に敷き詰めるパズルゲーム。対戦モードで相手を邪魔しよう。', color: '#b83280' },
+    { name: 'Trash World', category: 'シミュレーション', description: 'ゴミを拾って資源にリサイクル。施設を拡張して環境を改善していく放置系ゲーム。', color: '#718096' },
+    { name: '人狼', category: 'パーティゲーム', description: '市民に紛れた人狼を会話で見つけ出す心理戦ゲーム。嘘と信頼の駆け引きが勝負のカギ。', color: '#742a2a' },
+    { name: 'どうぶつ将棋風', category: 'ボードゲーム', description: '3x4の小さな盤面で遊ぶ簡易将棋。かわいい動物の駒で、将棋の基礎を楽しく学べます。', color: '#ed8936' },
+    { name: 'マルバツゲーム', category: 'ボードゲーム', description: '縦・横・斜めのいずれかに3つ並べたら勝ち。シンプルだからこそ奥が深い定番ゲーム。', color: '#e53e3e' },
   ];
 
   // useRoomJanitor();

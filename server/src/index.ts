@@ -88,6 +88,9 @@ gameServer.define("mahjong", MahjongRoom);
 gameServer.define("mahjong3", MahjongRoom); // 3人麻雀用
 gameServer.define("go", GoRoom);
 
+import { TicTacToeRoom } from "./rooms/TicTacToeRoom";
+gameServer.define("tictactoe", TicTacToeRoom);
+
 import { StatsRoom } from "./rooms/StatsRoom";
 gameServer.define("stats", StatsRoom);
 
