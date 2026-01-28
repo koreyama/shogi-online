@@ -55,10 +55,10 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         const state = new EshiritoriState();
         this.setState(state);
 
-        // Start game
+        // Start game (works from lobby or result phase for restart)
         this.onMessage("start", (client) => {
             const player = this.state.players.get(client.sessionId);
-            if (player?.isHost && this.state.phase === "lobby" && this.state.players.size >= 2) {
+            if (player?.isHost && (this.state.phase === "lobby" || this.state.phase === "result") && this.state.players.size >= 2) {
                 this.startGame();
             }
         });
@@ -81,6 +81,17 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
         this.onMessage("undo", (client, strokeId) => {
             if (client.sessionId === this.state.currentDrawerId && this.state.phase === "drawing") {
                 this.broadcast("undo", strokeId);
+            }
+        });
+
+        // Chat message
+        this.onMessage("chat", (client, data: { text: string }) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player && data.text && data.text.trim()) {
+                this.broadcast("message", {
+                    text: `${player.name}: ${data.text.trim()}`,
+                    system: false
+                });
             }
         });
 

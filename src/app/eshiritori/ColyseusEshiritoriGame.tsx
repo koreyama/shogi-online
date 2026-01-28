@@ -558,13 +558,32 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     </div>
 
                     <div className={styles.chatArea}>
-                        <div className={styles.messages}>
+                        <div className={styles.messages} style={{ overscrollBehavior: 'contain' }}>
                             {messages.map((m, i) => (
                                 <div key={i} className={`${styles.message} ${m.system ? styles.systemMessage : ''}`}>
                                     {m.text}
                                 </div>
                             ))}
                             <div ref={messagesEndRef} />
+                        </div>
+                        <div className={styles.chatInputArea}>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+                                if (input && input.value.trim() && room) {
+                                    room.send("chat", { text: input.value.trim() });
+                                    input.value = '';
+                                }
+                            }} style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                                <input
+                                    type="text"
+                                    placeholder="メッセージを入力..."
+                                    className={styles.chatInput}
+                                />
+                                <button type="submit" className={styles.primaryBtn} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+                                    送信
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
