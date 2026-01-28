@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { ref, push, onValue, remove, child } from 'firebase/database';
 import { Stroke, Point } from '@/lib/drawing/types';
-import { IconPalette, IconEraser, IconTrash, IconLayers, IconPen, IconUndo, IconRedo, IconEye, IconEyeOff, IconLasso } from '@/components/Icons';
+import { IconPalette, IconEraser, IconTrash, IconPen, IconUndo, IconRedo, IconLasso } from '@/components/Icons';
 import { Room } from 'colyseus.js';
 import styles from './DrawingCanvas.module.css';
 
@@ -848,17 +848,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId, room, isDr
                         <span style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>ズーム: {Math.round(scale * 100)}%</span>
                         <input type="range" min="0.1" max="3" step="0.1" value={scale} onChange={e => setScale(Number(e.target.value))} style={{ width: 60, cursor: 'pointer' }} />
                     </div>
-                    <div className={styles.separator} />
-                    <div className={styles.toolGroup} style={{ gap: '10px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            {layers.slice().reverse().map(l => (
-                                <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <button onClick={() => toggleLayerVisibility(l.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2 }}>{l.visible ? <IconEye size={16} color="#666" /> : <IconEyeOff size={16} color="#ccc" />}</button>
-                                    <button onClick={() => setActiveLayer(l.id)} style={{ padding: '2px 8px', borderRadius: '4px', background: activeLayer === l.id ? '#f1f5f9' : 'transparent', border: activeLayer === l.id ? '1px solid #94a3b8' : '1px solid transparent', fontSize: '12px', fontWeight: activeLayer === l.id ? 'bold' : 'normal', cursor: 'pointer', minWidth: '60px', textAlign: 'left' }}>{l.name}</button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
                     <div className={styles.separator} />
                     <button onClick={() => { if (confirm('全消去しますか？')) clearCanvas(); }} className={styles.toolBtn} style={{ color: '#ef4444' }}><IconTrash size={20} /></button>
                 </div>

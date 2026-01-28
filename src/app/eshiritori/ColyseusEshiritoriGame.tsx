@@ -446,10 +446,10 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         <div style={{
                             position: 'fixed',
                             bottom: 'max(20px, env(safe-area-inset-bottom))',
-                            left: '16px',
-                            right: '16px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: 'calc(100% - 32px)',
                             maxWidth: '400px',
-                            margin: '0 auto',
                             zIndex: 100,
                             boxSizing: 'border-box'
                         }}>
@@ -459,7 +459,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                                     value={guessInput}
                                     onChange={e => setGuessInput(e.target.value)}
                                     placeholder="この絵は何？"
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '2px solid #f59e0b', fontSize: '16px' }} // 16px prevents iOS zoom
+                                    style={{ flex: 1, minWidth: 0, padding: '0.8rem', borderRadius: '8px', border: '2px solid #f59e0b', fontSize: '16px' }} // 16px prevents iOS zoom
                                     autoFocus
                                 />
                                 <button type="submit" className={styles.primaryBtn} style={{ background: '#f59e0b' }}>
