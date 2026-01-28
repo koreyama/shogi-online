@@ -27,6 +27,7 @@ export class EshiritoriPlayer extends Schema {
 export class EshiritoriState extends Schema {
     @type({ map: EshiritoriPlayer }) players = new MapSchema<EshiritoriPlayer>();
     @type("string") currentDrawerId: string = "";
+    @type("string") currentGuesserId: string = "";  // Who should guess next
     @type("string") phase: string = "lobby";       // lobby, showWord, drawing, guessing, result
     @type("number") timeLeft: number = 0;
     @type("number") turnIndex: number = 0;         // Which player's turn
@@ -36,13 +37,26 @@ export class EshiritoriState extends Schema {
     @type("number") currentRound: number = 1;      // Current round
 }
 
-// Starting words for shiritori
+// Starting words for shiritori (none ending in ん)
 const SHIRITORI_WORDS = [
-    "りんご", "ごりら", "らっぱ", "ぱんだ", "あめ",
-    "あひる", "いぬ", "うさぎ", "えんぴつ", "おにぎり",
-    "かめ", "くじら", "くま", "けいさつ", "こあら",
-    "さくら", "すいか", "せみ", "たこ", "つき",
-    "ねこ", "はな", "ひこうき", "ふね", "まんが"
+    // 動物
+    "いぬ", "ねこ", "うさぎ", "くま", "さる", "きつね", "たぬき", "しか", "ぞう", "きりん",
+    "かば", "わに", "へび", "かえる", "かめ", "あひる", "にわとり", "すずめ", "からす", "つばめ",
+    "くじら", "いるか", "さめ", "たこ", "いか", "えび", "かに", "くらげ", "ひとで", "かい",
+    // 食べ物
+    "りんご", "みかん", "ばなな", "いちご", "すいか", "もも", "ぶどう", "なし", "かき", "れもん",
+    "おにぎり", "すし", "らーめん", "うどん", "そば", "ぱすた", "ぴざ", "かれー", "はんばーぐ",
+    "ぱん", "けーき", "あいす", "ぷりん", "ちょこ", "くっきー", "どーなつ",
+    // 乗り物
+    "くるま", "ばす", "でんしゃ", "ひこうき", "ふね", "じてんしゃ", "ばいく", "たくしー", "へりこぷたー",
+    // 自然
+    "やま", "かわ", "うみ", "そら", "ほし", "つき", "たいよう", "くも", "あめ", "ゆき", "かぜ", "にじ",
+    "はな", "き", "くさ", "はっぱ", "もり", "しま", "いわ", "すな",
+    // 物
+    "いす", "つくえ", "ほん", "えんぴつ", "けしごむ", "はさみ", "のり", "かばん", "かさ", "くつ",
+    "ぼうし", "めがね", "とけい", "てれび", "らじお", "かめら", "でんわ", "ぱそこん",
+    // その他
+    "おばけ", "かいぞく", "にんじゃ", "さむらい", "おひめさま", "おうじさま", "ろぼっと"
 ];
 
 export class EshiritoriRoom extends Room<EshiritoriState> {
@@ -354,6 +368,9 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
 
         const nextDrawerIndex = (this.state.turnIndex + 1) % this.playerOrder.length;
         const nextDrawerId = this.playerOrder[nextDrawerIndex];
+
+        // Set the guesser ID explicitly for client sync
+        this.state.currentGuesserId = nextDrawerId;
 
         // Send drawing to next player
         const nextClient = this.clients.find(c => c.sessionId === nextDrawerId);

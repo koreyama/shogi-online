@@ -45,6 +45,7 @@ defineTypes(EshiritoriPlayer, {
 class EshiritoriState extends Schema {
     players = new MapSchema<EshiritoriPlayer>();
     currentDrawerId: string = "";
+    currentGuesserId: string = "";
     phase: string = "lobby";
     timeLeft: number = 0;
     turnIndex: number = 0;
@@ -56,6 +57,7 @@ class EshiritoriState extends Schema {
 defineTypes(EshiritoriState, {
     players: { map: EshiritoriPlayer },
     currentDrawerId: "string",
+    currentGuesserId: "string",
     phase: "string",
     timeLeft: "number",
     turnIndex: "number",
@@ -85,6 +87,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const [roundsPerPlayer, setRoundsPerPlayer] = useState<number>(1);
     const [turnIndex, setTurnIndex] = useState<number>(0);
     const [currentRound, setCurrentRound] = useState<number>(1);
+    const [currentGuesserId, setCurrentGuesserId] = useState<string>("");
 
     // UI state
     const [messages, setMessages] = useState<{ text: string, system?: boolean }[]>([]);
@@ -92,6 +95,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const [showingWord, setShowingWord] = useState('');  // Word only shown to drawer via message
     const [previousDrawer, setPreviousDrawer] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [showMobileChat, setShowMobileChat] = useState(false);
 
     const roomRef = useRef<Room<EshiritoriState> | null>(null);
     const canvasRef = useRef<any>(null);
@@ -155,6 +159,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     setRoundsPerPlayer(state.roundsPerPlayer || 1);
                     setTurnIndex(state.turnIndex || 0);
                     setCurrentRound(state.currentRound || 1);
+                    setCurrentGuesserId(state.currentGuesserId || "");
 
                     // Firebase room tracking for lobby listing
                     const myPlayer = pList.find(p => p.id === r.sessionId);
@@ -345,10 +350,8 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const isHost = players.find(p => p.id === room.sessionId)?.isHost;
 
     // Determine next guesser
-    const playerOrder = players.map(p => p.id);
-    const currentTurnIndex = playerOrder.indexOf(currentDrawerId);
-    const nextGuesserId = playerOrder[(currentTurnIndex + 1) % playerOrder.length];
-    const amIGuesser = room.sessionId === nextGuesserId && phase === 'guessing';
+    // Determine next guesser - Use server state for truth
+    const amIGuesser = room.sessionId === currentGuesserId && phase === 'guessing';
 
     return (
         <main className={styles.gameContainer} style={{ '--theme-primary': '#f59e0b', '--theme-secondary': '#d97706' } as React.CSSProperties}>
@@ -394,7 +397,6 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         {phase === 'drawing' && !amIDrawer && `${players.find(p => p.isCurrentDrawer)?.name}が描いています...`}
                         {phase === 'guessing' && amIGuesser && `${previousDrawer}の絵を見て推測してください`}
                         {phase === 'guessing' && !amIGuesser && '推測中...'}
-                        {phase === 'result' && '結果発表！'}
                     </div>
 
                     <div className={styles.canvasWrapper} id="eshiritori-canvas-wrapper">
@@ -577,6 +579,99 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     </div>
                 </div>
             </div>
+
+            {/* Mobile chat toggle button */}
+            <button
+                onClick={() => setShowMobileChat(!showMobileChat)}
+                style={{
+                    position: 'fixed',
+                    top: '80px',
+                    right: '10px',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: '#f59e0b',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 200,
+                    display: 'none'
+                }}
+                className="mobile-chat-toggle"
+            >
+                💬
+            </button>
+
+            {/* Mobile chat overlay */}
+            {showMobileChat && (
+                <div style={{
+                    position: 'fixed',
+                    top: '130px',
+                    right: '10px',
+                    width: '280px',
+                    maxWidth: 'calc(100vw - 20px)',
+                    height: '300px',
+                    background: 'white',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                    zIndex: 199,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                }} className="mobile-chat-overlay">
+                    <div style={{ padding: '0.75rem', background: '#f59e0b', color: 'white', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>💬 チャット / 👥 参加者</span>
+                        <button onClick={() => setShowMobileChat(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+                    </div>
+
+                    {/* Mobile Player List */}
+                    <div style={{ padding: '0.5rem', background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', display: 'flex', overflowX: 'auto', gap: '0.5rem' }}>
+                        {players.map(p => {
+                            const isGuesser = p.id === currentGuesserId && phase === 'guessing';
+                            return (
+                                <div key={p.id} style={{
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem',
+                                    background: p.isCurrentDrawer ? '#fef3c7' : (isGuesser ? '#dbeafe' : 'white'),
+                                    border: p.isCurrentDrawer ? '1px solid #f59e0b' : (isGuesser ? '1px solid #3b82f6' : '1px solid #e2e8f0'),
+                                    fontWeight: (p.isCurrentDrawer || isGuesser) ? 'bold' : 'normal',
+                                    whiteSpace: 'nowrap'
+                                }}>
+                                    <span>{p.isCurrentDrawer ? '🎨' : (isGuesser ? '🤔' : '👤')}</span>
+                                    {p.name}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem', overscrollBehavior: 'contain' }}>
+                        {messages.map((m, i) => (
+                            <div key={i} style={{ padding: '0.4rem 0.6rem', marginBottom: '0.25rem', borderRadius: '8px', fontSize: '0.85rem', background: m.system ? '#dcfce7' : '#f1f5f9' }}>
+                                {m.text}
+                            </div>
+                        ))}
+                    </div>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+                        if (input && input.value.trim() && room) {
+                            room.send("chat", { text: input.value.trim() });
+                            input.value = '';
+                        }
+                    }} style={{ display: 'flex', padding: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                        <input type="text" placeholder="メッセージ..." style={{ flex: 1, padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '8px', marginRight: '0.5rem' }} />
+                        <button type="submit" style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer' }}>送信</button>
+                    </form>
+                </div>
+            )}
+
+            <style jsx global>{`
+                @media (max-width: 768px) {
+                    .mobile-chat-toggle { display: block !important; }
+                }
+            `}</style>
         </main>
     );
 }
