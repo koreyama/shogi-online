@@ -61,6 +61,7 @@ export class TicTacToeRoom extends Room<TicTacToeState> {
 
         if (this.state.players.size === 2) {
             this.broadcast("gameStart", { message: "Game Started" });
+            this.lock();
         }
     }
 

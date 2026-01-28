@@ -166,7 +166,7 @@ export default function MarubatsuPage() {
                 <div className={navStyles.gameContainer}>
                     <h1 className={navStyles.title}>ルーム対戦</h1>
                     <div className={navStyles.joinSection}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', maxWidth: '340px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
                             <div style={{ textAlign: 'center' }}>
                                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>新しい部屋を作る</p>
                                 <button onClick={() => { setCustomRoomId(''); setJoinMode('colyseus_room_active'); }} className={navStyles.primaryBtn} style={{ width: '100%' }}>
