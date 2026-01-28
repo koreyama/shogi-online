@@ -49,7 +49,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     });
 
     // Local State
-    const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+    const [selectedCardsList, setSelectedCardsList] = useState<Card[]>([]);
     const [selectedRanks, setSelectedRanks] = useState<string[]>([]); // ADDED for Q Bomber
     const [exchangePendingCount, setExchangePendingCount] = useState<number>(0);
     const [gameState, setGameState] = useState<string>('waiting');
@@ -287,6 +287,8 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                 newHands[p.id] = sortedHand;
             });
 
+            // Sort players by sessionId to ensure consistent order (Clockwise)
+            pList.sort((a, b) => (a.sessionId || '').localeCompare(b.sessionId || ''));
             setPlayers(pList);
             setHands(newHands);
 
@@ -362,31 +364,43 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
         }
     };
 
+    const isSameCard = (a: Card, b: Card) => a.suit === b.suit && a.rank === b.rank;
+
     // Game Logic Wrappers
     const handleCardClick = (card: Card, index: number) => {
-        setSelectedIndices(prev => {
-            if (prev.includes(index)) {
-                return prev.filter(i => i !== index);
+        setSelectedCardsList(prev => {
+            const exists = prev.some(c => isSameCard(c, card));
+            if (exists) {
+                // If duplicates exist in hand (e.g. 2 Jokers), we need to be careful.
+                // But generally removing by value is fine. If I selected 2 Jokers, and click one, I remove one.
+                // Simple filter removes ALL matching cards. That's bad for duplicates!
+                // We should find index of first match and remove it.
+                const newSelection = [...prev];
+                const removeIdx = newSelection.findIndex(c => isSameCard(c, card));
+                if (removeIdx !== -1) {
+                    newSelection.splice(removeIdx, 1);
+                }
+                return newSelection;
             } else {
-                return [...prev, index];
+                return [...prev, card];
             }
         });
     };
 
+    // getSelectedCardsObjects is now just returning the state
     const getSelectedCardsObjects = () => {
-        const myHand = hands[myPlayerId] || [];
-        return selectedIndices.map(i => myHand[i]).filter(c => c !== undefined);
+        return selectedCardsList;
     };
 
     const executePlay = () => {
-        room?.send("playCard", { cards: getSelectedCardsObjects() });
-        setSelectedIndices([]);
+        room?.send("playCard", { cards: selectedCardsList });
+        setSelectedCardsList([]);
     };
 
     const executePass = () => {
         if (!lastMove) return; // Should be disabled in UI, but safety check
         room?.send("pass");
-        setSelectedIndices([]);
+        setSelectedCardsList([]);
     };
 
     const startGame = () => {
@@ -394,17 +408,17 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     };
 
     const handleExchangeSubmit = () => {
-        if (selectedIndices.length !== exchangePendingCount) {
+        if (selectedCardsList.length !== exchangePendingCount) {
             alert(`${exchangePendingCount}枚選択してください`);
             return;
         }
-        room?.send("exchangeCards", { cards: getSelectedCardsObjects() });
-        setSelectedIndices([]);
+        room?.send("exchangeCards", { cards: selectedCardsList });
+        setSelectedCardsList([]);
     };
 
     const handleNextGame = () => {
         room?.send("startNextGame");
-        setSelectedIndices([]);
+        setSelectedCardsList([]);
     };
 
     const handleEndGame = () => {
@@ -414,12 +428,12 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     const handle7WatashiSubmit = () => {
         const myHand = hands[myPlayerId] || [];
         const required = Math.min(pendingActionCount, myHand.length);
-        if (selectedIndices.length !== required) {
+        if (selectedCardsList.length !== required) {
             alert(`${required}枚選択してください`);
             return;
         }
-        room?.send("7watashiPass", { cards: getSelectedCardsObjects() });
-        setSelectedIndices([]);
+        room?.send("7watashiPass", { cards: selectedCardsList });
+        setSelectedCardsList([]);
     };
 
     const handleQBomberRankToggle = (rank: string) => {
@@ -438,12 +452,12 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     };
 
     const handle10SuteSubmit = () => {
-        if (selectedIndices.length !== pendingActionCount) {
+        if (selectedCardsList.length !== pendingActionCount) {
             alert(`${pendingActionCount}枚選択してください`);
             return;
         }
-        room?.send("10suteDiscard", { cards: getSelectedCardsObjects() });
-        setSelectedIndices([]);
+        room?.send("10suteDiscard", { cards: selectedCardsList });
+        setSelectedCardsList([]);
     };
 
     const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
@@ -633,7 +647,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     fieldCards={fieldCards}
                     turnPlayerId={turnPlayerId}
                     onCardClick={handleCardClick}
-                    selectedIndices={selectedIndices} // Pass indices correctly
+                    selectedCards={selectedCardsList} // Pass Card objects directly
                     playableCards={playableCards}
                     isRevolution={isRevolution}
                 />
@@ -651,10 +665,10 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                             })()}
                             {exchangePendingCount > 0 ? (
                                 <>
-                                    <p>下位のプレイヤーに渡すカードを{exchangePendingCount}枚選んでください ({selectedIndices.length}/{exchangePendingCount})</p>
+                                    <p>下位のプレイヤーに渡すカードを{exchangePendingCount}枚選んでください ({selectedCardsList.length}/{exchangePendingCount})</p>
                                     <button
                                         onClick={handleExchangeSubmit}
-                                        disabled={selectedIndices.length !== exchangePendingCount}
+                                        disabled={selectedCardsList.length !== exchangePendingCount}
                                         className={styles.actionBtn}
                                     >
                                         交換する
@@ -672,14 +686,14 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     <div className={styles.notificationBar}>
                         <div className={styles.notificationContent}>
                             <h2>7渡し</h2>
-                            <p>次のプレイヤーに渡すカードを選んでください ({selectedIndices.length}/{pendingActionCount})</p>
+                            <p>次のプレイヤーに渡すカードを選んでください ({selectedCardsList.length}/{pendingActionCount})</p>
                             <button
                                 onClick={handle7WatashiSubmit}
                                 className={styles.actionBtn}
                                 disabled={(() => {
                                     const myHand = hands[myPlayerId] || [];
                                     const required = Math.min(pendingActionCount, myHand.length);
-                                    return selectedIndices.length !== required;
+                                    return selectedCardsList.length !== required;
                                 })()}
                             >
                                 渡す
@@ -696,7 +710,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
 
                 {/* Q Bomber Modal (Improved) */}
                 {pendingAction === 'qbomber' && (
-                    <div className={styles.modalOverlay}>
+                    <div className={`${styles.modalOverlay} ${styles.qBomberOverlay}`}>
                         <div className={`${styles.modalContent} ${styles.qBomberContent}`}>
                             {pendingActionPlayerId === myPlayerId ? (
                                 <>
@@ -745,11 +759,11 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                     <div className={styles.notificationBar}>
                         <div className={styles.notificationContent}>
                             <h2>10捨て</h2>
-                            <p>捨てるカードを選んでください ({selectedIndices.length}/{pendingActionCount})</p>
+                            <p>捨てるカードを選んでください ({selectedCardsList.length}/{pendingActionCount})</p>
                             <button
                                 onClick={handle10SuteSubmit}
                                 className={styles.actionBtn}
-                                disabled={selectedIndices.length !== pendingActionCount}
+                                disabled={selectedCardsList.length !== pendingActionCount}
                             >
                                 捨てる
                             </button>
@@ -836,7 +850,7 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
                         >
                             パス
                         </button>
-                        <button onClick={executePlay} className={styles.actionBtn} disabled={selectedIndices.length === 0}>
+                        <button onClick={executePlay} className={styles.actionBtn} disabled={selectedCardsList.length === 0}>
                             出す
                         </button>
                     </>

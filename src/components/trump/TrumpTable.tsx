@@ -11,7 +11,7 @@ interface TrumpTableProps {
     fieldCards: CardType[];
     turnPlayerId: string;
     onCardClick?: (card: CardType, index: number) => void;
-    selectedIndices?: number[];
+    // selectedIndices removed - usage deprecated
     selectedCards?: CardType[]; // Added support for Card object selection
     playableCards?: CardType[];
     isRevolution: boolean;
@@ -24,7 +24,6 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
     fieldCards,
     turnPlayerId,
     onCardClick,
-    selectedIndices = [],
     selectedCards = [], // Default empty
     playableCards = [],
     isRevolution
@@ -40,10 +39,14 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
         if (index === 0) return styles.bottom;
         if (total === 2) return styles.top;
         if (total === 3) {
+            // Visual Clockwise: Bottom -> Left -> Right -> Bottom
+            // (6 -> 9 -> 3 -> 6)
             if (index === 1) return styles.left;
             if (index === 2) return styles.right;
         }
         if (total === 4) {
+            // Visual Clockwise: Bottom -> Left -> Top -> Right
+            // (6 -> 9 -> 12 -> 3)
             if (index === 1) return styles.left;
             if (index === 2) return styles.top;
             if (index === 3) return styles.right;
@@ -181,11 +184,9 @@ export const TrumpTable: React.FC<TrumpTableProps> = ({
                         <div className={`${styles.hand} ${!isMe ? styles.opponent : ''}`}>
                             <AnimatePresence>
                                 {hand.map((card, i) => {
-                                    // Check selection by index OR by card object content
-                                    const isSelected = isMe && (
-                                        selectedIndices.includes(i) ||
-                                        selectedCards.some(sc => sc.suit === card.suit && sc.rank === card.rank)
-                                    );
+                                    // Check selection by card object content (Suit + Rank)
+                                    // This is stable even if hand sorting changes
+                                    const isSelected = isMe && selectedCards.some(sc => sc.suit === card.suit && sc.rank === card.rank);
 
                                     const isPlayable = !isMe || (playableCards.length === 0 ? false : playableCards.some(pc => pc.suit === card.suit && pc.rank === card.rank));
 

@@ -816,6 +816,45 @@
     }
 }
 
+/* --- Modal Styles --- */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modalContent {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Higher position for Q-Bomber to show hand */
+.qBomberOverlay {
+    align-items: flex-start;
+    padding-top: 100px;
+    background: rgba(0, 0, 0, 0.2) !important;
+    /* Much more transparent */
+    backdrop-filter: none !important;
+    /* Remove blur completely */
+}
+
+@media (max-width: 768px) {
+    .qBomberOverlay {
+        padding-top: 60px;
+        /* Less padding on mobile */
+        align-items: flex-start;
+    }
+}
+
 /* Q Bomber Styles */
 .qBomberContent {
     background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
