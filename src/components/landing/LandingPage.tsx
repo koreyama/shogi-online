@@ -103,6 +103,11 @@ const gameDescriptions = [
     { name: 'ポリオミノ', category: 'パズル', description: '様々な形のブロックを敷き詰めるパズルゲーム。', color: '#805ad5' },
     { name: 'ピアノ', category: '音楽', description: 'ブラウザでピアノ演奏。友達とセッションも可能です。', color: '#4a5568' },
     { name: 'Honeycomb', category: 'パズル', description: '六角形のマスを使った戦略パズル。', color: '#d69e2e' },
+    { name: 'ビリヤード', category: 'スポーツ', description: '物理演算を使った本格ビリヤード。', color: '#276749' },
+    { name: 'Orbit', category: 'パズル', description: '重力を利用したアクションパズル。', color: '#4c51bf' },
+    { name: 'Trash World', category: 'シミュレーション', description: 'ゴミを拾ってリサイクル。環境を改善しよう。', color: '#718096' },
+    { name: '人狼', category: 'パーティゲーム', description: '嘘と信頼の心理戦。市民に紛れた狼を見つけ出そう。', color: '#742a2a' },
+    { name: 'マルバツ', category: 'ボードゲーム', description: 'シンプルながら奥深い〇✕ゲーム。Tic-Tac-Toe。', color: '#e53e3e' },
 ];
 
 type LandingPageProps = {

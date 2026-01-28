@@ -165,6 +165,15 @@ const IconFactoryLocal = ({ size = 32, color = "currentColor" }: { size?: number
     </svg>
 );
 
+const IconMaruBatsuLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="7" cy="7" r="3" />
+        <path d="M14 14l6 6" />
+        <path d="M20 14l-6 6" />
+        <rect x="2" y="2" width="20" height="20" rx="2" strokeOpacity="0.5" />
+    </svg>
+);
+
 type GameDashboardProps = {
     user: any;
     playerName: string;
@@ -326,6 +335,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/mancala" title="マンカラ" desc="" icon={<IconMancala size={32} color="#d69e2e" />} color="#d69e2e" />
                             <GameCard href="/backgammon" title="バックギャモン" desc="" icon={<IconBackgammonLocal size={32} color="#dd6b20" />} color="#dd6b20" />
                             <GameCard href="/go" title="囲碁" desc="" icon={<IconGoLocal size={32} color="#1a202c" />} color="#1a202c" />
+                            <GameCard href="/marubatsu" title="マルバツ" desc="Tic-Tac-Toe" icon={<IconMaruBatsuLocal size={32} color="#e53e3e" />} color="#e53e3e" />
                         </GameSection>
 
                         {/* Section 4: Variety */}
