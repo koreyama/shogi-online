@@ -452,7 +452,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                     {/* Guess input form */}
                     {phase === 'guessing' && amIGuesser && (
-                        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', width: '80%', maxWidth: '400px' }}>
+                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '80%', maxWidth: '400px', zIndex: 100 }}>
                             <form onSubmit={handleSubmitGuess} style={{ display: 'flex', gap: '0.5rem' }}>
                                 <input
                                     type="text"

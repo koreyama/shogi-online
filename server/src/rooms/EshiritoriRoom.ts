@@ -181,6 +181,13 @@ export class EshiritoriRoom extends Room<EshiritoriState> {
             this.state.players.delete(leftPlayerId);
         }
 
+        // Auto-delete room when all players have left
+        if (this.state.players.size === 0) {
+            console.log("All players left, disconnecting room...");
+            this.disconnect();
+            return;
+        }
+
         // If less than 2 players and game is running, end game
         if (this.state.players.size < 2 && this.state.phase !== "lobby") {
             this.broadcast("message", { system: true, text: "プレイヤーが足りません。ロビーに戻ります。" });
