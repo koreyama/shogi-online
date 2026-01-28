@@ -443,14 +443,22 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                     {/* Guess input form */}
                     {phase === 'guessing' && amIGuesser && (
-                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '80%', maxWidth: '400px', zIndex: 100 }}>
-                            <form onSubmit={handleSubmitGuess} style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{
+                            position: 'fixed',
+                            bottom: 'max(20px, env(safe-area-inset-bottom))',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '95%',
+                            maxWidth: '400px',
+                            zIndex: 100
+                        }}>
+                            <form onSubmit={handleSubmitGuess} style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.9)', padding: '0.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                 <input
                                     type="text"
                                     value={guessInput}
                                     onChange={e => setGuessInput(e.target.value)}
-                                    placeholder="この絵は何？（ひらがなで）"
-                                    style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: '2px solid #f59e0b', fontSize: '1rem' }}
+                                    placeholder="この絵は何？"
+                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '2px solid #f59e0b', fontSize: '16px' }} // 16px prevents iOS zoom
                                     autoFocus
                                 />
                                 <button type="submit" className={styles.primaryBtn} style={{ background: '#f59e0b' }}>
@@ -464,9 +472,8 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                     {phase === 'lobby' && (
                         <div className={styles.overlay}>
                             <h2 className={styles.title} style={{ color: '#f59e0b' }}>🎨 絵しりとり</h2>
-                            <p style={{ marginBottom: '1rem', fontSize: '1rem', opacity: 0.8 }}>
-                                前の人の絵を見て、それが何かを推測して、<br />
-                                しりとりで続く言葉を描いていくゲームです！
+                            <p style={{ marginBottom: '1rem', fontSize: '1rem', opacity: 0.8, lineHeight: '1.6', wordBreak: 'keep-all' }}>
+                                前の人の絵を見て、それが何かを推測して、しりとりで続く言葉を描いていくゲームです！
                             </p>
                             <p style={{ marginBottom: '2rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
                                 参加者: {players.length}人
