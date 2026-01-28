@@ -446,11 +446,12 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         <div style={{
                             position: 'fixed',
                             bottom: 'max(20px, env(safe-area-inset-bottom))',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: '95%',
+                            left: '16px',
+                            right: '16px',
                             maxWidth: '400px',
-                            zIndex: 100
+                            margin: '0 auto',
+                            zIndex: 100,
+                            boxSizing: 'border-box'
                         }}>
                             <form onSubmit={handleSubmitGuess} style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.9)', padding: '0.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                 <input
