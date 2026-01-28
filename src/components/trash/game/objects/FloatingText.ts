@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { Theme } from '../managers/Theme';
 import { GameManager } from '../managers/GameManager';
 

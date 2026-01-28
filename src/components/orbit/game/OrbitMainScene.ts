@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { OrbitBall } from './objects/OrbitBall';
 
 export class OrbitMainScene extends Phaser.Scene {

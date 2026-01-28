@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { GameManager } from '../managers/GameManager';
 
 export type TrashType = 'general' | 'plastic' | 'metal' | 'circuit' | 'bio' | 'battery' | 'medical' | 'nuclear' | 'satellite' | 'quantum';

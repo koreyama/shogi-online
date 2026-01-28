@@ -1,5 +1,5 @@
 
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { GameManager, type Gadget } from '../managers/GameManager';
 import { SoundManager } from '../managers/SoundManager';
 

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import GlobalChat from './dashboard/GlobalChat';
+import dynamic from 'next/dynamic';
 import { onAuthStateChanged } from 'firebase/auth';
+
+const GlobalChat = dynamic(() => import('./dashboard/GlobalChat'), { ssr: false });
 import { auth } from '@/lib/firebase';
 
 export default function GlobalChatWrapper() {

@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { Trash } from '../objects/Trash';
 import { GameManager, type GadgetType, type ResourceType } from '../managers/GameManager';
 

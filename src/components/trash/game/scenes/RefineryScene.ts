@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { GameManager, type ResourceType } from '../managers/GameManager';
 import { SoundManager } from '../managers/SoundManager';
 import { FloatingText } from '../objects/FloatingText';

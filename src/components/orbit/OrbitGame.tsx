@@ -1,30 +1,31 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import Phaser from 'phaser';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function OrbitGame() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const gameRef = useRef<Phaser.Game | null>(null);
+    const gameRef = useRef<any>(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
         let isMounted = true;
-        let gameInstance: Phaser.Game | null = null;
+        let gameInstance: any = null;
 
         const initGame = async () => {
+            if (!isMounted) return;
+
+            // Dynamic import Phaser
+            const Phaser = (await import('phaser')).default as any;
+            const { OrbitMainScene } = await import('./game/OrbitMainScene');
+
             if (!isMounted) return;
 
             if (containerRef.current) {
                 containerRef.current.innerHTML = '';
             }
 
-            const { OrbitMainScene } = await import('./game/OrbitMainScene');
-
-            if (!isMounted) return;
-
-            const config: Phaser.Types.Core.GameConfig = {
+            const config = {
                 type: Phaser.AUTO,
                 scale: {
                     mode: Phaser.Scale.FIT,
@@ -37,8 +38,8 @@ export default function OrbitGame() {
                 physics: {
                     default: 'matter',
                     matter: {
-                        gravity: { x: 0, y: 0 }, // No global gravity, custom radial gravity applied in-game
-                        enableSleeping: true, // Allow bodies to sleep to stop jitter
+                        gravity: { x: 0, y: 0 },
+                        enableSleeping: true,
                         debug: false
                     }
                 },
@@ -47,15 +48,6 @@ export default function OrbitGame() {
 
             gameInstance = new Phaser.Game(config);
             gameRef.current = gameInstance;
-
-            // Pass User to Registry
-            if (gameInstance) {
-                // We'll update this in a separate effect if checking for user changes, 
-                // but since game init is one-off, we might need to handle auth loading.
-                // For now, let's just set it. We'll add a separate effect to update registry if user logs in mid-game?
-                // Actually, OrbitGame is re-mounted or we can just access current ref? 
-                // Simplest: expose a method or just set registry.
-            }
         };
 
         initGame();

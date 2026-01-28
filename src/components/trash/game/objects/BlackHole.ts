@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { GameManager } from '../managers/GameManager';
 import { SoundManager } from '../managers/SoundManager';
 import { Trash } from './Trash';
