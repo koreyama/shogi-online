@@ -378,7 +378,11 @@
     }
 
     .timerPill {
-        display: none;
+        display: block;
+        font-size: 1rem;
+        padding: 0.2rem 0.8rem;
+        min-width: 60px;
+        margin: 0;
     }
 
     .roundInfo {
