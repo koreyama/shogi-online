@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Client, Room } from 'colyseus.js';
+import { client } from '@/lib/colyseus';
 import { AnimatePresence, motion } from 'framer-motion'; // Added AnimatePresence, motion
 import { TrumpTable } from '@/components/trump/TrumpTable';
 import { DaifugoEngine } from '@/lib/trump/daifugo/engine';
@@ -68,10 +69,10 @@ export function ColyseusDaifugoGame({ roomId, options, onLeave, myPlayerId, myPl
     const clientRef = useRef<Client | null>(null);
     const roomRef = useRef<Room | null>(null);
 
+
     // Initial Connection
     useEffect(() => {
         let isMounted = true;
-        const client = new Client(process.env.NEXT_PUBLIC_COLYSEUS_URL || "ws://localhost:2567");
         clientRef.current = client;
 
         const connect = async () => {
