@@ -597,7 +597,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
 
             {/* Play Button Overlay */}
             {isMyTurn && selectedIndices.length > 0 && (
-                <div style={{ position: 'absolute', bottom: 230, left: '50%', transform: 'translateX(-50%)', zIndex: 150 }}>
+                <div className={styles.playButtonContainer}>
                     <button
                         onClick={handlePlaySubmit}
                         style={{

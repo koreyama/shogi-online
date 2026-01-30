@@ -476,8 +476,44 @@
 
 /* Mobile Optimizations */
 @media (max-width: 768px) {
+    .lobbyContainer {
+        padding: 15px;
+        width: 95%;
+    }
+
+    .lobbyHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .playersList {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns on mobile */
+        gap: 10px;
+    }
+
+    .playerCard {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+
+    .controls {
+        flex-direction: column-reverse;
+        /* Put Leave button at bottom */
+        gap: 10px;
+    }
+
+    .startBtn,
+    .leaveBtn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+    }
+
     .header {
-        padding: 5px 15px;
+        padding: 8px 15px;
     }
 
     .headerTitle {
@@ -485,41 +521,82 @@
     }
 
     .playArea {
-        padding: 10px 10px 180px 10px;
-        /* Preserve bottom safe area for hand */
+        padding: 10px 10px 200px 10px;
         gap: 5px;
         grid-template-columns: 70px 1fr 70px;
-        /* Slightly tighter columns */
     }
 
     .playerContainer {
-        min-width: 80px;
-        padding: 8px 10px;
+        min-width: 60px;
+        padding: 6px;
         font-size: 0.7rem;
     }
 
     .playerAvatar {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 0.8rem !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.7rem !important;
+        margin-bottom: 4px !important;
     }
 
     .handSection {
-        min-height: 160px;
-        padding: 0 10px;
-        border-radius: 20px 20px 0 0;
+        height: 150px;
+        padding: 0 15px;
+        /* Positive gap, no overlap as requested */
+        gap: 2px !important;
+    }
+
+    /* Ensure card wrappers account for overlap clickability if needed,
+       but standard flex overlap usually works fine visually.
+       Actually, standard flex gap doesn't support negative values well in all browsers?
+       Margin-right on items is safer for negative overlap.
+       But let's try gap first (works in modern flex) or just small positive gap.
+       User asked for "narrower gap". -15 might be too much overlap.
+       Let's stick to gap: -10px, or better: margin-left: -20px on items except first.
+    */
+
+    .cardWrapper {
+        /* Remove overlap logic */
+        margin-left: 0;
+        transition: transform 0.2s;
+    }
+
+    .cardWrapper:first-child {
+        margin-left: 0;
+    }
+
+    .cardWrapper:hover,
+    .cardWrapper:focus-within {
+        /* Pop out on hover/select */
+        transform: translateY(-20px) scale(1.1);
+        z-index: 50;
     }
 
     .cardInHand {
-        width: 60px !important;
-        height: 90px !important;
+        width: 55px !important;
+        height: 85px !important;
         font-size: 1.2rem !important;
     }
 
     .directionRing {
-        width: 140px;
-        height: 140px;
+        width: 120px;
+        height: 120px;
     }
+
+    .playButtonContainer {
+        /* Move lower per user request (overlap allowed) */
+        bottom: 180px;
+    }
+}
+
+/* Base Play Button Class */
+.playButtonContainer {
+    position: absolute;
+    bottom: 230px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 150;
+    width: max-content;
 }
 
 @keyframes fadeIn {
