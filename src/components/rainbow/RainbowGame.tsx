@@ -118,100 +118,127 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
         }
     };
 
-    const [showColorPicker, setShowColorPicker] = useState(false);
-
+    const clientRef = useRef<Colyseus.Client | null>(null);
+    const roomRef = useRef<Colyseus.Room<any> | null>(null);
     const cleanupRef = useRef<{ roomId: string, isHost: boolean } | null>(null);
 
+    // Initial Connection
     useEffect(() => {
-        let mounted = true;
+        let isMounted = true;
+        clientRef.current = client;
 
-        async function connect() {
+        const connect = async () => {
             try {
+                // If we already have a room, don't join again
+                if (roomRef.current) return;
+
                 console.log("Connect called. Client:", client, "RoomID:", roomId, "Options:", options);
+
                 let r: Colyseus.Room<any>;
                 const opts = { ...options, name: myPlayerName }; // Use passed fixed name
-                console.log("Join Options:", opts);
 
-                if (options?.create) {
-                    r = await client.create("rainbow", opts);
-                } else if (roomId) {
+                // Daifugo-style Logic:
+                if (roomId) {
                     r = await client.joinById(roomId, opts);
+                } else if (options?.roomId) {
+                    // If roomId passed in options (reconnection scenario)
+                    r = await client.joinById(options.roomId, opts);
+                } else if (options?.create) {
+                    r = await client.create("rainbow", opts);
                 } else {
                     r = await client.joinOrCreate("rainbow", opts);
                 }
 
-                if (!mounted) { r.leave(); return; }
-                setRoom(r);
+                if (!isMounted) {
+                    console.log("Component unmounted before connection established. Leaving room.");
+                    r.leave();
+                    return;
+                }
 
-                r.onStateChange((state) => {
-                    setGameState({ ...state });
-                    const me = state.players.get(r.sessionId);
-                    if (me) {
-                        setMyHand([...me.hand]);
-                    }
-                });
+                roomRef.current = r;
+                setRoom(r);
+                setupRoomListeners(r);
 
             } catch (e: any) {
+                if (!isMounted) return;
                 console.error("Join error:", e);
                 console.error("Error Details:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
                 if (e?.message) console.error("Message:", e.message);
+
+                const isNotFound = e?.message?.includes('not found') || e?.code === 404;
+                if (isNotFound) {
+                    alert("指定されたルームが見つかりませんでした。");
+                } else {
+                    alert(`接続エラー: ${e.message || "不明なエラー"}`);
+                }
                 setError(e.message || "接続エラーが発生しました");
             }
+        };
+
+        if (client) {
+            connect();
         }
-        console.log("Starting connection...", { roomId, options });
-        if (!client) {
-            console.error("Client is undefined!");
-            setError("Client Initialization Failed");
-            return;
-        }
-        connect();
 
         return () => {
-            mounted = false;
-            if (room) room.leave();
-        };
-    }, []);
-
-    useEffect(() => {
-        setSelectedIndices([]);
-    }, [myHand.length, gameState?.currentTurn]);
-
-    // Firebase Sync
-    useEffect(() => {
-        if (!room || !gameState) return;
-
-        const updateFirebase = async () => {
-            const players = Array.from(gameState.players.values());
-            const amHost = (players.find((p: any) => p.sessionId === room.sessionId) as any)?.seatIndex === 0;
-            const rId = room.roomId;
-
-            cleanupRef.current = { roomId: rId, isHost: amHost };
-
-            if (amHost) {
-                const { ref, set, onDisconnect } = await import('firebase/database');
-                const { db } = await import('@/lib/firebase');
-
-                const roomRef = ref(db, `rooms/${rId}`);
-                const roomData = {
-                    roomId: rId,
-                    gameType: 'rainbow',
-                    status: gameState.status,
-                    players: players.reduce((acc: any, p: any) => ({
-                        ...acc,
-                        [p.id]: { name: p.name, role: (p as any).seatIndex === 0 ? 'host' : 'guest' }
-                    }), {}),
-                    createdAt: Date.now(),
-                    isLocked: !!(options?.password),
-                    maxClients: 4
-                };
-
-                set(roomRef, roomData).catch(() => { });
-                onDisconnect(roomRef).remove().catch(() => { });
+            isMounted = false;
+            if (roomRef.current) {
+                console.log("Cleaning up Colyseus connection...");
+                roomRef.current.leave();
+                roomRef.current = null;
             }
         };
-        updateFirebase();
-    }, [gameState]);
+    }, []); // eslint-disable-line
 
+    const setupRoomListeners = (r: Colyseus.Room<any>) => {
+        r.onStateChange((state) => {
+            setGameState({ ...state });
+            const me = state.players.get(r.sessionId);
+            if (me) {
+                setMyHand([...me.hand]);
+            }
+        });
+
+        r.onMessage("error", (msg: string) => alert(msg));
+    };
+
+    // Firebase Sync Effect
+    useEffect(() => {
+        if (!room || !gameState) return;
+        const players = Array.from(gameState.players.values());
+        updateFirebaseRoom(room, players);
+    }, [gameState, room]);
+
+    const updateFirebaseRoom = async (r: Colyseus.Room<any>, currentPlayers: any[]) => {
+        const me = currentPlayers.find((p: any) => p.sessionId === r.sessionId);
+        const amHost = me?.isHost;
+        const rId = r.roomId;
+
+        cleanupRef.current = { roomId: rId, isHost: amHost };
+
+        if (amHost) {
+            const { ref, set, onDisconnect } = await import('firebase/database');
+            const { db } = await import('@/lib/firebase');
+
+            const roomRef = ref(db, `rooms/${rId}`);
+            const roomData = {
+                roomId: rId,
+                gameType: 'rainbow',
+                status: gameState?.status || 'waiting',
+                players: currentPlayers.reduce((acc: any, p: any) => ({
+                    ...acc,
+                    [p.id]: { name: p.name, role: p.isHost ? 'host' : 'guest' }
+                }), {}),
+                createdAt: Date.now(),
+                isLocked: !!(options?.password),
+                maxClients: 4
+            };
+
+            set(roomRef, roomData).catch(() => { });
+            onDisconnect(roomRef).remove().catch(() => { });
+        }
+    };
+
+    // Unmount Cleanup Effect (Firebase)
     useEffect(() => {
         return () => {
             const current = cleanupRef.current;

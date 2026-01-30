@@ -5,7 +5,7 @@ const COLORS = ['red', 'blue', 'green', 'yellow'];
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 export class RainbowRoom extends Room<RainbowState> {
-    maxClients = 8; // Increased for debugging
+    maxClients = 4; // Reset to 4
 
     onCreate(options: any) {
         this.setState(new RainbowState());
@@ -109,7 +109,12 @@ export class RainbowRoom extends Room<RainbowState> {
         console.log(`[RainbowRoom] Join attempt: ${client.sessionId}. Current count: ${this.state.players.size}`);
         if (this.state.status !== "waiting") {
             console.log(`[RainbowRoom] Rejected join: Status is ${this.state.status}`);
-            return;
+            throw new Error("Game is already in progress");
+        }
+
+        // Prevent joining if room is logically full even if maxClients wasn't hit (redundant safety)
+        if (this.state.players.size >= 4) {
+            throw new Error("Room is full");
         }
 
         const player = new Player();
@@ -122,14 +127,40 @@ export class RainbowRoom extends Room<RainbowState> {
             seatIndex++;
         }
         player.seatIndex = seatIndex;
+        if (this.state.players.size === 0) {
+            player.isHost = true;
+        }
         this.state.players.set(client.sessionId, player);
     }
 
     onLeave(client: Client, consented: boolean) {
+        const leavingPlayer = this.state.players.get(client.sessionId);
         this.state.players.delete(client.sessionId);
+
+        // Host Promotion
+        if (leavingPlayer && leavingPlayer.isHost && this.state.players.size > 0) {
+            // Find new host (lowest seat index)
+            const remaining = Array.from(this.state.players.values()).sort((a, b) => a.seatIndex - b.seatIndex);
+            if (remaining.length > 0) {
+                remaining[0].isHost = true;
+            }
+        }
+
         if (this.state.status === "playing") {
-            this.state.status = "finished";
-            this.broadcast("gameFinished", { winner: "中断されました" });
+            // If fewer than 2 players, end game? Or wait? 
+            // Logic exists in win check but not here explicitly.
+            // Usually onLeave triggers nextTurn or win check if playing.
+
+            // Check if only 1 active player remains
+            const activePlayers = Array.from(this.state.players.values()).filter(p => p.rank === 0);
+            if (activePlayers.length <= 1) {
+                this.state.status = "finished";
+                this.broadcast("gameFinished", { winner: "中断されました" });
+            } else {
+                if (this.state.currentTurn === client.sessionId) {
+                    this.nextTurn();
+                }
+            }
         }
     }
 

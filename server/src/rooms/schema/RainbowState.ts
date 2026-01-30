@@ -14,6 +14,7 @@ export class Player extends Schema {
     @type([Card]) hand = new ArraySchema<Card>();
     @type("boolean") hasDrawn: boolean = false; // Track if player drew this turn
     @type("number") rank: number = 0; // 0: playing, 1: winner, etc.
+    @type("boolean") isHost: boolean = false;
 }
 
 export class RainbowState extends Schema {
