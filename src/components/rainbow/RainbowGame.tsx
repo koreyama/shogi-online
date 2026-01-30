@@ -315,7 +315,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
     // --- Waiting Room UI (Daifugo Style) ---
     if (gameState.status === 'waiting') {
         const playersList = Array.from(gameState.players.values()).sort((a: any, b: any) => a.seatIndex - b.seatIndex);
-        const isHost = me?.seatIndex === 0;
+        const isHost = me?.isHost;
 
         return (
             <main className={styles.gameMain} style={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -339,7 +339,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
                                             {p.name.charAt(0)}
                                         </div>
                                         <span className={styles.playerName}>{p.name}</span>
-                                        {p.seatIndex === 0 && <span className={styles.hostBadge}>HOST</span>}
+                                        {p.isHost && <span className={styles.hostBadge}>HOST</span>}
                                         {p.sessionId === mySessionId && <span className={styles.meBadge}>YOU</span>}
                                     </div>
                                 ))}
