@@ -48,7 +48,7 @@ const CardView = ({ card, onClick, selected = false, disabled = false, extraClas
                         card.value}
             </span>
             <div style={{ position: 'absolute', top: 6, left: 6, fontSize: '0.7rem', opacity: 0.9 }}>
-                {card.value === 'wild' ? 'W' : card.value === 'wild4' ? '+4' : card.value.substring(0, 2).toUpperCase()}
+                {card.value === 'wild' ? 'W' : card.value === 'wild4' ? '+4' : String(card.value ?? "").substring(0, 2).toUpperCase()}
             </div>
 
             {/* Glass Shine */}
