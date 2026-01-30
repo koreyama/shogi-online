@@ -29,11 +29,14 @@ const CardView = ({ card, onClick, selected = false, disabled = false, extraClas
                 width: 80, height: 120, // Slightly larger
                 backgroundColor: bg,
                 borderRadius: 10,
-                border: selected ? '4px solid #f59e0b' : '1px solid rgba(0,0,0,0.1)',
+                border: '1px solid rgba(0,0,0,0.1)', // Constant border
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontWeight: 'bold', fontSize: '1.6rem', // Larger font
                 cursor: (!disabled && onClick) ? 'pointer' : 'default',
-                boxShadow: selected ? '0 0 15px 5px rgba(255, 255, 255, 0.8), 0 0 30px rgba(245, 158, 11, 0.6)' : '0 4px 10px rgba(0,0,0,0.15)',
+                // Use box-shadow for the glow AND the "border" effect (spread radius)
+                boxShadow: selected
+                    ? '0 0 0 4px #f59e0b, 0 0 15px 5px rgba(255, 255, 255, 0.8), 0 0 30px rgba(245, 158, 11, 0.6)'
+                    : '0 4px 10px rgba(0,0,0,0.15)',
                 position: 'relative',
                 userSelect: 'none',
                 transform: selected ? 'scale(1.05)' : 'none', // Removed translateY
