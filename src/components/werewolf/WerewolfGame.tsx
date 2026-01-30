@@ -164,8 +164,8 @@ export default function WerewolfGame({ client, room, initialPlayers, onLeave, on
             const msgs: ChatMessage[] = [];
             state.messages.forEach((m: any) => msgs.push({
                 ...m,
-                id: m.id || Math.random().toString(), // Ensure ID
-                content: String(m.content) // Force string
+                id: m.id || `msg-${msgs.length}`, // Use index-based ID if missing, or trust existing ID
+                content: String(m.content)
             }));
             setServerMessages(msgs.slice(-100)); // Limit history
         }

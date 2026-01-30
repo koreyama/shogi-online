@@ -109,7 +109,7 @@ export default function WerewolfPage() {
 
     return (
         <main>
-            <HideChatBot />
+            {/* <HideChatBot /> */}
             {!room ? (
                 <WerewolfLobby
                     onJoinRandom={handleJoinRandom}

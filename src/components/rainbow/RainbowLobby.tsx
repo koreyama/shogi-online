@@ -125,7 +125,7 @@ export default function RainbowLobby() {
     if (colyseusGameActive && user) {
         return (
             <>
-                <HideChatBot />
+                {/* <HideChatBot /> */}
                 <RainbowGame
                     roomId={creationOptions?.roomId}
                     options={creationOptions}
