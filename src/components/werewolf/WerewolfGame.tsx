@@ -157,225 +157,224 @@ export default function WerewolfGame({ client, room, initialPlayers, onLeave, on
         }
         setPlayers([...currentPlayers]);
 
-    }
-    setPlayers([...currentPlayers]);
 
-    // Sync Messages - limit to last 100 to prevent crash and "tail" growth
-    if (state.messages) {
-        const msgs: ChatMessage[] = [];
-        state.messages.forEach((m: any) => msgs.push({
-            ...m,
-            id: m.id || Math.random().toString(), // Ensure ID
-            content: String(m.content) // Force string
-        }));
-        setServerMessages(msgs.slice(-100)); // Limit history
-    }
-    if (state.settings) {
-        setSettings({ ...state.settings });
-    }
-};
 
-useEffect(() => {
-    if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTo({
-            top: chatContainerRef.current.scrollHeight,
-            behavior: 'smooth'
-        });
-    }
-}, [messages]);
+        // Sync Messages - limit to last 100 to prevent crash and "tail" growth
+        if (state.messages) {
+            const msgs: ChatMessage[] = [];
+            state.messages.forEach((m: any) => msgs.push({
+                ...m,
+                id: m.id || Math.random().toString(), // Ensure ID
+                content: String(m.content) // Force string
+            }));
+            setServerMessages(msgs.slice(-100)); // Limit history
+        }
+        if (state.settings) {
+            setSettings({ ...state.settings });
+        }
+    };
 
-const handleStart = () => {
-    room.send("start_game");
-};
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [messages]);
 
-const handleSkipVote = () => {
-    room.send("skip_discussion");
-};
+    const handleStart = () => {
+        room.send("start_game");
+    };
 
-const handleVote = (targetId: string) => {
-    setSelectedTarget(targetId);
-    if (phase === 'day_vote') {
-        room.send("vote", targetId);
-    } else if (phase === 'night_action') {
-        room.send("night_action", targetId);
-    }
-};
+    const handleSkipVote = () => {
+        room.send("skip_discussion");
+    };
 
-const sendChat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+    const handleVote = (targetId: string) => {
+        setSelectedTarget(targetId);
+        if (phase === 'day_vote') {
+            room.send("vote", targetId);
+        } else if (phase === 'night_action') {
+            room.send("night_action", targetId);
+        }
+    };
 
-    let type = 'normal';
-    if (myRole === 'werewolf' && (phase === 'night_action' || chatInput.startsWith('/w'))) {
-        type = 'werewolf';
-    }
+    const sendChat = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!chatInput.trim()) return;
 
-    room.send("chat", { content: chatInput, type });
-    setChatInput('');
-};
+        let type = 'normal';
+        if (myRole === 'werewolf' && (phase === 'night_action' || chatInput.startsWith('/w'))) {
+            type = 'werewolf';
+        }
 
-const isMe = (p: Player) => p.id === room?.sessionId;
-const me = players.find(p => isMe(p));
+        room.send("chat", { content: chatInput, type });
+        setChatInput('');
+    };
 
-// Determine if action panel should be shown
-const isWerewolfAttackForbidden = myRole === 'werewolf' && phase === 'night_action' && dayCount === 1 && !settings?.canFirstNightAttack;
+    const isMe = (p: Player) => p.id === room?.sessionId;
+    const me = players.find(p => isMe(p));
 
-// Alive check added to day_vote as well
-const canAction = (phase === 'day_vote' && me?.isAlive) ||
-    (phase === 'night_action' && me?.isAlive && ['werewolf', 'seer', 'bodyguard'].includes(myRole) && !isWerewolfAttackForbidden);
+    // Determine if action panel should be shown
+    const isWerewolfAttackForbidden = myRole === 'werewolf' && phase === 'night_action' && dayCount === 1 && !settings?.canFirstNightAttack;
 
-const displayMessages = messages.filter(m => {
-    if (m.type === 'dead') return !me?.isAlive || phase === 'result'; // Only dead can see dead chat
-    if (m.type === 'werewolf') return myRole === 'werewolf' || !me?.isAlive; // Werewolf chat visible to werewolves and dead
-    return true;
-});
+    // Alive check added to day_vote as well
+    const canAction = (phase === 'day_vote' && me?.isAlive) ||
+        (phase === 'night_action' && me?.isAlive && ['werewolf', 'seer', 'bodyguard'].includes(myRole) && !isWerewolfAttackForbidden);
 
-return (
-    <div className={styles.container} data-phase={phase === 'lobby' ? 'lobby' : phase.includes('night') ? 'night' : phase === 'result' ? 'result' : 'day'}>
-        {/* Cinematic Phase Announcement Overlay */}
-        <div className={`${styles.phaseAnnouncement} ${showPhaseAnnouncement ? styles.visible : ''}`}>
-            <div className={styles.announcementContent}>
-                <h2>{getPhaseIcon(phase, winner)} {getPhaseLabel(phase, winner)}</h2>
-                <p>{getPhaseDescription(phase, winner)}</p>
-            </div>
-        </div>
-        <header className={styles.header}>
-            <div className={styles.gameInfo}>
-                <button onClick={onLeave} className={styles.backButton}>
-                    <IconBack size={16} /> 退室
-                </button>
-                <div className={styles.roomIdInfo}>
-                    Room ID: <span>{room.roomId}</span>
+    const displayMessages = messages.filter(m => {
+        if (m.type === 'dead') return !me?.isAlive || phase === 'result'; // Only dead can see dead chat
+        if (m.type === 'werewolf') return myRole === 'werewolf' || !me?.isAlive; // Werewolf chat visible to werewolves and dead
+        return true;
+    });
+
+    return (
+        <div className={styles.container} data-phase={phase === 'lobby' ? 'lobby' : phase.includes('night') ? 'night' : phase === 'result' ? 'result' : 'day'}>
+            {/* Cinematic Phase Announcement Overlay */}
+            <div className={`${styles.phaseAnnouncement} ${showPhaseAnnouncement ? styles.visible : ''}`}>
+                <div className={styles.announcementContent}>
+                    <h2>{getPhaseIcon(phase, winner)} {getPhaseLabel(phase, winner)}</h2>
+                    <p>{getPhaseDescription(phase, winner)}</p>
                 </div>
             </div>
-
-            <div className={styles.phaseInfo}>
-                <span className={styles.phaseLabel}>{getPhaseIcon(phase, winner)} {getPhaseLabel(phase, winner)}</span>
-                <span className={styles.timer}>{timeLeft}</span>
-
-                {phase === 'day_conversation' && me?.isAlive && (
-                    <button
-                        className={`${styles.skipBtn} ${me.wantsToSkip ? styles.active : ''}`}
-                        onClick={handleSkipVote}
-                        title="8割の同意でスキップ"
-                    >
-                        ⏩ 時短 ({players.filter(p => p.isAlive && p.wantsToSkip).length}/{Math.ceil(players.filter(p => p.isAlive).length * 0.8)})
+            <header className={styles.header}>
+                <div className={styles.gameInfo}>
+                    <button onClick={onLeave} className={styles.backButton}>
+                        <IconBack size={16} /> 退室
                     </button>
-                )}
-            </div>
-
-            {phase === 'result' && (
-                <div className={styles.adminControls} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '10px' }}>
-                    <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>10秒後にロビーに戻ります...</p>
-                </div>
-            )}
-
-            {myRole && (
-                <div className={`${styles.roleBadge} ${styles[myRole]}`}>
-                    <span style={{ fontSize: '1.2em' }}>{getRoleIcon(myRole)}</span>
-                    <span>{getRoleLabel(myRole)}</span>
-                </div>
-            )}
-        </header>
-
-        <div className={styles.mainContent}>
-            {/* Players List */}
-            <div className={styles.playersPanel}>
-                <h3>参加者 ({players.length})</h3>
-                <div className={styles.playerList}>
-                    {players.map(p => (
-                        <div key={p.id} className={`${styles.playerCard} ${!p.isAlive ? styles.dead : ''} ${isMe(p) ? styles.me : ''}`}>
-                            <div className={styles.avatarPlaceholder}>
-                                <IconUser size={20} />
-                            </div>
-                            <div className={styles.playerInfo}>
-                                <span className={styles.playerName}>{p.name} {p.isHost && '👑'}</span>
-                                <span className={`${styles.playerStatus} ${p.isAlive ? styles.alive : styles.dead}`}>{p.isAlive ? '生存' : '死亡'}</span>
-                            </div>
-                        </div>
-                    ))}
+                    <div className={styles.roomIdInfo}>
+                        Room ID: <span>{room.roomId}</span>
+                    </div>
                 </div>
 
-                {phase === 'lobby' && settings && (
-                    <div className={styles.settingsPanel}>
-                        <h4>ゲーム設定 {me?.isHost ? '(変更可能)' : '(閲覧のみ)'}</h4>
-                        <SettingCounter label="👱 市民" value={settings.villagerCount} onChange={(v) => room.send("update_settings", { villagerCount: v })} readonly={!me?.isHost} />
-                        <SettingCounter label="🐺 人狼" value={settings.werewolfCount} onChange={(v) => room.send("update_settings", { werewolfCount: v })} readonly={!me?.isHost} />
-                        <SettingCounter label="🔮 占い師" value={settings.seerCount} onChange={(v) => room.send("update_settings", { seerCount: v })} readonly={!me?.isHost} />
-                        <SettingCounter label="👻 霊媒師" value={settings.mediumCount} onChange={(v) => room.send("update_settings", { mediumCount: v })} readonly={!me?.isHost} />
-                        <SettingCounter label="🛡️ 騎士" value={settings.bodyguardCount} onChange={(v) => room.send("update_settings", { bodyguardCount: v })} readonly={!me?.isHost} />
-                        <SettingCounter label="🤡 狂人" value={settings.madmanCount} onChange={(v) => room.send("update_settings", { madmanCount: v })} readonly={!me?.isHost} />
+                <div className={styles.phaseInfo}>
+                    <span className={styles.phaseLabel}>{getPhaseIcon(phase, winner)} {getPhaseLabel(phase, winner)}</span>
+                    <span className={styles.timer}>{timeLeft}</span>
 
-                        <div className={styles.settingRow}>
-                            <span>初日襲撃</span>
-                            <div className={styles.counter}>
-                                <button
-                                    onClick={() => me?.isHost && room.send("update_settings", { canFirstNightAttack: !settings.canFirstNightAttack })}
-                                    style={{ width: 'auto', padding: '4px 12px', fontSize: '0.8rem', opacity: me?.isHost ? 1 : 0.7, cursor: me?.isHost ? 'pointer' : 'default' }}
-                                >
-                                    {settings.canFirstNightAttack ? "あり" : "なし"}
-                                </button>
-                            </div>
-                        </div>
+                    {phase === 'day_conversation' && me?.isAlive && (
+                        <button
+                            className={`${styles.skipBtn} ${me.wantsToSkip ? styles.active : ''}`}
+                            onClick={handleSkipVote}
+                            title="8割の同意でスキップ"
+                        >
+                            ⏩ 時短 ({players.filter(p => p.isAlive && p.wantsToSkip).length}/{Math.ceil(players.filter(p => p.isAlive).length * 0.8)})
+                        </button>
+                    )}
+                </div>
 
-                        {me?.isHost && (
-                            <button className={styles.startBtn} onClick={handleStart}>ゲーム開始</button>
-                        )}
-                        {!me?.isHost && (
-                            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8', marginTop: '10px' }}>ホストがゲームを開始するのを待っています...</p>
-                        )}
+                {phase === 'result' && (
+                    <div className={styles.adminControls} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '10px' }}>
+                        <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>10秒後にロビーに戻ります...</p>
                     </div>
                 )}
-            </div>
 
-            {/* Chat Area */}
-            <div className={styles.chatPanel}>
-                <div className={styles.chatMessages} ref={chatContainerRef}>
-                    {messages.length === 0 && (
-                        <div className={styles.message} style={{ alignSelf: 'center', background: 'transparent', boxShadow: 'none' }}>
-                            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>会話履歴はまだありません</p>
+                {myRole && (
+                    <div className={`${styles.roleBadge} ${styles[myRole]}`}>
+                        <span style={{ fontSize: '1.2em' }}>{getRoleIcon(myRole)}</span>
+                        <span>{getRoleLabel(myRole)}</span>
+                    </div>
+                )}
+            </header>
+
+            <div className={styles.mainContent}>
+                {/* Players List */}
+                <div className={styles.playersPanel}>
+                    <h3>参加者 ({players.length})</h3>
+                    <div className={styles.playerList}>
+                        {players.map(p => (
+                            <div key={p.id} className={`${styles.playerCard} ${!p.isAlive ? styles.dead : ''} ${isMe(p) ? styles.me : ''}`}>
+                                <div className={styles.avatarPlaceholder}>
+                                    <IconUser size={20} />
+                                </div>
+                                <div className={styles.playerInfo}>
+                                    <span className={styles.playerName}>{p.name} {p.isHost && '👑'}</span>
+                                    <span className={`${styles.playerStatus} ${p.isAlive ? styles.alive : styles.dead}`}>{p.isAlive ? '生存' : '死亡'}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {phase === 'lobby' && settings && (
+                        <div className={styles.settingsPanel}>
+                            <h4>ゲーム設定 {me?.isHost ? '(変更可能)' : '(閲覧のみ)'}</h4>
+                            <SettingCounter label="👱 市民" value={settings.villagerCount} onChange={(v) => room.send("update_settings", { villagerCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🐺 人狼" value={settings.werewolfCount} onChange={(v) => room.send("update_settings", { werewolfCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🔮 占い師" value={settings.seerCount} onChange={(v) => room.send("update_settings", { seerCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="👻 霊媒師" value={settings.mediumCount} onChange={(v) => room.send("update_settings", { mediumCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🛡️ 騎士" value={settings.bodyguardCount} onChange={(v) => room.send("update_settings", { bodyguardCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🤡 狂人" value={settings.madmanCount} onChange={(v) => room.send("update_settings", { madmanCount: v })} readonly={!me?.isHost} />
+
+                            <div className={styles.settingRow}>
+                                <span>初日襲撃</span>
+                                <div className={styles.counter}>
+                                    <button
+                                        onClick={() => me?.isHost && room.send("update_settings", { canFirstNightAttack: !settings.canFirstNightAttack })}
+                                        style={{ width: 'auto', padding: '4px 12px', fontSize: '0.8rem', opacity: me?.isHost ? 1 : 0.7, cursor: me?.isHost ? 'pointer' : 'default' }}
+                                    >
+                                        {settings.canFirstNightAttack ? "あり" : "なし"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {me?.isHost && (
+                                <button className={styles.startBtn} onClick={handleStart}>ゲーム開始</button>
+                            )}
+                            {!me?.isHost && (
+                                <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8', marginTop: '10px' }}>ホストがゲームを開始するのを待っています...</p>
+                            )}
                         </div>
                     )}
-                    {displayMessages.map((msg, i) => (
-                        <div key={i} className={`${styles.message} ${styles[msg.type]}`}>
-                            {msg.type !== 'system' && <span className={styles.msgSender}>{msg.senderName}</span>}
-                            <span className={styles.msgContent}>{msg.content}</span>
-                        </div>
-                    ))}
                 </div>
-                <form className={styles.chatInput} onSubmit={sendChat}>
-                    <input
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        placeholder={!me?.isAlive ? "霊界チャット..." : phase === 'night_action' && myRole === 'werewolf' ? "人狼チャット (赤字になります)..." : "メッセージを入力..."}
-                    />
-                    <button type="submit"><IconChat size={20} /></button>
-                </form>
-            </div>
 
-            {/* Action Area */}
-            <div className={styles.actionPanel}>
-                {canAction && (
-                    <div className={styles.actionBox}>
-                        <h3>{phase === 'day_vote' ? '投票' : '夜のアクション'}</h3>
-                        <div className={styles.targetList}>
-                            {players.filter(p => !isMe(p) && p.isAlive).map(p => (
-                                <button
-                                    key={p.id}
-                                    onClick={() => handleVote(p.id)}
-                                    className={`${styles.targetBtn} ${selectedTarget === p.id ? styles.selected : ''}`}
-                                >
-                                    <span>{p.name}</span>
-                                    <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{getActionLabel(phase, myRole)}</span>
-                                </button>
-                            ))}
-                        </div>
+                {/* Chat Area */}
+                <div className={styles.chatPanel}>
+                    <div className={styles.chatMessages} ref={chatContainerRef}>
+                        {messages.length === 0 && (
+                            <div className={styles.message} style={{ alignSelf: 'center', background: 'transparent', boxShadow: 'none' }}>
+                                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>会話履歴はまだありません</p>
+                            </div>
+                        )}
+                        {displayMessages.map((msg, i) => (
+                            <div key={i} className={`${styles.message} ${styles[msg.type]}`}>
+                                {msg.type !== 'system' && <span className={styles.msgSender}>{msg.senderName}</span>}
+                                <span className={styles.msgContent}>{msg.content}</span>
+                            </div>
+                        ))}
                     </div>
-                )}
+                    <form className={styles.chatInput} onSubmit={sendChat}>
+                        <input
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            placeholder={!me?.isAlive ? "霊界チャット..." : phase === 'night_action' && myRole === 'werewolf' ? "人狼チャット (赤字になります)..." : "メッセージを入力..."}
+                        />
+                        <button type="submit"><IconChat size={20} /></button>
+                    </form>
+                </div>
+
+                {/* Action Area */}
+                <div className={styles.actionPanel}>
+                    {canAction && (
+                        <div className={styles.actionBox}>
+                            <h3>{phase === 'day_vote' ? '投票' : '夜のアクション'}</h3>
+                            <div className={styles.targetList}>
+                                {players.filter(p => !isMe(p) && p.isAlive).map(p => (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => handleVote(p.id)}
+                                        className={`${styles.targetBtn} ${selectedTarget === p.id ? styles.selected : ''}`}
+                                    >
+                                        <span>{p.name}</span>
+                                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{getActionLabel(phase, myRole)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
 }
 
 function SettingCounter({ label, value, onChange, readonly }: { label: string, value: number, onChange: (v: number) => void, readonly?: boolean }) {
