@@ -5,7 +5,7 @@ const COLORS = ['red', 'blue', 'green', 'yellow'];
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 export class RainbowRoom extends Room<RainbowState> {
-    maxClients = 4; // Reset to 4
+    maxClients = 8; // Buffer for StrictMode ghosts (logic enforces 4)
 
     onCreate(options: any) {
         this.setState(new RainbowState());
@@ -134,15 +134,17 @@ export class RainbowRoom extends Room<RainbowState> {
     }
 
     onLeave(client: Client, consented: boolean) {
-        const leavingPlayer = this.state.players.get(client.sessionId);
         this.state.players.delete(client.sessionId);
 
-        // Host Promotion
-        if (leavingPlayer && leavingPlayer.isHost && this.state.players.size > 0) {
-            // Find new host (lowest seat index)
-            const remaining = Array.from(this.state.players.values()).sort((a, b) => a.seatIndex - b.seatIndex);
-            if (remaining.length > 0) {
-                remaining[0].isHost = true;
+        // Robust Host Promotion: Ensure one host always exists
+        const remainingPlayers = Array.from(this.state.players.values());
+        if (remainingPlayers.length > 0) {
+            const hasHost = remainingPlayers.some(p => p.isHost);
+            if (!hasHost) {
+                // Promote the player with the lowest seat index (oldest/first slot)
+                remainingPlayers.sort((a, b) => a.seatIndex - b.seatIndex);
+                remainingPlayers[0].isHost = true;
+                console.log(`[RainbowRoom] Host promoted: ${remainingPlayers[0].name} (${remainingPlayers[0].seatIndex})`);
             }
         }
 

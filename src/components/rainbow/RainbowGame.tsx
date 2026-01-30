@@ -118,10 +118,11 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
         }
     };
 
+    const [showColorPicker, setShowColorPicker] = useState(false);
+
     const clientRef = useRef<Colyseus.Client | null>(null);
     const roomRef = useRef<Colyseus.Room<any> | null>(null);
     const cleanupRef = useRef<{ roomId: string, isHost: boolean } | null>(null);
-
     // Initial Connection
     useEffect(() => {
         let isMounted = true;
@@ -216,25 +217,38 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
         cleanupRef.current = { roomId: rId, isHost: amHost };
 
         if (amHost) {
-            const { ref, set, onDisconnect } = await import('firebase/database');
+            const { ref, set, remove, onDisconnect } = await import('firebase/database');
             const { db } = await import('@/lib/firebase');
 
             const roomRef = ref(db, `rooms/${rId}`);
-            const roomData = {
-                roomId: rId,
-                gameType: 'rainbow',
-                status: gameState?.status || 'waiting',
-                players: currentPlayers.reduce((acc: any, p: any) => ({
-                    ...acc,
-                    [p.id]: { name: p.name, role: p.isHost ? 'host' : 'guest' }
-                }), {}),
-                createdAt: Date.now(),
-                isLocked: !!(options?.password),
-                maxClients: 4
-            };
 
-            set(roomRef, roomData).catch(() => { });
-            onDisconnect(roomRef).remove().catch(() => { });
+            // Check if room should be visible (Waiting AND Not Full)
+            // Note: maxClients is 8 on server for buffer, but logical limit is 4.
+            const isFull = currentPlayers.length >= 4;
+            const isPlaying = (gameState?.status !== 'waiting');
+
+            if (isFull || isPlaying) {
+                // Remove from lobby listing
+                remove(roomRef).catch(() => { });
+                // Ensure cleanup on disconnect still active (though redundant if removed)
+                onDisconnect(roomRef).remove().catch(() => { });
+            } else {
+                const roomData = {
+                    roomId: rId,
+                    gameType: 'rainbow',
+                    status: gameState?.status || 'waiting',
+                    players: currentPlayers.reduce((acc: any, p: any) => ({
+                        ...acc,
+                        [p.id]: { name: p.name, role: p.isHost ? 'host' : 'guest' }
+                    }), {}),
+                    createdAt: Date.now(),
+                    isLocked: !!(options?.password),
+                    maxClients: 4
+                };
+
+                set(roomRef, roomData).catch(() => { });
+                onDisconnect(roomRef).remove().catch(() => { });
+            }
         }
     };
 
