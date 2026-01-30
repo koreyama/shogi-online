@@ -5,7 +5,7 @@ const COLORS = ['red', 'blue', 'green', 'yellow'];
 const NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 export class RainbowRoom extends Room<RainbowState> {
-    maxClients = 4;
+    maxClients = 8; // Increased for debugging
 
     onCreate(options: any) {
         this.setState(new RainbowState());
@@ -82,13 +82,22 @@ export class RainbowRoom extends Room<RainbowState> {
     }
 
     onJoin(client: Client, options: any) {
-        if (this.state.status !== "waiting") return;
+        console.log(`[RainbowRoom] Join attempt: ${client.sessionId}. Current count: ${this.state.players.size}`);
+        if (this.state.status !== "waiting") {
+            console.log(`[RainbowRoom] Rejected join: Status is ${this.state.status}`);
+            return;
+        }
 
         const player = new Player();
         player.id = client.id;
         player.sessionId = client.sessionId;
         player.name = options.name || "ゲスト";
-        player.seatIndex = this.state.players.size;
+        const takenSeats = new Set(Array.from(this.state.players.values()).map(p => p.seatIndex));
+        let seatIndex = 0;
+        while (takenSeats.has(seatIndex)) {
+            seatIndex++;
+        }
+        player.seatIndex = seatIndex;
         this.state.players.set(client.sessionId, player);
     }
 
@@ -227,10 +236,17 @@ export class RainbowRoom extends Room<RainbowState> {
             if (!valid) return; // Cannot play non-stack card during penalty
         } else {
             // Normal play
-            const hasMatchColor = cardsToPlay.some(c => c.color === this.state.currentColor || c.color === 'black');
-            const hasMatchValue = (firstVal === top.value);
 
-            if (hasMatchColor || hasMatchValue || firstVal === 'wild' || firstVal === 'wild4') {
+            // Rule Update (Unified):
+            // The FIRST card played (cardsToPlay[0]) must be legally playable on the current field.
+            // (Subsequent cards must match the first card, which is already checked by 'allSameValue' above).
+            // So we simply check if cardsToPlay[0] matches the current state (Color OR Value OR Wild).
+
+            const firstCard = cardsToPlay[0];
+            const matchesColor = firstCard.color === this.state.currentColor || firstCard.color === 'black';
+            const matchesValue = (firstVal === top.value);
+
+            if (matchesColor || matchesValue || firstVal === 'wild' || firstVal === 'wild4') {
                 valid = true;
             }
         }

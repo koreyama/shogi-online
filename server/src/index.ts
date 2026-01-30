@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 // Colyseus Monitor
 app.use("/colyseus", monitor());
 
-const httpServer = createServer(); // Don't attach app here yet
+const httpServer = createServer(app); // Attach app here
 
 const gameServer = new Server({
     transport: new WebSocketTransport({
@@ -113,6 +113,6 @@ console.log("Registered LobbyRoom");
 gameServer.listen(port);
 
 // Attach Express AFTER Colyseus to ensure /matchmake routes are handled by Colyseus first
-httpServer.on("request", app);
+// httpServer.on("request", app);
 
 console.log(`Listening on ws://localhost:${port}`);

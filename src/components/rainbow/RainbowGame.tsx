@@ -124,8 +124,10 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
 
         async function connect() {
             try {
+                console.log("Connect called. Client:", client, "RoomID:", roomId, "Options:", options);
                 let r: Colyseus.Room<any>;
                 const opts = { ...options, name: myPlayerName }; // Use passed fixed name
+                console.log("Join Options:", opts);
 
                 if (options?.create) {
                     r = await client.create("rainbow", opts);
@@ -148,8 +150,16 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
 
             } catch (e: any) {
                 console.error("Join error:", e);
+                console.error("Error Details:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+                if (e?.message) console.error("Message:", e.message);
                 setError(e.message || "接続エラーが発生しました");
             }
+        }
+        console.log("Starting connection...", { roomId, options });
+        if (!client) {
+            console.error("Client is undefined!");
+            setError("Client Initialization Failed");
+            return;
         }
         connect();
 
