@@ -103,6 +103,7 @@ export default function Home() {
     { name: '人狼', category: 'パーティゲーム', description: '市民に紛れた人狼を会話で見つけ出す心理戦ゲーム。嘘と信頼の駆け引きが勝負のカギ。', color: '#742a2a' },
     { name: 'どうぶつ将棋風', category: 'ボードゲーム', description: '3x4の小さな盤面で遊ぶ簡易将棋。かわいい動物の駒で、将棋の基礎を楽しく学べます。', color: '#ed8936' },
     { name: 'マルバツゲーム', category: 'ボードゲーム', description: '縦・横・斜めのいずれかに3つ並べたら勝ち。シンプルだからこそ奥が深い定番ゲーム。', color: '#e53e3e' },
+    { name: 'Rainbow', category: 'カードゲーム', description: '色と数字を合わせて手札をなくすカードゲーム。アクションカードやワイルドカードを駆使して勝利を目指せ！', color: '#8b5cf6' },
   ];
 
   // useRoomJanitor();

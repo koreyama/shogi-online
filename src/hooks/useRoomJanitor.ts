@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ref, get, remove } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
-type GameType = 'reversi' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing';
+type GameType = 'reversi' | 'gomoku' | 'mancala' | 'chess' | 'trump' | 'drawing' | 'rainbow';
 
 interface RoomConfig {
     path: string;
@@ -34,6 +34,10 @@ const CONFIGS: Record<GameType, RoomConfig> = {
     drawing: {
         path: 'drawing_rooms',
         isEmpty: (room) => !room.players || Object.keys(room.players).length === 0
+    },
+    rainbow: {
+        path: 'rooms',
+        isEmpty: (room) => (!room.players || Object.keys(room.players).length === 0) && room.gameType === 'rainbow'
     }
 };
 

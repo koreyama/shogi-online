@@ -352,6 +352,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
                             <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                             <GameCard href="/trump" title="大富豪" desc="トランプゲーム" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
+                            <GameCard href="/rainbow" title="Rainbow" desc="色と数字のカード" icon={<IconRainbowLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                         </GameSection>
 
                     </div>
@@ -415,5 +416,14 @@ const IconWolfLocal = ({ size = 24, color = "currentColor" }: { size?: number, c
         <path d="M8.5 9l-1.5 6 5 3 5-3-1.5-6" />
         <circle cx="10" cy="13" r="1" fill={color} />
         <circle cx="14" cy="13" r="1" fill={color} />
+    </svg>
+);
+
+const IconRainbowLocal = ({ size = 24, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4.5 16.5c-1.5 1.26-2 3-2 3s1-1 3-3c.5-.5 1.5-1 1.5-1s-1 1.5-1 4c0 3.5 3 5.5 6 5.5 3 0 6-2 6-5.5 0-2.5-1-4-1-4s1 .5 1.5 1c2 2 3 3 3 3s-.5-1.74-2-3c-1.2-1.01-3-2-3-2s1.5.5 2.5 1c2 1 3 2 3 2s-.5-2-2-4c-1.5-2-4-5-4-5s1 2 2 4c.5 1 1 2 1 2s-2-2-4-2c-1.5 0-3 1.5-3 1.5s1-1 2.5-1c1 0 2 1 2 1s-2-2-5-2-5 3.5-5 5c0 0 1.2-.2 2.7 1z" opacity="0.5" />
+        <path d="M12 2a10 10 0 0 0-10 10v4h20v-4a10 10 0 0 0-10-10z" strokeWidth="2" />
+        <path d="M12 6a6 6 0 0 0-6 6v4" />
+        <path d="M12 10a2 2 0 0 0-2 2v4" />
     </svg>
 );

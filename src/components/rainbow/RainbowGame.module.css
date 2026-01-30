@@ -1,0 +1,561 @@
+/* Game Menu & Lobby Styles (Shared/Similar to Daifugo) */
+.lobbyContainer {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.lobbyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+
+.roomIdBox {
+    background: #f1f5f9;
+    padding: 8px 16px;
+    border-radius: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.roomIdLabel {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.roomIdValue {
+    color: #3b82f6;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.lobbyContent {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.playersSection h3,
+.rulesSection h3 {
+    font-size: 1.1rem;
+    color: #475569;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.playersList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.playerCard {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.playerCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.playerName {
+    font-weight: 600;
+    color: #334155;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hostBadge {
+    font-size: 0.7rem;
+    background: #fef08a;
+    color: #854d0e;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+.meBadge {
+    font-size: 0.7rem;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+.emptySlot {
+    border-style: dashed;
+    color: #94a3b8;
+    justify-content: center;
+    background: transparent;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f1f5f9;
+}
+
+.startBtn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transition: all 0.2s;
+}
+
+.startBtn:disabled {
+    background: #cbd5e0;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.startBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.leaveBtn {
+    padding: 16px 30px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.leaveBtn:hover {
+    background: #f8fafc;
+    color: #475569;
+    border-color: #cbd5e0;
+}
+
+.waitingMessage {
+    flex: 1;
+    text-align: center;
+    padding: 16px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Game Interface */
+.gameMain {
+    width: 100vw;
+    height: 100vh;
+    background: #f8fafc;
+    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+}
+
+.header {
+    padding: 10px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 50;
+}
+
+.headerTitle {
+    font-weight: 800;
+    color: #334155;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+/* New Cross Layout Play Area */
+.playArea {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    padding: 20px 20px 200px 20px;
+    /* Huge bottom padding to clear the 180px hand section */
+    gap: 10px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+}
+
+/* Relative Seating Slots */
+.slot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.slotLeft {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.slotTop {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.slotRight {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.slotBottom {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.slotCenter {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.playerContainer {
+    background: white;
+    padding: 12px 20px;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    min-width: 130px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.playerActive {
+    border-color: #3b82f6;
+    border-width: 3px;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.4), 0 10px 25px rgba(59, 130, 246, 0.2);
+    transform: scale(1.1);
+}
+
+.turnMarker {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #3b82f6;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 2px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    animation: bounceMarker 1s infinite alternate;
+}
+
+.centerField {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Direction Indicator Ring */
+.directionRing {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 4px dashed rgba(59, 130, 246, 0.2);
+    border-radius: 50%;
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.dirClockwise {
+    animation: rotateCW 10s linear infinite;
+}
+
+.dirCounter {
+    animation: rotateCCW 10s linear infinite;
+}
+
+/* Flip arrow for counter-clockwise */
+.dirCounter .directionArrow {
+    transform: translateX(-50%) rotate(180deg);
+}
+
+.directionArrow {
+    position: absolute;
+    top: -14px;
+    /* Adjusted to center on the 4px border */
+    left: 50%;
+    transform: translateX(-50%);
+    /* Base transform */
+    color: #3b82f6;
+    font-size: 1.5rem;
+    line-height: 1;
+    /* Normalize line height for better centering */
+    opacity: 0.8;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hand Section - Definitive Scrolling Fix */
+.handSection {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    /* Reduced height for better visibility */
+    height: 160px;
+
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 40px 40px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+
+    display: flex;
+    /* Direct flex container */
+    flex-wrap: nowrap;
+    align-items: center;
+    /* Align center */
+
+    overflow-x: auto !important;
+    /* Force scroll */
+    overflow-y: hidden;
+
+    padding: 0 40px;
+    /* Simplified padding */
+    gap: 15px;
+
+    z-index: 100;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #3b82f6 #f1f5f9;
+
+    /* Disabling text selection during drag */
+    user-select: none;
+}
+
+/* handInner is no longer used, remove styling */
+.handInner {
+    display: none;
+}
+
+.handActive {
+    background: linear-gradient(to top, rgba(59, 130, 246, 0.12), rgba(255, 255, 255, 0.95));
+    border-top: 3px solid #3b82f6;
+}
+
+.handSection::-webkit-scrollbar {
+    height: 8px;
+}
+
+.handSection::-webkit-scrollbar-thumb {
+    background-color: #3b82f6;
+    border-radius: 10px;
+}
+
+.cardWrapper {
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cardSelected {
+    transform: translateY(-35px);
+}
+
+.selectionBadge {
+    position: absolute;
+    top: -15px;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 2px solid white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.colorPickerOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+}
+
+.colorPickerModal {
+    background: white;
+    padding: 40px;
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.colorPickerGrid {
+    display: flex;
+    gap: 20px;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .header {
+        padding: 5px 15px;
+    }
+
+    .headerTitle {
+        font-size: 0.8rem;
+    }
+
+    .playArea {
+        padding: 10px 10px 180px 10px;
+        /* Preserve bottom safe area for hand */
+        gap: 5px;
+        grid-template-columns: 70px 1fr 70px;
+        /* Slightly tighter columns */
+    }
+
+    .playerContainer {
+        min-width: 80px;
+        padding: 8px 10px;
+        font-size: 0.7rem;
+    }
+
+    .playerAvatar {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .handSection {
+        min-height: 160px;
+        padding: 0 10px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .cardInHand {
+        width: 60px !important;
+        height: 90px !important;
+        font-size: 1.2rem !important;
+    }
+
+    .directionRing {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceMarker {
+    from {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    to {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+@keyframes rotateCW {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotateCCW {
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}

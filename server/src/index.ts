@@ -103,6 +103,9 @@ gameServer.define("stats", StatsRoom);
 import { BilliardsRoom } from "./rooms/BilliardsRoom";
 gameServer.define("billiards", BilliardsRoom);
 
+import { RainbowRoom } from "./rooms/RainbowRoom";
+gameServer.define("rainbow", RainbowRoom);
+
 import { LobbyRoom } from "./rooms/LobbyRoom";
 gameServer.define("lobby", LobbyRoom);
 console.log("Registered LobbyRoom");
