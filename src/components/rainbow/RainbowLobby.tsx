@@ -6,7 +6,7 @@ import { ref, onValue } from 'firebase/database';
 import { useAuth } from '@/hooks/useAuth';
 import { RainbowRoom } from '@/lib/rainbow/types';
 import { IconBack, IconUser } from '@/components/Icons';
-import HideChatBot from '@/components/HideChatBot';
+// import HideChatBot from '@/components/HideChatBot';
 import RainbowGame from './RainbowGame'; // Import the Game component
 import { useRoomJanitor } from '@/hooks/useRoomJanitor';
 

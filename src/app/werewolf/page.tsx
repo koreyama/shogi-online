@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import * as Colyseus from 'colyseus.js';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import HideChatBot from '@/components/HideChatBot';
+// import HideChatBot from '@/components/HideChatBot';
 
 import WerewolfLobby from '@/components/werewolf/WerewolfLobby';
 import WerewolfGame from '@/components/werewolf/WerewolfGame';

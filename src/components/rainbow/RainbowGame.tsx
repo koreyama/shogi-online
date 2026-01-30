@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Colyseus from 'colyseus.js';
 import styles from './RainbowGame.module.css'; // Changed to use dedicated CSS
-import { IconUser } from '@/components/Icons'; // Import Icons
+
 
 interface RainbowGameProps {
     roomId?: string;
@@ -274,7 +274,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
                     <div className={styles.lobbyContent}>
                         {/* Players List */}
                         <div className={styles.playersSection}>
-                            <h3><IconUser size={20} /> 参加者 ({playersList.length}/4)</h3>
+                            <h3><span>👤</span> 参加者 ({playersList.length}/4)</h3>
                             <div className={styles.playersList}>
                                 {playersList.map((p: any) => (
                                     <div key={p.sessionId} className={styles.playerCard}>

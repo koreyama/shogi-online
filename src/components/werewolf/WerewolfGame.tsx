@@ -285,7 +285,7 @@ export default function WerewolfGame({ client, room, initialPlayers, onLeave, on
                         {players.map(p => (
                             <div key={p.id} className={`${styles.playerCard} ${!p.isAlive ? styles.dead : ''} ${isMe(p) ? styles.me : ''}`}>
                                 <div className={styles.avatarPlaceholder}>
-                                    <IconUser size={20} />
+                                    <span style={{ fontSize: '20px' }}>👤</span>
                                 </div>
                                 <div className={styles.playerInfo}>
                                     <span className={styles.playerName}>{p.name} {p.isHost && '👑'}</span>
@@ -298,12 +298,12 @@ export default function WerewolfGame({ client, room, initialPlayers, onLeave, on
                     {phase === 'lobby' && settings && (
                         <div className={styles.settingsPanel}>
                             <h4>ゲーム設定 {me?.isHost ? '(変更可能)' : '(閲覧のみ)'}</h4>
-                            <SettingCounter label="👱 市民" value={settings.villagerCount} onChange={(v) => room.send("update_settings", { villagerCount: v })} readonly={!me?.isHost} />
-                            <SettingCounter label="🐺 人狼" value={settings.werewolfCount} onChange={(v) => room.send("update_settings", { werewolfCount: v })} readonly={!me?.isHost} />
-                            <SettingCounter label="🔮 占い師" value={settings.seerCount} onChange={(v) => room.send("update_settings", { seerCount: v })} readonly={!me?.isHost} />
-                            <SettingCounter label="👻 霊媒師" value={settings.mediumCount} onChange={(v) => room.send("update_settings", { mediumCount: v })} readonly={!me?.isHost} />
-                            <SettingCounter label="🛡️ 騎士" value={settings.bodyguardCount} onChange={(v) => room.send("update_settings", { bodyguardCount: v })} readonly={!me?.isHost} />
-                            <SettingCounter label="🤡 狂人" value={settings.madmanCount} onChange={(v) => room.send("update_settings", { madmanCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="👱 市民" value={settings?.villagerCount ?? 0} onChange={(v) => room.send("update_settings", { villagerCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🐺 人狼" value={settings?.werewolfCount ?? 0} onChange={(v) => room.send("update_settings", { werewolfCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🔮 占い師" value={settings?.seerCount ?? 0} onChange={(v) => room.send("update_settings", { seerCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="👻 霊媒師" value={settings?.mediumCount ?? 0} onChange={(v) => room.send("update_settings", { mediumCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🛡️ 騎士" value={settings?.bodyguardCount ?? 0} onChange={(v) => room.send("update_settings", { bodyguardCount: v })} readonly={!me?.isHost} />
+                            <SettingCounter label="🤡 狂人" value={settings?.madmanCount ?? 0} onChange={(v) => room.send("update_settings", { madmanCount: v })} readonly={!me?.isHost} />
 
                             <div className={styles.settingRow}>
                                 <span>初日襲撃</span>
