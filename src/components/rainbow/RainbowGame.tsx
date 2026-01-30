@@ -460,7 +460,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
                                 +{drawPenalty} 枚 累積中
                             </div>
                         )}
-                        {(gameState.currentColor && !gameState.winner) && (
+                        {(gameState.currentColor && !gameState.winner && gameState.status !== 'finished') && (
                             <div style={{
                                 position: 'absolute', bottom: -40,
                                 padding: '4px 16px', background: COLORS[gameState.currentColor],
@@ -473,9 +473,83 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
                 </div>
 
                 <PlayerInSlot player={slots[3]} slotClass={styles.slotRight} />
-                {/* My info in bottom slot? Usually Bottom slot is the player themselves */}
                 <PlayerInSlot player={slots[0]} slotClass={styles.slotBottom} />
             </div>
+
+            {/* Result Screen Overlay */}
+            {gameState.status === 'finished' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.85)',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    zIndex: 200, color: 'white'
+                }}>
+                    <h1 style={{ fontSize: '3rem', marginBottom: '20px', textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Results</h1>
+
+                    <div style={{
+                        background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '30px',
+                        width: '90%', maxWidth: '500px', border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                        {Array.from(gameState.players.values())
+                            // @ts-ignore
+                            .sort((a: any, b: any) => (a.rank || 99) - (b.rank || 99))
+                            .map((p: any, i: number) => (
+                                <div key={p.sessionId} style={{
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    padding: '15px 20px', marginBottom: '10px',
+                                    background: i === 0 ? 'linear-gradient(90deg, #f59e0b, #d97706)' : 'rgba(255,255,255,0.05)',
+                                    borderRadius: 15, fontWeight: 'bold'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+                                        <span style={{ fontSize: '1.5rem', width: 30 }}>
+                                            {p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '4th'}
+                                        </span>
+                                        <span style={{ fontSize: '1.2rem' }}>{p.name}</span>
+                                    </div>
+                                    {p.rank === 0 && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>Retiring...</span>}
+                                </div>
+                            ))}
+                    </div>
+
+                    <div style={{ marginTop: 40, display: 'flex', gap: 20 }}>
+                        <button
+                            onClick={() => room?.send("restartGame")}
+                            style={{
+                                padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold',
+                                background: '#22c55e', color: 'white', border: 'none', borderRadius: 30,
+                                cursor: 'pointer', boxShadow: '0 5px 15px rgba(34, 197, 94, 0.4)'
+                            }}
+                        >
+                            もう一度遊ぶ
+                        </button>
+                        <button
+                            onClick={onLeave}
+                            style={{
+                                padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold',
+                                background: 'transparent', color: '#cbd5e0', border: '2px solid #64748b', borderRadius: 30,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            終了する
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Waiting for others Overlay */}
+            {(me?.rank > 0 && gameState.status === 'playing') && (
+                <div style={{
+                    position: 'absolute', top: 100, left: '50%', transform: 'translateX(-50%)',
+                    background: 'rgba(0,0,0,0.6)', padding: '10px 30px', borderRadius: 20,
+                    color: 'white', fontWeight: 'bold', zIndex: 100,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center'
+                }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: 5 }}>🎉 FINISHED! 🎉</div>
+                    <div style={{ fontSize: '1rem', opacity: 0.9 }}>順位: {me.rank}位</div>
+                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>他のプレイヤーを待っています...</div>
+                </div>
+            )}
 
             {/* Play Button Overlay */}
             {isMyTurn && selectedIndices.length > 0 && (

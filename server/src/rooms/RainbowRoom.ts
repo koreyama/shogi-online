@@ -19,6 +19,30 @@ export class RainbowRoom extends Room<RainbowState> {
             this.startGame();
         });
 
+        this.onMessage("restartGame", (client) => {
+            // Only host can restart? Or anyone?
+            // Ideally host.
+            const player = this.state.players.get(client.sessionId);
+            if (!player) return; // || player.seatIndex !== 0) return;
+
+            // Reset State
+            this.state.players.forEach(p => {
+                while (p.hand.length > 0) p.hand.pop();
+                p.rank = 0;
+                p.hasDrawn = false;
+                p.rank = 0;
+            });
+            while (this.state.drawPile.length > 0) this.state.drawPile.pop();
+            while (this.state.discardPile.length > 0) this.state.discardPile.pop();
+            this.state.winner = "";
+            this.state.status = "waiting"; // Or directly playing?
+            // Let's go directly to playing for "Play Again" feel, or waiting?
+            // User said "Play Again button", implying restart.
+            // Usually restart goes straight to game.
+            this.startGame();
+            this.broadcast("gameRestarted");
+        });
+
         // Changed to receive array of indices
         this.onMessage("playCards", (client, message: { cardIndices: number[], color?: string }) => {
             this.handlePlayCards(client, message.cardIndices, message.color);
@@ -273,45 +297,58 @@ export class RainbowRoom extends Room<RainbowState> {
 
         // Win Check
         if (player.hand.length === 0) {
-            this.state.winner = player.id;
-            this.state.status = "finished";
-            this.broadcast("gameFinished", { winner: player.name });
-            return;
+            // Calculate current max rank
+            const currentRanks = Array.from(this.state.players.values())
+                .map(p => p.rank)
+                .filter(r => r > 0);
+            const nextRank = currentRanks.length > 0 ? Math.max(...currentRanks) + 1 : 1;
+
+            player.rank = nextRank;
+            this.broadcast("playerFinished", { playerId: player.id, rank: player.rank });
+
+            // Check if Game Over (0 or 1 active players left)
+            const activePlayers = Array.from(this.state.players.values()).filter(p => p.rank === 0);
+
+            if (activePlayers.length <= 1) {
+                // If 1 player left, assign them the last rank immediately?
+                // Standard: Yes, last place.
+                if (activePlayers.length === 1) {
+                    activePlayers[0].rank = nextRank + 1;
+                }
+
+                this.state.status = "finished";
+                // Determine winner (Rank 1)
+                const winner = Array.from(this.state.players.values()).find(p => p.rank === 1);
+                this.broadcast("gameFinished", { winner: winner?.name || "Unknown" });
+                return;
+            } else {
+                // Game continues.
+                // Pass turn to next active player.
+                // We shouldn't execute further logic below (like nextTurn) for THIS player, 
+                // but we need to advance the turn.
+                // So we call nextTurn() then return.
+                this.nextTurn();
+                return;
+            }
         }
 
         // Effects calculation
         let skipNext = false;
 
-        // Cumulative effects?
-        // 2 Skip cards -> Skip 2 people? Or Skip self?
-        // Standard House Rules: Skips stack. e.g. 2 Skips = Skip 2 players.
-        // Reverses: 2 Reverses = No change. 3 Reverses = Reverse.
-        // Draw2: Stack adds up.
+        // ... (Effect logic) ...
 
         const count = cardsToPlay.length;
 
         if (firstVal === 'skip') {
-            // Skip 'count' players
-            for (let i = 0; i < count; i++) this.nextTurn(false, true); // Custom internal skip advance
-            // Actually `nextTurn` logic needs to be robust.
-            // We can just call `nextTurn` once but advance N steps.
+            // ...
+            for (let i = 0; i < count; i++) this.nextTurn(false, true);
         }
         else if (firstVal === 'reverse') {
+            // ...
             if (count % 2 === 1) {
                 this.state.direction *= -1;
             }
             if (this.state.players.size === 2) {
-                // In 2p, Reverse acts as Skip.
-                // If 1 Reverse -> Skip 1 (My turn again).
-                // If 2 Reverse -> Even number, direction same? 
-                // Wait, 2p Reverse rule is tricky with multiple.
-                // Let's simplify: Reverse changes direction. 
-                // In 2p, if direction changed, it effectively skips?
-                // Actually usually Reverse = Skip in 2p.
-                // So odd reverses = skip next. Even reverses = no skip?
-                // Let's stick to: Odd reverses switches direction.
-                // In 2p, every direction switch IS a skip logically.
-                // So if odd count, we skip next.
                 if (count % 2 === 1) skipNext = true;
             }
         }
@@ -322,7 +359,7 @@ export class RainbowRoom extends Room<RainbowState> {
             this.state.drawStack += (4 * count);
         }
 
-        // Normal turn advance (unless already handled by Skip loop)
+        // Normal turn advance
         if (firstVal !== 'skip') {
             this.nextTurn(skipNext);
         }
@@ -364,8 +401,23 @@ export class RainbowRoom extends Room<RainbowState> {
         const players = Array.from(this.state.players.values()).sort((a, b) => a.seatIndex - b.seatIndex);
         const currentIndex = players.findIndex(p => p.sessionId === this.state.currentTurn);
         let nextIndex = (currentIndex + this.state.direction);
-        if (nextIndex >= players.length) nextIndex = 0;
-        if (nextIndex < 0) nextIndex = players.length - 1;
+
+        // Loop to find next ACTIVE player (rank === 0)
+        // With safeguards for infinite loop if all finished (handled by check above)
+        let found = false;
+        let attempts = 0;
+
+        while (!found && attempts < players.length * 2) {
+            if (nextIndex >= players.length) nextIndex = 0;
+            if (nextIndex < 0) nextIndex = players.length - 1;
+
+            if (players[nextIndex].rank === 0) {
+                found = true;
+            } else {
+                nextIndex += this.state.direction;
+            }
+            attempts++;
+        }
         return players[nextIndex];
     }
 
@@ -378,21 +430,45 @@ export class RainbowRoom extends Room<RainbowState> {
 
         const currentIndex = players.findIndex(p => p.sessionId === this.state.currentTurn);
 
+        // Calculate Steps based on Logic
+        // But simply advancing index N times while skipping invalid players is safer.
+
         let steps = 1;
-        if (skip) steps = 2; // Skip next player
-        if (isSkipCard) steps = 2; // Skip card effect (advance 1 for turn + 1 for skip)
-        // Wait, if I play 2 skips? 
-        // Logic in handle: `for(count) nextTurn(false, true)`?
-        // If I update `currentTurn` immediately, calling it multiple times works.
-        // Let's rely on that.
+        if (skip) steps = 2;
+        if (isSkipCard) steps = 2;
 
-        let stepDir = this.state.direction * steps;
+        // Apply direction? 
+        // Logic: Move 'steps' valid slots in 'direction'.
 
-        let nextIndex = (currentIndex + stepDir) % players.length;
-        if (nextIndex < 0) nextIndex += players.length;
-        while (nextIndex < 0) nextIndex += players.length;
-        while (nextIndex >= players.length) nextIndex -= players.length;
+        let targetIndex = currentIndex;
 
-        this.state.currentTurn = players[nextIndex].sessionId;
+        for (let s = 0; s < steps; s++) {
+            // Find next valid
+            let found = false;
+            let attempts = 0;
+            let tempIndex = targetIndex;
+
+            while (!found && attempts < players.length + 1) {
+                tempIndex += this.state.direction;
+
+                // Wrap
+                if (tempIndex >= players.length) tempIndex = 0; // Assuming direction 1
+                if (tempIndex < 0) tempIndex = players.length - 1; // Assuming direction -1
+                // Wait, logic needs robust modulo for negative.
+                while (tempIndex < 0) tempIndex += players.length;
+                while (tempIndex >= players.length) tempIndex -= players.length;
+
+                if (players[tempIndex].rank === 0) {
+                    found = true;
+                    targetIndex = tempIndex;
+                }
+                attempts++;
+            }
+
+            // If we didn't find anyone, game should be over, but for safety:
+            if (!found) targetIndex = currentIndex;
+        }
+
+        this.state.currentTurn = players[targetIndex].sessionId;
     }
 }
