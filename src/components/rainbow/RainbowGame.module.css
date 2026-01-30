@@ -411,7 +411,8 @@
 }
 
 .cardSelected {
-    transform: translateY(-35px);
+    z-index: 20;
+    /* Ensure selected card is on top */
 }
 
 .selectionBadge {
