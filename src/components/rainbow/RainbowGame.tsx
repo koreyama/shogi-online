@@ -33,10 +33,10 @@ const CardView = ({ card, onClick, selected = false, disabled = false, extraClas
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontWeight: 'bold', fontSize: '1.6rem', // Larger font
                 cursor: (!disabled && onClick) ? 'pointer' : 'default',
-                boxShadow: selected ? '0 10px 25px rgba(245, 158, 11, 0.4)' : '0 4px 10px rgba(0,0,0,0.15)',
+                boxShadow: selected ? '0 0 15px 5px rgba(255, 255, 255, 0.8), 0 0 30px rgba(245, 158, 11, 0.6)' : '0 4px 10px rgba(0,0,0,0.15)',
                 position: 'relative',
                 userSelect: 'none',
-                transform: selected ? 'translateY(-25px) scale(1.05)' : 'none',
+                transform: selected ? 'scale(1.05)' : 'none', // Removed translateY
                 transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Bouncy transition
                 opacity: disabled ? 0.6 : 1,
                 zIndex: selected ? 10 : 1
