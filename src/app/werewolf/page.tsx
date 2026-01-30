@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import * as Colyseus from 'colyseus.js';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { client } from '@/lib/colyseus';
 // import HideChatBot from '@/components/HideChatBot';
 
 import WerewolfLobby from '@/components/werewolf/WerewolfLobby';
@@ -12,7 +13,7 @@ import WerewolfGame from '@/components/werewolf/WerewolfGame';
 export default function WerewolfPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
-    const [client, setClient] = useState<Colyseus.Client | null>(null);
+    // const [client, setClient] = useState<Colyseus.Client | null>(null); // Use shared client
     const [room, setRoom] = useState<Colyseus.Room | null>(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -20,6 +21,7 @@ export default function WerewolfPage() {
     // Initial players state for smooth transition
     const [initialPlayers, setInitialPlayers] = useState<any[]>([]);
 
+    /*
     useEffect(() => {
         if (!process.env.NEXT_PUBLIC_COLYSEUS_URL) {
             setError("Configuration Error: NEXT_PUBLIC_COLYSEUS_URL not set");
@@ -27,9 +29,10 @@ export default function WerewolfPage() {
         }
         setClient(new Colyseus.Client(process.env.NEXT_PUBLIC_COLYSEUS_URL));
     }, []);
+    */
 
     const connect = async (action: () => Promise<Colyseus.Room>) => {
-        if (!client || !user) return;
+        if (!user) return; // Client is always available via import
         setIsConnecting(true);
         setError(null);
 
@@ -74,7 +77,7 @@ export default function WerewolfPage() {
 
     const handleJoinRandom = async () => {
         const playerName = await getPlayerName();
-        connect(() => client!.joinOrCreate("werewolf", {
+        connect(() => client.joinOrCreate("werewolf", {
             name: playerName,
             uid: user?.uid,
             mode: "public"
@@ -83,7 +86,7 @@ export default function WerewolfPage() {
 
     const handleCreateRoom = async () => {
         const playerName = await getPlayerName();
-        connect(() => client!.create("werewolf", {
+        connect(() => client.create("werewolf", {
             name: playerName,
             uid: user?.uid,
             mode: "private"
@@ -92,7 +95,7 @@ export default function WerewolfPage() {
 
     const handleJoinById = async (roomId: string) => {
         const playerName = await getPlayerName();
-        connect(() => client!.joinById(roomId, {
+        connect(() => client.joinById(roomId, {
             name: playerName,
             uid: user?.uid
         }));
@@ -120,7 +123,7 @@ export default function WerewolfPage() {
                 />
             ) : (
                 <WerewolfGame
-                    client={client!}
+                    client={client}
                     room={room}
                     initialPlayers={initialPlayers}
                     onLeave={handleLeave}

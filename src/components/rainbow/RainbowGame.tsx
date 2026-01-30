@@ -61,8 +61,11 @@ const CardView = ({ card, onClick, selected = false, disabled = false, extraClas
     );
 };
 
+import { client } from '@/lib/colyseus';
+
 export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName }: RainbowGameProps) {
-    const [client] = useState(() => new Colyseus.Client(process.env.NEXT_PUBLIC_COLYSEUS_URL || "ws://localhost:2567"));
+    // Client is imported from lib
+
     const [room, setRoom] = useState<Colyseus.Room<any> | null>(null);
     const [gameState, setGameState] = useState<any>(null);
     const [myHand, setMyHand] = useState<any[]>([]);
