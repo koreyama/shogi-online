@@ -202,6 +202,11 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
         r.onMessage("error", (msg: string) => alert(msg));
     };
 
+    // Clear selected indices when hand changes or turn changes
+    useEffect(() => {
+        setSelectedIndices([]);
+    }, [myHand.length, gameState?.currentTurn]);
+
     // Firebase Sync Effect
     useEffect(() => {
         if (!room || !gameState) return;
@@ -294,6 +299,7 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
             setShowColorPicker(true);
         } else {
             room.send("playCards", { cardIndices: selectedIndices });
+            setSelectedIndices([]); // Immediate visual feedback
         }
     };
 
@@ -301,9 +307,13 @@ export function RainbowGame({ roomId, options, onLeave, myPlayerId, myPlayerName
         if (!room || selectedIndices.length === 0) return;
         room.send("playCards", { cardIndices: selectedIndices, color });
         setShowColorPicker(false);
+        setSelectedIndices([]); // Immediate visual feedback
     };
 
-    const handleDraw = () => room?.send("drawCard");
+    const handleDraw = () => {
+        room?.send("drawCard");
+        setSelectedIndices([]);
+    };
 
     if (error) return <div className={styles.error}>{error} <button onClick={onLeave} className={styles.leaveBtn}>戻る</button></div>;
     if (!gameState) return <div className={styles.loading}>接続中...</div>;
