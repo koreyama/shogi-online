@@ -478,7 +478,12 @@
 @media (max-width: 768px) {
     .lobbyContainer {
         padding: 15px;
-        width: 95%;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        background: #f8fafc;
+        /* Seamless background */
     }
 
     .lobbyHeader {
@@ -486,30 +491,35 @@
         align-items: flex-start;
         gap: 10px;
         margin-bottom: 20px;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .playersList {
-        grid-template-columns: 1fr 1fr;
-        /* 2 columns on mobile */
+        grid-template-columns: 1fr;
+        /* Stack vertically for clarity on small screens */
         gap: 10px;
     }
 
     .playerCard {
-        padding: 8px 10px;
-        font-size: 0.9rem;
+        padding: 12px 15px;
+        font-size: 1rem;
+        /* Readable text */
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .controls {
         flex-direction: column-reverse;
         /* Put Leave button at bottom */
-        gap: 10px;
+        gap: 15px;
+        padding-top: 10px;
     }
 
     .startBtn,
     .leaveBtn {
         width: 100%;
-        padding: 14px;
-        font-size: 1rem;
+        padding: 16px;
+        font-size: 1.1rem;
     }
 
     .header {
@@ -542,34 +552,36 @@
     .handSection {
         height: 150px;
         padding: 0 15px;
-        /* Positive gap, no overlap as requested */
-        gap: 2px !important;
+        gap: 4px !important;
     }
 
-    /* Ensure card wrappers account for overlap clickability if needed,
-       but standard flex overlap usually works fine visually.
-       Actually, standard flex gap doesn't support negative values well in all browsers?
-       Margin-right on items is safer for negative overlap.
-       But let's try gap first (works in modern flex) or just small positive gap.
-       User asked for "narrower gap". -15 might be too much overlap.
-       Let's stick to gap: -10px, or better: margin-left: -20px on items except first.
-    */
-
     .cardWrapper {
-        /* Remove overlap logic */
         margin-left: 0;
-        transition: transform 0.2s;
+        transition: transform 0.1s;
     }
 
     .cardWrapper:first-child {
         margin-left: 0;
     }
 
+    /* Disable "Raise" animation on mobile */
     .cardWrapper:hover,
     .cardWrapper:focus-within {
-        /* Pop out on hover/select */
-        transform: translateY(-20px) scale(1.1);
-        z-index: 50;
+        transform: none;
+        z-index: auto;
+    }
+
+    /* Highlight selected active card with Glow instead */
+    .cardSelected {
+        /* No transform */
+        transform: none !important;
+        z-index: 10;
+    }
+
+    /* Make the inner card glow when selected */
+    .cardSelected>div {
+        box-shadow: 0 0 0 4px #3b82f6, 0 0 15px rgba(59, 130, 246, 0.6) !important;
+        border-color: #3b82f6 !important;
     }
 
     .cardInHand {
