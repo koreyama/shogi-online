@@ -424,6 +424,11 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
                         {phase === 'result' && (
                             <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '12px', padding: '1rem', overflowY: 'auto' }}>
                                 <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#f59e0b', fontSize: '1.2rem' }}>🎨 しりとりチェーン</h2>
+                                {drawingHistory.length > 0 && (
+                                    <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold', color: '#334155' }}>
+                                        最初のお題: <span style={{ color: '#f59e0b', fontSize: '1.3rem' }}>{drawingHistory[0].targetWord}</span>
+                                    </div>
+                                )}
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
                                     {drawingHistory.map((entry, idx) => (
                                         <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem', background: '#fef3c7', borderRadius: '8px', width: '150px' }}>
