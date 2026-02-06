@@ -96,6 +96,15 @@ const IconDotsLocal = ({ size = 32, color = "currentColor" }: { size?: number, c
         <circle cx="16" cy="16" r="1" fill={color} />
     </svg>
 );
+const IconGridLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="3" y1="15" x2="21" y2="15" />
+        <line x1="9" y1="3" x2="9" y2="21" />
+        <line x1="15" y1="3" x2="15" y2="21" />
+    </svg>
+);
 const IconDiceLocal = ({ size = 32, color = "currentColor" }: { size?: number, color?: string }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -312,6 +321,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         >
                             <GameCard href="/polyomino" title="Block Territory" desc="陣取りパズル" icon={<IconBlocksLocal size={32} color="#d53f8c" />} color="#d53f8c" />
                             <GameCard href="/minesweeper" title="Minesweeper" desc="爆弾処理" icon={<IconBomb size={32} color="#e53e3e" />} color="#e53e3e" />
+                            <GameCard href="/sudoku" title="数独" desc="論理パズル" icon={<IconGridLocal size={32} color="#3b82f6" />} color="#3b82f6" />
                             <GameCard href="/hit-and-blow" title="Hit & Blow" desc="推理ゲーム" icon={<IconHitBlowLocal size={32} color="#4299e1" />} color="#4299e1" />
                             <GameCard href="/dots-and-boxes" title="Dots & Boxes" desc="陣取り" icon={<IconDotsLocal size={32} color="#ed64a6" />} color="#ed64a6" />
                             <GameCard href="/yacht" title="Yacht" desc="ダイスポーカー" icon={<IconDiceLocal size={32} color="#ed8936" />} color="#ed8936" />
