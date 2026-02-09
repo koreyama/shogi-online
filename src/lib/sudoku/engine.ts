@@ -124,6 +124,18 @@ export function generatePuzzle(difficulty: Difficulty): { puzzle: Board; solutio
     for (const [row, col] of shuffledPositions) {
         if (currentClues <= targetClues) break;
 
+        // Check if removing this cell would leave the 3x3 box empty
+        const boxRow = Math.floor(row / 3) * 3;
+        const boxCol = Math.floor(col / 3) * 3;
+        let boxClueCount = 0;
+        for (let r = boxRow; r < boxRow + 3; r++) {
+            for (let c = boxCol; c < boxCol + 3; c++) {
+                if (puzzleGrid[r][c] !== 0) boxClueCount++;
+            }
+        }
+        // Don't remove if it would leave the box with 0 clues
+        if (boxClueCount <= 1) continue;
+
         const backup = puzzleGrid[row][col];
         puzzleGrid[row][col] = 0;
 
@@ -164,7 +176,7 @@ export function checkWin(board: Board, solution: number[][]): boolean {
     return true;
 }
 
-// Place a number and check for errors
+// Place a number and check for conflicts
 export function placeNumber(state: GameState, row: number, col: number, num: number): GameState {
     const { board, solution } = state;
 
@@ -174,35 +186,64 @@ export function placeNumber(state: GameState, row: number, col: number, num: num
     const newBoard = board.map(r => r.map(cell => ({ ...cell, notes: new Set(cell.notes) })));
     newBoard[row][col].value = num;
 
-    // Check if correct
-    const isCorrect = num === 0 || num === solution[row][col];
-    newBoard[row][col].isError = !isCorrect;
-
     // Clear notes when placing a number
     if (num !== 0) {
         newBoard[row][col].notes.clear();
     }
 
-    // Update error states for all cells
-    updateErrors(newBoard, solution);
+    // Update conflict-based error states for all cells
+    updateConflicts(newBoard);
 
-    const newMistakes = !isCorrect && num !== 0 ? state.mistakes + 1 : state.mistakes;
     const won = checkWin(newBoard, solution);
 
     return {
         ...state,
         board: newBoard,
-        mistakes: newMistakes,
         status: won ? 'won' : 'playing',
     };
 }
 
-// Update error highlighting for all cells
-function updateErrors(board: Board, solution: number[][]): void {
+// Find all cells with conflicts (same number in row/col/box)
+function updateConflicts(board: Board): void {
+    // Reset all errors first
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
-            if (board[r][c].value !== 0 && !board[r][c].isFixed) {
-                board[r][c].isError = board[r][c].value !== solution[r][c];
+            board[r][c].isError = false;
+        }
+    }
+
+    // Check each cell for conflicts
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            const val = board[r][c].value;
+            if (val === 0) continue;
+
+            // Check row for duplicate
+            for (let c2 = 0; c2 < 9; c2++) {
+                if (c2 !== c && board[r][c2].value === val) {
+                    board[r][c].isError = true;
+                    board[r][c2].isError = true;
+                }
+            }
+
+            // Check column for duplicate
+            for (let r2 = 0; r2 < 9; r2++) {
+                if (r2 !== r && board[r2][c].value === val) {
+                    board[r][c].isError = true;
+                    board[r2][c].isError = true;
+                }
+            }
+
+            // Check 3x3 box for duplicate
+            const boxRow = Math.floor(r / 3) * 3;
+            const boxCol = Math.floor(c / 3) * 3;
+            for (let r2 = boxRow; r2 < boxRow + 3; r2++) {
+                for (let c2 = boxCol; c2 < boxCol + 3; c2++) {
+                    if ((r2 !== r || c2 !== c) && board[r2][c2].value === val) {
+                        board[r][c].isError = true;
+                        board[r2][c2].isError = true;
+                    }
+                }
             }
         }
     }
@@ -237,7 +278,6 @@ export function createGameState(difficulty: Difficulty): GameState {
         solution,
         status: 'playing',
         difficulty,
-        mistakes: 0,
         startTime: Date.now(),
         selectedCell: null,
     };

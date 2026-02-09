@@ -260,9 +260,6 @@ export default function SudokuPage() {
                 {/* Status Bar */}
                 <div className={sudokuStyles.statusBar}>
                     <div className={sudokuStyles.statusItem}>⏱️ {formatTime(time)}</div>
-                    <div className={`${sudokuStyles.statusItem} ${gameState && gameState.mistakes > 0 ? sudokuStyles.error : ''}`}>
-                        ❌ ミス: {gameState?.mistakes || 0}
-                    </div>
                 </div>
 
                 {/* Game Board */}
@@ -290,7 +287,6 @@ export default function SudokuPage() {
                         <div className={sudokuStyles.modal}>
                             <h2>🎉 クリア！</h2>
                             <p>タイム: {formatTime(time)}</p>
-                            <p>ミス: {gameState.mistakes}回</p>
                             <button onClick={startGame}>もう一度</button>
                             <button onClick={() => setStatus('menu')}>メニューへ</button>
                         </div>

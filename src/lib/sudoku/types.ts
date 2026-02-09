@@ -23,10 +23,9 @@ export const DIFFICULTIES: Record<string, Difficulty> = {
 
 export interface GameState {
     board: Board;
-    solution: number[][]; // Full solved board for validation
+    solution: number[][]; // Full solved board for win check
     status: 'playing' | 'won';
     difficulty: Difficulty;
-    mistakes: number;
     startTime: number | null;
     selectedCell: { row: number; col: number } | null;
 }
