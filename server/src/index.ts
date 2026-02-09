@@ -106,6 +106,10 @@ gameServer.define("billiards", BilliardsRoom);
 import { RainbowRoom } from "./rooms/RainbowRoom";
 gameServer.define("rainbow", RainbowRoom);
 
+import { SudokuRoom } from "./rooms/SudokuRoom";
+gameServer.define("sudoku_room", SudokuRoom)
+    .filterBy(['difficulty']);
+
 import { LobbyRoom } from "./rooms/LobbyRoom";
 gameServer.define("lobby", LobbyRoom);
 console.log("Registered LobbyRoom");

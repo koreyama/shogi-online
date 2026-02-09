@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
 import HideChatBot from '@/components/HideChatBot';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
+import { ColyseusSudokuGame } from './ColyseusSudokuGame';
 
 const SUDOKU_THEME = {
     '--theme-primary': '#3b82f6',
@@ -41,7 +42,8 @@ export default function SudokuPage() {
     const [isNotesMode, setIsNotesMode] = useState(false);
 
     // Navigation State
-    const [status, setStatus] = useState<'setup' | 'menu' | 'playing'>('setup');
+    const [status, setStatus] = useState<'setup' | 'menu' | 'playing' | 'battle' | 'room_input'>('setup');
+    const [battleRoomId, setBattleRoomId] = useState<string>('');
 
     // Check if name is loaded
     useEffect(() => {
@@ -208,8 +210,22 @@ export default function SudokuPage() {
                             <div className={sudokuStyles.modeBtnIcon}>
                                 <IconUser size={48} />
                             </div>
-                            <span className={sudokuStyles.modeBtnTitle}>ゲームスタート</span>
+                            <span className={sudokuStyles.modeBtnTitle}>ひとりで遊ぶ</span>
                             <span className={sudokuStyles.modeBtnDesc}>ヒント{difficulty.clues}マス</span>
+                        </button>
+                        <button onClick={() => setStatus('battle')} className={sudokuStyles.modeBtn}>
+                            <div className={sudokuStyles.modeBtnIcon}>
+                                🏁
+                            </div>
+                            <span className={sudokuStyles.modeBtnTitle}>ランダム対戦</span>
+                            <span className={sudokuStyles.modeBtnDesc}>速さを競う</span>
+                        </button>
+                        <button onClick={() => setStatus('room_input')} className={sudokuStyles.modeBtn}>
+                            <div className={sudokuStyles.modeBtnIcon}>
+                                🏠
+                            </div>
+                            <span className={sudokuStyles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={sudokuStyles.modeBtnDesc}>友達と対戦</span>
                         </button>
                     </div>
 
@@ -240,7 +256,73 @@ export default function SudokuPage() {
         );
     }
 
-    // Playing
+    // Room Input
+    if (status === 'room_input') {
+        return (
+            <main className={styles.main} style={SUDOKU_THEME}>
+                <FloatingShapes />
+
+                <div className={sudokuStyles.header}>
+                    <button onClick={() => setStatus('menu')} className={sudokuStyles.backButton}>
+                        <IconBack size={18} /> 戻る
+                    </button>
+                    <div className={sudokuStyles.headerContent}>
+                        <h1 className={sudokuStyles.title}>ルーム対戦</h1>
+                        <p className={sudokuStyles.subtitle}>ルームIDを入力または作成</p>
+                    </div>
+                    <div style={{ width: '80px' }} />
+                </div>
+
+                <div className={styles.gameContainer}>
+                    <div style={{ background: '#fff', padding: '2rem', borderRadius: '16px', maxWidth: '400px', width: '100%' }}>
+                        <h3 style={{ marginBottom: '1rem', textAlign: 'center' }}>ルームに参加</h3>
+                        <input
+                            type="text"
+                            placeholder="ルームIDを入力"
+                            value={battleRoomId}
+                            onChange={(e) => setBattleRoomId(e.target.value)}
+                            className={styles.input}
+                            style={{ marginBottom: '1rem', width: '100%' }}
+                        />
+                        <button
+                            className={styles.primaryBtn}
+                            onClick={() => battleRoomId && setStatus('battle')}
+                            disabled={!battleRoomId}
+                            style={{ width: '100%', marginBottom: '1.5rem' }}
+                        >
+                            参加する
+                        </button>
+
+                        <div style={{ textAlign: 'center', color: '#94a3b8', margin: '1rem 0' }}>または</div>
+
+                        <button
+                            className={styles.primaryBtn}
+                            onClick={() => { setBattleRoomId(''); setStatus('battle'); }}
+                            style={{ width: '100%', background: '#22c55e' }}
+                        >
+                            新しいルームを作成
+                        </button>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    // Battle Mode
+    if (status === 'battle') {
+        return (
+            <ColyseusSudokuGame
+                roomId={battleRoomId || undefined}
+                options={{
+                    difficulty: Object.entries(DIFFICULTIES).find(([_, v]) => v.name === difficulty.name)?.[0] || 'EASY',
+                    create: !battleRoomId,
+                }}
+                onLeave={() => { setBattleRoomId(''); setStatus('menu'); }}
+            />
+        );
+    }
+
+    // Playing (Solo)
     return (
         <main className={styles.main} style={SUDOKU_THEME}>
             <HideChatBot />
