@@ -1,22 +1,36 @@
 /* Sudoku Styles */
 
+.boardWrapper {
+    width: 100%;
+    max-width: 432px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+}
+
+.boardWrapper.compact {
+    max-width: 280px;
+}
+
 .board {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
     border: 3px solid #1e293b;
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     overflow: hidden;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
 }
 
 .row {
-    display: flex;
+    display: contents;
 }
 
 .cell {
-    width: 48px;
-    height: 48px;
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -25,6 +39,8 @@
     transition: background 0.15s ease;
     position: relative;
     user-select: none;
+    min-width: 0;
+    min-height: 0;
 }
 
 .cell:hover {
@@ -32,9 +48,13 @@
 }
 
 .cellValue {
-    font-size: 1.5rem;
+    font-size: clamp(0.8rem, 3.5vw, 1.5rem);
     font-weight: 600;
     color: #334155;
+}
+
+.compact .cellValue {
+    font-size: clamp(0.6rem, 2.5vw, 1rem);
 }
 
 .fixed .cellValue {
@@ -83,14 +103,13 @@
     grid-template-rows: repeat(3, 1fr);
     width: 100%;
     height: 100%;
-    padding: 2px;
+    padding: 1px;
     box-sizing: border-box;
 }
 
 .note {
-    font-size: 0.65rem;
+    font-size: clamp(0.4rem, 1.5vw, 0.65rem);
     color: transparent;
-    /* Hide inactive */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -99,8 +118,11 @@
 
 .noteActive {
     color: #475569;
-    /* Dark gray for visibility */
     font-weight: 700;
+}
+
+.compact .note {
+    font-size: clamp(0.3rem, 1vw, 0.5rem);
 }
 
 /* Notes when cell is selected (white text on blue bg) */
@@ -429,15 +451,55 @@
     line-height: 1.6;
 }
 
+/* Battle Layout */
+.battleLayout {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 1rem;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.myBoardSection {
+    flex: 1 1 0;
+    max-width: 480px;
+    min-width: 0;
+}
+
+.oppBoardSection {
+    flex: 0 0 auto;
+    width: 280px;
+    min-width: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .cell {
-        width: 38px;
-        height: 38px;
+    .battleLayout {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.5rem;
     }
 
-    .cellValue {
-        font-size: 1.2rem;
+    .myBoardSection {
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .oppBoardSection {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .boardWrapper {
+        max-width: 360px;
+    }
+
+    .boardWrapper.compact {
+        max-width: 260px;
     }
 
     .numberBtn {
@@ -461,17 +523,18 @@
 }
 
 @media (max-width: 480px) {
-    .cell {
-        width: 34px;
-        height: 34px;
+    .boardWrapper {
+        max-width: calc(100vw - 2rem);
     }
 
-    .cellValue {
-        font-size: 1rem;
+    .boardWrapper.compact {
+        max-width: calc(55vw);
     }
 
-    .note {
-        font-size: 0.5rem;
+    .oppBoardSection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .numberBtn {
@@ -479,5 +542,9 @@
         height: 36px;
         font-size: 1.1rem;
         border-radius: 8px;
+    }
+
+    .numberGrid {
+        gap: 4px;
     }
 }

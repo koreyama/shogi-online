@@ -334,13 +334,9 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                 <div style={{ width: '80px' }} />
             </div>
 
-            <div style={{
-                display: 'flex', gap: '2rem', justifyContent: 'center',
-                alignItems: 'flex-start', flexWrap: 'wrap',
-                padding: '1rem', width: '100%', maxWidth: '1200px', margin: '0 auto',
-            }}>
+            <div className={sudokuStyles.battleLayout}>
                 {/* My Board Section */}
-                <div style={{ flex: '1 1 auto', maxWidth: '500px', minWidth: '300px' }}>
+                <div className={sudokuStyles.myBoardSection}>
                     {/* My Progress Bar */}
                     <div style={{
                         background: '#eff6ff', padding: '0.75rem 1.25rem', borderRadius: '12px',
@@ -389,10 +385,7 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                 {opponents.length > 0 && opponents.map((opp) => {
                     const oppProgress = getFilledPercent(opp);
                     return (
-                        <div key={opp.sessionId} style={{
-                            flex: '0 1 auto', maxWidth: '320px', minWidth: '200px',
-                            opacity: 0.9,
-                        }}>
+                        <div key={opp.sessionId} className={sudokuStyles.oppBoardSection}>
                             {/* Opponent Progress Bar */}
                             <div style={{
                                 background: opp.status === 'finished' ? '#dcfce7' : '#fef3c7',
@@ -427,15 +420,14 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                                 </div>
                             </div>
 
-                            {/* Opponent's Board (read-only, smaller) */}
+                            {/* Opponent's Board (read-only, compact) */}
                             {opp.boardValues.length === 81 && (
-                                <div style={{ transform: 'scale(0.65)', transformOrigin: 'top center' }}>
-                                    <SudokuBoard
-                                        board={getOpponentBoard(opp)}
-                                        selectedCell={null}
-                                        onCellClick={() => { }}
-                                    />
-                                </div>
+                                <SudokuBoard
+                                    board={getOpponentBoard(opp)}
+                                    selectedCell={null}
+                                    onCellClick={() => { }}
+                                    compact
+                                />
                             )}
                         </div>
                     );
