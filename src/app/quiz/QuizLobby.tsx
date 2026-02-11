@@ -47,10 +47,11 @@ interface QuizRoomInfo {
     roomId: string;
     hostId: string;
     hostName: string;
-    status: string;
+    status: 'waiting' | 'playing';
     playerCount: number;
     isLocked: boolean;
     createdAt: number;
+    genre?: string;
 }
 
 export default function QuizLobby() {
