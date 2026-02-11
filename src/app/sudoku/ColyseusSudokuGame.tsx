@@ -11,7 +11,15 @@ import { Board, Cell } from '@/lib/sudoku/types';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';
 
-const COLYSEUS_URL = process.env.NEXT_PUBLIC_COLYSEUS_URL || 'wss://shogi-online-server.onrender.com';
+const getColyseusUrl = () => {
+    if (process.env.NEXT_PUBLIC_COLYSEUS_URL) {
+        return process.env.NEXT_PUBLIC_COLYSEUS_URL;
+    }
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        return 'ws://localhost:2567';
+    }
+    return 'wss://shogi-online-server.onrender.com';
+};
 
 interface Props {
     roomId?: string;
@@ -54,7 +62,7 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
     useEffect(() => {
         const connect = async () => {
             try {
-                const client = new Client(COLYSEUS_URL);
+                const client = new Client(getColyseusUrl());
                 clientRef.current = client;
 
                 let r: Room;
