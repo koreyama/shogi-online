@@ -1,0 +1,385 @@
+/* ============================================
+   Quiz Battle - White Clean UI
+   ============================================ */
+
+.main {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #f8fafc;
+    /* Light gray background */
+    background-image:
+        radial-gradient(#e2e8f0 1px, transparent 1px),
+        radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    color: #334155;
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Header */
+.header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.menuButtonExit {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.menuButtonExit:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #94a3b8;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.backButton:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #334155;
+    transform: translateX(-2px);
+}
+
+.timerBar {
+    width: 100%;
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.timerFill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    transition: width 1s linear;
+    border-radius: 6px;
+}
+
+/* Question Area */
+.questionBox {
+    width: 100%;
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 24px;
+    text-align: center;
+    margin-bottom: 2rem;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.categoryTag {
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    border: 1px solid #dbeafe;
+}
+
+.questionText {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.4;
+    color: #1e293b;
+    margin-bottom: 1rem;
+}
+
+/* Answer Area */
+.answerSlots {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    min-height: 70px;
+}
+
+.slot {
+    width: clamp(48px, 10vw, 64px);
+    height: clamp(56px, 12vw, 72px);
+    border-bottom: 4px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-weight: 800;
+    color: #334155;
+    background: white;
+    border-radius: 12px 12px 4px 4px;
+    transition: all 0.2s;
+}
+
+.slotFilled {
+    border-bottom-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
+    transform: translateY(-4px);
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+}
+
+/* Character Tiles */
+.charGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(12px, 3vw, 16px);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.charTile {
+    aspect-ratio: 1;
+    background: white;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-bottom-width: 4px;
+    border-radius: 16px;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.charTile:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.charTile:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+    margin-top: 3px;
+    box-shadow: none;
+}
+
+.charTileDisabled {
+    opacity: 0.4;
+    pointer-events: none;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    box-shadow: none;
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+}
+
+/* Players */
+.playersList {
+    width: 100%;
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0.5rem;
+    margin-top: auto;
+}
+
+.playerCard {
+    background: white;
+    padding: 1rem;
+    border-radius: 16px;
+    min-width: 110px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    flex: 1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.playerCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.playerScore {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #3b82f6;
+    margin-top: 0.25rem;
+}
+
+.statusIndicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    font-weight: bold;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statusAnswered {
+    background: #3b82f6;
+    content: '!';
+}
+
+.statusCorrect {
+    background: #22c55e;
+}
+
+.statusWrong {
+    background: #ef4444;
+}
+
+/* Result Modal */
+.resultModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.3s;
+}
+
+.resultContent {
+    background: white;
+    padding: 3rem;
+    border-radius: 32px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.correctAnswerDisplay {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #ef4444;
+    /* Correct answer in Red/Orange for impact */
+    margin: 1.5rem 0;
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.rankingRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 1.2rem;
+    color: #334155;
+    font-weight: 600;
+}
+
+.rankingRow:last-child {
+    border-bottom: none;
+}
+
+.button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 2rem;
+    width: 100%;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    transition: all 0.2s;
+}
+
+.button:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (min-width: 768px) {
+    .charGrid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}

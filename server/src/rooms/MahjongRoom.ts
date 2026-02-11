@@ -1,20 +1,46 @@
 import { Room, Client } from "colyseus";
 import { MahjongState, MahjongPlayer, MahjongTile, MahjongCall } from "./schema/MahjongState";
 import { ArraySchema } from "@colyseus/schema";
+import { TileData, Wind, WIND_ORDER } from "../lib/mahjong/types";
+import { isWinningHand, getTenpaiWaits, calculateShanten } from "../lib/mahjong/hand-evaluator";
+import { evaluateYaku } from "../lib/mahjong/yaku";
+import { calculateScore, countDora } from "../lib/mahjong/scoring";
+import { decidePlayAction, decideCallAction } from "../lib/mahjong/ai";
 
 const WINDS = ["east", "south", "west", "north"];
+
+/**
+ * Convert MahjongTile schema to plain TileData
+ */
+function toTileData(t: MahjongTile): TileData {
+    return { id: t.id, suit: t.suit as any, value: t.value, isRed: t.isRed };
+}
+
+function toCallData(c: MahjongCall) {
+    return {
+        callType: c.callType,
+        tiles: [...c.tiles].map(toTileData),
+        fromPlayer: c.fromPlayer,
+    };
+}
 
 export class MahjongRoom extends Room<MahjongState> {
     maxClients = 4;
     private gameStarted = false;
     private cpuTimers: NodeJS.Timeout[] = [];
-    private wall: any[] = []; // 山牌
+    private wall: any[] = [];
+    private deadWall: any[] = [];
+    private uraDoraIndicators: any[] = [];
+    private playerDiscardHistory: Map<number, TileData[]> = new Map(); // For furiten
+
+    // Round state
+    private isFirstTurn = true;
+    private rinshanFlag = false;
 
     onCreate(options: any) {
         this.setState(new MahjongState());
         this.roomId = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Set min players (3 or 4)
         this.state.minPlayers = options.minPlayers || 3;
         this.state.maxPlayers = 4;
 
@@ -22,7 +48,6 @@ export class MahjongRoom extends Room<MahjongState> {
             this.setPrivate(true);
         }
 
-        // Initialize canRon and canCall arrays
         for (let i = 0; i < 4; i++) {
             this.state.canRon.push(false);
             this.state.canCall.push(false);
@@ -34,6 +59,7 @@ export class MahjongRoom extends Room<MahjongState> {
         this.onMessage("chi", (client, msg) => this.handleChi(client, msg));
         this.onMessage("pon", (client, msg) => this.handlePon(client, msg));
         this.onMessage("kan", (client, msg) => this.handleKan(client, msg));
+        this.onMessage("ankan", (client, msg) => this.handleAnkan(client, msg));
         this.onMessage("riichi", (client, msg) => this.handleRiichi(client, msg));
         this.onMessage("tsumo", (client) => this.handleTsumo(client));
         this.onMessage("ron", (client) => this.handleRon(client));
@@ -45,7 +71,6 @@ export class MahjongRoom extends Room<MahjongState> {
 
     onJoin(client: Client, options: any) {
         console.log("MahjongRoom joined:", client.sessionId, options.name);
-
         const playerCount = this.state.players.size;
         if (playerCount >= 4) return;
 
@@ -59,18 +84,14 @@ export class MahjongRoom extends Room<MahjongState> {
         player.isConnected = true;
 
         this.state.players.set(client.sessionId, player);
-
-        // Broadcast player joined
         this.broadcast("playerJoined", { name: player.name, seat: player.seatIndex });
     }
 
     onLeave(client: Client, consented: boolean) {
         console.log("MahjongRoom left:", client.sessionId);
         const player = this.state.players.get(client.sessionId);
-
         if (player) {
             if (this.gameStarted) {
-                // Convert to CPU if game in progress
                 player.isConnected = false;
                 player.isCpu = true;
                 player.name = `CPU ${player.seatIndex + 1}`;
@@ -78,20 +99,19 @@ export class MahjongRoom extends Room<MahjongState> {
                 this.state.players.delete(client.sessionId);
             }
         }
-
         if (!this.gameStarted && this.state.players.size === 0) {
             this.disconnect();
         }
     }
 
+    // ==================== GAME SETUP ====================
+
     handleStartGame(client: Client) {
         if (this.gameStarted) return;
-        // At least 1 player required to start (rest will be CPUs)
         if (this.state.players.size < 1) return;
 
-        // Fill remaining seats with CPU based on minPlayers (3 or 4)
         const currentCount = this.state.players.size;
-        const targetCount = this.state.minPlayers || 4; // 3人麻雀か4人麻雀か
+        const targetCount = this.state.minPlayers || 4;
         for (let i = currentCount; i < targetCount; i++) {
             const cpuPlayer = new MahjongPlayer();
             cpuPlayer.sessionId = `cpu-${i}`;
@@ -112,19 +132,20 @@ export class MahjongRoom extends Room<MahjongState> {
     }
 
     private initializeGame() {
-        // Create and shuffle tiles
         const tiles = this.createAllTiles();
         this.shuffleArray(tiles);
 
-        // Separate dead wall (14 tiles)
-        const deadWall = tiles.splice(-14);
+        this.deadWall = tiles.splice(-14);
 
-        // Set dora indicator
+        // Dora indicator
         const doraIndicator = new MahjongTile();
-        Object.assign(doraIndicator, deadWall[4]);
+        Object.assign(doraIndicator, this.deadWall[4]);
         this.state.doraIndicators.push(doraIndicator);
 
-        // Deal 13 tiles to each player
+        // Store ura dora
+        this.uraDoraIndicators = [this.deadWall[5]];
+
+        // Deal 13 tiles
         const players = Array.from(this.state.players.values()).sort((a, b) => a.seatIndex - b.seatIndex);
         for (let i = 0; i < 13; i++) {
             for (const player of players) {
@@ -135,16 +156,22 @@ export class MahjongRoom extends Room<MahjongState> {
             }
         }
 
-        // Sort hands
         for (const player of players) {
             this.sortHand(player.hand);
         }
 
-        // Store remaining tiles in wall
         this.wall = tiles;
         this.state.remainingTiles = this.wall.length;
         this.state.currentPlayerIndex = 0;
         this.state.turnCount = 0;
+        this.isFirstTurn = true;
+        this.rinshanFlag = false;
+
+        // Initialize furiten tracking
+        this.playerDiscardHistory.clear();
+        for (const p of players) {
+            this.playerDiscardHistory.set(p.seatIndex, []);
+        }
 
         // First player draws
         this.drawTile(0);
@@ -153,33 +180,25 @@ export class MahjongRoom extends Room<MahjongState> {
     private createAllTiles(): any[] {
         const tiles: any[] = [];
         let idCounter = 0;
-
-        // Number tiles
         for (const suit of ["man", "pin", "sou"]) {
             for (let value = 1; value <= 9; value++) {
                 for (let copy = 0; copy < 4; copy++) {
                     tiles.push({
                         id: `${suit}${value}-${idCounter++}`,
-                        suit,
-                        value,
+                        suit, value,
                         isRed: value === 5 && copy === 0
                     });
                 }
             }
         }
-
-        // Honor tiles
         for (let value = 1; value <= 7; value++) {
             for (let copy = 0; copy < 4; copy++) {
                 tiles.push({
                     id: `honor${value}-${idCounter++}`,
-                    suit: "honor",
-                    value,
-                    isRed: false
+                    suit: "honor", value, isRed: false
                 });
             }
         }
-
         return tiles;
     }
 
@@ -195,40 +214,47 @@ export class MahjongRoom extends Room<MahjongState> {
         const arr = [...hand];
         arr.sort((a, b) => {
             const suitOrder: Record<string, number> = { man: 0, pin: 1, sou: 2, honor: 3 };
-            if (suitOrder[a.suit] !== suitOrder[b.suit]) {
-                return suitOrder[a.suit] - suitOrder[b.suit];
-            }
+            if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[a.suit] - suitOrder[b.suit];
             return a.value - b.value;
         });
         hand.clear();
         arr.forEach(t => hand.push(t));
     }
 
+    // ==================== TILE DRAWING ====================
+
     private drawTile(playerIndex: number) {
         const player = this.getPlayerBySeat(playerIndex);
         if (!player) return;
 
-        // Check if wall is empty (draw game)
         if (this.wall.length === 0) {
-            this.state.phase = "draw";
+            this.handleDraw();
             return;
         }
 
-        // Draw tile from wall
         const drawnTile = this.wall.shift()!;
         const tileSchema = new MahjongTile();
         Object.assign(tileSchema, drawnTile);
         player.hand.push(tileSchema);
 
-        // Update state
         this.state.remainingTiles = this.wall.length;
         this.state.turnCount++;
         this.state.currentPlayerIndex = playerIndex;
         this.state.lastAction = `draw:${playerIndex}`;
 
-        // Schedule CPU action if needed
+        // Check tsumo win opportunity
+        const handData = [...player.hand].map(toTileData);
+        const callCount = player.calls.length;
+        const canWin = isWinningHand(handData, callCount);
+
+        if (canWin) {
+            this.state.lastAction = `draw:${playerIndex}:canTsumo`;
+        }
+
+        this.isFirstTurn = false;
+
         if (player.isCpu) {
-            this.scheduleCpuAction(playerIndex);
+            this.scheduleCpuAction(playerIndex, canWin);
         }
     }
 
@@ -239,141 +265,357 @@ export class MahjongRoom extends Room<MahjongState> {
         return undefined;
     }
 
-    private scheduleCpuAction(seatIndex: number) {
+    // ==================== CPU AI ====================
+
+    private scheduleCpuAction(seatIndex: number, canTsumo: boolean = false) {
         const timer = setTimeout(() => {
             const player = this.getPlayerBySeat(seatIndex);
             if (!player || !player.isCpu) return;
+            if (this.state.phase !== "playing") return;
 
-            // CPU discards last tile
-            if (player.hand.length > 0) {
-                const tile = player.hand[player.hand.length - 1];
-                this.cpuDiscard(player, tile);
+            const hand = [...player.hand].map(toTileData);
+            const calls = [...player.calls].map(toCallData);
+
+            const decision = decidePlayAction(hand, calls, player.isRiichi, canTsumo);
+
+            switch (decision.action) {
+                case 'tsumo':
+                    this.executeTsumo(player);
+                    break;
+                case 'riichi':
+                    if (decision.tileId) {
+                        player.isRiichi = true;
+                        player.isIppatsu = true;
+                        this.state.riichiSticks++;
+                        player.score -= 1000;
+                        this.broadcast("riichi", { seat: player.seatIndex });
+                        this.executeDiscard(player, decision.tileId);
+                    }
+                    break;
+                case 'ankan':
+                    if (decision.tileId) {
+                        this.executeAnkan(player, decision.tileId);
+                    }
+                    break;
+                case 'discard':
+                    if (decision.tileId) {
+                        this.executeDiscard(player, decision.tileId);
+                    }
+                    break;
             }
-        }, 1500);
+        }, 600 + Math.random() * 400);
         this.cpuTimers.push(timer);
     }
 
-    private cpuDiscard(player: MahjongPlayer, tile: MahjongTile) {
-        // Remove from hand and add to discards
-        const idx = player.hand.findIndex(t => t.id === tile.id);
-        if (idx >= 0) {
-            player.hand.splice(idx, 1);
-            player.discards.push(tile);
+    private scheduleCpuCallResponse(seatIndex: number) {
+        const timer = setTimeout(() => {
+            const player = this.getPlayerBySeat(seatIndex);
+            if (!player || !player.isCpu) return;
+            if (this.state.phase !== "calling") return;
 
-            this.state.lastDiscard.clear();
-            this.state.lastDiscard.push(tile);
-            this.state.lastDiscardPlayer = player.seatIndex;
-            this.state.lastAction = `discard:${player.seatIndex}:${tile.id}`;
+            const hand = [...player.hand].map(toTileData);
+            const calls = [...player.calls].map(toCallData);
+            const discardTile = this.state.lastDiscard.length > 0
+                ? toTileData(this.state.lastDiscard[0])
+                : null;
 
-            // Check for Ron/Pon/Chi opportunities before moving to next turn
-            this.checkCallOpportunities(tile, player.seatIndex);
+            if (!discardTile) {
+                this.cpuPass(player);
+                return;
+            }
+
+            const decision = decideCallAction(
+                hand, calls, discardTile,
+                this.state.canCall[seatIndex],
+                false, // canChi simplified
+                this.state.canRon[seatIndex],
+            );
+
+            switch (decision.action) {
+                case 'ron':
+                    this.executeRon(player);
+                    break;
+                case 'pon':
+                    this.executePon(player);
+                    break;
+                default:
+                    this.cpuPass(player);
+                    break;
+            }
+        }, 400 + Math.random() * 300);
+        this.cpuTimers.push(timer);
+    }
+
+    private cpuPass(player: MahjongPlayer) {
+        this.state.canCall[player.seatIndex] = false;
+        this.state.canRon[player.seatIndex] = false;
+
+        const anyoneCanStillCall = Array.from(this.state.canCall).some(b => b) ||
+            Array.from(this.state.canRon).some(b => b);
+        if (!anyoneCanStillCall) {
+            this.finishCallPhase();
         }
     }
 
-    private nextTurn() {
-        // Use actual player count (3 or 4)
-        const playerCount = this.state.players.size;
-        const nextIndex = (this.state.currentPlayerIndex + 1) % playerCount;
-
-        // Draw tile for next player
-        this.drawTile(nextIndex);
-    }
+    // ==================== PLAYER ACTIONS ====================
 
     handleDiscard(client: Client, msg: { tileId: string }) {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
         if (player.seatIndex !== this.state.currentPlayerIndex) return;
+        if (this.state.phase !== "playing") return;
 
-        const tileIdx = player.hand.findIndex(t => t.id === msg.tileId);
+        this.executeDiscard(player, msg.tileId);
+    }
+
+    private executeDiscard(player: MahjongPlayer, tileId: string) {
+        const tileIdx = player.hand.findIndex(t => t.id === tileId);
         if (tileIdx < 0) return;
 
         const tile = player.hand[tileIdx];
         player.hand.splice(tileIdx, 1);
-        player.discards.push(tile); // Add to discard pile immediately
+        player.discards.push(tile);
 
-        // Sort hand after discard to keep it tidy
+        // Track discard for furiten
+        const history = this.playerDiscardHistory.get(player.seatIndex) || [];
+        history.push(toTileData(tile));
+        this.playerDiscardHistory.set(player.seatIndex, history);
+
         this.sortHand(player.hand);
+
+        // Clear ippatsu after discard
+        if (player.isIppatsu) player.isIppatsu = false;
 
         this.state.lastDiscard.clear();
         this.state.lastDiscard.push(tile);
         this.state.lastDiscardPlayer = player.seatIndex;
         this.state.lastAction = `discard:${player.seatIndex}:${tile.id}`;
 
-
-        // Check for Ron/Pon/Chi opportunities before moving to next turn
+        // Check for Ron/Pon/Chi/Kan opportunities
         this.checkCallOpportunities(tile, player.seatIndex);
     }
 
-    private checkCallOpportunities(tile: MahjongTile, discarderSeat: number) {
-        let hasOpportunity = false;
+    handleTsumo(client: Client) {
+        const player = this.state.players.get(client.sessionId);
+        if (!player || player.seatIndex !== this.state.currentPlayerIndex) return;
+        if (this.state.phase !== "playing") return;
 
-        // 1. Check Pon/Kan (Any other player)
-        this.state.players.forEach((p) => {
-            if (p.seatIndex === discarderSeat) return;
-
-            // Pon Check (2 matching)
-            const count = p.hand.filter(t => t.suit === tile.suit && t.value === tile.value).length;
-            if (count >= 2) {
-                this.state.canCall[p.seatIndex] = true;
-                hasOpportunity = true;
-            }
-
-            // Ron Check (Simplified: Matches winning tile? Logic is complex, skipping for now unless in Tenpai)
-            // For MVP, enable 'Ron' button if it completes a pair/sequence? 
-            // Better to rely on a 'checkWin' helper, but for now let's assume NO Ron unless explicitly implemented.
-        });
-
-        // 2. Check Chi (Only next player)
-        const nextSeat = (discarderSeat + 1) % 4;
-        const nextPlayer = this.getPlayerBySeat(nextSeat);
-        if (nextPlayer) {
-            // Check for sequences involving tile.value
-            // e.g. (v-2, v-1), (v-1, v+1), (v+1, v+2)
-            const v = tile.value;
-            const s = tile.suit;
-            const h = nextPlayer.hand;
-
-            // Helper to find
-            const has = (val: number) => h.some(t => t.suit === s && t.value === val);
-
-            if (s !== 'honor') { // honors cannot chi
-                if ((has(v - 2) && has(v - 1)) || (has(v - 1) && has(v + 1)) || (has(v + 1) && has(v + 2))) {
-                    this.state.canCall[nextSeat] = true;
-                    hasOpportunity = true;
-                }
-            }
+        // Validate winning hand
+        const hand = [...player.hand].map(toTileData);
+        const callCount = player.calls.length;
+        if (!isWinningHand(hand, callCount)) {
+            console.log("[MahjongRoom] Invalid tsumo attempt");
+            return;
         }
 
-        if (hasOpportunity) {
-            this.state.phase = "calling";
-
-            // Set timeout for auto-pass if no action (e.g. 5 seconds)
-            const timer = setTimeout(() => {
-                this.finishCallPhase();
-            }, 5000); // 5 sec to call
-            this.cpuTimers.push(timer);
-
-        } else {
-            // No calls possible, proceed to next turn
-            this.nextTurn();
-        }
+        this.executeTsumo(player);
     }
 
+    private executeTsumo(player: MahjongPlayer) {
+        const hand = [...player.hand].map(toTileData);
+        const calls = [...player.calls].map(toCallData);
+        const winTile = hand[hand.length - 1]; // Last drawn tile
+        const seatWind = player.wind as Wind;
+        const roundWind = this.state.roundWind as Wind;
+        const isDealer = player.seatIndex === ((this.state.roundNumber - 1) % this.state.players.size);
 
+        // Evaluate yaku
+        const yakuList = evaluateYaku(
+            hand, calls, winTile,
+            true, // isTsumo
+            player.isRiichi,
+            player.isIppatsu,
+            false, // double riichi
+            false, false, // tenhou/chihou
+            this.rinshanFlag,
+            this.wall.length === 0, // haitei
+            false, false,
+            roundWind, seatWind,
+        );
 
-    private finishCallPhase() {
-        // Clear timer if any
-        this.cpuTimers.forEach(t => clearTimeout(t));
-        this.cpuTimers = [];
-
-        // Reset call flags for all players
-        const playerCount = this.state.players.size;
-        this.state.phase = "playing";
-        for (let i = 0; i < playerCount; i++) {
-            this.state.canCall[i] = false;
-            this.state.canRon[i] = false;
+        // Count dora
+        const doraIndicators = [...this.state.doraIndicators].map(toTileData);
+        const doraCount = countDora(hand, calls, doraIndicators, this.uraDoraIndicators, player.isRiichi);
+        if (doraCount > 0) {
+            yakuList.push({ name: 'dora', nameJp: `ドラ${doraCount}`, han: doraCount, isYakuman: false });
         }
-        this.nextTurn();
+
+        if (yakuList.length === 0) {
+            console.log("[MahjongRoom] No yaku for tsumo");
+            return;
+        }
+
+        const score = calculateScore(yakuList, true, isDealer, this.state.honba, hand, calls, winTile);
+
+        // Apply score transfer
+        const playerCount = this.state.players.size;
+        if (isDealer) {
+            const each = Math.ceil(score.totalScore / (playerCount - 1));
+            this.state.players.forEach(p => {
+                if (p.seatIndex !== player.seatIndex) {
+                    p.score -= each;
+                }
+            });
+        } else {
+            const dealerSeat = (this.state.roundNumber - 1) % playerCount;
+            const dealerPay = Math.ceil(score.totalScore / 2);
+            const otherPay = Math.ceil((score.totalScore - dealerPay) / (playerCount - 2));
+            this.state.players.forEach(p => {
+                if (p.seatIndex === player.seatIndex) return;
+                if (p.seatIndex === dealerSeat) {
+                    p.score -= dealerPay;
+                } else {
+                    p.score -= otherPay;
+                }
+            });
+        }
+        player.score += score.totalScore + this.state.riichiSticks * 1000;
+
+        this.state.isGameOver = true;
+        this.state.winner = player.seatIndex;
+        this.state.winnerName = player.name;
+        this.state.winningScore = score.totalScore;
+        this.state.winningYaku = score.yakuSummary;
+        this.state.phase = "finished";
+        this.state.riichiSticks = 0;
+
+        this.broadcast("gameOver", {
+            winner: player.name,
+            type: "tsumo",
+            score: score.totalScore,
+            yaku: score.yakuSummary,
+            label: score.scoreLabel,
+            han: score.han,
+            fu: score.fu,
+        });
+    }
+
+    handleRon(client: Client) {
+        const player = this.state.players.get(client.sessionId);
+        if (!player) return;
+        if (this.state.phase !== "calling") return;
+        if (!this.state.canRon[player.seatIndex]) return;
+
+        this.executeRon(player);
+    }
+
+    private executeRon(player: MahjongPlayer) {
+        const discardTile = this.state.lastDiscard.length > 0 ? toTileData(this.state.lastDiscard[0]) : null;
+        if (!discardTile) return;
+
+        const hand = [...player.hand].map(toTileData);
+        const fullHand = [...hand, discardTile];
+        const calls = [...player.calls].map(toCallData);
+        const callCount = calls.length;
+
+        if (!isWinningHand(fullHand, callCount)) {
+            console.log("[MahjongRoom] Invalid ron attempt");
+            return;
+        }
+
+        const seatWind = player.wind as Wind;
+        const roundWind = this.state.roundWind as Wind;
+        const isDealer = player.seatIndex === ((this.state.roundNumber - 1) % this.state.players.size);
+
+        // Evaluate yaku
+        const yakuList = evaluateYaku(
+            fullHand, calls, discardTile,
+            false, // isTsumo = false (ron)
+            player.isRiichi,
+            player.isIppatsu,
+            false, false, false,
+            false,
+            false,
+            this.wall.length === 0, // houtei
+            false,
+            roundWind, seatWind,
+        );
+
+        // Count dora
+        const doraIndicators = [...this.state.doraIndicators].map(toTileData);
+        const doraCount = countDora(fullHand, calls, doraIndicators, this.uraDoraIndicators, player.isRiichi);
+        if (doraCount > 0) {
+            yakuList.push({ name: 'dora', nameJp: `ドラ${doraCount}`, han: doraCount, isYakuman: false });
+        }
+
+        if (yakuList.length === 0) {
+            console.log("[MahjongRoom] No yaku for ron");
+            return;
+        }
+
+        const score = calculateScore(yakuList, false, isDealer, this.state.honba, fullHand, calls, discardTile);
+
+        // Ron: loser pays all
+        const loserSeat = this.state.lastDiscardPlayer;
+        this.state.players.forEach(p => {
+            if (p.seatIndex === loserSeat) {
+                p.score -= score.totalScore;
+            }
+        });
+        player.score += score.totalScore + this.state.riichiSticks * 1000;
+
+        // Add winning tile to hand for display
+        const winTileSchema = new MahjongTile();
+        Object.assign(winTileSchema, this.state.lastDiscard[0]);
+        player.hand.push(winTileSchema);
+
+        this.state.isGameOver = true;
+        this.state.winner = player.seatIndex;
+        this.state.winnerName = player.name;
+        this.state.winningScore = score.totalScore;
+        this.state.winningYaku = score.yakuSummary;
+        this.state.phase = "finished";
+        this.state.riichiSticks = 0;
+
+        // Clear call flags
+        this.clearCallFlags();
+
+        this.broadcast("gameOver", {
+            winner: player.name,
+            type: "ron",
+            score: score.totalScore,
+            yaku: score.yakuSummary,
+            label: score.scoreLabel,
+            han: score.han,
+            fu: score.fu,
+        });
+    }
+
+    handleRiichi(client: Client, msg: any) {
+        const player = this.state.players.get(client.sessionId);
+        if (!player) return;
+        if (player.seatIndex !== this.state.currentPlayerIndex) return;
+        if (player.isRiichi) return;
+        if (player.score < 1000) return;
+
+        // Validate tenpai
+        const hand = [...player.hand].map(toTileData);
+        // Need to check if discarding a tile leaves tenpai
+        let canRiichi = false;
+        for (const tile of hand) {
+            const remaining = hand.filter(t => t.id !== tile.id);
+            const waits = getTenpaiWaits(remaining, player.calls.length);
+            if (waits.length > 0) {
+                canRiichi = true;
+                break;
+            }
+        }
+
+        if (!canRiichi) {
+            console.log("[MahjongRoom] Cannot riichi: not tenpai");
+            return;
+        }
+
+        player.isRiichi = true;
+        player.isIppatsu = true;
+        this.state.riichiSticks++;
+        player.score -= 1000;
+        this.broadcast("riichi", { seat: player.seatIndex });
+
+        // Discard the specified tile
+        if (msg && msg.tileId) {
+            this.executeDiscard(player, msg.tileId);
+        }
     }
 
     handlePon(client: Client, msg: any) {
@@ -381,13 +623,44 @@ export class MahjongRoom extends Room<MahjongState> {
         const player = this.state.players.get(client.sessionId);
         if (!player || !this.state.canCall[player.seatIndex]) return;
 
+        this.executePon(player);
+    }
+
+    private executePon(player: MahjongPlayer) {
         const discard = this.state.lastDiscard[0];
-        // 1. Remove 2 matching tiles from hand
-        const matches = player.hand.filter(t => t.suit === discard.suit && t.value === discard.value);
+        if (!discard) return;
+
+        const matches = [...player.hand].filter(t => t.suit === discard.suit && t.value === discard.value);
         if (matches.length < 2) return;
 
-        // Perform Pon
-        this.performCall(player, 'pon', [discard, matches[0], matches[1]]);
+        // Remove 2 matching tiles from hand
+        for (let i = 0; i < 2; i++) {
+            const idx = player.hand.findIndex(t => t.id === matches[i].id);
+            if (idx >= 0) player.hand.splice(idx, 1);
+        }
+
+        // Create call
+        const call = new MahjongCall();
+        call.callType = "pon";
+        call.fromPlayer = this.state.lastDiscardPlayer;
+        call.tiles.push(discard);
+        call.tiles.push(matches[0]);
+        call.tiles.push(matches[1]);
+        player.calls.push(call);
+
+        this.clearCallFlags();
+        this.clearCpuTimers();
+
+        this.state.currentPlayerIndex = player.seatIndex;
+        this.state.phase = "playing";
+        this.state.lastAction = `pon:${player.seatIndex}`;
+
+        this.sortHand(player.hand);
+
+        // After pon, player must discard (no draw)
+        if (player.isCpu) {
+            this.scheduleCpuAction(player.seatIndex, false);
+        }
     }
 
     handleChi(client: Client, msg: { tiles: string[] }) {
@@ -395,40 +668,223 @@ export class MahjongRoom extends Room<MahjongState> {
         const player = this.state.players.get(client.sessionId);
         if (!player || !this.state.canCall[player.seatIndex]) return;
 
-        // Next player check
-        if (player.seatIndex !== (this.state.lastDiscardPlayer + 1) % 4) return;
+        // Next player only
+        const playerCount = this.state.players.size;
+        if (player.seatIndex !== (this.state.lastDiscardPlayer + 1) % playerCount) return;
 
-        // Validate tiles exist in hand
-        // msg.tiles should contain IDs of the 2 tiles in hand to consume
-        // logic skipped for brevity, assuming valid for now or strictly implementing:
-
-        // Simple fallback: Auto-find stats (unsafe but works for quick prototype)
         const discard = this.state.lastDiscard[0];
-        // ... Logic to extract actual tiles ...
+        if (!discard) return;
 
-        // For MVP: Just finding appropriate sequence neighbors
-        const v = discard.value;
-        const neighbors = player.hand.filter(t => t.suit === discard.suit && Math.abs(t.value - v) <= 2 && t.value !== v);
-        // Take first 2 distinct that make a sequence.
-        // This is complex! Client should send IDs.
+        // Validate and find the tiles
+        let tile1: MahjongTile | null = null;
+        let tile2: MahjongTile | null = null;
 
-        // Let's assume msg.tileIds? If not, we block Chi for this step or auto-pick.
-        // Auto-pick first valid sequence:
-        let picked: MahjongTile[] = [];
-        // (v-1, v+1)
-        const m1 = player.hand.find(t => t.suit === discard.suit && t.value === v - 1);
-        const p1 = player.hand.find(t => t.suit === discard.suit && t.value === v + 1);
-        if (m1 && p1) picked = [m1, p1];
+        if (msg.tiles && msg.tiles.length === 2) {
+            // Client specified which tiles to use
+            tile1 = [...player.hand].find(t => t.id === msg.tiles[0]) || null;
+            tile2 = [...player.hand].find(t => t.id === msg.tiles[1]) || null;
+        }
 
-        if (picked.length === 2) {
-            this.performCall(player, 'chi', [discard, picked[0], picked[1]]);
+        if (!tile1 || !tile2) {
+            // Auto-pick: find a valid sequence
+            const v = discard.value;
+            const s = discard.suit;
+            const h = [...player.hand];
+
+            // Try (v-2, v-1, v), (v-1, v, v+1), (v, v+1, v+2)
+            const patterns = [
+                [v - 2, v - 1],
+                [v - 1, v + 1],
+                [v + 1, v + 2],
+            ];
+
+            for (const [a, b] of patterns) {
+                if (a < 1 || b < 1 || a > 9 || b > 9) continue;
+                const t1 = h.find(t => t.suit === s && t.value === a);
+                const t2 = h.find(t => t.suit === s && t.value === b && t.id !== (t1?.id || ''));
+                if (t1 && t2) {
+                    tile1 = t1;
+                    tile2 = t2;
+                    break;
+                }
+            }
+        }
+
+        if (!tile1 || !tile2) return;
+
+        // Validate sequence
+        const vals = [discard.value, tile1.value, tile2.value].sort((a, b) => a - b);
+        if (vals[1] - vals[0] !== 1 || vals[2] - vals[1] !== 1) return;
+        if (tile1.suit !== discard.suit || tile2.suit !== discard.suit) return;
+
+        // Remove tiles from hand
+        const idx1 = player.hand.findIndex(t => t.id === tile1!.id);
+        if (idx1 >= 0) player.hand.splice(idx1, 1);
+        const idx2 = player.hand.findIndex(t => t.id === tile2!.id);
+        if (idx2 >= 0) player.hand.splice(idx2, 1);
+
+        // Create call
+        const call = new MahjongCall();
+        call.callType = "chi";
+        call.fromPlayer = this.state.lastDiscardPlayer;
+        call.tiles.push(discard);
+        call.tiles.push(tile1);
+        call.tiles.push(tile2);
+        player.calls.push(call);
+
+        this.clearCallFlags();
+        this.clearCpuTimers();
+
+        this.state.currentPlayerIndex = player.seatIndex;
+        this.state.phase = "playing";
+        this.state.lastAction = `chi:${player.seatIndex}`;
+
+        this.sortHand(player.hand);
+
+        if (player.isCpu) {
+            this.scheduleCpuAction(player.seatIndex, false);
         }
     }
 
     handleKan(client: Client, msg: any) {
         if (this.state.phase !== "calling") return;
         const player = this.state.players.get(client.sessionId);
-        // ... Similar Pon logic but 3 tiles ...
+        if (!player || !this.state.canCall[player.seatIndex]) return;
+
+        const discard = this.state.lastDiscard[0];
+        if (!discard) return;
+
+        // Daiminkan: need 3 matching tiles in hand
+        const matches = [...player.hand].filter(t => t.suit === discard.suit && t.value === discard.value);
+        if (matches.length < 3) return;
+
+        // Remove 3 tiles from hand
+        for (let i = 0; i < 3; i++) {
+            const idx = player.hand.findIndex(t => t.id === matches[i].id);
+            if (idx >= 0) player.hand.splice(idx, 1);
+        }
+
+        // Create kan call
+        const call = new MahjongCall();
+        call.callType = "kan";
+        call.fromPlayer = this.state.lastDiscardPlayer;
+        call.tiles.push(discard);
+        for (const m of matches) call.tiles.push(m);
+        player.calls.push(call);
+
+        // Add new dora indicator
+        this.addKanDora();
+
+        this.clearCallFlags();
+        this.clearCpuTimers();
+
+        this.state.currentPlayerIndex = player.seatIndex;
+        this.state.lastAction = `kan:${player.seatIndex}`;
+
+        // After kan, draw from dead wall (rinshan)
+        this.drawFromDeadWall(player);
+    }
+
+    handleAnkan(client: Client, msg: { tileId?: string }) {
+        const player = this.state.players.get(client.sessionId);
+        if (!player || player.seatIndex !== this.state.currentPlayerIndex) return;
+        if (this.state.phase !== "playing") return;
+
+        // Find 4 matching tiles
+        let targetTile: MahjongTile | undefined;
+        if (msg.tileId) {
+            targetTile = [...player.hand].find(t => t.id === msg.tileId);
+        }
+        if (!targetTile) return;
+
+        const matches = [...player.hand].filter(t => t.suit === targetTile!.suit && t.value === targetTile!.value);
+        if (matches.length < 4) return;
+
+        // Cannot ankan certain tiles during riichi (simplified: allow for now)
+
+        // Remove 4 tiles
+        for (const m of matches) {
+            const idx = player.hand.findIndex(t => t.id === m.id);
+            if (idx >= 0) player.hand.splice(idx, 1);
+        }
+
+        const call = new MahjongCall();
+        call.callType = "ankan";
+        call.fromPlayer = player.seatIndex;
+        for (const m of matches) call.tiles.push(m);
+        player.calls.push(call);
+
+        this.addKanDora();
+        this.state.lastAction = `ankan:${player.seatIndex}`;
+
+        this.drawFromDeadWall(player);
+    }
+
+    private executeAnkan(player: MahjongPlayer, tileId: string) {
+        const targetTile = [...player.hand].find(t => t.id === tileId);
+        if (!targetTile) return;
+
+        const matches = [...player.hand].filter(t => t.suit === targetTile.suit && t.value === targetTile.value);
+        if (matches.length < 4) return;
+
+        for (const m of matches) {
+            const idx = player.hand.findIndex(t => t.id === m.id);
+            if (idx >= 0) player.hand.splice(idx, 1);
+        }
+
+        const call = new MahjongCall();
+        call.callType = "ankan";
+        call.fromPlayer = player.seatIndex;
+        for (const m of matches) call.tiles.push(m);
+        player.calls.push(call);
+
+        this.addKanDora();
+        this.state.lastAction = `ankan:${player.seatIndex}`;
+
+        this.drawFromDeadWall(player);
+    }
+
+    private drawFromDeadWall(player: MahjongPlayer) {
+        if (this.deadWall.length === 0) {
+            this.handleDraw();
+            return;
+        }
+
+        const drawnTile = this.deadWall.shift()!;
+        const tileSchema = new MahjongTile();
+        Object.assign(tileSchema, drawnTile);
+        player.hand.push(tileSchema);
+
+        // Replenish dead wall from main wall
+        if (this.wall.length > 0) {
+            this.deadWall.push(this.wall.pop()!);
+        }
+
+        this.state.remainingTiles = this.wall.length;
+        this.state.phase = "playing";
+        this.rinshanFlag = true;
+
+        // Check tsumo win after rinshan draw
+        const handData = [...player.hand].map(toTileData);
+        const canWin = isWinningHand(handData, player.calls.length);
+
+        if (canWin && player.isCpu) {
+            this.executeTsumo(player);
+        } else if (player.isCpu) {
+            this.scheduleCpuAction(player.seatIndex, false);
+        }
+
+        this.state.lastAction = `draw:${player.seatIndex}:rinshan`;
+    }
+
+    private addKanDora() {
+        // Reveal next dora indicator from dead wall
+        if (this.deadWall.length > 4 + this.state.doraIndicators.length) {
+            const idx = 4 + this.state.doraIndicators.length;
+            const newDora = new MahjongTile();
+            Object.assign(newDora, this.deadWall[idx]);
+            this.state.doraIndicators.push(newDora);
+        }
     }
 
     handlePass(client: Client) {
@@ -436,127 +892,222 @@ export class MahjongRoom extends Room<MahjongState> {
         const player = this.state.players.get(client.sessionId);
         if (!player) return;
 
-        // Player explicitly passed
         this.state.canCall[player.seatIndex] = false;
         this.state.canRon[player.seatIndex] = false;
 
-        // Check if everyone passed?
-        // In simple logic: if *I* was the one stopping the game, and I passed, initiate resume.
-        // Multiplayer: wait for ALL eligible? 
-        // Simplified: If just 1 person can call, passing resumes immediately.
-        // If multiple, wait for all.
-
-        const anyoneCanStillCall = Array.from(this.state.canCall).some(b => b);
+        const anyoneCanStillCall = Array.from(this.state.canCall).some(b => b) ||
+            Array.from(this.state.canRon).some(b => b);
         if (!anyoneCanStillCall) {
             this.finishCallPhase();
         }
     }
 
-    private performCall(player: MahjongPlayer, type: string, tiles: MahjongTile[]) {
-        // Clear timeout
-        this.cpuTimers.forEach(t => clearTimeout(t));
-        this.cpuTimers = [];
+    // ==================== CALL DETECTION ====================
 
-        // Move tiles from hand/discard to 'calls'
-        const discardObj = tiles[0]; // From discard pile
-        // Remove from hand (tiles[1], tiles[2]...)
-        for (let i = 1; i < tiles.length; i++) {
-            const idx = player.hand.findIndex(t => t.id === tiles[i].id);
-            if (idx !== -1) player.hand.splice(idx, 1);
+    private checkCallOpportunities(tile: MahjongTile, discarderSeat: number) {
+        let hasOpportunity = false;
+        const playerCount = this.state.players.size;
+
+        this.state.players.forEach((p) => {
+            if (p.seatIndex === discarderSeat) return;
+
+            const hand = [...p.hand].map(toTileData);
+            const tileData = toTileData(tile);
+
+            // 1. Ron Check (with furiten check)
+            const potentialHand = [...hand, tileData];
+            const isWin = isWinningHand(potentialHand, p.calls.length);
+            if (isWin) {
+                // Furiten check: if player's discards include any of their tenpai waits
+                const handWithoutWin = hand;
+                const waits = getTenpaiWaits(handWithoutWin, p.calls.length);
+                const discardHistory = this.playerDiscardHistory.get(p.seatIndex) || [];
+                const isFuriten = waits.some(w =>
+                    discardHistory.some(d => d.suit === w.suit && d.value === w.value)
+                );
+
+                if (!isFuriten) {
+                    this.state.canRon[p.seatIndex] = true;
+                    hasOpportunity = true;
+                }
+            }
+
+            // 2. Pon Check (2+ matching tiles)
+            const ponCount = hand.filter(t => t.suit === tileData.suit && t.value === tileData.value).length;
+            if (ponCount >= 2) {
+                this.state.canCall[p.seatIndex] = true;
+                hasOpportunity = true;
+            }
+
+            // 3. Kan Check (3 matching tiles = daiminkan)
+            if (ponCount >= 3) {
+                // canCall already set by pon check
+            }
+        });
+
+        // 4. Chi Check (next player only, number tiles only)
+        const nextSeat = (discarderSeat + 1) % playerCount;
+        const nextPlayer = this.getPlayerBySeat(nextSeat);
+        if (nextPlayer && tile.suit !== 'honor') {
+            const h = [...nextPlayer.hand];
+            const v = tile.value;
+            const s = tile.suit;
+            const has = (val: number) => h.some(t => t.suit === s && t.value === val);
+
+            if ((has(v - 2) && has(v - 1)) || (has(v - 1) && has(v + 1)) || (has(v + 1) && has(v + 2))) {
+                this.state.canCall[nextSeat] = true;
+                hasOpportunity = true;
+            }
         }
 
-        // Add call object
-        const call = new MahjongCall();
-        call.callType = type;
-        call.fromPlayer = this.state.lastDiscardPlayer;
-        tiles.forEach(t => call.tiles.push(t));
-        player.calls.push(call);
+        if (hasOpportunity) {
+            this.state.phase = "calling";
 
-        // Turn moves to this player
-        this.state.currentPlayerIndex = player.seatIndex;
+            // Schedule CPU responses for eligible CPU players
+            this.state.players.forEach(p => {
+                if (p.isCpu && (this.state.canCall[p.seatIndex] || this.state.canRon[p.seatIndex])) {
+                    this.scheduleCpuCallResponse(p.seatIndex);
+                }
+            });
+
+            // Auto-pass timeout
+            const timer = setTimeout(() => {
+                if (this.state.phase === "calling") {
+                    this.finishCallPhase();
+                }
+            }, 5000);
+            this.cpuTimers.push(timer);
+        } else {
+            this.nextTurn();
+        }
+    }
+
+    private finishCallPhase() {
+        this.clearCpuTimers();
+        this.clearCallFlags();
         this.state.phase = "playing";
-        this.state.lastAction = `${type}:${player.seatIndex}`;
-
-        // Reset flags
-        for (let i = 0; i < 4; i++) { this.state.canCall[i] = false; this.state.canRon[i] = false; }
-
-        // After calling, player must discard immediately (cannot draw)
-        // Unless it is a Kan (draw replacement).
-        // Standard Pon/Chi -> Discard only.
-        // We set state phase to 'playing' but skipping 'drawTile'.
-        // The client must know to Discard next.
+        this.nextTurn();
     }
 
-    handleRiichi(client: Client, msg: any) {
-        const player = this.state.players.get(client.sessionId);
-        if (!player) return;
-        player.isRiichi = true;
-        this.state.riichiSticks++;
-        player.score -= 1000;
-        this.broadcast("riichi", { seat: player.seatIndex });
+    // ==================== TURN MANAGEMENT ====================
+
+    private nextTurn() {
+        const playerCount = this.state.players.size;
+        const nextIndex = (this.state.currentPlayerIndex + 1) % playerCount;
+        this.rinshanFlag = false;
+        this.drawTile(nextIndex);
     }
 
-    handleTsumo(client: Client) {
-        // Validate turn
-        const player = this.state.players.get(client.sessionId);
-        if (!player || player.seatIndex !== this.state.currentPlayerIndex) return;
+    // ==================== DRAW (流局) ====================
 
-        this.state.isGameOver = true;
-        this.state.winner = player.seatIndex;
-        this.state.winnerName = player.name;
-        this.state.phase = "finished";
-        this.broadcast("gameOver", { winner: player.name, type: "tsumo" });
+    private handleDraw() {
+        const playerCount = this.state.players.size;
+        const tenpaiPlayers: MahjongPlayer[] = [];
+        const notenPlayers: MahjongPlayer[] = [];
+
+        this.state.players.forEach(p => {
+            const hand = [...p.hand].map(toTileData);
+            const waits = getTenpaiWaits(hand, p.calls.length);
+            if (waits.length > 0) {
+                tenpaiPlayers.push(p);
+            } else {
+                notenPlayers.push(p);
+            }
+        });
+
+        // Noten bappu (ノーテン罰符): 3000 points redistributed
+        if (tenpaiPlayers.length > 0 && tenpaiPlayers.length < playerCount) {
+            const totalPenalty = 3000;
+            const tenpaiReward = Math.floor(totalPenalty / tenpaiPlayers.length);
+            const notenPenalty = Math.floor(totalPenalty / notenPlayers.length);
+
+            for (const p of tenpaiPlayers) p.score += tenpaiReward;
+            for (const p of notenPlayers) p.score -= notenPenalty;
+        }
+
+        this.state.phase = "draw";
+        this.state.lastAction = "draw:ryuukyoku";
+
+        // Renchan if dealer is tenpai
+        const dealerSeat = (this.state.roundNumber - 1) % playerCount;
+        const dealerTenpai = tenpaiPlayers.some(p => p.seatIndex === dealerSeat);
+        if (dealerTenpai) {
+            this.state.honba++;
+        }
+
+        this.broadcast("gameOver", {
+            type: "draw",
+            tenpaiPlayers: tenpaiPlayers.map(p => p.name),
+        });
     }
 
-    handleRon(client: Client) {
-        const player = this.state.players.get(client.sessionId);
-        // ... Validate if canRon
-        if (!player) return;
-
-        this.state.isGameOver = true;
-        this.state.winner = player.seatIndex;
-        this.state.winnerName = player.name;
-        this.state.phase = "finished";
-        this.broadcast("gameOver", { winner: player.name, type: "ron" });
-    }
+    // ==================== NEXT ROUND ====================
 
     handleNextRound(client: Client) {
-        if (this.state.phase !== "finished") return;
+        if (this.state.phase !== "finished" && this.state.phase !== "draw") return;
 
-        // Simple consensus: If host (or winner?) clicks next, we go next.
-        // Ideally wait for all, but for now let's trust the request.
-
-        // Advance round
-        // Logic: 
-        // If dealer won (renchan), repeat round.
-        // Else, move to next round.
-        // For MVP: maximize simplicity -> Always standard rotation or simple increment?
-        // Let's implement standard:
-        // Current dealer = (roundNumber - 1) % 4 (relative to East?). 
-        // Actually we stored `state.roundWind` and `state.roundNumber`.
-
-        // Let's just blindly increment for now to ensure flow works.
-        // We need a way to clear the board.
+        const playerCount = this.state.players.size;
+        const dealerSeat = (this.state.roundNumber - 1) % playerCount;
+        const dealerWon = this.state.winner === dealerSeat;
 
         this.cleanupBoard();
-        this.state.roundNumber++;
-        if (this.state.roundNumber > 4) {
-            this.state.roundNumber = 1;
-            // Rotate wind
-            const wIdx = WINDS.indexOf(this.state.roundWind);
-            this.state.roundWind = WINDS[(wIdx + 1) % 4];
+
+        if (dealerWon) {
+            // Renchan: same round, increment honba
+            this.state.honba++;
+        } else {
+            this.state.roundNumber++;
+            this.state.honba = 0;
+
+            if (this.state.roundNumber > playerCount) {
+                this.state.roundNumber = 1;
+                const wIdx = WINDS.indexOf(this.state.roundWind);
+                const nextWind = WINDS[(wIdx + 1) % 4];
+
+                // Check game end (after south round for 4p, or after east for quick game)
+                if (this.state.roundWind === 'south' || (playerCount === 3 && this.state.roundWind === 'east' && wIdx >= 1)) {
+                    // Game over - check final scores
+                    this.broadcast("gameEnd", {
+                        scores: Array.from(this.state.players.values()).map(p => ({
+                            name: p.name, score: p.score, seat: p.seatIndex
+                        }))
+                    });
+                    return;
+                }
+                this.state.roundWind = nextWind;
+            }
+
+            // Rotate winds
+            this.state.players.forEach(p => {
+                const wIdx = WINDS.indexOf(p.wind);
+                p.wind = WINDS[(wIdx + playerCount - 1) % playerCount];
+            });
         }
 
-        // Reset Phase
         this.state.phase = "playing";
         this.state.isGameOver = false;
         this.state.winner = -1;
         this.state.winnerName = "";
+        this.state.winningScore = 0;
+        this.state.winningYaku = "";
 
-        // Deal new hand
         this.initializeGame();
-
         this.broadcast("gameStart", { message: "Next round started!" });
+    }
+
+    // ==================== CLEANUP ====================
+
+    private clearCallFlags() {
+        const playerCount = this.state.players.size;
+        for (let i = 0; i < 4; i++) {
+            this.state.canCall[i] = false;
+            this.state.canRon[i] = false;
+        }
+    }
+
+    private clearCpuTimers() {
+        this.cpuTimers.forEach(t => clearTimeout(t));
+        this.cpuTimers = [];
     }
 
     private cleanupBoard() {
@@ -564,21 +1115,24 @@ export class MahjongRoom extends Room<MahjongState> {
         this.state.lastDiscard.clear();
         this.state.canCall.clear();
         this.state.canRon.clear();
-        // Reset flags for size 4
-        for (let i = 0; i < 4; i++) { this.state.canCall.push(false); this.state.canRon.push(false); }
+        for (let i = 0; i < 4; i++) {
+            this.state.canCall.push(false);
+            this.state.canRon.push(false);
+        }
 
         this.state.players.forEach(p => {
             p.hand.clear();
             p.discards.clear();
             p.calls.clear();
             p.isRiichi = false;
-            // DO NOT reset score
-            p.score = p.score;
+            p.isIppatsu = false;
         });
+
+        this.clearCpuTimers();
     }
 
     onDispose() {
-        this.cpuTimers.forEach(t => clearTimeout(t));
+        this.clearCpuTimers();
         console.log(`[MahjongRoom] Disposed ${this.roomId}`);
     }
 }

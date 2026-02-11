@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
     IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
     IconCards, IconPalette, IconCoin,
-    IconBomb, IconTrophy, IconDiscord, IconXLogo, IconStar
+    IconBomb, IconTrophy, IconDiscord, IconXLogo, IconStar, IconRocket
 } from '@/components/Icons';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
@@ -308,6 +308,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/stock" title="Stock Simulator" desc="本格株取引シミュ" icon={<IconStockLocal size={32} color="#38a169" />} color="#38a169" />
                             <GameCard href="/clicker" title="Civilization Builder" desc="資源管理＆文明発展" icon={<IconCoin size={32} color="#d69e2e" />} color="#d69e2e" />
                             <GameCard href="/card-game/lobby" title="Divine Duel" desc="戦略カードバトル" icon={<IconCards size={32} color="#805ad5" />} color="#805ad5" />
+                            <GameCard href="/quiz" title="Quiz Battle" desc="早押しクイズ" icon={<IconRocket size={32} color="#e53e3e" />} color="#e53e3e" />
                             <div className={styles.desktopOnly}>
                                 <GameCard href="/trash" title="Trash Factory" desc="ゴミ圧縮シミュ" icon={<IconFactoryLocal size={32} color="#718096" />} color="#718096" />
                             </div>

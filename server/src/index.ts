@@ -110,6 +110,9 @@ import { SudokuRoom } from "./rooms/SudokuRoom";
 gameServer.define("sudoku_room", SudokuRoom)
     .filterBy(['difficulty']);
 
+import { QuizRoom } from "./rooms/QuizRoom";
+gameServer.define("quiz", QuizRoom);
+
 import { LobbyRoom } from "./rooms/LobbyRoom";
 gameServer.define("lobby", LobbyRoom);
 console.log("Registered LobbyRoom");

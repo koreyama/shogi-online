@@ -219,6 +219,13 @@
                 ".write": true
             }
         },
+        "quiz_rooms": {
+            ".read": true,
+            "$roomId": {
+                ".read": true,
+                ".write": true
+            }
+        },
         "private_messages": {
             "$chatRoomId": {
                 ".read": "auth != null && $chatRoomId.contains(auth.uid)",

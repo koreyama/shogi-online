@@ -1,35 +1,42 @@
 .main {
     min-height: 100vh;
+    min-height: 100dvh;
     background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
     color: white;
     font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     z-index: 100;
+    flex-shrink: 0;
+    min-height: 48px;
+    flex-wrap: wrap;
+    gap: 0.3rem;
 }
 
 .backButton {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 8px;
     color: white;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: background 0.2s;
+    white-space: nowrap;
 }
 
 .backButton:hover {
@@ -37,13 +44,15 @@
 }
 
 .roundInfo {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .riichiSticks {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #ffd700;
+    white-space: nowrap;
 }
 
 /* 親表示 */
@@ -62,9 +71,9 @@
 .doraHeaderArea {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: rgba(0, 0, 0, 0.3);
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -117,10 +126,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 0.5rem;
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
+    min-height: 0;
 }
 
 /* 対戦者エリア */
@@ -128,8 +138,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.25rem;
+    flex-shrink: 0;
 }
 
 .middleSection {
@@ -137,7 +147,7 @@
     justify-content: space-between;
     align-items: center;
     flex: 1;
-    min-height: 200px;
+    min-height: 0;
 }
 
 .opponentLeft,
@@ -145,23 +155,24 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
     width: 80px;
+    flex-shrink: 0;
 }
 
 /* 中央エリア */
-/* 中央エリア */
 .centerArea {
     position: relative;
-    width: 440px;
-    height: 440px;
+    width: 400px;
+    height: 400px;
     background: radial-gradient(circle, #2d3436 0%, #1a1e21 70%);
-    border-radius: 40px;
+    border-radius: 30px;
     box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
-    margin: 0.5rem auto;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .centerInfo {
@@ -172,7 +183,7 @@
     align-items: center;
     gap: 0.25rem;
     background: rgba(0, 0, 0, 0.5);
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(4px);
@@ -185,21 +196,21 @@
 }
 
 .doraLabel {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #ccc;
     font-weight: bold;
 }
 
 .doraTiles {
     display: flex;
-    gap: 0.125rem;
+    gap: 2px;
 }
 
 /* Individual Pond Positions */
 .pondWrapper {
     position: absolute;
-    width: 200px;
-    height: 120px;
+    width: 180px;
+    height: 110px;
     display: flex;
     justify-content: center;
     pointer-events: none;
@@ -207,25 +218,25 @@
 
 /* 捨て牌の位置調整 - 中央に寄せる */
 .pondBottom {
-    bottom: 20px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .pondTop {
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%) rotate(180deg);
 }
 
 .pondLeft {
-    left: -40px;
+    left: -30px;
     top: 50%;
     transform: translateY(-50%) rotate(90deg);
 }
 
 .pondRight {
-    right: -40px;
+    right: -30px;
     top: 50%;
     transform: translateY(-50%) rotate(-90deg);
 }
@@ -238,7 +249,7 @@
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: 2px;
+    gap: 1px;
     width: fit-content;
     pointer-events: auto;
 }
@@ -246,7 +257,6 @@
 .wallCount {
     font-size: 0.75rem;
     color: #aaa;
-    margin-top: 0.25rem;
 }
 
 /* 自分のエリア */
@@ -255,9 +265,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 0;
-    margin-top: -40px;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    flex-shrink: 0;
     z-index: 20;
 }
 
@@ -265,20 +275,24 @@
 .myHand {
     display: flex;
     justify-content: center;
-    gap: 0.125rem;
-    flex-wrap: wrap;
+    gap: 2px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100vw;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 8px;
 }
 
 .handHidden {
     display: flex;
     justify-content: center;
-    gap: 0.125rem;
+    gap: 1px;
 }
 
 .handVertical {
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
+    gap: 1px;
 }
 
 /* 牌 - Premium 3D Design */
@@ -297,6 +311,7 @@
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s;
     user-select: none;
     cursor: pointer;
+    flex-shrink: 0;
 
     /* 3D effect with multiple shadows */
     box-shadow:
@@ -343,8 +358,8 @@
 }
 
 .tileSmall {
-    width: 30px;
-    height: 40px;
+    width: 28px;
+    height: 38px;
     font-size: 1.4rem;
     font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
     border-radius: 4px;
@@ -367,51 +382,52 @@
 }
 
 .tileBack {
-    width: 32px;
-    height: 42px;
-    background: linear-gradient(145deg, #2d7a28 0%, #1c5a18 50%, #0f3d0c 100%);
-    border: none;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    box-shadow:
-        0 2px 0 #0a2f08,
-        0 3px 4px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.tileBack::after {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-}
-
-.tileBackVertical {
-    width: 32px;
-    height: 22px;
+    width: 28px;
+    height: 38px;
     background: linear-gradient(145deg, #2d7a28 0%, #1c5a18 50%, #0f3d0c 100%);
     border: none;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.65rem;
+    position: relative;
+    box-shadow:
+        0 2px 0 #0a2f08,
+        0 3px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+}
+
+.tileBack::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
+}
+
+.tileBackVertical {
+    width: 28px;
+    height: 20px;
+    background: linear-gradient(145deg, #2d7a28 0%, #1c5a18 50%, #0f3d0c 100%);
+    border: none;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow:
         0 2px 0 #0a2f08,
         0 2px 3px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
 }
 
 .redDot {
     position: absolute;
     top: 3px;
     right: 3px;
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     background: radial-gradient(circle at 30% 30%, #ff4444, #cc0000);
     border-radius: 50%;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -422,28 +438,32 @@
 .playerPanel {
     background: rgba(0, 0, 0, 0.4);
     border-radius: 8px;
-    padding: 0.5rem 1rem;
-    min-width: 100px;
+    padding: 0.3rem 0.75rem;
+    min-width: 80px;
 }
 
 .playerInfo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    gap: 0.4rem;
+    font-size: 0.8rem;
 }
 
 .wind {
     background: #8b4513;
     color: white;
-    padding: 0.125rem 0.375rem;
+    padding: 1px 5px;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
 }
 
 .playerName {
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80px;
 }
 
 .score {
@@ -454,15 +474,16 @@
 .riichiIndicator {
     background: linear-gradient(135deg, #ff6b6b, #c23616);
     color: white;
-    padding: 0.125rem 0.375rem;
+    padding: 1px 5px;
     border-radius: 4px;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: bold;
 }
 
 .turnIndicator {
     color: #00ff00;
     animation: blink 1s infinite;
+    font-size: 0.7rem;
 }
 
 @keyframes blink {
@@ -478,27 +499,37 @@
 }
 
 /* アクションボタン */
-/* アクションボタン */
 .actions {
     position: absolute;
-    bottom: 130px;
+    bottom: 64px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 1rem;
-    padding: 0.5rem 1rem;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 50px;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 30px;
     backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 50;
-    transition: all 0.2s ease;
     width: max-content;
+    min-height: 38px;
+    align-items: center;
+}
+
+/* Inline action bar (below hand, not overlapping) */
+.actionsBar {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.5rem;
+    min-height: 32px;
+    flex-wrap: wrap;
 }
 
 .actionBtn {
-    padding: 0.625rem 1.25rem;
+    padding: 0.5rem 1rem;
     background: linear-gradient(135deg, #4a90e2, #357abd);
     border: none;
     border-radius: 8px;
@@ -506,6 +537,8 @@
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.1s, box-shadow 0.1s;
+    font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 .actionBtn:hover {
@@ -518,13 +551,15 @@
 }
 
 .discardBtn {
-    padding: 0.625rem 1.25rem;
+    padding: 0.5rem 1rem;
     background: linear-gradient(135deg, #27ae60, #1e8449);
     border: none;
     border-radius: 8px;
     color: white;
     font-weight: bold;
     cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 .ponBtn {
@@ -535,24 +570,29 @@
     background: linear-gradient(135deg, #e67e22, #d35400) !important;
 }
 
+.kanBtn {
+    background: linear-gradient(135deg, #16a085, #1abc9c) !important;
+}
+
 /* 鳴き牌表示 */
 .callsArea {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .callGroup {
     display: flex;
     align-items: center;
-    gap: 0.125rem;
+    gap: 1px;
     background: rgba(0, 0, 0, 0.3);
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
 }
 
 .callLabel {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: #aaa;
     margin-left: 0.25rem;
 }
@@ -560,64 +600,71 @@
 /* 他家の鳴き表示 */
 .opponentCalls {
     display: flex;
-    gap: 0.5rem;
-    margin: 0.25rem 0;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .callGroupSmall {
     display: flex;
-    gap: 0.125rem;
+    gap: 1px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 0.125rem 0.25rem;
-    border-radius: 4px;
+    padding: 1px 3px;
+    border-radius: 3px;
 }
 
 /* 結果モーダル */
 .resultOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.80);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 1rem;
 }
 
 .resultModal {
-    background: white;
+    background: linear-gradient(135deg, #fff 0%, #f8f5f0 100%);
     color: #333;
     border-radius: 16px;
     padding: 2rem;
     text-align: center;
-    max-width: 400px;
-    width: 90%;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .resultModal h2 {
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
     color: #c0392b;
 }
 
 .winningHand {
     display: flex;
     justify-content: center;
-    gap: 0.125rem;
-    margin: 1rem 0;
+    gap: 2px;
+    margin: 0.75rem 0;
     flex-wrap: wrap;
 }
 
 .yakuList {
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     text-align: left;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     background: #f8f9fa;
     border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
 .yakuItem {
     padding: 0.25rem 0;
     border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
 }
 
 .yakuItem:last-child {
@@ -625,29 +672,41 @@
 }
 
 .scoreResult {
-    font-size: 1.25rem;
-    margin: 1rem 0;
+    font-size: 1.2rem;
+    margin: 0.75rem 0;
 }
 
 .newGameBtn {
-    padding: 0.75rem 2rem;
-    background: #27ae60;
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #27ae60, #1e8449);
     color: white;
     border: none;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
     margin-right: 0.5rem;
+    font-size: 0.95rem;
+    transition: transform 0.1s;
+}
+
+.newGameBtn:hover {
+    transform: translateY(-2px);
 }
 
 .exitBtn {
-    padding: 0.75rem 2rem;
+    padding: 0.6rem 1.5rem;
     background: #95a5a6;
     color: white;
     border: none;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
+    font-size: 0.95rem;
+    transition: transform 0.1s;
+}
+
+.exitBtn:hover {
+    transform: translateY(-2px);
 }
 
 /* AI思考中 */
@@ -658,82 +717,10 @@
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 1rem;
     border-radius: 20px;
     font-size: 0.85rem;
-}
-
-/* レスポンシブ */
-@media (max-width: 900px) {
-    .tile {
-        width: 34px;
-        height: 46px;
-        font-size: 2.2rem !important;
-        line-height: 1.1;
-        padding: 0;
-        margin-top: -3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        color: inherit;
-    }
-
-    .tileSmall {
-        width: 28px;
-        height: 38px;
-        font-size: 1.8rem !important;
-        line-height: 1.1;
-        padding: 0;
-        margin-top: -2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        color: inherit;
-    }
-
-    .playerPanel {
-        padding: 0.375rem 0.625rem;
-    }
-
-    .playerInfo {
-        font-size: 0.75rem;
-    }
-
-    /* モバイル用ヘッダー調整 */
-    .header {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        padding: 0.5rem;
-    }
-
-    .doraHeaderArea {
-        order: -1;
-        width: 100%;
-        justify-content: center;
-        padding: 4px 8px;
-        gap: 4px;
-    }
-
-    .doraLabel {
-        font-size: 0.7rem;
-    }
-
-    .roundInfo {
-        font-size: 1rem;
-    }
-
-    .riichiSticks {
-        font-size: 0.75rem;
-    }
-
-    .backButton {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.8rem;
-    }
+    z-index: 500;
 }
 
 /* --- Visual Effects --- */
@@ -778,7 +765,7 @@
 }
 
 .cutInText {
-    font-size: 8rem;
+    font-size: 6rem;
     font-weight: 900;
     color: #fff;
     text-shadow:
@@ -831,15 +818,15 @@
 .lobbyContainer {
     max-width: 800px;
     width: 90%;
-    margin: 4rem auto;
+    margin: 3rem auto;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 24px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    padding: 3rem;
+    padding: 2.5rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.5);
     position: relative;
     z-index: 100;
@@ -851,10 +838,12 @@
     align-items: center;
     border-bottom: 2px solid #f0f4f8;
     padding-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
 .lobbyHeader h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     color: #2d3748;
     margin: 0;
     font-weight: 800;
@@ -863,33 +852,33 @@
 .roomIdBox {
     background: #ebf8ff;
     border: 1px solid #bee3f8;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 12px;
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     align-items: center;
 }
 
 .roomIdLabel {
     color: #4299e1;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .roomIdValue {
     font-family: monospace;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #2b6cb0;
     letter-spacing: 0.1em;
 }
 
 .playersSection h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #718096;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     text-transform: uppercase;
     font-weight: 700;
 }
@@ -897,33 +886,31 @@
 .playersList {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .playerCard {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid #edf2f7;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-.playerName {
-    flex: 1;
-    font-weight: 600;
-    color: #2d3748;
-    font-size: 1.05rem;
+.emptySlot {
+    border-style: dashed;
+    background: #f7fafc;
 }
 
 .hostBadge,
 .meBadge {
-    padding: 0.35rem 0.75rem;
+    padding: 0.25rem 0.6rem;
     border-radius: 99px;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 800;
     color: white;
 }
@@ -940,16 +927,17 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     margin-top: auto;
-    padding-top: 2rem;
+    padding-top: 1.5rem;
     border-top: 2px solid #f0f4f8;
+    flex-wrap: wrap;
 }
 
 .startBtn {
-    padding: 1rem 3rem;
+    padding: 0.75rem 2rem;
     border-radius: 14px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: white;
     background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);
@@ -965,9 +953,9 @@
 }
 
 .leaveBtn {
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.5rem;
     border-radius: 14px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #e53e3e;
     background: white;
@@ -985,14 +973,49 @@
     color: #718096;
     font-style: italic;
     font-weight: 500;
-    font-weight: 500;
 }
 
 .mobileFullscreenBtn {
     display: none;
 }
 
-/* --- Mobile Optimization (Landscape Focus) --- */
+/* Text-based Tile Styles */
+.tileContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    padding-bottom: 1px;
+}
+
+.tileMain {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+.tileSub {
+    font-size: 0.55rem;
+    font-weight: bold;
+    margin-top: -2px;
+}
+
+/* Specific adjustments */
+.tileSmall .tileMain {
+    font-size: 1rem;
+}
+
+.tileSmall .tileSub {
+    font-size: 0.45rem;
+}
+
+/* ================================== */
+/* RESPONSIVE DESIGN                   */
+/* ================================== */
+
 /* Rotate Device Overlay */
 .rotateOverlay {
     display: none;
@@ -1036,162 +1059,7 @@
     }
 }
 
-/* Portrait Mode on Mobile: Show Overlay, Hide Game */
-@media (max-width: 768px) and (orientation: portrait) {
-    .rotateOverlay {
-        display: flex;
-    }
-
-    .gameBoard,
-    .header {
-        display: none !important;
-    }
-}
-
-/* Landscape Mode on Mobile: Compact Header and Fit Vertical Height */
-@media (max-height: 600px) and (orientation: landscape) {
-
-    /* Compact header instead of hiding */
-    .header {
-        padding: 0.25rem 0.5rem;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-        font-size: 0.75rem;
-    }
-
-    .backButton {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.7rem;
-    }
-
-    .doraHeaderArea {
-        padding: 2px 6px;
-        gap: 3px;
-    }
-
-    .doraLabel {
-        font-size: 0.6rem;
-    }
-
-    .doraTiles .tileSmall {
-        width: 18px;
-        height: 24px;
-        font-size: 0.8rem;
-    }
-
-    .roundInfo {
-        font-size: 0.8rem;
-    }
-
-    .riichiSticks {
-        font-size: 0.65rem;
-    }
-
-    .main {
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
-        min-height: 100dvh;
-    }
-
-    /* ロビー画面ではスクロール可能にする */
-    .lobbyContainer {
-        margin: 1rem auto;
-        padding: 1.5rem;
-        max-height: none;
-        overflow: visible;
-    }
-
-    .gameBoard {
-        transform-origin: center top;
-        transform: scale(0.48);
-        width: 100%;
-        margin: 0 auto;
-        pointer-events: auto;
-        touch-action: none;
-    }
-
-    /* Adjust Action Buttons - 画面右端に余裕を持って配置 */
-    .actions {
-        position: fixed;
-        bottom: 15px;
-        right: -250px;
-        left: auto;
-        transform: scale(2);
-        transform-origin: bottom right;
-        opacity: 1;
-        flex-direction: column-reverse;
-        gap: 0.4rem;
-        background: rgba(0, 0, 0, 0.85);
-        padding: 0.4rem;
-        border-radius: 6px;
-        z-index: 1000;
-    }
-
-    .actionBtn {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.65rem;
-        white-space: nowrap;
-    }
-
-    /* 手牌と捨て牌のサイズ調整（横画面用） */
-    .tile {
-        width: 34px;
-        height: 46px;
-        font-size: 2.2rem !important;
-        line-height: 1.1;
-        padding: 0;
-        margin-top: -3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        color: inherit;
-    }
-
-    .tileSmall {
-        width: 28px;
-        height: 38px;
-        font-size: 1.8rem !important;
-        line-height: 1.1;
-        padding: 0;
-        margin-top: -2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        color: inherit;
-    }
-
-    .discardBtn {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.65rem;
-        white-space: nowrap;
-    }
-
-    /* 鳴いた牌を右端に固定表示 */
-    .callsArea {
-        position: fixed;
-        bottom: 100px;
-        right: -250px;
-        flex-direction: column;
-        gap: 0.2rem;
-        transform: scale(1.8);
-        transform-origin: bottom right;
-        z-index: 999;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 0.2rem;
-        border-radius: 4px;
-    }
-
-    .callGroup {
-        padding: 0.15rem 0.2rem;
-        gap: 0.1rem;
-    }
-}
-
-/* Ensure Fullscreen Button appears on ALL mobile/tablet screens */
+/* ===== TABLETS (<=1024px) ===== */
 @media (max-width: 1024px) {
     .mobileFullscreenBtn {
         display: block !important;
@@ -1208,37 +1076,284 @@
         cursor: pointer;
         backdrop-filter: blur(4px);
     }
+
+    .centerArea {
+        width: 340px;
+        height: 340px;
+    }
+
+    .tile {
+        width: 36px;
+        height: 48px;
+    }
+
+    .tileSmall {
+        width: 26px;
+        height: 35px;
+    }
+
+    .tileBack {
+        width: 26px;
+        height: 35px;
+    }
+
+    .tileBackVertical {
+        width: 26px;
+        height: 18px;
+    }
 }
 
-/* Text-based Tile Styles */
-.tileContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    line-height: 1;
-    padding-bottom: 2px;
+/* ===== MOBILE (<768px) ===== */
+@media (max-width: 768px) {
+    /* Portrait: show rotation prompt */
+    @media (orientation: portrait) {
+        .rotateOverlay {
+            display: flex;
+        }
+
+        .gameBoard,
+        .header {
+            display: none !important;
+        }
+    }
 }
 
-.tileMain {
-    font-size: 1.5rem;
-    font-weight: 900;
-    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+/* ===== LANDSCAPE MOBILE (short height) ===== */
+@media (max-height: 520px) and (orientation: landscape) {
+    .header {
+        padding: 0.2rem 0.5rem;
+        gap: 0.2rem;
+        min-height: 32px;
+    }
+
+    .backButton {
+        padding: 0.15rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .doraHeaderArea {
+        padding: 2px 6px;
+        gap: 3px;
+    }
+
+    .doraLabel {
+        font-size: 0.6rem;
+    }
+
+    .roundInfo {
+        font-size: 0.75rem;
+    }
+
+    .riichiSticks {
+        font-size: 0.6rem;
+    }
+
+    .main {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .gameBoard {
+        padding: 0.25rem;
+    }
+
+    .centerArea {
+        width: 220px;
+        height: 220px;
+        border-radius: 16px;
+    }
+
+    .pondWrapper {
+        width: 120px;
+        height: 70px;
+    }
+
+    .pondLeft {
+        left: -16px;
+    }
+
+    .pondRight {
+        right: -16px;
+    }
+
+    .tile {
+        width: 30px;
+        height: 40px;
+    }
+
+    .tileSmall {
+        width: 20px;
+        height: 28px;
+    }
+
+    .tileBack {
+        width: 20px;
+        height: 28px;
+    }
+
+    .tileBackVertical {
+        width: 20px;
+        height: 14px;
+    }
+
+    .opponentLeft,
+    .opponentRight {
+        width: 50px;
+    }
+
+    .playerPanel {
+        padding: 0.2rem 0.4rem;
+        min-width: 50px;
+    }
+
+    .playerInfo {
+        font-size: 0.6rem;
+        gap: 0.2rem;
+    }
+
+    .wind {
+        font-size: 0.55rem;
+        padding: 0 3px;
+    }
+
+    .playerName {
+        max-width: 40px;
+        font-size: 0.6rem;
+    }
+
+    .score {
+        font-size: 0.6rem;
+    }
+
+    .actions {
+        bottom: 46px;
+        padding: 0.2rem 0.5rem;
+        gap: 0.3rem;
+    }
+
+    .actionBtn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+    }
+
+    .discardBtn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+    }
+
+    .myArea {
+        padding: 0.2rem 0;
+        gap: 0.25rem;
+    }
+
+    .cutInText {
+        font-size: 4rem;
+    }
+
+    .callsArea {
+        gap: 0.2rem;
+    }
+
+    .callGroup {
+        padding: 0.1rem 0.2rem;
+    }
+
+    .opponentCalls {
+        gap: 0.1rem;
+    }
+
+    .handHidden {
+        gap: 0;
+    }
+
+    .handVertical {
+        gap: 0;
+    }
+
+    .lobbyContainer {
+        margin: 0.5rem auto;
+        padding: 1rem;
+    }
 }
 
-.tileSub {
-    font-size: 0.6rem;
-    font-weight: bold;
-    margin-top: -2px;
+/* ===== VERY SHORT SCREENS (phones in landscape) ===== */
+@media (max-height: 400px) and (orientation: landscape) {
+    .centerArea {
+        width: 180px;
+        height: 180px;
+        border-radius: 12px;
+    }
+
+    .pondWrapper {
+        width: 100px;
+        height: 55px;
+    }
+
+    .pondLeft {
+        left: -10px;
+    }
+
+    .pondRight {
+        right: -10px;
+    }
+
+    .tile {
+        width: 26px;
+        height: 34px;
+    }
+
+    .tileSmall {
+        width: 17px;
+        height: 24px;
+    }
+
+    .tileBack {
+        width: 17px;
+        height: 24px;
+    }
+
+    .tileBackVertical {
+        width: 17px;
+        height: 12px;
+    }
+
+    .opponentTop .handHidden {
+        display: none;
+    }
+
+    .handVertical {
+        display: none;
+    }
+
+    .actions {
+        bottom: 38px;
+    }
 }
 
-/* Specific adjustments */
-.tileSmall .tileMain {
-    font-size: 1.1rem;
-}
+/* ===== DESKTOP (wide screens) ===== */
+@media (min-width: 1200px) {
+    .centerArea {
+        width: 440px;
+        height: 440px;
+    }
 
-.tileSmall .tileSub {
-    font-size: 0.5rem;
+    .tile {
+        width: 44px;
+        height: 58px;
+    }
+
+    .tileSmall {
+        width: 30px;
+        height: 40px;
+    }
+
+    .tileBack {
+        width: 30px;
+        height: 40px;
+    }
+
+    .tileBackVertical {
+        width: 30px;
+        height: 22px;
+    }
 }
