@@ -81,7 +81,7 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
         let combined = [...correctChars, ...dummies].sort(() => 0.5 - Math.random());
 
         // Safety Check: Ensure all correct chars are physically in the combined array
-        const missing = correctChars.filter(c => !combined.includes(c));
+        const missing = correctChars.filter((c: string) => !combined.includes(c));
         if (missing.length > 0) {
             console.warn("Missing chars detected, forcing add:", missing);
             combined.push(...missing);
