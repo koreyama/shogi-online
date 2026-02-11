@@ -16,7 +16,8 @@
     font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .container {
@@ -138,25 +139,28 @@
 /* Answer Area */
 .answerSlots {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: center;
-    margin-bottom: 2.5rem;
-    min-height: 70px;
+    margin-bottom: 2rem;
+    min-height: 60px;
+    padding: 0 10px;
 }
 
 .slot {
-    width: clamp(48px, 10vw, 64px);
-    height: clamp(56px, 12vw, 72px);
-    border-bottom: 4px solid #cbd5e1;
+    width: clamp(36px, 12vw, 64px);
+    height: clamp(44px, 14vw, 72px);
+    border-bottom: 3px solid #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-size: clamp(1.4rem, 6vw, 2.5rem);
     font-weight: 800;
     color: #334155;
     background: white;
-    border-radius: 12px 12px 4px 4px;
+    border-radius: 8px 8px 4px 4px;
     transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .slotFilled {
@@ -382,4 +386,56 @@
     .charGrid {
         grid-template-columns: repeat(6, 1fr);
     }
+}
+
+/* Genre Selection Grid */
+.genreGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+@media (min-width: 600px) {
+    .genreGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 800px) {
+    .genreGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.genreButton {
+    padding: 0.75rem 0.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    color: #64748b;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.genreButton:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.genreButtonSelected {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
 }

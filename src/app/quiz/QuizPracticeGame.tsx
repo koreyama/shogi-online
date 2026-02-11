@@ -18,6 +18,7 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
     const [choices, setChoices] = useState<string[]>([]);
     const [history, setHistory] = useState<{ q: any, correct: boolean }[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isGenreOpen, setIsGenreOpen] = useState(false);
 
     // Genres (mirrors QuizGame)
     const genres = ["すべて", "地理", "歴史", "科学", "生物", "文学", "ゲーム", "アニメ", "スポーツ", "常識", "英語", "数学", "IT", "エンタメ", "雑学", "音楽", "美術", "文化", "言葉", "食べ物", "ビジネス", "社会"];
@@ -29,10 +30,11 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
         // Simulate loading delay for better UX
         await new Promise(r => setTimeout(r, 800));
 
-        let pool = [...QUIZ_DATA];
+        let pool = JSON.parse(JSON.stringify(QUIZ_DATA)); // Deep clone to avoid mutating global data
         if (selectedGenre !== "すべて") {
-            pool = pool.filter(q => q.category === selectedGenre);
-            if (pool.length < 10) pool = [...QUIZ_DATA];
+            pool = pool.filter((q: any) => q.category === selectedGenre);
+            // Fallback if not enough questions
+            if (pool.length < 10) pool = JSON.parse(JSON.stringify(QUIZ_DATA));
         }
 
         const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -49,6 +51,7 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
             setCountdown(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
+                    // Load the first question explicitly
                     loadQuestion(shuffled[0]);
                     return 0;
                 }
@@ -62,15 +65,28 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
         setMyAnswer('');
         setPhase('question');
 
+        // Normalize ruby (handle dakuten separation issues)
+        const normalizedRuby = q.ruby.normalize('NFC');
+        q.ruby = normalizedRuby; // Update ref for checking
+
         // Gen choices
-        const correctChars = q.ruby.split('');
-        const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+        const correctChars = normalizedRuby.split('');
+        const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっー";
         const dummyCount = 12 - correctChars.length;
         const dummies = [];
         for (let i = 0; i < Math.max(0, dummyCount); i++) {
             dummies.push(hiragana[Math.floor(Math.random() * hiragana.length)]);
         }
-        const combined = [...correctChars, ...dummies].sort(() => 0.5 - Math.random());
+
+        let combined = [...correctChars, ...dummies].sort(() => 0.5 - Math.random());
+
+        // Safety Check: Ensure all correct chars are physically in the combined array
+        const missing = correctChars.filter(c => !combined.includes(c));
+        if (missing.length > 0) {
+            console.warn("Missing chars detected, forcing add:", missing);
+            combined.push(...missing);
+        }
+
         setChoices(combined);
     };
 
@@ -112,8 +128,33 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
                     if (qIndex + 1 >= questions.length) {
                         setPhase('finished');
                     } else {
-                        setQIndex(prevIndex => prevIndex + 1);
-                        loadQuestion(questions[qIndex + 1]);
+                        const nextIndex = qIndex + 1;
+                        setQIndex(nextIndex);
+                        loadQuestion(questions[nextIndex]);
+                    }
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const handleGiveUp = () => {
+        const q = questions[qIndex];
+        // Treat as incorrect
+        setHistory(prev => [...prev, { q, correct: false }]);
+        setPhase('result');
+        setCountdown(4); // Slightly longer to read answer
+        const timer = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    if (qIndex + 1 >= questions.length) {
+                        setPhase('finished');
+                    } else {
+                        const nextIndex = qIndex + 1;
+                        setQIndex(nextIndex);
+                        loadQuestion(questions[nextIndex]);
                     }
                     return 0;
                 }
@@ -163,22 +204,50 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
                         <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: '#2563eb' }}>練習モード</h1>
                         <p style={{ marginBottom: '2rem' }}>苦手なジャンルを克服しよう！</p>
 
+
+
+
+
                         <div style={{ marginBottom: '2rem' }}>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>挑戦するジャンル</label>
-                            <select
-                                value={selectedGenre}
-                                onChange={(e) => setSelectedGenre(e.target.value)}
+                            <button
+                                onClick={() => setIsGenreOpen(!isGenreOpen)}
                                 style={{
-                                    padding: '0.8rem',
-                                    borderRadius: '8px',
-                                    border: '1px solid #ccc',
-                                    fontSize: '1rem',
                                     width: '100%',
-                                    maxWidth: '300px'
+                                    maxWidth: '400px',
+                                    margin: '0 auto',
+                                    padding: '0.8rem',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    background: 'white',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    color: '#333'
                                 }}
                             >
-                                {genres.map(g => <option key={g} value={g}>{g}</option>)}
-                            </select>
+                                <span>選択中: <span style={{ color: '#3b82f6' }}>{selectedGenre}</span></span>
+                                <span>{isGenreOpen ? '▲ 閉じる' : '▼ 変更する'}</span>
+                            </button>
+
+                            {isGenreOpen && (
+                                <div className={styles.genreGrid}>
+                                    {genres.map(g => (
+                                        <button
+                                            key={g}
+                                            className={`${styles.genreButton} ${selectedGenre === g ? styles.genreButtonSelected : ''}`}
+                                            onClick={() => {
+                                                setSelectedGenre(g);
+                                                setIsGenreOpen(false);
+                                            }}
+                                        >
+                                            {g}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
@@ -271,6 +340,7 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
             <div className={styles.container}>
                 <div className={styles.header}>
                     <button className={styles.menuButtonExit} onClick={onBack} style={{ padding: '4px 12px', width: 'auto' }}>終了</button>
+                    <button className={styles.menuButtonExit} onClick={handleGiveUp} style={{ padding: '4px 12px', width: 'auto', marginLeft: '0.5rem', background: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5' }}>パス</button>
                     <div className={styles.playerScore} style={{ marginLeft: 'auto' }}>Score: {score}</div>
                 </div>
 

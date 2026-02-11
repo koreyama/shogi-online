@@ -36,6 +36,7 @@ export default function QuizGame({ userData, mode = 'create', roomId, password, 
     const [players, setPlayers] = useState<any[]>([]);
     const [resultData, setResultData] = useState<{ correctAnswer: string } | null>(null);
     const [me, setMe] = useState<any>(null);
+    const [isGenreOpen, setIsGenreOpen] = useState(false);
 
     const roomRef = useRef<Room | null>(null);
 
@@ -241,17 +242,58 @@ export default function QuizGame({ userData, mode = 'create', roomId, password, 
                         </p>
 
                         <div style={{ marginBottom: '2rem' }}>
-                            <label style={{ marginRight: '1rem', fontWeight: 'bold' }}>ジャンル:</label>
+                            <label style={{ marginRight: '1rem', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>ジャンル選択:</label>
                             {isHost ? (
-                                <select
-                                    value={selectedGenre}
-                                    onChange={(e) => room?.send("selectGenre", { genre: e.target.value })}
-                                    style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-                                >
-                                    {genres.map(g => <option key={g} value={g}>{g}</option>)}
-                                </select>
+                                <div>
+                                    <button
+                                        onClick={() => setIsGenreOpen(!isGenreOpen)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.8rem',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            background: 'white',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontWeight: 'bold',
+                                            color: '#333'
+                                        }}
+                                    >
+                                        <span>選択中: <span style={{ color: '#3b82f6' }}>{selectedGenre}</span></span>
+                                        <span>{isGenreOpen ? '▲ 閉じる' : '▼ 変更する'}</span>
+                                    </button>
+
+                                    {isGenreOpen && (
+                                        <div className={styles.genreGrid}>
+                                            {genres.map(g => (
+                                                <button
+                                                    key={g}
+                                                    className={`${styles.genreButton} ${selectedGenre === g ? styles.genreButtonSelected : ''}`}
+                                                    onClick={() => {
+                                                        room?.send("selectGenre", { genre: g });
+                                                        setIsGenreOpen(false);
+                                                    }}
+                                                >
+                                                    {g}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
-                                <span style={{ fontWeight: 'bold', color: '#333' }}>{selectedGenre}</span>
+                                <div style={{
+                                    padding: '1rem',
+                                    background: '#eff6ff',
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    color: '#3b82f6',
+                                    fontSize: '1.2rem',
+                                    border: '2px solid #dbeafe'
+                                }}>
+                                    {selectedGenre}
+                                </div>
                             )}
                         </div>
 

@@ -171,6 +171,11 @@ export class QuizRoom extends Room<QuizState> {
 
         this.state.questionText = q.question;
         this.state.questionCategory = q.category;
+
+        // Normalize to ensure consistent char counting
+        const normRuby = q.ruby.normalize('NFC');
+        q.ruby = normRuby;
+
         this.state.answerLength = q.ruby.length;
         this.state.correctAnswer = ""; // Hide answer initially
 
