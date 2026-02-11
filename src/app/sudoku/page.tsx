@@ -8,7 +8,7 @@ import { SudokuBoard } from '@/components/sudoku/SudokuBoard';
 import { NumberPad } from '@/components/sudoku/NumberPad';
 import { createGameState, placeNumber, toggleNote } from '@/lib/sudoku/engine';
 import { DIFFICULTIES, Difficulty, GameState } from '@/lib/sudoku/types';
-import { IconBack, IconUser } from '@/components/Icons';
+import { IconBack, IconUser, IconDice, IconKey } from '@/components/Icons';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/hooks/usePlayer';
 import HideChatBot from '@/components/HideChatBot';
@@ -44,6 +44,7 @@ export default function SudokuPage() {
     // Navigation State
     const [status, setStatus] = useState<'setup' | 'menu' | 'playing' | 'battle' | 'room_input'>('setup');
     const [battleRoomId, setBattleRoomId] = useState<string>('');
+    const [battleMode, setBattleMode] = useState<'random' | 'create' | 'join'>('random');
 
     // Check if name is loaded
     useEffect(() => {
@@ -205,27 +206,27 @@ export default function SudokuPage() {
                         ))}
                     </div>
 
-                    <div className={sudokuStyles.modeSelection}>
-                        <button onClick={startGame} className={sudokuStyles.modeBtn}>
-                            <div className={sudokuStyles.modeBtnIcon}>
-                                <IconUser size={48} />
+                    <div className={styles.modeSelection}>
+                        <button onClick={startGame} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}>
+                                <IconUser size={32} />
                             </div>
-                            <span className={sudokuStyles.modeBtnTitle}>ひとりで遊ぶ</span>
-                            <span className={sudokuStyles.modeBtnDesc}>ヒント{difficulty.clues}マス</span>
+                            <span className={styles.modeBtnTitle}>ひとりで遊ぶ</span>
+                            <span className={styles.modeBtnDesc}>ヒント{difficulty.clues}マス</span>
                         </button>
-                        <button onClick={() => setStatus('battle')} className={sudokuStyles.modeBtn}>
-                            <div className={sudokuStyles.modeBtnIcon}>
-                                🏁
+                        <button onClick={() => setStatus('battle')} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}>
+                                <IconDice size={32} />
                             </div>
-                            <span className={sudokuStyles.modeBtnTitle}>ランダム対戦</span>
-                            <span className={sudokuStyles.modeBtnDesc}>速さを競う</span>
+                            <span className={styles.modeBtnTitle}>ランダムマッチ</span>
+                            <span className={styles.modeBtnDesc}>世界中のプレイヤーと対戦</span>
                         </button>
-                        <button onClick={() => setStatus('room_input')} className={sudokuStyles.modeBtn}>
-                            <div className={sudokuStyles.modeBtnIcon}>
-                                🏠
+                        <button onClick={() => setStatus('room_input')} className={styles.modeBtn}>
+                            <div className={styles.modeBtnIcon}>
+                                <IconKey size={32} />
                             </div>
-                            <span className={sudokuStyles.modeBtnTitle}>ルーム対戦</span>
-                            <span className={sudokuStyles.modeBtnDesc}>友達と対戦</span>
+                            <span className={styles.modeBtnTitle}>ルーム対戦</span>
+                            <span className={styles.modeBtnDesc}>友達と対戦</span>
                         </button>
                     </div>
 
@@ -286,7 +287,7 @@ export default function SudokuPage() {
                         />
                         <button
                             className={styles.primaryBtn}
-                            onClick={() => battleRoomId && setStatus('battle')}
+                            onClick={() => { if (battleRoomId) { setBattleMode('join'); setStatus('battle'); } }}
                             disabled={!battleRoomId}
                             style={{ width: '100%', marginBottom: '1.5rem' }}
                         >
@@ -297,7 +298,7 @@ export default function SudokuPage() {
 
                         <button
                             className={styles.primaryBtn}
-                            onClick={() => { setBattleRoomId(''); setStatus('battle'); }}
+                            onClick={() => { setBattleRoomId(''); setBattleMode('create'); setStatus('battle'); }}
                             style={{ width: '100%', background: '#22c55e' }}
                         >
                             新しいルームを作成
@@ -312,10 +313,10 @@ export default function SudokuPage() {
     if (status === 'battle') {
         return (
             <ColyseusSudokuGame
-                roomId={battleRoomId || undefined}
+                roomId={battleMode === 'join' ? battleRoomId : undefined}
                 options={{
                     difficulty: Object.entries(DIFFICULTIES).find(([_, v]) => v.name === difficulty.name)?.[0] || 'EASY',
-                    create: !battleRoomId,
+                    create: battleMode === 'create',
                 }}
                 onLeave={() => { setBattleRoomId(''); setStatus('menu'); }}
             />

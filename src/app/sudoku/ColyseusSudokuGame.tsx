@@ -66,18 +66,21 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                 };
 
                 if (roomId) {
+                    console.log("Joining by ID:", roomId);
                     r = await client.joinById(roomId, joinOptions);
                 } else if (options?.create) {
+                    console.log("Creating new room...");
                     r = await client.create('sudoku_room', joinOptions);
                 } else {
+                    // Random Match
+                    console.log("Random matching...");
                     try {
+                        // First try to join any existing room
                         r = await client.joinOrCreate('sudoku_room', joinOptions);
+                        console.log("Joined existing or created new room:", r.roomId);
                     } catch (e: any) {
-                        if (e.message && e.message.includes("locked")) {
-                            r = await client.create('sudoku_room', joinOptions);
-                        } else {
-                            throw e;
-                        }
+                        console.log("Matchmaking failed, creating new room:", e);
+                        r = await client.create('sudoku_room', joinOptions);
                     }
                 }
 
@@ -194,6 +197,38 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
         return board;
     };
 
+    // Get opponent board (hide errors - don't reveal solution info)
+    const getOpponentBoard = (playerData: PlayerData): Board => {
+        const board: Board = [];
+        for (let r = 0; r < 9; r++) {
+            const row: Cell[] = [];
+            for (let c = 0; c < 9; c++) {
+                const idx = r * 9 + c;
+                const isFixed = playerData.puzzle[idx] !== 0;
+                const value = playerData.boardValues[idx] || 0;
+                row.push({ value, isFixed, isError: false, notes: new Set() });
+            }
+            board.push(row);
+        }
+        return board;
+    };
+
+    // Calculate accurate fill percentage (filled empty cells / total empty cells)
+    const getFilledPercent = (playerData: PlayerData): number => {
+        if (playerData.puzzle.length === 0) return 0;
+        let totalEmpty = 0;
+        let filledEmpty = 0;
+        for (let i = 0; i < 81; i++) {
+            if (playerData.puzzle[i] === 0) {
+                totalEmpty++;
+                if (playerData.boardValues[i] !== 0) {
+                    filledEmpty++;
+                }
+            }
+        }
+        return totalEmpty === 0 ? 100 : Math.round((filledEmpty / totalEmpty) * 100);
+    };
+
     const formatTime = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -216,7 +251,11 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                     </button>
                     <div className={sudokuStyles.headerContent}>
                         <h1 className={sudokuStyles.title}>数独バトル</h1>
-                        <p className={sudokuStyles.subtitle}>ルームID: {room.roomId}</p>
+                        {(roomId || options?.create) ? (
+                            <p className={sudokuStyles.subtitle}>ルームID: {room.roomId}</p>
+                        ) : (
+                            <p className={sudokuStyles.subtitle}>ランダム対戦</p>
+                        )}
                     </div>
                     <div style={{ width: '80px' }} />
                 </div>
@@ -279,6 +318,8 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
         );
     }
 
+    const myProgress = me ? getFilledPercent(me) : 0;
+
     // Playing or finished
     return (
         <main className={styles.main}>
@@ -293,68 +334,124 @@ export function ColyseusSudokuGame({ roomId, options, onLeave }: Props) {
                 <div style={{ width: '80px' }} />
             </div>
 
-            <div className={sudokuStyles.gameContainer}>
-                {/* Opponent Progress */}
-                {opponents.length > 0 && (
+            <div style={{
+                display: 'flex', gap: '2rem', justifyContent: 'center',
+                alignItems: 'flex-start', flexWrap: 'wrap',
+                padding: '1rem', width: '100%', maxWidth: '1200px', margin: '0 auto',
+            }}>
+                {/* My Board Section */}
+                <div style={{ flex: '1 1 auto', maxWidth: '500px', minWidth: '300px' }}>
+                    {/* My Progress Bar */}
                     <div style={{
-                        display: 'flex', gap: '1rem', marginBottom: '1rem',
-                        flexWrap: 'wrap', justifyContent: 'center',
+                        background: '#eff6ff', padding: '0.75rem 1.25rem', borderRadius: '12px',
+                        marginBottom: '0.75rem', textAlign: 'center',
                     }}>
-                        {opponents.map((p) => (
-                            <div key={p.sessionId} style={{
-                                background: p.status === 'finished' ? '#dcfce7' : '#f1f5f9',
-                                padding: '0.75rem 1.5rem', borderRadius: '12px', textAlign: 'center',
-                            }}>
-                                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{p.name}</div>
-                                <div style={{
-                                    width: '120px', height: '8px', background: '#e2e8f0',
-                                    borderRadius: '4px', overflow: 'hidden',
-                                }}>
-                                    <div style={{
-                                        width: `${p.progress}%`, height: '100%',
-                                        background: p.status === 'finished' ? '#22c55e' : '#3b82f6',
-                                        transition: 'width 0.3s',
-                                    }} />
-                                </div>
-                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                    {p.progress}%
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* My Board */}
-                {me && me.boardValues.length === 81 && (
-                    <>
-                        <SudokuBoard
-                            board={getBoard(me)}
-                            selectedCell={selectedCell}
-                            onCellClick={handleCellClick}
-                        />
-
-                        {gameStatus === 'playing' && (
-                            <NumberPad
-                                onNumberClick={handleNumberClick}
-                                onClear={handleClear}
-                                onToggleNotes={() => setIsNotesMode(!isNotesMode)}
-                                isNotesMode={isNotesMode}
-                            />
-                        )}
-                    </>
-                )}
-
-                {/* Win Modal */}
-                {gameStatus === 'finished' && winnerId && (
-                    <div className={sudokuStyles.modalOverlay}>
-                        <div className={sudokuStyles.modal}>
-                            <h2>{winnerId === me?.id ? '🎉 勝利！' : '😢 敗北...'}</h2>
-                            <p>タイム: {formatTime(time)}</p>
-                            <button onClick={() => { room.leave(); onLeave(); }}>メニューへ</button>
+                        <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1d4ed8' }}>
+                            あなた {me?.name ? `(${me.name})` : ''}
+                        </div>
+                        <div style={{
+                            width: '100%', height: '10px', background: '#dbeafe',
+                            borderRadius: '5px', overflow: 'hidden',
+                        }}>
+                            <div style={{
+                                width: `${myProgress}%`, height: '100%',
+                                background: 'linear-gradient(90deg, #3b82f6, #2563eb)',
+                                transition: 'width 0.3s',
+                                borderRadius: '5px',
+                            }} />
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#3b82f6', marginTop: '0.25rem', fontWeight: 600 }}>
+                            {myProgress}%
                         </div>
                     </div>
-                )}
+
+                    {me && me.boardValues.length === 81 && (
+                        <>
+                            <SudokuBoard
+                                board={getBoard(me)}
+                                selectedCell={selectedCell}
+                                onCellClick={handleCellClick}
+                            />
+
+                            {gameStatus === 'playing' && (
+                                <NumberPad
+                                    onNumberClick={handleNumberClick}
+                                    onClear={handleClear}
+                                    onToggleNotes={() => setIsNotesMode(!isNotesMode)}
+                                    isNotesMode={isNotesMode}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Opponent Board Section */}
+                {opponents.length > 0 && opponents.map((opp) => {
+                    const oppProgress = getFilledPercent(opp);
+                    return (
+                        <div key={opp.sessionId} style={{
+                            flex: '0 1 auto', maxWidth: '320px', minWidth: '200px',
+                            opacity: 0.9,
+                        }}>
+                            {/* Opponent Progress Bar */}
+                            <div style={{
+                                background: opp.status === 'finished' ? '#dcfce7' : '#fef3c7',
+                                padding: '0.75rem 1.25rem', borderRadius: '12px',
+                                marginBottom: '0.75rem', textAlign: 'center',
+                            }}>
+                                <div style={{
+                                    fontWeight: 700, marginBottom: '0.5rem',
+                                    color: opp.status === 'finished' ? '#16a34a' : '#d97706',
+                                }}>
+                                    {opp.name} {opp.status === 'finished' ? '✅' : ''}
+                                </div>
+                                <div style={{
+                                    width: '100%', height: '10px',
+                                    background: opp.status === 'finished' ? '#bbf7d0' : '#fde68a',
+                                    borderRadius: '5px', overflow: 'hidden',
+                                }}>
+                                    <div style={{
+                                        width: `${oppProgress}%`, height: '100%',
+                                        background: opp.status === 'finished'
+                                            ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                                            : 'linear-gradient(90deg, #f59e0b, #d97706)',
+                                        transition: 'width 0.3s',
+                                        borderRadius: '5px',
+                                    }} />
+                                </div>
+                                <div style={{
+                                    fontSize: '0.85rem', marginTop: '0.25rem', fontWeight: 600,
+                                    color: opp.status === 'finished' ? '#16a34a' : '#d97706',
+                                }}>
+                                    {oppProgress}%
+                                </div>
+                            </div>
+
+                            {/* Opponent's Board (read-only, smaller) */}
+                            {opp.boardValues.length === 81 && (
+                                <div style={{ transform: 'scale(0.65)', transformOrigin: 'top center' }}>
+                                    <SudokuBoard
+                                        board={getOpponentBoard(opp)}
+                                        selectedCell={null}
+                                        onCellClick={() => { }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
+
+            {/* Win Modal */}
+            {gameStatus === 'finished' && winnerId && (
+                <div className={sudokuStyles.modalOverlay}>
+                    <div className={sudokuStyles.modal}>
+                        <h2>{winnerId === me?.id ? '🎉 勝利！' : '😢 敗北...'}</h2>
+                        <p>タイム: {formatTime(time)}</p>
+                        <button onClick={() => { room.leave(); onLeave(); }}>メニューへ</button>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
