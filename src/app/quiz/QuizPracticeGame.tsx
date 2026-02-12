@@ -32,9 +32,13 @@ export default function QuizPracticeGame({ onBack }: QuizPracticeGameProps) {
 
         let pool = JSON.parse(JSON.stringify(QUIZ_DATA)); // Deep clone to avoid mutating global data
         if (selectedGenre !== "すべて") {
-            pool = pool.filter((q: any) => q.category === selectedGenre);
-            // Fallback if not enough questions
-            if (pool.length < 10) pool = JSON.parse(JSON.stringify(QUIZ_DATA));
+            const filtered = pool.filter((q: any) => q.category === selectedGenre);
+            if (filtered.length > 0) {
+                pool = filtered;
+            } else {
+                // Only fallback if NO questions found for genre
+                pool = JSON.parse(JSON.stringify(QUIZ_DATA));
+            }
         }
 
         const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
