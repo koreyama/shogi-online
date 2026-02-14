@@ -364,7 +364,9 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                             <GameCard href="/trump" title="大富豪" desc="トランプゲーム" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
                             <GameCard href="/rainbow" title="Rainbow" desc="色と数字のカード" icon={<IconRainbowLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
-                            <GameCard href="/typing" title="Typing Battle" desc="押し合いタイピング" icon={<IconKeyboardLocal size={32} color="#06b6d4" />} color="#06b6d4" />
+                            <div className={styles.desktopOnly}>
+                                <GameCard href="/typing" title="Typing Battle" desc="押し合いタイピング" icon={<IconKeyboardLocal size={32} color="#06b6d4" />} color="#06b6d4" />
+                            </div>
                         </GameSection>
 
                     </div>
