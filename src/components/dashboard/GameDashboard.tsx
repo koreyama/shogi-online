@@ -364,6 +364,7 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                             <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
                             <GameCard href="/trump" title="大富豪" desc="トランプゲーム" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
                             <GameCard href="/rainbow" title="Rainbow" desc="色と数字のカード" icon={<IconRainbowLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
+                            <GameCard href="/typing" title="Typing Battle" desc="押し合いタイピング" icon={<IconKeyboardLocal size={32} color="#06b6d4" />} color="#06b6d4" />
                         </GameSection>
 
                     </div>
@@ -436,5 +437,20 @@ const IconRainbowLocal = ({ size = 24, color = "currentColor" }: { size?: number
         <path d="M12 2a10 10 0 0 0-10 10v4h20v-4a10 10 0 0 0-10-10z" strokeWidth="2" />
         <path d="M12 6a6 6 0 0 0-6 6v4" />
         <path d="M12 10a2 2 0 0 0-2 2v4" />
+    </svg>
+);
+
+const IconKeyboardLocal = ({ size = 24, color = "currentColor" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <line x1="6" y1="8" x2="6" y2="8" />
+        <line x1="10" y1="8" x2="10" y2="8" />
+        <line x1="14" y1="8" x2="14" y2="8" />
+        <line x1="18" y1="8" x2="18" y2="8" />
+        <line x1="6" y1="12" x2="6" y2="12" />
+        <line x1="10" y1="12" x2="10" y2="12" />
+        <line x1="14" y1="12" x2="14" y2="12" />
+        <line x1="18" y1="12" x2="18" y2="12" />
+        <line x1="8" y1="16" x2="16" y2="16" />
     </svg>
 );

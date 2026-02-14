@@ -1,0 +1,444 @@
+/* ============================================
+   Typing Battle - White-based Game Styles
+   ============================================ */
+
+.main {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ─── Header ─── */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    z-index: 10;
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.backBtn:hover {
+    background: #e2e8f0;
+    color: #1f2937;
+}
+
+.timer {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #06b6d4;
+    font-variant-numeric: tabular-nums;
+}
+
+.roomTag {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-family: monospace;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+/* ─── Improved Gauge ─── */
+.gaugeSection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: white;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.gaugePlayerLeft,
+.gaugePlayerRight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 60px;
+}
+
+.gaugePlayerName {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+
+.gaugePlayerScore {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.gaugePlayerLeft .gaugePlayerName {
+    color: #3b82f6;
+}
+
+.gaugePlayerRight .gaugePlayerName {
+    color: #ef4444;
+}
+
+.gaugeContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gaugeTrack {
+    position: relative;
+    width: 100%;
+    height: 36px;
+    background: #f1f5f9;
+    border-radius: 18px;
+    overflow: visible;
+    border: 2px solid #e2e8f0;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.gaugeFillLeft {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 16px 0 0 16px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    transition: width 0.2s ease-out;
+    z-index: 1;
+}
+
+.gaugeFillRight {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    border-radius: 0 16px 16px 0;
+    background: linear-gradient(90deg, #f87171, #ef4444);
+    transition: width 0.2s ease-out;
+    z-index: 1;
+}
+
+.gaugeCenterLine {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: 50%;
+    width: 3px;
+    background: #475569;
+    z-index: 10;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+.gaugeCursor {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border: 3px solid #0f172a;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    transition: left 0.2s ease-out;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.gaugeLabels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    padding: 0 4px;
+    font-weight: 600;
+}
+
+/* ─── Battle Area ─── */
+.battleArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 1.5rem;
+}
+
+.wordArea {
+    text-align: center;
+    background: white;
+    padding: 40px 50px;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    min-width: 320px;
+    max-width: 600px;
+    width: 90%;
+}
+
+.displayWord {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.kanaReading {
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: #94a3b8;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.romajiLine {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+}
+
+.romajiTyped {
+    color: #06b6d4;
+}
+
+.romajiRemaining {
+    color: #cbd5e1;
+}
+
+.nextHint {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    padding: 6px 16px;
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+/* ─── Stats Bar ─── */
+.statsBar {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.statCombo {
+    font-size: 1rem;
+    color: #f59e0b;
+    font-weight: 700;
+}
+
+.statScore {
+    font-size: 1rem;
+    color: #06b6d4;
+    font-weight: 700;
+}
+
+.statMiss {
+    font-size: 1rem;
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* ─── Overlays ─── */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(248, 250, 252, 0.97);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+}
+
+.overlayTitle {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 1rem;
+}
+
+.roomIdBox {
+    font-size: 1rem;
+    color: #475569;
+    font-family: monospace;
+    margin-bottom: 2rem;
+    padding: 10px 24px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.playerList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+.playerCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    color: #1f2937;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.hostTag {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    background: #06b6d4;
+    color: white;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.countdownNum {
+    font-size: 7rem;
+    font-weight: 900;
+    color: #06b6d4;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+/* ─── Action Button ─── */
+.actionButton {
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+}
+
+.actionButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+}
+
+.actionButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ─── Results ─── */
+.resultWin {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 900;
+    color: #f59e0b;
+    margin-bottom: 2rem;
+}
+
+.resultDraw {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 900;
+    color: #94a3b8;
+    margin-bottom: 2rem;
+}
+
+.resultLose {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 900;
+    color: #64748b;
+    margin-bottom: 2rem;
+}
+
+.resultGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.resultItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 20px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    min-width: 90px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.resultLabel {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.resultValue {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #06b6d4;
+}
+
+/* ─── Error Container ─── */
+.errorContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

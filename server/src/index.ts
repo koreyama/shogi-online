@@ -113,6 +113,9 @@ gameServer.define("sudoku_room", SudokuRoom)
 import { QuizRoom } from "./rooms/QuizRoom";
 gameServer.define("quiz", QuizRoom);
 
+import { TypingRoom } from "./rooms/TypingRoom";
+gameServer.define("typing", TypingRoom);
+
 import { LobbyRoom } from "./rooms/LobbyRoom";
 gameServer.define("lobby", LobbyRoom);
 console.log("Registered LobbyRoom");

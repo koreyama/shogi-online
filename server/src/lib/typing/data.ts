@@ -1,0 +1,141 @@
+
+export const TYPING_WORDS = [
+    // --- Easy (Short) ---
+    { word: "neko", display: "猫", kana: "ねこ" },
+    { word: "inu", display: "犬", kana: "いぬ" },
+    { word: "sora", display: "空", kana: "そら" },
+    { word: "umi", display: "海", kana: "うみ" },
+    { word: "yume", display: "夢", kana: "ゆめ" },
+    { word: "hana", display: "花", kana: "はな" },
+    { word: "kaze", display: "風", kana: "かぜ" },
+    { word: "niwa", display: "庭", kana: "にわ" },
+    { word: "mado", display: "窓", kana: "まど" },
+    { word: "kagi", display: "鍵", kana: "かぎ" },
+
+    // --- Normal (Medium) ---
+    { word: "ringo", display: "林檎", kana: "りんご" },
+    { word: "mikan", display: "蜜柑", kana: "みかん" },
+    { word: "sakura", display: "桜", kana: "さくら" },
+    { word: "megane", display: "眼鏡", kana: "めがね" },
+    { word: "keitai", display: "携帯", kana: "けいたい" },
+    { word: "kamera", display: "カメラ", kana: "かめら" },
+    { word: "rajio", display: "ラジオ", kana: "らじお" },
+    { word: "piano", display: "ピアノ", kana: "ぴあの" },
+    { word: "gitah", display: "ギター", kana: "ぎたー" }, // Extended romanization handling might be needed later
+    { word: "gitaa", display: "ギター", kana: "ぎたー" },
+
+    // --- Hard (Long / Complex) ---
+    { word: "pasokon", display: "パソコン", kana: "ぱそこん" },
+    { word: "intahnetsuto", display: "インターネット", kana: "いんたーねっと" },
+    { word: "inta-netto", display: "インターネット", kana: "いんたーねっと" },
+    { word: "shinkansen", display: "新幹線", kana: "しんかんせん" },
+    { word: "reizouko", display: "冷蔵庫", kana: "れいぞうこ" },
+    { word: "senpuki", display: "扇風機", kana: "せんぷうき" },
+    { word: "kousaten", display: "交差点", kana: "こうさてん" },
+    { word: "bijutsukan", display: "美術館", kana: "びじゅつかん" },
+    { word: "suizokukan", display: "水族館", kana: "すいぞくかん" },
+    { word: "doubutsuen", display: "動物園", kana: "どうぶつえん" },
+    { word: "yuuenchi", display: "遊園地", kana: "ゆうえんち" },
+
+    // --- Tech / Programming ---
+    { word: "taipusukuriputo", display: "TypeScript", kana: "たいぷすくりぷと" },
+    { word: "javasukuriputo", display: "JavaScript", kana: "じゃばすくりぷと" },
+    { word: "ri-akuto", display: "React", kana: "りあくと" },
+    { word: "nextojs", display: "Next.js", kana: "ねくすとじぇいえす" },
+    { word: "faia-be-su", display: "Firebase", kana: "ふぁいあべーす" },
+    { word: "kuraudofurea", display: "Cloudflare", kana: "くらうどふれあ" },
+
+    // ====== 学校 ======
+    { word: "kyoushitsu", display: "教室", kana: "きょうしつ" },
+    { word: "kokuban", display: "黒板", kana: "こくばん" },
+    { word: "enpitsu", display: "鉛筆", kana: "えんぴつ" },
+    { word: "shukudai", display: "宿題", kana: "しゅくだい" },
+    { word: "kyuushoku", display: "給食", kana: "きゅうしょく" },
+    { word: "taiikukan", display: "体育館", kana: "たいいくかん" },
+    { word: "undoukai", display: "運動会", kana: "うんどうかい" },
+    { word: "bunkasai", display: "文化祭", kana: "ぶんかさい" },
+    { word: "shuuyaku_ryokou", display: "修学旅行", kana: "しゅうがくりょこう" },
+    { word: "sotsugyoushiki", display: "卒業式", kana: "そつぎょうしき" },
+
+    // ====== 家・生活 ======
+    { word: "genkan", display: "玄関", kana: "げんかん" },
+    { word: "daidokoro", display: "台所", kana: "だいどころ" },
+    { word: "furo", display: "風呂", kana: "ふろ" },
+    { word: "shinshitsu", display: "寝室", kana: "しんしつ" },
+    { word: "sentakuki", display: "洗濯機", kana: "せんたくき" },
+    { word: "soujiki", display: "掃除機", kana: "そうじき" },
+    { word: "suihanki", display: "炊飯器", kana: "すいはんき" },
+    { word: "denshirenji", display: "電子レンジ", kana: "でんしれんじ" },
+    { word: "haburashi", display: "歯ブラシ", kana: "はぶらし" },
+    { word: "sekken", display: "石鹸", kana: "せっけん" },
+
+    // ====== 料理 ======
+    { word: "kare-raisu", display: "カレーライス", kana: "かれーらいす" },
+    { word: "hanba-gu", display: "ハンバーグ", kana: "はんばーぐ" },
+    { word: "omuraisu", display: "オムライス", kana: "おむらいす" },
+    { word: "sushi", display: "寿司", kana: "すし" },
+    { word: "tenpura", display: "天ぷら", kana: "てんぷら" },
+    { word: "yakiniku", display: "焼き肉", kana: "やきにく" },
+    { word: "ra-men", display: "ラーメン", kana: "らーめん" },
+    { word: "udon", display: "うどん", kana: "うどん" },
+    { word: "pasuta", display: "パスタ", kana: "ぱすた" },
+    { word: "piza", display: "ピザ", kana: "ぴざ" },
+
+    // ====== 職業 ======
+    { word: "isha", display: "医者", kana: "いしゃ" },
+    { word: "kangoshi", display: "看護師", kana: "かんごし" },
+    { word: "keisatsukan", display: "警察官", kana: "けいさつかん" },
+    { word: "shouboushi", display: "消防士", kana: "しょうぼうし" },
+    { word: "pairotto", display: "パイロット", kana: "ぱいろっと" },
+    { word: "sensei", display: "先生", kana: "せんせい" },
+    { word: "kashu", display: "歌手", kana: "かしゅ" },
+    { word: "haiyuu", display: "俳優", kana: "はいゆう" },
+    { word: "seiyuu", display: "声優", kana: "せいゆう" },
+    { word: "yuchuba", display: "YouTuber", kana: "ゆーちゅーばー" },
+
+    // ====== 感情・様子 ======
+    { word: "tanoshii", display: "楽しい", kana: "たのしい" },
+    { word: "ureshii", display: "嬉しい", kana: "うれしい" },
+    { word: "omoshiroi", display: "面白い", kana: "おもしろい" },
+    { word: "utsukushii", display: "美しい", kana: "うつくしい" },
+    { word: "muzukashii", display: "難しい", kana: "むずかしい" },
+    { word: "kantan", display: "簡単", kana: "かんたん" },
+    { word: "nemui", display: "眠い", kana: "ねむい" },
+    { word: "subarashii", display: "素晴らしい", kana: "すばらしい" },
+    { word: "natsukashii", display: "懐かしい", kana: "なつかしい" },
+    { word: "hazukashii", display: "恥ずかしい", kana: "はずかしい" },
+
+    // ====== 動詞 ======
+    { word: "hashiru", display: "走る", kana: "はしる" },
+    { word: "taberu", display: "食べる", kana: "たべる" },
+    { word: "manabu", display: "学ぶ", kana: "まなぶ" },
+    { word: "kangaeru", display: "考える", kana: "かんがえる" },
+    { word: "warau", display: "笑う", kana: "わらう" },
+    { word: "sagasu", display: "探す", kana: "さがす" },
+    { word: "tsukuru", display: "作る", kana: "つくる" },
+    { word: "asobu", display: "遊ぶ", kana: "あそぶ" },
+    { word: "utau", display: "歌う", kana: "うたう" },
+    { word: "oyogu", display: "泳ぐ", kana: "およぐ" },
+
+    // ====== 自然・天気 ======
+    { word: "taifuu", display: "台風", kana: "たいふう" },
+    { word: "inazuma", display: "稲妻", kana: "いなずま" },
+    { word: "niji", display: "虹", kana: "にじ" },
+    { word: "o-rora", display: "オーロラ", kana: "おーろら" },
+    { word: "mangetsu", display: "満月", kana: "まんげつ" },
+    { word: "seiza", display: "星座", kana: "せいざ" },
+    { word: "amanogawa", display: "天の川", kana: "あまのがわ" },
+    { word: "sabaku", display: "砂漠", kana: "さばく" },
+    { word: "kazan", display: "火山", kana: "かざん" },
+    { word: "doukutsu", display: "洞窟", kana: "どうくつ" },
+
+    // ====== IT用語 (追加) ======
+    { word: "de-tabe-su", display: "データベース", kana: "でーたべーす" },
+    { word: "arugorizumu", display: "アルゴリズム", kana: "あるごりずむ" },
+    { word: "nettowa-ku", display: "ネットワーク", kana: "ねっとわーく" },
+    { word: "sekyuriti", display: "セキュリティ", kana: "せきゅりてぃ" },
+    { word: "debaggu", display: "デバッグ", kana: "でばっぐ" },
+    { word: "kasoutsuuka", display: "仮想通貨", kana: "かそうつうか" },
+    { word: "jinkouchinou", display: "人工知能", kana: "じんこうちのう" },
+    { word: "burokkuche-n", display: "ブロックチェーン", kana: "ぶろっくちぇーん" },
+];
