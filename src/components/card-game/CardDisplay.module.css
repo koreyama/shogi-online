@@ -49,50 +49,61 @@
     .small {
         width: 100%;
         height: auto;
-        aspect-ratio: 2 / 3;
-        font-size: 1rem;
-        /* Maximize size */
-    }
-
-    .small .description {
-        height: auto;
-        font-size: 0.95em;
-        /* Large description */
-        line-height: 1.3;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        /* Allow more lines */
-        -webkit-box-orient: vertical;
+        aspect-ratio: 5 / 7;
+        font-size: 0.65rem;
+        border-radius: 8px;
     }
 
     .small .header {
         height: auto;
-        min-height: 34px;
-        padding: 0.3rem 0.5rem;
+        min-height: 22px;
+        padding: 0.15rem 0.3rem;
     }
 
     .small .cost {
-        font-size: 0.8em;
+        font-size: 0.75em;
+        padding: 1px 4px;
+    }
+
+    .small .name {
+        font-size: 0.85em;
     }
 
     .small .imageArea {
-        min-height: 40px;
-        padding: 0.25rem;
+        min-height: 24px;
+        padding: 0.15rem;
     }
 
     .small .body {
         height: auto;
-        /* Allow growing */
-        min-height: 60px;
-        padding: 0.25rem;
-        gap: 2px;
+        min-height: 30px;
+        padding: 0.15rem 0.2rem;
+        gap: 1px;
+    }
+
+    .small .type {
+        font-size: 0.65em;
+    }
+
+    .small .description {
+        height: auto;
+        font-size: 0.7em;
+        line-height: 1.2;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
 
     .small .footer {
         height: auto;
-        min-height: 24px;
-        padding: 0.25rem;
+        min-height: 18px;
+        padding: 0.1rem 0.2rem;
+    }
+
+    .small .value {
+        font-size: 0.65em;
+        padding: 0 2px;
     }
 }
 

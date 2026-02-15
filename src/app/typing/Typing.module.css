@@ -209,6 +209,8 @@
     letter-spacing: 0.05em;
     margin-bottom: 8px;
     line-height: 1.2;
+    word-break: break-all;
+    overflow-wrap: break-word;
 }
 
 .kanaReading {
@@ -216,6 +218,8 @@
     color: #94a3b8;
     margin-bottom: 20px;
     font-weight: 500;
+    word-break: break-all;
+    overflow-wrap: break-word;
 }
 
 .romajiLine {
@@ -223,6 +227,8 @@
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: 0.1em;
     font-weight: 700;
+    word-break: break-all;
+    overflow-wrap: break-word;
 }
 
 .romajiTyped {

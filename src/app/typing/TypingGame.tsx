@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './Typing.module.css';
 import { client } from '@/lib/colyseus';
 import { Room } from 'colyseus.js';
-import { IconBack } from '@/components/Icons';
+import { IconBack, IconClock, IconFlame, IconTrophy, IconSkull, IconSwords } from '@/components/Icons';
 import { TYPING_WORDS, TypingWord } from '@/lib/typing/data';
 import { db } from '@/lib/firebase';
 import { ref, set, onDisconnect, remove } from 'firebase/database';
@@ -15,6 +15,16 @@ interface TypingGameProps {
     roomId?: string;
     password?: string;
     onBack: () => void;
+}
+
+// Fisher-Yates shuffle
+function shuffleArray<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
 
 // ─── Typing Sound System ───
@@ -249,10 +259,20 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
     const [combo, setCombo] = useState(0);
     const [totalTyped, setTotalTyped] = useState(0);
     const [missCount, setMissCount] = useState(0);
+    const [wordsCleared, setWordsCleared] = useState(0);
 
     const roomRef = useRef<Room | null>(null);
+    const wordQueueRef = useRef<TypingWord[]>([]);
 
-    const pickRandom = useCallback(() => TYPING_WORDS[Math.floor(Math.random() * TYPING_WORDS.length)], []);
+    // Filter valid words (must have patterns)
+    const validWords = React.useMemo(() => TYPING_WORDS.filter(w => w.patterns.length > 0 && w.patterns.every(p => p.length > 0)), []);
+
+    const pickNext = useCallback(() => {
+        if (wordQueueRef.current.length === 0) {
+            wordQueueRef.current = shuffleArray(validWords);
+        }
+        return wordQueueRef.current.pop()!;
+    }, [validWords]);
 
     // Connect to Colyseus
     useEffect(() => {
@@ -299,12 +319,16 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
                 });
 
                 r.onMessage("game_start", () => {
-                    const w = pickRandom();
+                    // Reset queue on start
+                    wordQueueRef.current = shuffleArray(validWords);
+
+                    const w = pickNext();
                     setEngine(initEngine(w));
-                    setNextWord(pickRandom());
+                    setNextWord(pickNext());
                     setCombo(0);
                     setTotalTyped(0);
                     setMissCount(0);
+                    setWordsCleared(0);
                 });
             } catch (e: any) {
                 setError(e.message || '接続に失敗しました');
@@ -317,7 +341,7 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
             roomRef.current?.leave();
             roomRef.current = null;
         };
-    }, []);
+    }, [validWords, pickNext, userData.name, password, mode, roomId]);
 
     // Key handler
     useEffect(() => {
@@ -339,8 +363,9 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
                     typingSound.playWordComplete();
                     const nw = nextWord!;
                     setEngine(initEngine(nw));
-                    setNextWord(pickRandom());
+                    setNextWord(pickNext());
                     setCombo(prev => prev + 1);
+                    setWordsCleared(prev => prev + 1);
                     roomRef.current?.send("type", { damage: 3 });
                 } else {
                     setEngine(newState);
@@ -354,7 +379,7 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [phase, engine, nextWord, pickRandom]);
+    }, [phase, engine, nextWord, pickNext]);
 
     const handleStart = () => { roomRef.current?.send("start"); };
 
@@ -388,7 +413,7 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
                 <button className={styles.backBtn} onClick={onBack}>
                     <IconBack size={16} /> 退出
                 </button>
-                <div className={styles.timer}>⏱ {formatTime(timeRemaining)}</div>
+                <div className={styles.timer}><IconClock size={18} style={{ marginRight: 4 }} /> {formatTime(timeRemaining)}</div>
                 <div className={styles.roomTag}>
                     {roomRef.current?.roomId ? `ID: ${roomRef.current.roomId.slice(0, 6)}` : ''}
                 </div>
@@ -425,13 +450,13 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
             {phase === 'battle' && engine && (
                 <div className={styles.battleArea}>
                     <div className={styles.wordArea}>
-                        <div className={styles.displayWord}>{engine.word.display}</div>
+                        <div className={styles.displayWord} style={{ fontSize: engine.word.display.length > 5 ? '2.5rem' : '3.5rem' }}>{engine.word.display}</div>
                         <div className={styles.kanaReading}>{engine.word.kana}</div>
                         <div className={styles.romajiLine}>
-                            <span className={styles.romajiTyped}>{engine.confirmedRomaji}</span>
-                            <span className={styles.romajiTyped}>{engine.currentTyped}</span>
-                            <span className={styles.romajiRemaining}>{engine.currentRemaining}</span>
-                            <span className={styles.romajiRemaining}>{engine.futureRomaji}</span>
+                            <span className={styles.romajiTyped} style={{ fontSize: engine.currentTyped.length + engine.currentRemaining.length + engine.futureRomaji.length > 25 ? '1.1rem' : '1.5rem' }}>{engine.confirmedRomaji}</span>
+                            <span className={styles.romajiTyped} style={{ fontSize: engine.currentTyped.length + engine.currentRemaining.length + engine.futureRomaji.length > 25 ? '1.1rem' : '1.5rem' }}>{engine.currentTyped}</span>
+                            <span className={styles.romajiRemaining} style={{ fontSize: engine.currentTyped.length + engine.currentRemaining.length + engine.futureRomaji.length > 25 ? '1.1rem' : '1.5rem' }}>{engine.currentRemaining}</span>
+                            <span className={styles.romajiRemaining} style={{ fontSize: engine.currentTyped.length + engine.currentRemaining.length + engine.futureRomaji.length > 25 ? '1.1rem' : '1.5rem' }}>{engine.futureRomaji}</span>
                         </div>
                     </div>
 
@@ -440,7 +465,7 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
                     )}
 
                     <div className={styles.statsBar}>
-                        <span className={styles.statCombo}>🔥 {combo} combo</span>
+                        <span className={styles.statCombo}><IconFlame size={20} color="#f59e0b" /> {combo} combo</span>
                         <span className={styles.statScore}>Score: {mePlayer?.score || 0}</span>
                         <span className={styles.statMiss}>Miss: {missCount}</span>
                     </div>
@@ -455,7 +480,7 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
                             <IconBack size={16} /> 退出
                         </button>
                     </div>
-                    <h1 className={styles.overlayTitle}>⌨️ Typing Battle</h1>
+                    <h1 className={styles.overlayTitle}><IconSwords size={32} style={{ marginRight: 8 }} /> Typing Battle</h1>
                     <div className={styles.roomIdBox}>Room: {roomRef.current?.roomId || '---'}</div>
                     <div className={styles.playerList}>
                         {players.map(p => (
@@ -482,13 +507,15 @@ export default function TypingGame({ userData, mode = 'create', roomId, password
             {phase === 'finished' && (
                 <div className={styles.overlay}>
                     <div className={winnerId === mySessionId ? styles.resultWin : (winnerId === 'draw' ? styles.resultDraw : styles.resultLose)}>
-                        {winnerId === mySessionId ? '🏆 WIN!' : (winnerId === 'draw' ? '🤝 DRAW' : '💀 LOSE...')}
+                        {winnerId === mySessionId ? <><IconTrophy size={48} /> 勝利！</> : (winnerId === 'draw' ? '🤝 引き分け' : <><IconSkull size={48} /> 敗北...</>)}
                     </div>
                     <div className={styles.resultGrid}>
-                        <div className={styles.resultItem}><span className={styles.resultLabel}>Typed</span><span className={styles.resultValue}>{totalTyped}</span></div>
-                        <div className={styles.resultItem}><span className={styles.resultLabel}>Words</span><span className={styles.resultValue}>{combo}</span></div>
-                        <div className={styles.resultItem}><span className={styles.resultLabel}>Score</span><span className={styles.resultValue}>{mePlayer?.score || 0}</span></div>
-                        <div className={styles.resultItem}><span className={styles.resultLabel}>Miss</span><span className={styles.resultValue}>{missCount}</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>スコア</span><span className={styles.resultValue}>{mePlayer?.score || 0}</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>正確率</span><span className={styles.resultValue}>{totalTyped + missCount > 0 ? Math.floor((totalTyped / (totalTyped + missCount)) * 100) : 0}%</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>平均速度</span><span className={styles.resultValue}>{Math.floor(totalTyped / Math.max((180 - timeRemaining) / 60, 0.01))} kpm</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>クリア単語</span><span className={styles.resultValue}>{wordsCleared}</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>タイプ数</span><span className={styles.resultValue}>{totalTyped}</span></div>
+                        <div className={styles.resultItem}><span className={styles.resultLabel}>ミス</span><span className={styles.resultValue}>{missCount}</span></div>
                     </div>
                     <button className={styles.actionButton} onClick={onBack}>ロビーに戻る</button>
                 </div>
