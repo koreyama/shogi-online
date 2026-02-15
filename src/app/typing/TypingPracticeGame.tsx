@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Typing.module.css';
 import { TYPING_WORDS, TypingWord } from '@/lib/typing/data';
 
@@ -284,6 +284,16 @@ function getRank(score: number, config: DifficultyConfig): { rank: string; color
     return { rank: 'D', color: '#9ca3af', label: '練習中' };
 }
 
+// Fisher-Yates shuffle
+function shuffleArray<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) {
     const [phase, setPhase] = useState<'menu' | 'countdown' | 'playing' | 'finished'>('menu');
     const [difficulty, setDifficulty] = useState<Difficulty>('normal');
@@ -301,12 +311,24 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
 
     const config = DIFFICULTY_CONFIGS[difficulty];
 
-    const wordPool = useMemo(() => {
-        const filtered = TYPING_WORDS.filter(w => w.kana.length >= config.minKana && w.kana.length <= config.maxKana && w.patterns.length > 0);
-        return filtered.length > 0 ? filtered : TYPING_WORDS.filter(w => w.patterns.length > 0);
-    }, [config.minKana, config.maxKana]);
+    // Shuffled word queue - no duplicates until all words used
+    const wordQueueRef = React.useRef<TypingWord[]>([]);
 
-    const pickRandom = useCallback(() => wordPool[Math.floor(Math.random() * wordPool.length)], [wordPool]);
+    const getFilteredPool = useCallback((cfg: DifficultyConfig) => {
+        const filtered = TYPING_WORDS.filter(w =>
+            w.kana.length >= cfg.minKana && w.kana.length <= cfg.maxKana &&
+            w.patterns.length > 0 &&
+            w.patterns.every(p => p.length > 0 && p.every(s => /^[a-z\-]+$/.test(s)))
+        );
+        return filtered.length > 0 ? filtered : TYPING_WORDS.filter(w => w.patterns.length > 0 && w.patterns.every(p => p.length > 0 && p.every(s => /^[a-z\-]+$/.test(s))));
+    }, []);
+
+    const pickNext = useCallback(() => {
+        if (wordQueueRef.current.length === 0) {
+            wordQueueRef.current = shuffleArray(getFilteredPool(config));
+        }
+        return wordQueueRef.current.pop()!;
+    }, [config, getFilteredPool]);
 
     const startGame = (diff: Difficulty) => {
         const cfg = DIFFICULTY_CONFIGS[diff];
@@ -314,11 +336,13 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
         setCombo(0); setMaxCombo(0); setTotalTyped(0); setMissCount(0);
         setWordsCompleted(0); setScore(0); setShowRank(false);
         setTimeRemaining(cfg.duration);
-        const pool = TYPING_WORDS.filter(w => w.kana.length >= cfg.minKana && w.kana.length <= cfg.maxKana && w.patterns.length > 0);
-        const actualPool = pool.length > 0 ? pool : TYPING_WORDS.filter(w => w.patterns.length > 0);
-        const pick = () => actualPool[Math.floor(Math.random() * actualPool.length)];
-        setEngine(initEngine(pick()));
-        setNextWord(pick());
+        // Build shuffled queue
+        const pool = getFilteredPool(cfg);
+        wordQueueRef.current = shuffleArray(pool);
+        const w1 = wordQueueRef.current.pop()!;
+        const w2 = wordQueueRef.current.pop() || w1;
+        setEngine(initEngine(w1));
+        setNextWord(w2);
         setCountdown(3); setPhase('countdown');
         let count = 3;
         const timer = setInterval(() => { count--; setCountdown(count); if (count <= 0) { clearInterval(timer); setPhase('playing'); } }, 1000);
@@ -344,7 +368,7 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key.length > 1) return;
             const key = e.key.toLowerCase();
-            if (key.length !== 1) return;
+            if (!/^[a-z\-]$/.test(key)) return;
             const { newState, matched, wordCompleted } = processKey(engine, key);
             if (matched) {
                 typingSound.playType();
@@ -352,7 +376,8 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                 setScore(prev => prev + config.scorePerKey + (Math.min(combo, 50) * config.comboBonus));
                 if (wordCompleted) {
                     typingSound.playWordComplete();
-                    setEngine(initEngine(nextWord!)); setNextWord(pickRandom());
+                    const nw = pickNext();
+                    setEngine(initEngine(nextWord!)); setNextWord(nw);
                     setCombo(prev => { const nc = prev + 1; setMaxCombo(mc => Math.max(mc, nc)); return nc; });
                     setWordsCompleted(prev => prev + 1);
                     setScore(prev => prev + config.wordBonus);
@@ -366,7 +391,7 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [phase, engine, nextWord, pickRandom, combo, config]);
+    }, [phase, engine, nextWord, pickNext, combo, config]);
 
     const elapsed = config.duration - timeRemaining;
     const wpm = elapsed > 0 ? Math.round((totalTyped / 5) / (elapsed / 60)) : 0;
