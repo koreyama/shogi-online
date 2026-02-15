@@ -241,10 +241,10 @@ const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
         minKana: 2, maxKana: 5, duration: 60,
         scorePerKey: 10, comboBonus: 2, wordBonus: 50,
         ranks: [
-            { score: 5000, rank: 'S', color: '#eab308', label: '神' },
-            { score: 3500, rank: 'A', color: '#f97316', label: '達人' },
-            { score: 2000, rank: 'B', color: '#3b82f6', label: '上級' },
-            { score: 1000, rank: 'C', color: '#64748b', label: '初級' },
+            { score: 6000, rank: 'S', color: '#eab308', label: '神' },
+            { score: 4500, rank: 'A', color: '#f97316', label: '達人' },
+            { score: 3000, rank: 'B', color: '#3b82f6', label: '上級' },
+            { score: 1500, rank: 'C', color: '#64748b', label: '初級' },
         ]
     },
     normal: {
@@ -255,10 +255,10 @@ const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
         minKana: 5, maxKana: 9, duration: 60,
         scorePerKey: 12, comboBonus: 3, wordBonus: 80,
         ranks: [
-            { score: 6000, rank: 'S', color: '#eab308', label: '神' },
-            { score: 4000, rank: 'A', color: '#f97316', label: '達人' },
-            { score: 2500, rank: 'B', color: '#3b82f6', label: '上級' },
-            { score: 1200, rank: 'C', color: '#64748b', label: '初級' },
+            { score: 9000, rank: 'S', color: '#eab308', label: '神' },
+            { score: 6500, rank: 'A', color: '#f97316', label: '達人' },
+            { score: 4000, rank: 'B', color: '#3b82f6', label: '上級' },
+            { score: 2000, rank: 'C', color: '#64748b', label: '初級' },
         ]
     },
     hard: {
@@ -269,10 +269,10 @@ const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
         minKana: 9, maxKana: 999, duration: 90,
         scorePerKey: 15, comboBonus: 5, wordBonus: 120,
         ranks: [
-            { score: 8000, rank: 'S', color: '#eab308', label: '神' },
-            { score: 5500, rank: 'A', color: '#f97316', label: '達人' },
-            { score: 3000, rank: 'B', color: '#3b82f6', label: '上級' },
-            { score: 1500, rank: 'C', color: '#64748b', label: '初級' },
+            { score: 15000, rank: 'S', color: '#eab308', label: '神' },
+            { score: 10000, rank: 'A', color: '#f97316', label: '達人' },
+            { score: 6000, rank: 'B', color: '#3b82f6', label: '上級' },
+            { score: 3000, rank: 'C', color: '#64748b', label: '初級' },
         ]
     }
 };
@@ -579,6 +579,18 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                     <p style={{ color: '#94a3b8', fontSize: '0.72rem', marginTop: '1.5rem', textAlign: 'center', lineHeight: 1.6 }}>
                         「し」= si / shi、「ち」= ti / chi など、どんな打ち方でもOK
                     </p>
+
+                    <button className={styles.actionButton} style={{
+                        marginTop: '2rem',
+                        background: 'transparent',
+                        color: '#64748b',
+                        boxShadow: 'none',
+                        border: '1px solid #e2e8f0',
+                        fontSize: '0.9rem',
+                        padding: '10px 24px'
+                    }} onClick={onBack}>
+                        <IconArrowLeft size={16} /> ダッシュボードに戻る
+                    </button>
                 </div>
             )}
 
