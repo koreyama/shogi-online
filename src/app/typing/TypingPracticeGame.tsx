@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Typing.module.css';
 import { TYPING_WORDS, TypingWord } from '@/lib/typing/data';
+import { useAuth } from '@/hooks/useAuth';
+import { saveTypingScore, getTypingRanking, TypingScore } from '@/lib/firebase/typing';
+import { getUserProfile } from '@/lib/firebase/users';
 
 interface TypingPracticeGameProps {
     onBack: () => void;
@@ -295,6 +298,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) {
+    const { user } = useAuth();
     const [phase, setPhase] = useState<'menu' | 'countdown' | 'playing' | 'finished'>('menu');
     const [difficulty, setDifficulty] = useState<Difficulty>('normal');
     const [engine, setEngine] = useState<TypingEngineState | null>(null);
@@ -308,6 +312,11 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
     const [timeRemaining, setTimeRemaining] = useState(60);
     const [countdown, setCountdown] = useState(3);
     const [showRank, setShowRank] = useState(false);
+
+    // Ranking State
+    const [rankingData, setRankingData] = useState<TypingScore[]>([]);
+    const [showRankingModal, setShowRankingModal] = useState(false);
+    const [isLoadingRanking, setIsLoadingRanking] = useState(false);
 
     const config = DIFFICULTY_CONFIGS[difficulty];
 
@@ -392,6 +401,50 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase, engine, nextWord, pickNext, combo, config]);
+
+    // Save Score Logic
+    useEffect(() => {
+        if (phase === 'finished' && user) {
+            const finalDuration = config.duration;
+            const finalWpm = finalDuration > 0 ? Math.round((totalTyped / 5) / (finalDuration / 60)) : 0;
+            const finalAccuracy = totalTyped + missCount > 0 ? Math.round((totalTyped / (totalTyped + missCount)) * 100) : 100;
+
+            // Fetch profile name from RTDB (not Firebase Auth)
+            getUserProfile(user.uid).then(profile => {
+                saveTypingScore(difficulty, {
+                    uid: user.uid,
+                    displayName: profile?.displayName || user.displayName || 'No Name',
+                    photoURL: profile?.photoURL || user.photoURL || ''
+                }, {
+                    score,
+                    wpm: finalWpm,
+                    accuracy: finalAccuracy
+                });
+            });
+        }
+    }, [phase]);
+
+    const handleShowRanking = async (targetDifficulty?: Difficulty | unknown) => {
+        let diff: Difficulty = difficulty;
+        if (typeof targetDifficulty === 'string' && (targetDifficulty === 'easy' || targetDifficulty === 'normal' || targetDifficulty === 'hard')) {
+            diff = targetDifficulty as Difficulty;
+        }
+
+        if (diff !== difficulty) {
+            setDifficulty(diff);
+        }
+
+        setIsLoadingRanking(true);
+        setShowRankingModal(true);
+        try {
+            const data = await getTypingRanking(diff);
+            setRankingData(data);
+        } catch (error) {
+            console.error("Failed to load ranking", error);
+        } finally {
+            setIsLoadingRanking(false);
+        }
+    };
 
     const elapsed = config.duration - timeRemaining;
     const wpm = elapsed > 0 ? Math.round((totalTyped / 5) / (elapsed / 60)) : 0;
@@ -582,6 +635,18 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
 
                     <button className={styles.actionButton} style={{
                         marginTop: '2rem',
+                        background: '#0ea5e9',
+                        color: 'white',
+                        boxShadow: '0 4px 15px rgba(14,165,233,0.3)',
+                        fontSize: '1rem',
+                        padding: '12px 24px',
+                        fontWeight: 700
+                    }} onClick={() => handleShowRanking('easy')}> {/* Default to easy ranking from menu */}
+                        <IconTrophy size={20} /> ランキングを見る
+                    </button>
+
+                    <button className={styles.actionButton} style={{
+                        marginTop: '1rem',
                         background: 'transparent',
                         color: '#64748b',
                         boxShadow: 'none',
@@ -652,8 +717,93 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                     {/* Action Buttons */}
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                         <button className={styles.actionButton} onClick={() => startGame(difficulty)}>もう一度</button>
+                        <button className={styles.actionButton} style={{ background: '#0ea5e9', boxShadow: '0 4px 15px rgba(14,165,233,0.3)' }} onClick={() => handleShowRanking(difficulty)}>
+                            <IconTrophy size={18} /> ランキング
+                        </button>
                         <button className={styles.actionButton} style={{ background: 'linear-gradient(135deg, #64748b, #475569)', boxShadow: '0 4px 15px rgba(100,116,139,0.3)' }} onClick={() => setPhase('menu')}>コース選択</button>
                         <button className={styles.actionButton} style={{ background: 'linear-gradient(135deg, #94a3b8, #64748b)', boxShadow: '0 4px 15px rgba(148,163,184,0.3)' }} onClick={onBack}>戻る</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Ranking Modal (Shared) */}
+            {showRankingModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.7)', zIndex: 100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    animation: 'fadeIn 0.2s ease-out'
+                }} onClick={() => setShowRankingModal(false)}>
+                    <div style={{
+                        background: 'white', padding: '2rem', borderRadius: '24px',
+                        width: '90%', maxWidth: '500px', maxHeight: '80vh',
+                        display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                        transform: 'scale(1)', animation: 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                                <IconTrophy size={32} color="#eab308" />
+                                ランキング
+                            </h2>
+                            {/* Difficulty Tabs */}
+                            <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+                                {(['easy', 'normal', 'hard'] as Difficulty[]).map(d => (
+                                    <button key={d} onClick={() => handleShowRanking(d)}
+                                        style={{
+                                            padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700,
+                                            background: difficulty === d ? 'white' : 'transparent',
+                                            color: difficulty === d ? DIFFICULTY_CONFIGS[d].color : '#94a3b8',
+                                            boxShadow: difficulty === d ? '0 2px 5px rgba(0,0,0,0.05)' : 'none',
+                                            transition: 'all 0.2s'
+                                        }}>
+                                        {DIFFICULTY_CONFIGS[d].label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '10px' }}>
+                            {isLoadingRanking ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>読み込み中...</div>
+                            ) : rankingData.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>まだ記録がありません</div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {rankingData.map((r, i) => (
+                                        <div key={i} style={{
+                                            display: 'flex', alignItems: 'center', padding: '10px 14px',
+                                            background: user?.uid === r.userId ? '#eff6ff' : '#f8fafc',
+                                            borderRadius: '12px', border: user?.uid === r.userId ? '1px solid #3b82f6' : '1px solid #e2e8f0'
+                                        }}>
+                                            <div style={{
+                                                width: '28px', height: '28px', borderRadius: '8px',
+                                                background: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#b45309' : '#e2e8f0',
+                                                color: i <= 2 ? 'white' : '#64748b',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontWeight: 800, fontSize: '0.9rem', marginRight: '12px'
+                                            }}>
+                                                {i + 1}
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.95rem' }}>{r.displayName}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', gap: '8px' }}>
+                                                    <span>WPM: {r.wpm}</span>
+                                                    <span>ACC: {r.accuracy}%</span>
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem', fontFamily: "'Courier New', monospace" }}>
+                                                {r.score.toLocaleString()}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <button className={styles.actionButton} style={{ marginTop: '1.5rem', background: '#f1f5f9', color: '#475569', boxShadow: 'none' }} onClick={() => setShowRankingModal(false)}>
+                            閉じる
+                        </button>
                     </div>
                 </div>
             )}

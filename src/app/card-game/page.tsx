@@ -57,7 +57,7 @@ function CardGameContent() {
     const mode = searchParams.get('mode') || 'local'; // 'local', 'cpu', 'random', 'room'
     const deckId = searchParams.get('deck') || 'warrior_starter';
     const deckType = searchParams.get('deckType') || 'starter';
-    const avatarId = searchParams.get('avatar') || 'warrior_god';
+    const avatarId = searchParams.get('avatar') || (typeof window !== 'undefined' ? localStorage.getItem('card_game_selected_avatar') : null) || 'warrior_god';
     const roomId = searchParams.get('roomId'); // Standardized param name
     const create = searchParams.get('create') === 'true';
 

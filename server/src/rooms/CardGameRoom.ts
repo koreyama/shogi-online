@@ -280,6 +280,7 @@ export class CardGameRoom extends Room<CardGameState> {
             pSchema.money = pSource.money;
             pSchema.ultimateUsed = pSource.ultimateUsed;
             pSchema.isManaChargeMode = !!pSource.isManaChargeMode; // Force boolean
+            pSchema.fatigueDamage = pSource.fatigueDamage || 0;
 
             syncStringArray(pSchema.hand, pSource.hand);
             syncStringArray(pSchema.deck, pSource.deck);

@@ -62,6 +62,18 @@
                 ".write": "auth != null && auth.uid === $userId"
             }
         },
+        "typing_scores": {
+            "$difficulty": {
+                ".read": true,
+                ".indexOn": [
+                    "score"
+                ],
+                "$uid": {
+                    ".read": true,
+                    ".write": "auth != null && auth.uid === $uid"
+                }
+            }
+        },
         "users": {
             "$uid": {
                 ".read": true,

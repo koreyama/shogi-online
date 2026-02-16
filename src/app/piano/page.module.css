@@ -60,8 +60,249 @@
 .subtitle {
     color: #888;
     font-size: 0.8rem;
-    margin-top: 0.5rem;
-    letter-spacing: 1px;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.songSelectorRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.selectorGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.playBtn {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.playBtn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.playBtn.playing {
+    background: #ef4444;
+}
+
+.playBtn.playing:hover {
+    background: #dc2626;
+}
+
+.toggleGroup {
+    display: flex;
+    background: #e2e8f0;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+.toggleBtn {
+    border: none;
+    background: transparent;
+    padding: 4px 12px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.toggleBtn.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sheetMusicDisplay {
+    background: #fff;
+    padding: 1rem 1rem 3rem 4rem;
+    /* Left padding for Clef */
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+    position: relative;
+    min-height: 200px;
+}
+
+
+
+.scoreContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    justify-content: flex-start;
+    /* Left align flow */
+    row-gap: 4rem;
+}
+
+.measure {
+    display: flex;
+    position: relative;
+    padding: 0 1.5rem;
+    align-items: flex-end;
+    /* Align notes to bottom for relative positioning */
+    /* Staff lines removed */
+    background: transparent;
+    border-bottom: 1px solid #e2e8f0;
+    /* Keeping a baseline */
+    align-items: flex-end;
+}
+
+/* Removed barLine sizing dependency on staff height? Actually let's keep it simple. */
+.barLine {
+    width: 2px;
+    height: 100%;
+    background-color: #cbd5e1;
+    margin-left: 1rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.scoreNote {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0 0.5rem;
+    position: relative;
+    height: 40px;
+    /* Base height anchor */
+    width: 30px;
+    /* Inline style will transform translateY or marginBottom */
+}
+
+/* Note Visuals */
+.noteVisual {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Override flex for absolute positioning of parts */
+}
+
+.noteHead {
+    position: absolute;
+    bottom: -5px;
+    /* Center on the '0' line */
+    left: 50%;
+    transform: translateX(-50%) rotate(-15deg);
+    width: 14px;
+    height: 10px;
+    background: #1e293b;
+    border-radius: 50%;
+    z-index: 2;
+    transition: all 0.1s;
+}
+
+.noteStem {
+    position: absolute;
+    right: 8px;
+    /* Adjust based on head width */
+    bottom: -5px;
+    /* Start from head center */
+    width: 1px;
+    height: 35px;
+    /* Stem length */
+    background: #1e293b;
+    z-index: 1;
+}
+
+.stemDown {
+    right: auto;
+    left: 8px;
+    bottom: auto;
+    top: 5px;
+    /* Start from head center down */
+    transform: translateY(100%);
+    /* Wait, top is relative. */
+    /* Actually simpler: */
+    top: 5px;
+    bottom: auto;
+}
+
+/* Fix stem down logic:
+   If stem down, it attaches to left side of head and goes down.
+   Base position is center of head.
+   If Stem Up: Bottom=Center, goes up.
+   If Stem Down: Top=Center, goes down.
+*/
+.scoreNote .noteStem.stemDown {
+    right: auto;
+    left: 7px;
+    bottom: auto;
+    top: 0px;
+    /* From center of head roughly */
+    /* We need to push it down */
+    transform-origin: top;
+    height: 35px;
+}
+
+/* Ledger Line */
+
+
+/* Half/Whole Styles */
+.scoreNote.half .noteHead,
+.scoreNote.whole .noteHead {
+    background: transparent;
+    border: 2px solid #1e293b;
+    box-sizing: border-box;
+}
+
+.scoreNote.whole .noteStem {
+    display: none;
+}
+
+.noteLabel {
+    position: absolute;
+    bottom: -35px;
+    /* Below the staff */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+/* Active State */
+.activeNote .noteHead {
+    background: #f59e0b;
+    /* Orange */
+    transform: translateX(-50%) rotate(-15deg) scale(1.2);
+}
+
+.activeNote.half .noteHead,
+.activeNote.whole .noteHead {
+    border-color: #f59e0b;
+    background: transparent;
+}
+
+.activeNote .noteLabel {
+    color: #f59e0b;
+    font-weight: 800;
 }
 
 /* Control Panel */

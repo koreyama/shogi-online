@@ -53,6 +53,7 @@ export interface PlayerState {
     ultimateUsed: boolean;
     isManaChargeMode?: boolean;
     selectedForCharge?: number[]; // Indices in hand
+    fatigueDamage?: number; // Accumulated fatigue damage
 }
 
 export type Player = PlayerState;

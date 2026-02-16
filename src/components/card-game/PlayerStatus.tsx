@@ -55,10 +55,16 @@ export const PlayerStatus: React.FC<PlayerStatusProps> = ({ player, isOpponent }
                     </div>
                 </div>
 
-                {/* Mana Zone Count */}
-                <div className={styles.manaZoneInfo}>
-                    <span className={styles.manaLabel}>マナゾーン:</span>
-                    <span className={styles.manaValue}>{player.manaZone?.length || 0}</span>
+                {/* Resources: Deck & Mana */}
+                <div className={styles.resourceRow}>
+                    <div className={styles.resourceItem}>
+                        <span className={styles.resourceLabel}>山札:</span>
+                        <span className={styles.deckValue}>{player.deck?.length || 0}</span>
+                    </div>
+                    <div className={styles.resourceItem}>
+                        <span className={styles.resourceLabel}>マナ:</span>
+                        <span className={styles.manaValue}>{player.manaZone?.length || 0}</span>
+                    </div>
                 </div>
 
                 <div className={styles.equipment}>

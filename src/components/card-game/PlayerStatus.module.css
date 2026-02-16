@@ -130,17 +130,28 @@
     border-radius: 0 0 4px 4px;
 }
 
-.manaZoneInfo {
+.resourceRow {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 12px;
     font-size: 0.7rem;
     color: #64748b;
     padding-left: 4px;
 }
 
-.manaLabel {
+.resourceItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.resourceLabel {
     font-weight: bold;
+}
+
+.deckValue {
+    font-weight: 800;
+    color: #8b5cf6;
 }
 
 .manaValue {

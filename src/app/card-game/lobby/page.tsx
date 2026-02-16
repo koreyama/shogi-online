@@ -17,6 +17,25 @@ export default function LobbyPage() {
     const router = useRouter();
     const { user, signInWithGoogle, signOut } = useAuth();
     const [selectedAvatarId, setSelectedAvatarId] = useState(AVATAR_LIST[0].id);
+
+    // Load persisted avatar selection
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('card_game_selected_avatar');
+            if (saved && AVATAR_LIST.some(a => a.id === saved)) {
+                setSelectedAvatarId(saved);
+            }
+        }
+    }, []);
+
+    // Save selection
+    const handleSelectAvatar = (id: string) => {
+        setSelectedAvatarId(id);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('card_game_selected_avatar', id);
+        }
+    };
+
     const [showDeckBuilder, setShowDeckBuilder] = useState(false);
     const [myDecks, setMyDecks] = useState<{ id: string, name: string, cards: string[] }[]>([]);
     const [selectedDeckId, setSelectedDeckId] = useState<string>('');
@@ -271,7 +290,7 @@ export default function LobbyPage() {
                                 <div
                                     key={avatar.id}
                                     className={`${styles.avatarCard} ${selectedAvatarId === avatar.id ? styles.selected : ''}`}
-                                    onClick={() => setSelectedAvatarId(avatar.id)}
+                                    onClick={() => handleSelectAvatar(avatar.id)}
                                 >
                                     {avatar.imageUrl ? (
                                         <div className={styles.avatarImageContainer}>

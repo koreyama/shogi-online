@@ -24,7 +24,8 @@ export function createPlayerState(
         statusEffects: [],
         status: 'alive',
         money: 0,
-        ultimateUsed: false
+        ultimateUsed: false,
+        fatigueDamage: 0
     };
 }
 
@@ -68,14 +69,41 @@ export function drawCards(state: GameState, playerId: string, count: number) {
     const player = state.players[playerId];
     for (let i = 0; i < count; i++) {
         if (!player.deck) player.deck = [];
+
+        // Deck Depletion Logic
         if (player.deck.length === 0) {
-            // Deck Depletion: Draw "Stone"
-            const stoneId = 'special_stone';
-            if (!player.hand) player.hand = [];
-            player.hand.push(stoneId);
-            addLog(state, `山札が尽きた！${player.name}は「石ころ」を拾った。`);
-            continue; // Skip normal draw
+            // Try to Recycle Discard Pile
+            if (player.discardPile && player.discardPile.length > 0) {
+                // Recycle
+                player.deck = [...player.discardPile];
+                player.discardPile = [];
+                // Shuffle
+                player.deck.sort(() => Math.random() - 0.5);
+
+                // Fatigue Damage
+                player.fatigueDamage = (player.fatigueDamage || 0) + 1;
+                const damage = player.fatigueDamage;
+                player.hp = Math.max(0, player.hp - damage);
+
+                addLog(state, `山札が尽きたため、墓地をリサイクルしました。(${player.fatigueDamage}回目の再構築)`);
+                addLog(state, `${player.name}は疲労で${damage}ダメージを受けた！`);
+
+                // Draw from new deck
+                const cardId = player.deck.pop();
+                if (cardId) {
+                    if (!player.hand) player.hand = [];
+                    player.hand.push(cardId);
+                }
+            } else {
+                // Total Exhaustion (No Deck, No Grave): Draw "Stone"
+                const stoneId = 'special_stone';
+                if (!player.hand) player.hand = [];
+                player.hand.push(stoneId);
+                addLog(state, `山札も墓地も尽きた！${player.name}は「石ころ」を拾った。`);
+            }
+            continue;
         }
+
         const cardId = player.deck.pop();
         if (cardId) {
             if (!player.hand) player.hand = [];

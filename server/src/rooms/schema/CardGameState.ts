@@ -45,6 +45,8 @@ export class PlayerStateSchema extends Schema {
     @type([StatusEffectSchema]) statusEffects = new ArraySchema<StatusEffectSchema>();
 
     @type(["number"]) selectedForCharge = new ArraySchema<number>();
+
+    @type("number") fatigueDamage: number = 0;
 }
 
 export class FieldSchema extends Schema {
