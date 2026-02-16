@@ -235,7 +235,7 @@ export default function PianoPage() {
         return () => {
             if (midiAccess) {
                 midiAccess.onstatechange = null;
-                Array.from(midiAccess.inputs.values()).forEach(input => {
+                Array.from(midiAccess.inputs.values()).forEach((input: any) => {
                     input.onmidimessage = null;
                 });
             }
