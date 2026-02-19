@@ -6,6 +6,12 @@ import { TYPING_WORDS, TypingWord } from '@/lib/typing/data';
 import { useAuth } from '@/hooks/useAuth';
 import { saveTypingScore, getTypingRanking, TypingScore } from '@/lib/firebase/typing';
 import { getUserProfile } from '@/lib/firebase/users';
+import { ResultShareModal } from '@/components/sharing/ResultShareModal';
+
+// ... existing imports ...
+// We need to define IconXLogo locally or import it if available in Icons.tsx. 
+// Based on previous file reads, IconXLogo IS in @/components/Icons.
+import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconCards, IconPalette, IconCoin, IconBomb, IconDiscord, IconXLogo } from '@/components/Icons';
 
 interface TypingPracticeGameProps {
     onBack: () => void;
@@ -313,10 +319,14 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
     const [countdown, setCountdown] = useState(3);
     const [showRank, setShowRank] = useState(false);
 
-    // Ranking State
+    import { ResultShareModal } from '@/components/sharing/ResultShareModal';
+    import { IconXLogo } from '@/components/Icons'; // Ensure IconXLogo is imported if used directly, though used in modal
+
+    // ... inside component ...
     const [rankingData, setRankingData] = useState<TypingScore[]>([]);
     const [showRankingModal, setShowRankingModal] = useState(false);
     const [isLoadingRanking, setIsLoadingRanking] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const config = DIFFICULTY_CONFIGS[difficulty];
 
@@ -720,6 +730,9 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                         <button className={styles.actionButton} style={{ background: '#0ea5e9', boxShadow: '0 4px 15px rgba(14,165,233,0.3)' }} onClick={() => handleShowRanking(difficulty)}>
                             <IconTrophy size={18} /> ランキング
                         </button>
+                        <button className={styles.actionButton} style={{ background: 'black', color: 'white', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setShowShareModal(true)}>
+                            <IconXLogo size={16} color="white" /> シェア
+                        </button>
                         <button className={styles.actionButton} style={{ background: 'linear-gradient(135deg, #64748b, #475569)', boxShadow: '0 4px 15px rgba(100,116,139,0.3)' }} onClick={() => setPhase('menu')}>コース選択</button>
                         <button className={styles.actionButton} style={{ background: 'linear-gradient(135deg, #94a3b8, #64748b)', boxShadow: '0 4px 15px rgba(148,163,184,0.3)' }} onClick={onBack}>戻る</button>
                     </div>
@@ -801,11 +814,23 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                             )}
                         </div>
 
-                        <button className={styles.actionButton} style={{ marginTop: '1.5rem', background: '#f1f5f9', color: '#475569', boxShadow: 'none' }} onClick={() => setShowRankingModal(false)}>
+                        <button className={styles.actionButton} style={{ background: '#f1f5f9', color: '#475569', boxShadow: 'none' }} onClick={() => setShowRankingModal(false)}>
                             閉じる
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <ResultShareModal
+                    score={score}
+                    rank={rankInfo.rank}
+                    wpm={wpm}
+                    accuracy={accuracy}
+                    difficulty={difficulty}
+                    onClose={() => setShowShareModal(false)}
+                />
             )}
         </div>
     );
