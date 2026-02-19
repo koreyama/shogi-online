@@ -21,14 +21,8 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const [copied, setCopied] = useState(false);
-    const [canNativeShare, setCanNativeShare] = useState(false);
 
     useEffect(() => {
-        // Check if native sharing is supported
-        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-            // Basic check
-            setCanNativeShare(true);
-        }
         // Auto-generate image
         const timer = setTimeout(() => {
             generateImage();
@@ -66,34 +60,8 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
             await generateImage();
         }
 
-        const shareData = {
-            title: 'Asobi Lounge Typing Result',
-            text: `タイピング練習でスコア ${score.toLocaleString()} (ランク${rank}) を出しました！\n#AsobiLounge`,
-            url: 'https://asobi-lounge.com',
-        };
-
-        // Try Native Share with Image first (Mobile/Tablet)
-        if (imageBlob && navigator.share && navigator.canShare) {
-            const file = new File([imageBlob], 'typing-result.png', { type: 'image/png' });
-            const fileShareData = {
-                files: [file],
-                title: 'Asobi Lounge Result',
-                text: shareData.text,
-                url: shareData.url
-            };
-
-            if (navigator.canShare(fileShareData)) {
-                try {
-                    await navigator.share(fileShareData);
-                    return; // Success, don't open Twitter intent
-                } catch (err) {
-                    console.log('Native file share failed/cancelled', err);
-                    // Continue to fallback
-                }
-            }
-        }
-
-        // Fallback: Clipboard or Download + Twitter Intent
+        // Copy image to clipboard and open Twitter
+        // Since we are strictly targeting X, we don't use navigator.share (which opens generic menu)
         await copyImageToClipboard();
         openTwitterIntent();
     };
@@ -110,7 +78,8 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
     };
 
     const openTwitterIntent = () => {
-        const text = `タイピング練習でスコア ${score.toLocaleString()} (ランク${rank}) を出しました！\nWPM: ${wpm} / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
+        // Format text clearly
+        const text = `【タイピング練習結果】\nスコア: ${score.toLocaleString()}\nランク: ${rank}\nWPM: ${wpm} / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
         const url = "https://asobi-lounge.com";
         const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
         window.open(intentUrl, '_blank');
@@ -192,20 +161,14 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
                 <p className={styles.helperText}>
                     {copied
                         ? "画像をコピーしました！ツイートに貼り付けてください。"
-                        : "画像を自動生成しています..."
+                        : "コピーしてXでシェアしよう！"
                     }
                 </p>
 
                 <div className={styles.actions}>
-                    {canNativeShare ? (
-                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
-                            <IconXLogo size={20} /> シェアする
-                        </button>
-                    ) : (
-                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
-                            <IconXLogo size={20} /> 画像をコピーしてポスト
-                        </button>
-                    )}
+                    <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                        <IconXLogo size={20} /> Xでポスト
+                    </button>
 
                     {imageUrl && (
                         <button className={styles.downloadBtn} onClick={handleDownload} title="保存">
