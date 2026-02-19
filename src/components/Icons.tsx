@@ -94,6 +94,12 @@ export const IconShogi: React.FC<IconProps> = ({ size = 24, color = 'currentColo
     </svg>
 );
 
+export const IconXLogo: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18.901 3H21l-4.632 5.397L22 19h-4.32l-3.384-4.544L10.387 19H8.29l4.986-5.81L8 3h4.468l3.056 4.102L18.901 3zm-2.88 1.487h-1.156L10.887 18.5h1.157L16.021 4.487z" fill={color} stroke="none" />
+    </svg>
+);
+
 export const IconReversi: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <circle cx="12" cy="12" r="10" />

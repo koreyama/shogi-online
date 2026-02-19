@@ -7,15 +7,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { saveTypingScore, getTypingRanking, TypingScore } from '@/lib/firebase/typing';
 import { getUserProfile } from '@/lib/firebase/users';
 import { ResultShareModal } from '@/components/sharing/ResultShareModal';
-
-// ... existing imports ...
-// We need to define IconXLogo locally or import it if available in Icons.tsx. 
-// Based on previous file reads, IconXLogo IS in @/components/Icons.
-import { IconShogi, IconReversi, IconGomoku, IconMancala, IconChess, IconCards, IconPalette, IconCoin, IconBomb, IconDiscord, IconXLogo } from '@/components/Icons';
+import {
+    IconShogi, IconReversi, IconGomoku, IconMancala, IconChess,
+    IconCards, IconPalette, IconCoin, IconBomb, IconDiscord, IconXLogo
+} from '@/components/Icons';
 
 interface TypingPracticeGameProps {
     onBack: () => void;
 }
+
 
 // ─── SVG Icon Components ───
 const IconKeyboard = ({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) => (
@@ -318,9 +318,6 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
     const [timeRemaining, setTimeRemaining] = useState(60);
     const [countdown, setCountdown] = useState(3);
     const [showRank, setShowRank] = useState(false);
-
-    import { ResultShareModal } from '@/components/sharing/ResultShareModal';
-    import { IconXLogo } from '@/components/Icons'; // Ensure IconXLogo is imported if used directly, though used in modal
 
     // ... inside component ...
     const [rankingData, setRankingData] = useState<TypingScore[]>([]);
