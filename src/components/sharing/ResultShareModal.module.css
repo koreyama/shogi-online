@@ -150,17 +150,7 @@
     letter-spacing: -0.02em;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    /* Remove gradient text for better visibility on dark bg if requested, 
-       but here user said "background is white so text is hard to see"? 
-       Wait, the card background is dark (#1a202c). 
-       Maybe the user meant the *text* is white and the background of the *text* (gradient clip) was making it hard?
-       "画像の AsobiLounge の文字とランクの文字の背景が白で見にくい" -> 
-       "The background of the text 'AsobiLounge' and 'Rank' is white and hard to see"? 
-       Or "The text is white and the background is white"?
-       
-       Let's assume the gradient text clip was producing a whitish/pale result that blended poorly or looked bad.
-       I will set solid white with shadow for maximum contrast.
-    */
+    /* Solid color for html2canvas compatibility */
 }
 
 .gameModeBadge {
@@ -205,23 +195,21 @@
     font-size: 5rem;
     font-weight: 900;
     line-height: 0.85;
-    color: #F6E05E;
-    /* Solid gold fallback */
-    background: linear-gradient(180deg, #fff 0%, #F6E05E 40%, #D69E2E 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
-    /* Stronger shadow */
+    color: #fbbf24;
+    /* Solid Amber-400 */
+    /* Removed gradients to prevent html2canvas artifacts */
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
 }
 
 .rankValue[data-rank="S"],
 .rankValue[data-rank="SS"] {
-    background: linear-gradient(180deg, #fff 0%, #F6E05E 30%, #D69E2E 100%);
+    color: #fcd34d;
+    /* Amber-300 */
 }
 
 .rankValue[data-rank="A"] {
-    background: linear-gradient(180deg, #fff 0%, #CBD5E0 100%);
+    color: #e2e8f0;
+    /* Slate-200 */
 }
 
 .scoreWrapper {

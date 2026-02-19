@@ -61,11 +61,39 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
     };
 
     const handleShare = async () => {
+        // Ensure image is generated
         if (!imageBlob && !imageUrl) {
             await generateImage();
         }
 
-        // Always try to copy image first for X sharing flow
+        const shareData = {
+            title: 'Asobi Lounge Typing Result',
+            text: `タイピング練習でスコア ${score.toLocaleString()} (ランク${rank}) を出しました！\n#AsobiLounge`,
+            url: 'https://asobi-lounge.com',
+        };
+
+        // Try Native Share with Image first (Mobile/Tablet)
+        if (imageBlob && navigator.share && navigator.canShare) {
+            const file = new File([imageBlob], 'typing-result.png', { type: 'image/png' });
+            const fileShareData = {
+                files: [file],
+                title: 'Asobi Lounge Result',
+                text: shareData.text,
+                url: shareData.url
+            };
+
+            if (navigator.canShare(fileShareData)) {
+                try {
+                    await navigator.share(fileShareData);
+                    return; // Success, don't open Twitter intent
+                } catch (err) {
+                    console.log('Native file share failed/cancelled', err);
+                    // Continue to fallback
+                }
+            }
+        }
+
+        // Fallback: Clipboard or Download + Twitter Intent
         await copyImageToClipboard();
         openTwitterIntent();
     };
@@ -169,9 +197,15 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
                 </p>
 
                 <div className={styles.actions}>
-                    <button className={styles.shareBtnPrimary} onClick={handleShare}>
-                        <IconXLogo size={20} /> Xでポスト
-                    </button>
+                    {canNativeShare ? (
+                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                            <IconXLogo size={20} /> シェアする
+                        </button>
+                    ) : (
+                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                            <IconXLogo size={20} /> 画像をコピーしてポスト
+                        </button>
+                    )}
 
                     {imageUrl && (
                         <button className={styles.downloadBtn} onClick={handleDownload} title="保存">
