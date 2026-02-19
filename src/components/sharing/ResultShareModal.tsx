@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+```javascript
+import React, { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { IconXLogo, IconDownload, IconCopy, IconCheck } from '@/components/Icons';
 import styles from './ResultShareModal.module.css';
@@ -18,21 +19,40 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
     const cardRef = useRef<HTMLDivElement>(null);
     const [generating, setGenerating] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const [copied, setCopied] = useState(false);
+    const [canNativeShare, setCanNativeShare] = useState(false);
+
+    useEffect(() => {
+        // Check if native sharing is supported
+        if (typeof navigator !== 'undefined' && navigator.share) {
+             // Basic check, actual file share check is harder but usually goes together
+             setCanNativeShare(true);
+        }
+        // Auto-generate image
+        const timer = setTimeout(() => {
+            generateImage();
+        }, 800); // Slightly longer delay for fonts
+        return () => clearTimeout(timer);
+    }, []);
 
     const generateImage = async () => {
         if (!cardRef.current || generating) return;
         setGenerating(true);
         try {
-            // Need to temporarily show the card if it's hidden, or ensure it's rendered
-            // In this modal, it's visible.
             const canvas = await html2canvas(cardRef.current, {
-                backgroundColor: null, // Transparent or use CSS bg
-                scale: 2, // Better quality
+                backgroundColor: null,
+                scale: 3, // High resolution
                 useCORS: true,
+                logging: false,
             });
             const url = canvas.toDataURL('image/png');
             setImageUrl(url);
+            
+            canvas.toBlob(blob => {
+                setImageBlob(blob);
+            }, 'image/png');
+
         } catch (error) {
             console.error("Failed to generate image", error);
         } finally {
@@ -40,124 +60,162 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
         }
     };
 
-    // Auto-generate on mount or just require user click? 
-    // Let's auto-generate for better UX after a short delay to ensure fonts load
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
-            generateImage();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
+    const handleShare = async () => {
+        if (!imageBlob && !imageUrl) {
+            await generateImage();
+        }
 
-    const handleShareTwitter = async () => {
-        // If we have an image, we can't directly attach it to a web intent reliably without server.
-        // So we guide user: "Image copied! Paste it in the tweet."
+        const shareData = {
+            title: 'Asobi Lounge Typing Result',
+            text: `タイピング練習でスコア ${ score.toLocaleString() } (ランク${ rank }) を出しました！\n#AsobiLounge`,
+            url: 'https://asobi-lounge.com',
+        };
 
-        if (!imageUrl) await generateImage();
-
-        // Try to copy to clipboard
-        if (cardRef.current) {
-            try {
-                const canvas = await html2canvas(cardRef.current, { scale: 2, backgroundColor: null });
-                canvas.toBlob(blob => {
-                    if (blob) {
-                        // navigator.clipboard.write supports only some mime types and needs secure context
-                        try {
-                            const item = new ClipboardItem({ 'image/png': blob });
-                            navigator.clipboard.write([item]).then(() => {
-                                setCopied(true);
-                                openTwitterIntent();
-                            }).catch(err => {
-                                console.warn("Clipboard write failed", err);
-                                // Fallback: Just open twitter, ask user to download
-                                openTwitterIntent();
-                            });
-                        } catch (e) {
-                            openTwitterIntent();
-                        }
-                    }
-                });
-            } catch (e) {
-                openTwitterIntent();
+        // Try Native Share with Image
+        if (imageBlob && navigator.share && navigator.canShare) {
+            const file = new File([imageBlob], 'typing-result.png', { type: 'image/png' });
+            const fileShareData = {
+                files: [file],
+                title: 'Asobi Lounge Result',
+                text: shareData.text,
+                url: shareData.url
+            };
+            
+            if (navigator.canShare(fileShareData)) {
+                try {
+                    await navigator.share(fileShareData);
+                    return; // Success
+                } catch (err) {
+                    console.log('Native file share failed/cancelled', err);
+                    // Fallback to text share or clipboard
+                }
             }
+        }
+
+        // Fallback: Clipboard or Download + Twitter Intent
+        await copyImageToClipboard();
+        openTwitterIntent();
+    };
+
+    const copyImageToClipboard = async () => {
+        if (!imageBlob) return;
+        try {
+            const item = new ClipboardItem({ 'image/png': imageBlob });
+            await navigator.clipboard.write([item]);
+            setCopied(true);
+        } catch (e) {
+            console.warn("Clipboard write failed", e);
         }
     };
 
     const openTwitterIntent = () => {
-        const text = `タイピング練習でスコア ${score.toLocaleString()} (ランク${rank}) を出しました！\nWPM: ${wpm} / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
-        const url = "https://asobi-lounge.com/typing"; // Replace with actual URL
-        const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-        window.open(intentUrl, '_blank');
+        const text = `タイピング練習でスコア ${ score.toLocaleString() } (ランク${ rank }) を出しました！\nWPM: ${ wpm } / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
+const url = "https://asobi-lounge.com";
+const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+window.open(intentUrl, '_blank');
     };
 
-    const handleDownload = () => {
-        if (imageUrl) {
-            const a = document.createElement('a');
-            a.href = imageUrl;
-            a.download = `typing-result-${Date.now()}.png`;
-            a.click();
-        }
-    };
+const handleDownload = () => {
+    if (imageUrl) {
+        const a = document.createElement('a');
+        a.href = imageUrl;
+        a.download = `asobi-lounge-typing-${Date.now()}.png`;
+        a.click();
+    }
+};
 
-    return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={onClose}>×</button>
+return (
+    <div className={styles.overlay} onClick={onClose}>
+        <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={onClose}>×</button>
 
-                <h2 className={styles.title}>結果をシェア</h2>
+            <h2 className={styles.title}>結果をシェア</h2>
 
-                <div className={styles.previewArea}>
-                    {/* The Card to Caption */}
-                    <div className={styles.resultCard} ref={cardRef}>
+            <div className={styles.previewContainer}>
+                <div className={styles.resultCard} ref={cardRef}>
+                    {/* Decorative Background Elements */}
+                    <div className={styles.cardBgPattern} />
+                    <div className={styles.cardGlow} />
+
+                    <div className={styles.cardContent}>
                         <div className={styles.cardHeader}>
-                            <div className={styles.logo}>Asobi Lounge</div>
-                            <div className={styles.mode}>タイピング練習 ({difficulty.toUpperCase()})</div>
-                        </div>
-
-                        <div className={styles.mainScore}>
-                            <div className={styles.rankBadge} data-rank={rank}>{rank}</div>
-                            <div className={styles.scoreVal}>{score.toLocaleString()}</div>
-                            <div className={styles.scoreLabel}>SCORE</div>
-                        </div>
-
-                        <div className={styles.statsGrid}>
-                            <div className={styles.stat}>
-                                <div className={styles.statLabel}>WPM</div>
-                                <div className={styles.statVal}>{wpm}</div>
+                            <div className={styles.logoRow}>
+                                <span className={styles.appLogo}>Asobi Lounge</span>
                             </div>
-                            <div className={styles.stat}>
+                            <div className={styles.gameModeBadge}>Typing Practice</div>
+                        </div>
+
+                        <div className={styles.mainScoreArea}>
+                            <div className={styles.rankWrapper}>
+                                <div className={styles.rankLabel}>RANK</div>
+                                <div className={styles.rankValue} data-rank={rank}>{rank}</div>
+                            </div>
+                            <div className={styles.scoreWrapper}>
+                                <div className={styles.scoreLabel}>SCORE</div>
+                                <div className={styles.scoreValue}>{score.toLocaleString()}</div>
+                            </div>
+                        </div>
+
+                        <div className={styles.statsRow}>
+                            <div className={styles.statBox}>
+                                <div className={styles.statLabel}>WPM</div>
+                                <div className={styles.statValue}>{wpm}</div>
+                            </div>
+                            <div className={styles.statDivider} />
+                            <div className={styles.statBox}>
                                 <div className={styles.statLabel}>Accuracy</div>
-                                <div className={styles.statVal}>{accuracy}%</div>
+                                <div className={styles.statValue}>{accuracy}<span className={styles.unit}>%</span></div>
+                            </div>
+                            <div className={styles.statDivider} />
+                            <div className={styles.statBox}>
+                                <div className={styles.statLabel}>Difficulty</div>
+                                <div className={styles.statValue} style={{ textTransform: 'capitalize' }}>{difficulty}</div>
                             </div>
                         </div>
 
                         <div className={styles.cardFooter}>
-                            asobi-lounge.com
+                            <div className={styles.url}>asobi-lounge.com</div>
+                            <div className={styles.date}>{new Date().toLocaleDateString()}</div>
                         </div>
                     </div>
-
-                    {/* Loading Overlay for Preview */}
-                    {generating && !imageUrl && (
-                        <div className={styles.generatingOverlay}>生成中...</div>
-                    )}
                 </div>
 
-                <p className={styles.helperText}>
-                    {copied ? "画像がクリップボードにコピーされました！ツイートに貼り付けてください。" : "画像を生成しています..."}
-                </p>
+                {generating && !imageUrl && (
+                    <div className={styles.generatingOverlay}>
+                        <div className={styles.spinner}></div>
+                        <span>Generating...</span>
+                    </div>
+                )}
+            </div>
 
-                <div className={styles.actions}>
-                    <button className={styles.twitterBtn} onClick={handleShareTwitter}>
-                        <IconXLogo size={20} /> ポストする
+            <p className={styles.helperText}>
+                {copied
+                    ? "画像をコピーしました！ツイートに貼り付けてください。"
+                    : canNativeShare
+                        ? "「シェア」ボタンから画像を共有できます"
+                        : "画像を保存またはコピーして、SNSでシェアしよう！"
+                }
+            </p>
+
+            <div className={styles.actions}>
+                {canNativeShare ? (
+                    <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                        <IconXLogo size={20} /> シェアする
                     </button>
+                ) : (
+                    <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                        <IconXLogo size={20} /> 画像をコピーしてポスト
+                    </button>
+                )}
 
-                    {imageUrl && (
-                        <button className={styles.downloadBtn} onClick={handleDownload}>
-                            <IconDownload size={20} /> 画像を保存
-                        </button>
-                    )}
-                </div>
+                {imageUrl && (
+                    <button className={styles.downloadBtn} onClick={handleDownload} title="保存">
+                        <IconDownload size={22} />
+                    </button>
+                )}
             </div>
         </div>
-    );
+    </div>
+);
 };
+```
