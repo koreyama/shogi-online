@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Typing.module.css';
 import { TYPING_WORDS, TypingWord } from '@/lib/typing/data';
 import { useAuth } from '@/hooks/useAuth';
-import { saveTypingScore, getTypingRanking, TypingScore } from '@/lib/firebase/typing';
+import { saveTypingScore, getTypingRanking, getUserRank, TypingScore } from '@/lib/firebase/typing';
 import { getUserProfile } from '@/lib/firebase/users';
 import { ResultShareModal } from '@/components/sharing/ResultShareModal';
 import {
@@ -409,7 +409,9 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase, engine, nextWord, pickNext, combo, config]);
 
-    // Save Score Logic
+    const [resultRank, setResultRank] = useState<number | null>(null);
+
+    // Save Score Logic & Fetch Rank
     useEffect(() => {
         if (phase === 'finished' && user) {
             const finalDuration = config.duration;
@@ -417,17 +419,25 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
             const finalAccuracy = totalTyped + missCount > 0 ? Math.round((totalTyped / (totalTyped + missCount)) * 100) : 100;
 
             // Fetch profile name from RTDB (not Firebase Auth)
-            getUserProfile(user.uid).then(profile => {
-                saveTypingScore(difficulty, {
-                    uid: user.uid,
-                    displayName: profile?.displayName || user.displayName || 'No Name',
-                    photoURL: profile?.photoURL || user.photoURL || ''
-                }, {
+            getUserProfile(user.uid).then(async (profile) => {
+                const scoreData = {
                     score,
                     wpm: finalWpm,
                     accuracy: finalAccuracy
-                });
+                };
+
+                await saveTypingScore(difficulty, {
+                    uid: user.uid,
+                    displayName: profile?.displayName || user.displayName || 'No Name',
+                    photoURL: profile?.photoURL || user.photoURL || ''
+                }, scoreData);
+
+                // Fetch global rank after saving
+                const rank = await getUserRank(difficulty, score);
+                setResultRank(rank);
             });
+        } else if (phase !== 'finished') {
+            setResultRank(null);
         }
     }, [phase]);
 
@@ -823,6 +833,7 @@ export default function TypingPracticeGame({ onBack }: TypingPracticeGameProps) 
                 <ResultShareModal
                     score={score}
                     rank={rankInfo.rank}
+                    globalRank={resultRank}
                     wpm={wpm}
                     accuracy={accuracy}
                     difficulty={difficulty}

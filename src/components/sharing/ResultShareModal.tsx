@@ -7,6 +7,7 @@ import styles from './ResultShareModal.module.css';
 interface ResultShareModalProps {
     score: number;
     rank: string;
+    globalRank: number | null;
     wpm: number;
     accuracy: number;
     difficulty: string;
@@ -14,7 +15,7 @@ interface ResultShareModalProps {
 }
 
 export const ResultShareModal: React.FC<ResultShareModalProps> = ({
-    score, rank, wpm, accuracy, difficulty, onClose
+    score, rank, globalRank, wpm, accuracy, difficulty, onClose
 }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const [generating, setGenerating] = useState(false);
@@ -79,7 +80,9 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
 
     const openTwitterIntent = () => {
         // Format text clearly
-        const text = `【タイピング練習結果】\nスコア: ${score.toLocaleString()}\nランク: ${rank}\nWPM: ${wpm} / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
+        // Use Global Rank if available, otherwise fallback to Grade
+        const rankText = globalRank ? `${globalRank}位` : rank;
+        const text = `【タイピング練習結果】\nスコア: ${score.toLocaleString()}\nランキング: ${rankText}\nWPM: ${wpm} / 正確率: ${accuracy}%\n\n#AsobiLounge #タイピング練習`;
         const url = "https://asobi-lounge.com";
         const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
         window.open(intentUrl, '_blank');
@@ -117,8 +120,16 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
 
                             <div className={styles.mainScoreArea}>
                                 <div className={styles.rankWrapper}>
-                                    <div className={styles.rankLabel}>RANK</div>
-                                    <div className={styles.rankValue} data-rank={rank}>{rank}</div>
+                                    <div className={styles.rankLabel}>
+                                        {globalRank ? "GLOBAL RANK" : "RANK"}
+                                    </div>
+                                    <div className={styles.rankValue} style={{ fontSize: globalRank ? '4rem' : '5rem' }}>
+                                        {globalRank ? (
+                                            <>
+                                                {globalRank}<span style={{ fontSize: '1.5rem', marginLeft: '4px' }}>位</span>
+                                            </>
+                                        ) : rank}
+                                    </div>
                                 </div>
                                 <div className={styles.scoreWrapper}>
                                     <div className={styles.scoreLabel}>SCORE</div>

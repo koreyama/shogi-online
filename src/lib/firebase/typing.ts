@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { ref, runTransaction, query, orderByChild, limitToLast, get } from "firebase/database";
+import { ref, runTransaction, query, orderByChild, limitToLast, get, startAt } from "firebase/database";
 
 export interface TypingScore {
     userId: string;
@@ -99,5 +99,28 @@ export const getUserBestScore = async (difficulty: string, userId: string): Prom
     } catch (error) {
         console.error("Error fetching user best score:", error);
         return null;
+    }
+};
+/**
+ * Get user's ranking (1-based index) based on score
+ * Returns rank if found, or null/estimate if too low
+ */
+export const getUserRank = async (difficulty: string, score: number): Promise<number> => {
+    try {
+        const scoresRef = ref(db, `typing_scores/${difficulty}`);
+        // Get all scores greater than the user's score to count them
+        // RTDB sorts ascending. startAt(score + 1) gets everything strictly greater
+        // Note: For equal scores, we ideally rank them the same. 
+        // So we count how many are STRICTLY greater, then add 1.
+        const higherScoresQuery = query(scoresRef, orderByChild('score'), startAt(score + 1));
+
+        const snapshot = await get(higherScoresQuery);
+
+        // snapshot.size is available in newer SDKs, or we count manually
+        // RTDB snapshot usually has .size or numChildren()
+        return snapshot.exists() ? snapshot.size + 1 : 1;
+    } catch (error) {
+        console.error("Error fetching user rank:", error);
+        return 0; // 0 means unknown/error
     }
 };
