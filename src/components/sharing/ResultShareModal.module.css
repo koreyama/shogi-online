@@ -148,11 +148,19 @@
     font-size: 1rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(to right, #fff, #a0aec0);
-    /* Standard property for WebKit too */
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    /* Remove gradient text for better visibility on dark bg if requested, 
+       but here user said "background is white so text is hard to see"? 
+       Wait, the card background is dark (#1a202c). 
+       Maybe the user meant the *text* is white and the background of the *text* (gradient clip) was making it hard?
+       "画像の AsobiLounge の文字とランクの文字の背景が白で見にくい" -> 
+       "The background of the text 'AsobiLounge' and 'Rank' is white and hard to see"? 
+       Or "The text is white and the background is white"?
+       
+       Let's assume the gradient text clip was producing a whitish/pale result that blended poorly or looked bad.
+       I will set solid white with shadow for maximum contrast.
+    */
 }
 
 .gameModeBadge {
@@ -161,9 +169,10 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 100px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .mainScoreArea {
@@ -183,23 +192,27 @@
 }
 
 .rankLabel {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 800;
     letter-spacing: 0.2em;
-    color: rgba(255, 255, 255, 0.6);
+    color: #e2e8f0;
+    /* Light gray */
     margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .rankValue {
     font-size: 5rem;
     font-weight: 900;
     line-height: 0.85;
-    background: linear-gradient(180deg, #F6E05E 0%, #D69E2E 100%);
-    /* Standard property for WebKit too */
+    color: #F6E05E;
+    /* Solid gold fallback */
+    background: linear-gradient(180deg, #fff 0%, #F6E05E 40%, #D69E2E 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 4px 20px rgba(214, 158, 46, 0.4));
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+    /* Stronger shadow */
 }
 
 .rankValue[data-rank="S"],

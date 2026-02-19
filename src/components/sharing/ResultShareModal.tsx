@@ -25,8 +25,8 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
 
     useEffect(() => {
         // Check if native sharing is supported
-        if (typeof navigator !== 'undefined' && navigator.share) {
-            // Basic check, actual file share check is harder but usually goes together
+        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+            // Basic check
             setCanNativeShare(true);
         }
         // Auto-generate image
@@ -65,34 +65,7 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
             await generateImage();
         }
 
-        const shareData = {
-            title: 'Asobi Lounge Typing Result',
-            text: `タイピング練習でスコア ${score.toLocaleString()} (ランク${rank}) を出しました！\n#AsobiLounge`,
-            url: 'https://asobi-lounge.com',
-        };
-
-        // Try Native Share with Image
-        if (imageBlob && navigator.share && navigator.canShare) {
-            const file = new File([imageBlob], 'typing-result.png', { type: 'image/png' });
-            const fileShareData = {
-                files: [file],
-                title: 'Asobi Lounge Result',
-                text: shareData.text,
-                url: shareData.url
-            };
-
-            if (navigator.canShare(fileShareData)) {
-                try {
-                    await navigator.share(fileShareData);
-                    return; // Success
-                } catch (err) {
-                    console.log('Native file share failed/cancelled', err);
-                    // Fallback to text share or clipboard
-                }
-            }
-        }
-
-        // Fallback: Clipboard or Download + Twitter Intent
+        // Always try to copy image first for X sharing flow
         await copyImageToClipboard();
         openTwitterIntent();
     };
@@ -191,22 +164,14 @@ export const ResultShareModal: React.FC<ResultShareModalProps> = ({
                 <p className={styles.helperText}>
                     {copied
                         ? "画像をコピーしました！ツイートに貼り付けてください。"
-                        : canNativeShare
-                            ? "「シェア」ボタンから画像を共有できます"
-                            : "画像を保存またはコピーして、SNSでシェアしよう！"
+                        : "画像を自動生成しています..."
                     }
                 </p>
 
                 <div className={styles.actions}>
-                    {canNativeShare ? (
-                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
-                            <IconXLogo size={20} /> シェアする
-                        </button>
-                    ) : (
-                        <button className={styles.shareBtnPrimary} onClick={handleShare}>
-                            <IconXLogo size={20} /> 画像をコピーしてポスト
-                        </button>
-                    )}
+                    <button className={styles.shareBtnPrimary} onClick={handleShare}>
+                        <IconXLogo size={20} /> Xでポスト
+                    </button>
 
                     {imageUrl && (
                         <button className={styles.downloadBtn} onClick={handleDownload} title="保存">
