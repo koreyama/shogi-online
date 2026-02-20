@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next && next build && echo '--- DEBUG LS .next ---' && ls -F .next || echo 'Build failed'",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "pages:build": "npx @cloudflare/next-on-pages"

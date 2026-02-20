@@ -14,6 +14,8 @@ import { usePlayer } from '@/hooks/usePlayer';
 import HideChatBot from '@/components/HideChatBot';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import { ColyseusSudokuGame } from './ColyseusSudokuGame';
+import { SudokuShareModal } from '@/components/sharing/SudokuShareModal';
+import { IconXLogo } from '@/components/Icons';
 
 const SUDOKU_THEME = {
     '--theme-primary': '#3b82f6',
@@ -45,6 +47,7 @@ export default function SudokuPage() {
     const [status, setStatus] = useState<'setup' | 'menu' | 'playing' | 'battle' | 'room_input'>('setup');
     const [battleRoomId, setBattleRoomId] = useState<string>('');
     const [battleMode, setBattleMode] = useState<'random' | 'create' | 'join'>('random');
+    const [showShareModal, setShowShareModal] = useState(false);
 
     // Check if name is loaded
     useEffect(() => {
@@ -370,10 +373,27 @@ export default function SudokuPage() {
                         <div className={sudokuStyles.modal}>
                             <h2>🎉 クリア！</h2>
                             <p>タイム: {formatTime(time)}</p>
+
+                            <button
+                                onClick={() => setShowShareModal(true)}
+                                className={styles.secondaryBtn}
+                                style={{ background: 'black', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}
+                            >
+                                <IconXLogo size={16} color="white" /> 結果をシェア
+                            </button>
+
                             <button onClick={startGame}>もう一度</button>
                             <button onClick={() => setStatus('menu')}>メニューへ</button>
                         </div>
                     </div>
+                )}
+
+                {showShareModal && (
+                    <SudokuShareModal
+                        time={time}
+                        difficulty={difficulty.name}
+                        onClose={() => setShowShareModal(false)}
+                    />
                 )}
             </div>
         </main>

@@ -9,11 +9,13 @@ import { createEmptyBoard, revealCell, toggleFlag } from '@/lib/minesweeper/engi
 import { GameState, DIFFICULTIES, Difficulty } from '@/lib/minesweeper/types';
 import { IconBack, IconUser, IconTrophy, IconFlag, IconDice, IconKey } from '@/components/Icons';
 import { useAuth } from '@/hooks/useAuth';
-import { submitScore, getRankings, ScoreEntry } from '@/lib/minesweeper/ranking';
+import { submitScore, getRankings, getUserRank, ScoreEntry } from '@/lib/minesweeper/ranking';
 import { usePlayer } from '@/hooks/usePlayer';
 import { ColyseusMinesweeperGame } from './ColyseusMinesweeperGame';
 import HideChatBot from '@/components/HideChatBot';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
+import { MinesweeperShareModal } from '@/components/sharing/MinesweeperShareModal';
+import { IconXLogo } from '@/components/Icons';
 
 const MINESWEEPER_THEME = {
     '--theme-primary': '#475569',
@@ -55,6 +57,8 @@ export default function MinesweeperPage() {
     const [menuView, setMenuView] = useState<'top' | 'room_select' | 'ranking'>('top');
     const [joinRoomId, setJoinRoomId] = useState('');
     const [multiplayerOptions, setMultiplayerOptions] = useState<any>(null);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [resultRank, setResultRank] = useState<number | null>(null);
 
     // Fetch Rankings when tab changes or view is 'ranking'
     useEffect(() => {
@@ -116,7 +120,10 @@ export default function MinesweeperPage() {
     useEffect(() => {
         if (gameState.status === 'won' && user && playerName) {
             const finalTime = Math.floor((Date.now() - (gameState.startTime || Date.now())) / 1000);
-            submitScore(user.uid, playerName, difficulty, finalTime);
+            submitScore(user.uid, playerName, difficulty, finalTime).then(async () => {
+                const rank = await getUserRank(difficulty, finalTime);
+                setResultRank(rank);
+            });
         }
     }, [gameState.status, user, playerName, difficulty, gameState.startTime]);
 
@@ -392,10 +399,30 @@ export default function MinesweeperPage() {
                         <div className={gameStyles.modal}>
                             <h2>{gameState.status === 'won' ? 'CLEAR! 🎉' : 'GAME OVER 💣'}</h2>
                             {gameState.status === 'won' && <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>タイム: {time}秒</p>}
+
+                            {gameState.status === 'won' && (
+                                <button
+                                    onClick={() => setShowShareModal(true)}
+                                    className={styles.secondaryBtn}
+                                    style={{ background: 'black', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}
+                                >
+                                    <IconXLogo size={16} color="white" /> 結果をシェア
+                                </button>
+                            )}
+
                             <button onClick={startSinglePlayer} className={styles.primaryBtn}>もう一度</button>
                             <button onClick={() => setStatus('menu')} className={styles.secondaryBtn}>メニューへ</button>
                         </div>
                     </div>
+                )}
+
+                {showShareModal && (
+                    <MinesweeperShareModal
+                        time={time}
+                        difficulty={difficulty.name}
+                        rank={resultRank} // Can be null if not loaded yet or not won
+                        onClose={() => setShowShareModal(false)}
+                    />
                 )}
             </div>
         </main>

@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { ref, push, query, orderByChild, limitToFirst, get, set, equalTo, update } from 'firebase/database';
+import { ref, push, query, orderByChild, limitToFirst, get, set, equalTo, update, endAt } from 'firebase/database';
 import { Difficulty } from './types';
 
 export interface ScoreEntry {
@@ -73,5 +73,21 @@ export const getRankings = async (difficulty: Difficulty): Promise<ScoreEntry[]>
     } catch (error) {
         console.error("Failed to fetch rankings:", error);
         return [];
+    }
+};
+export const getUserRank = async (difficulty: Difficulty, time: number): Promise<number> => {
+    try {
+        const scoresRef = ref(db, `minesweeper_scores/${difficulty.name}`);
+        // Minesweeper rank is based on TIME (lower is better).
+        // RTDB sorts ascending. So smallest time comes first.
+        // We want to count how many scores are strictly smaller than my time.
+        // endAt(time - 0.001) would get everyone better than me.
+        const betterScoresQuery = query(scoresRef, orderByChild('time'), endAt(time - 0.01));
+
+        const snapshot = await get(betterScoresQuery);
+        return snapshot.exists() ? snapshot.size + 1 : 1;
+    } catch (error) {
+        console.error("Failed to get user rank:", error);
+        return 0;
     }
 };
