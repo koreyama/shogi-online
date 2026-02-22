@@ -100,6 +100,7 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
     const roomRef = useRef<Room<EshiritoriState> | null>(null);
     const canvasRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const isHostRef = useRef(false);
 
     // Auto scroll messages (only within chat container)
     useEffect(() => {
@@ -163,6 +164,10 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
 
                     // Firebase room tracking for lobby listing
                     const myPlayer = pList.find(p => p.id === r.sessionId);
+                    if (myPlayer) {
+                        isHostRef.current = myPlayer.isHost;
+                    }
+
                     if (myPlayer?.isHost && r.roomId) {
                         const roomRef = ref(db, `eshiritori_rooms/${r.roomId}`);
                         const roomData = {
@@ -284,6 +289,12 @@ export default function ColyseusEshiritoriGame({ playerName, playerId, mode, roo
         return () => {
             ignore = true;
             if (roomRef.current) {
+                if (isHostRef.current && roomRef.current.roomId) {
+                    const rId = roomRef.current.roomId;
+                    import('firebase/database').then(({ ref, remove }) => {
+                        remove(ref(db, `eshiritori_rooms/${rId}`)).catch(e => console.error("Firebase remove error:", e));
+                    });
+                }
                 roomRef.current.leave();
                 roomRef.current = null;
             }

@@ -8,6 +8,7 @@ import styles from './DrawingGame.module.css';
 import { IconBack, IconUser, IconPalette, IconPen, IconSettings } from '@/components/Icons';
 import { useRouter } from 'next/navigation';
 import { DrawingCanvas } from '@/components/drawing/DrawingCanvas';
+import { db } from '@/lib/firebase';
 
 const DRAWING_THEME = {
     '--theme-primary': '#7c3aed',
@@ -24,13 +25,15 @@ class DrawingPlayer extends Schema {
     score: number = 0;
     isDrawer: boolean = false;
     isOnline: boolean = true;
+    isHost: boolean = false;
 }
 defineTypes(DrawingPlayer, {
     id: "string",
     name: "string",
     score: "number",
     isDrawer: "boolean",
-    isOnline: "boolean"
+    isOnline: "boolean",
+    isHost: "boolean"
 });
 
 class DrawingState extends Schema {
@@ -81,10 +84,11 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
     const [error, setError] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const roomRef = useRef<Room<DrawingState> | null>(null); // Ref for cleanup
+    const isHostRef = useRef(false); // To detect if this client is host on unmount
 
     // Scroll chat to bottom
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
 
     useEffect(() => {
@@ -100,7 +104,8 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
                     name: p.name,
                     score: p.score,
                     isDrawer: p.isDrawer,
-                    isOnline: p.isOnline
+                    isOnline: p.isOnline,
+                    isHost: p.isHost
                 });
             });
             console.log("Updated Players List:", pList);
@@ -167,12 +172,37 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
                                 name: p.name,
                                 score: p.score,
                                 isDrawer: p.isDrawer,
-                                isOnline: p.isOnline
+                                isOnline: p.isOnline,
+                                isHost: p.isHost
                             });
                         });
                     }
                     setPlayers(pList);
                     console.log("Players updated:", pList.length);
+
+                    // Firebase Room Sync for Lobby
+                    const myPlayer = pList.find(p => p.id === r.sessionId);
+                    if (myPlayer) {
+                        isHostRef.current = myPlayer.isHost;
+                    }
+
+                    if (myPlayer?.isHost && r.roomId && roomId !== 'random') {
+                        import('firebase/database').then(({ ref, set, onDisconnect }) => {
+                            const roomRef = ref(db, `drawing_rooms/${r.roomId}`);
+                            const roomData = {
+                                roomId: r.roomId,
+                                hostId: playerId,
+                                hostName: playerName,
+                                status: state.phase === 'lobby' ? 'waiting' : 'playing',
+                                playerCount: pList.length,
+                                isLocked: false, // Could add password support later
+                                createdAt: Date.now(),
+                                gameMode: state.gameMode || 'quiz'
+                            };
+                            set(roomRef, roomData).catch(err => console.warn("Firebase update failed:", err));
+                            onDisconnect(roomRef).remove().catch(err => console.warn("onDisconnect failed:", err));
+                        });
+                    }
 
                     // Update Game Status
                     setGameStatus(state.phase);
@@ -227,6 +257,12 @@ export default function ColyseusDrawingGame({ playerName, playerId, mode, roomId
             ignore = true;
             if (roomRef.current) {
                 console.log("Leaving room...");
+                if (isHostRef.current && roomRef.current.roomId && mode !== 'random') {
+                    const rId = roomRef.current.roomId;
+                    import('firebase/database').then(({ ref, remove }) => {
+                        remove(ref(db, `drawing_rooms/${rId}`)).catch(e => console.error("Firebase remove error:", e));
+                    });
+                }
                 roomRef.current.leave();
                 roomRef.current = null;
             }

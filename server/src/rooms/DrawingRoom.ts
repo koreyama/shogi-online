@@ -7,6 +7,7 @@ export class DrawingPlayer extends Schema {
     @type("number") score: number = 0;
     @type("boolean") isDrawer: boolean = false;
     @type("boolean") isOnline: boolean = true;
+    @type("boolean") isHost: boolean = false;
 
     constructor(id: string = "", name: string = "") {
         super();
@@ -120,6 +121,12 @@ export class DrawingRoom extends Room<DrawingState> {
     onJoin(client: Client, options: any) {
         console.log(client.sessionId, "joined!");
         const player = new DrawingPlayer(client.sessionId, options.name || "Guest");
+
+        // First player is host
+        if (this.state.players.size === 0) {
+            player.isHost = true;
+        }
+
         this.state.players.set(client.sessionId, player);
 
         // In Free Mode, everyone is initialized as a drawer if game is running
@@ -173,6 +180,7 @@ export class DrawingRoom extends Room<DrawingState> {
     }
     onLeave(client: Client, consented: boolean) {
         console.log(client.sessionId, "left!");
+        const player = this.state.players.get(client.sessionId);
         this.state.players.delete(client.sessionId);
 
         // If drawer left, end turn
@@ -184,6 +192,15 @@ export class DrawingRoom extends Room<DrawingState> {
         if (this.state.players.size < 2 && this.state.phase !== 'lobby') {
             this.broadcast("message", { SYSTEM: true, text: "Not enough players. Returning to lobby." });
             this.resetGame();
+        }
+
+        // Reassign host if needed
+        if (player?.isHost && this.state.players.size > 0) {
+            const firstPlayer = Array.from(this.state.players.values())[0];
+            if (firstPlayer) {
+                firstPlayer.isHost = true;
+                this.broadcast("message", { SYSTEM: true, text: `${firstPlayer.name} has become the new host.` });
+            }
         }
     }
 

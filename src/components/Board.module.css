@@ -4,13 +4,12 @@
     align-items: center;
     gap: 1rem;
     padding: 2rem;
-    /* Richer wood color for the table/stand */
-    background: #8b5a2b;
+    background: #6b4423;
     background-image:
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 2px, transparent 2px, transparent 4px),
-        linear-gradient(to bottom, #8b5a2b, #5c3a1e);
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.2);
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 4px),
+        linear-gradient(to bottom, #754722, #472b14);
+    border-radius: 8px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 2px 6px rgba(255, 255, 255, 0.15);
 }
 
 .board {
@@ -18,42 +17,62 @@
     grid-template-columns: repeat(9, 1fr);
     grid-template-rows: repeat(9, 1fr);
     gap: 0;
-    /* No gap, we draw lines */
 
-    /* Kaya wood texture simulation */
-    background-color: #e6b422;
+    /* 本榧（ほんかや）のような明るい飴色・黄褐色 */
+    background-color: #d19e45;
     background-image:
-        /* Grain */
+        /* 木目（柾目） */
         repeating-linear-gradient(90deg,
-            rgba(160, 82, 45, 0.1) 0px,
-            rgba(160, 82, 45, 0.1) 1px,
+            rgba(160, 82, 45, 0.07) 0px,
+            rgba(160, 82, 45, 0.07) 1px,
             transparent 1px,
-            transparent 10px),
-        /* Subtle natural variations */
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), transparent 40%),
-        radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.05), transparent 40%);
+            transparent 12px),
+        /* 中央付近にほんのり自然なムラ */
+        radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.15), transparent 60%),
+        radial-gradient(circle at 75% 85%, rgba(0, 0, 0, 0.08), transparent 50%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
 
-    border: 3px solid #3e2723;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    padding: 2px;
-    /* Slight padding for border */
+    /* 盤の厚みや側面の影、全体的な立体感 */
+    border: 4px solid #3e2411;
+    border-radius: 2px;
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(139, 69, 19, 0.4);
+    padding: 6px;
+    position: relative;
+}
+
+.board::before {
+    /* 盤の手前側側面の厚みを表現する疑似要素 */
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: -4px;
+    right: -4px;
+    height: 15px;
+    background: linear-gradient(to right, #3e2411, #5c3519, #3e2411);
+    border-bottom: 2px solid #231308;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+    z-index: 0;
 }
 
 .cell {
-    width: 42px;
-    height: 46px;
+    width: 44px;
+    height: 48px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     position: relative;
+    z-index: 1;
 
-    /* Grid lines */
-    border-right: 1px solid rgba(0, 0, 0, 0.7);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+    /* 墨色に近い漆黒の罫線 */
+    border-right: 1px solid rgba(25, 20, 15, 0.85);
+    border-bottom: 1px solid rgba(25, 20, 15, 0.85);
+    box-shadow: inset -0.5px -0.5px 0px rgba(255, 255, 255, 0.1);
 }
 
-/* Remove outer borders for clean look */
 .board .cell:nth-child(9n) {
     border-right: none;
 }
@@ -62,27 +81,29 @@
     border-bottom: none;
 }
 
-/* Hoshi (Star points) */
+/* Hoshi (星) */
 .cell[data-hoshi="true"]::before {
     content: '';
     position: absolute;
-    width: 4px;
-    height: 4px;
-    background-color: rgba(0, 0, 0, 0.8);
+    width: 5px;
+    height: 5px;
+    background-color: rgba(20, 15, 10, 0.9);
     border-radius: 50%;
     z-index: 0;
+    box-shadow: 0.5px 0.5px 0px rgba(255, 255, 255, 0.2);
 }
 
 .cell:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .selected {
-    background-color: rgba(255, 235, 59, 0.4);
+    background-color: rgba(255, 220, 50, 0.4);
+    box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.5);
 }
 
 .lastMove {
-    background-color: rgba(100, 221, 23, 0.3);
+    background-color: rgba(144, 238, 144, 0.35);
 }
 
 .validMove {
@@ -92,19 +113,29 @@
 .validMove::after {
     content: '';
     position: absolute;
-    width: 12px;
-    height: 12px;
-    background: rgba(33, 150, 243, 0.6);
+    width: 14px;
+    height: 14px;
+    background: rgba(33, 150, 243, 0.7);
     border-radius: 50%;
-    box-shadow: 0 0 4px rgba(33, 150, 243, 0.8);
+    box-shadow: 0 0 6px rgba(33, 150, 243, 0.9);
+    animation: pulseMove 1.5s infinite;
 }
 
-.piece {
-    font-size: 1.6rem;
-    font-weight: bold;
-    user-select: none;
-    z-index: 1;
-    /* Above hoshi */
+@keyframes pulseMove {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.9);
+        opacity: 0.8;
+    }
 }
 
 .opponentPiece {
@@ -112,8 +143,10 @@
 }
 
 @media (max-width: 600px) {
+    .boardContainer {
+        padding: 1rem;
+    }
 
-    /* Mobile optimizations - prioritize fitting in viewport */
     .boardWrapper {
         width: 100%;
         max-width: 100%;
@@ -121,17 +154,20 @@
         justify-content: center;
     }
 
+    .board {
+        border-width: 3px;
+        padding: 3px;
+    }
+
+    .board::before {
+        bottom: -10px;
+        height: 10px;
+    }
+
     .cell {
-        /* Use fluid sizing based on viewport width mostly */
         width: min(10vw, 42px);
         height: min(11vw, 46px);
         min-width: 32px;
-        /* Force minimum size */
         min-height: 36px;
-        font-size: min(2.5vw, 1.3rem);
-    }
-
-    .piece {
-        font-size: min(5vw, 1.4rem);
     }
 }

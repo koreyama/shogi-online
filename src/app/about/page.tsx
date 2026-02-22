@@ -6,7 +6,6 @@ import styles from './about.module.css';
 import { IconShogi, IconChess, IconSwords } from '@/components/Icons';
 
 import { RegisteredUserCount } from '@/components/RegisteredUserCount';
-import ActiveUsers from '@/components/ActiveUsers';
 
 export default function AboutPage() {
     // ...
@@ -19,19 +18,20 @@ export default function AboutPage() {
                     いつでも、どこでも、誰とでも。<br />
                     シンプルで美しい、無料で遊べる総合オンラインゲームプラットフォーム
                 </p>
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <ActiveUsers />
+                <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'center' }}>
                     <RegisteredUserCount
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
-                            background: 'rgba(0, 0, 0, 0.05)',
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            fontSize: '0.9rem',
-                            color: '#666',
-                            border: '1px solid rgba(0,0,0,0.1)'
+                            background: 'white',
+                            padding: '12px 24px',
+                            borderRadius: '30px',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            color: '#2b6cb0',
+                            boxShadow: '0 4px 12px rgba(43, 108, 176, 0.15)',
+                            border: '1px solid rgba(43, 108, 176, 0.2)'
                         }}
                     />
                 </div>
@@ -234,34 +234,34 @@ export default function AboutPage() {
                 {/* Roadmap Section */}
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>今後の予定</h2>
-                    <div className={styles.card}>
+                    <div className={styles.card} style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', border: '1px solid #e2e8f0' }}>
                         <ul className={styles.roadmapList}>
                             <li>
-                                <span className={styles.roadmapNumber}>1</span>
-                                <div>
-                                    <strong>新ゲームの追加</strong>
-                                    <p>ポーカー、UNO風ゲーム、協力型ゲームなどを開発予定</p>
+                                <div className={styles.roadmapNumber}>1</div>
+                                <div className={styles.roadmapContent}>
+                                    <strong style={{ color: '#2b6cb0', fontSize: '1.1rem' }}>コミュニティ機能の拡張</strong>
+                                    <p>フレンド機能、カスタムルール設定で遊べるプライベートルーム、ゲーム内チャットの強化</p>
                                 </div>
                             </li>
                             <li>
-                                <span className={styles.roadmapNumber}>2</span>
-                                <div>
-                                    <strong>コミュニティ機能</strong>
-                                    <p>フレンド機能の強化、チャット、掲示板など</p>
+                                <div className={styles.roadmapNumber}>2</div>
+                                <div className={styles.roadmapContent}>
+                                    <strong style={{ color: '#2b6cb0', fontSize: '1.1rem' }}>オンライン大会・ランキングイベント</strong>
+                                    <p>定期的なトーナメント開催や、シーズン制ランキングなど競い合えるコンテンツの追加</p>
                                 </div>
                             </li>
                             <li>
-                                <span className={styles.roadmapNumber}>3</span>
-                                <div>
-                                    <strong>モバイル対応の強化</strong>
-                                    <p>スマホでも快適に遊べるUIの改善</p>
+                                <div className={styles.roadmapNumber}>3</div>
+                                <div className={styles.roadmapContent}>
+                                    <strong style={{ color: '#2b6cb0', fontSize: '1.1rem' }}>スマートフォン向けUXのさらなる向上</strong>
+                                    <p>モバイルブラウザでもアプリのように快適な操作性を実現するための画面レイアウト最適化</p>
                                 </div>
                             </li>
                             <li>
-                                <span className={styles.roadmapNumber}>4</span>
-                                <div>
-                                    <strong>多言語対応</strong>
-                                    <p>英語版の提供と国際的なコミュニティの構築</p>
+                                <div className={styles.roadmapNumber}>4</div>
+                                <div className={styles.roadmapContent}>
+                                    <strong style={{ color: '#2b6cb0', fontSize: '1.1rem' }}>多言語対応とグローバル展開</strong>
+                                    <p>UIの多言語化や海外プレイヤーとのグローバルなリアルタイムマッチング</p>
                                 </div>
                             </li>
                         </ul>

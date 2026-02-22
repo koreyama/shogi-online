@@ -705,15 +705,15 @@ export default function ShogiPage() {
               <div className={styles.levelButtons}>
                 <button onClick={() => confirmAIGame(1)} className={styles.levelBtn}>
                   <span className={styles.levelTitle}>Lv.1 入門 (Beginner)</span>
-                  <span className={styles.levelDesc}>ランダム要素あり。将棋を覚えたての方に。</span>
+                  <span className={styles.levelDesc}><strong>強さの目安: アマチュア15級〜10級相当</strong><br />ランダム要素あり。将棋を覚えたての方に。</span>
                 </button>
                 <button onClick={() => confirmAIGame(2)} className={styles.levelBtn}>
                   <span className={styles.levelTitle}>Lv.2 初級 (Intermediate)</span>
-                  <span className={styles.levelDesc}>1手先を読みます。基本的な攻めを行います。</span>
+                  <span className={styles.levelDesc}><strong>強さの目安: アマチュア9級〜5級相当</strong><br />1手先を読みます。基本的な攻めを行います。</span>
                 </button>
                 <button onClick={() => confirmAIGame(3)} className={styles.levelBtn}>
                   <span className={styles.levelTitle}>Lv.3 中級 (Advanced)</span>
-                  <span className={styles.levelDesc}>2手先を読み、評価関数で判断します。</span>
+                  <span className={styles.levelDesc}><strong>強さの目安: アマチュア4級〜1級相当</strong><br />2手先を読み、評価関数で判断します。</span>
                 </button>
               </div>
               <div style={{ marginTop: '1rem' }}>

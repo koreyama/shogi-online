@@ -26,12 +26,19 @@ function getGameName(id: string) {
     return map[id] || id;
 }
 
+import dynamic from 'next/dynamic';
+
 // Loading fallback component
 function ProfileLoading() {
     return <div className={styles.container}>読み込み中...</div>;
 }
 
-// Wrapper component with Suspense
+const ProfilePage = dynamic(() => Promise.resolve(ProfilePageContent), {
+    ssr: false,
+    loading: () => <ProfileLoading />
+});
+
+// Wrapper component
 export default function ProfilePageWrapper() {
     return (
         <Suspense fallback={<ProfileLoading />}>
@@ -41,7 +48,7 @@ export default function ProfilePageWrapper() {
 }
 
 // Main profile component
-function ProfilePage() {
+function ProfilePageContent() {
     const searchParams = useSearchParams();
     const targetUserId = searchParams.get('id') || '';
 

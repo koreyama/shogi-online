@@ -9,6 +9,7 @@ import {
     IconBomb, IconDiscord, IconXLogo
 } from '@/components/Icons';
 import { FloatingShapes } from './FloatingShapes';
+import { LandingLibrary } from './LandingLibrary';
 import { RegisteredUserCount } from '@/components/RegisteredUserCount';
 import Image from 'next/image';
 import styles from './LandingPage.module.css';
@@ -78,36 +79,41 @@ const IconMahjongLocal = ({ size = 24 }: { size?: number }) => (
 );
 
 
-// Game Descriptions Data (Full 23 Games)
+// Game Descriptions Data (Full 33 Games)
 const gameDescriptions = [
-    { name: '将棋', category: 'ボードゲーム', description: '日本の伝統的な戦略ボードゲーム。取った駒を再利用できる「持ち駒」ルールが特徴。', color: '#2c5282' },
-    { name: 'チェス', category: 'ボードゲーム', description: '世界標準の戦略ボードゲーム。6種類の駒を使い、相手のキングをチェックメイトします。', color: '#2b6cb0' },
-    { name: '麻雀', category: 'ボードゲーム', description: '4人で遊ぶ牌ゲーム。役を揃えて点数を競います。オンライン対戦対応。', color: '#e53e3e' },
-    { name: 'リバーシ', category: 'ボードゲーム', description: '黒と白の石を使った陣取りゲーム。相手の石を挟んでひっくり返します。', color: '#1a202c' },
-    { name: '大富豪', category: 'カードゲーム', description: '階級が入れ替わるトランプゲームの定番。革命を起こして富豪を目指そう。', color: '#c53030' },
-    { name: 'どうぶつ将棋', category: 'ボードゲーム', description: '3x4の盤面で遊ぶ簡易将棋。シンプルですが奥が深く、子供から大人まで楽しめます。', color: '#ed64a6' },
-    { name: '五目並べ', category: 'ボードゲーム', description: '縦・横・斜めのいずれかに5つ連続で石を並べたら勝ち。', color: '#553c9a' },
-    { name: 'マンカラ', category: 'ボードゲーム', description: '世界最古の知育ゲーム。石を順番に穴に分配し、多くの石を獲得した方が勝ちです。', color: '#744210' },
-    { name: 'チェッカー', category: 'ボードゲーム', description: '斜めに動いて相手の駒を飛び越えて取るゲーム。', color: '#c53030' },
-    { name: 'コネクト4', category: 'ボードゲーム', description: '4つの駒を縦・横・斜めに並べたら勝ち。立体的な思考が必要です。', color: '#2f855a' },
-    { name: 'Divine Duel', category: 'カードゲーム', description: '神々を使役する対戦カードゲーム。デッキ構築と戦略が鍵を握ります。', color: '#d69e2e' },
-    { name: 'お絵かきクイズ', category: 'パーティゲーム', description: '描かれた絵が何かを当てるクイズゲーム。多人数で盛り上がれます。', color: '#d53f8c' },
-    { name: '株シミュ', category: 'シミュレーション', description: '架空の市場で株式投資を体験。市場を読む力が試されます。', color: '#38a169' },
-    { name: 'Civ Builder', category: 'クリッカー', description: '資源を集めて文明を発展させるクリッカーゲーム。放置要素もあります。', color: '#d69e2e' },
-    { name: 'マインスイーパー', category: 'パズル', description: '地雷を避けてマスを開ける論理パズル。', color: '#4a5568' },
-    { name: 'ヨット', category: 'ダイスゲーム', description: 'サイコロの役を作って高得点を目指す運と戦略のゲーム。', color: '#ed8936' },
-    { name: 'Hit & Blow', category: 'パズル', description: '隠された数字を推理するゲーム。論理的思考力が鍛えられます。', color: '#4299e1' },
-    { name: 'Dots & Boxes', category: 'パズル', description: '線を引いて箱を作る陣取りゲーム。', color: '#ed64a6' },
-    { name: 'バックギャモン', category: 'ボードゲーム', description: 'サイコロと戦略が融合した西洋すごろく。', color: '#dd6b20' },
-    { name: '囲碁', category: 'ボードゲーム', description: '黒と白の石で陣地を取り合う、究極の戦略ゲーム。', color: '#1a202c' },
-    { name: 'ポリオミノ', category: 'パズル', description: '様々な形のブロックを敷き詰めるパズルゲーム。', color: '#805ad5' },
-    { name: 'ピアノ', category: '音楽', description: 'ブラウザでピアノ演奏。友達とセッションも可能です。', color: '#4a5568' },
-    { name: 'Honeycomb', category: 'パズル', description: '六角形のマスを使った戦略パズル。', color: '#d69e2e' },
-    { name: 'ビリヤード', category: 'スポーツ', description: '物理演算を使った本格ビリヤード。', color: '#276749' },
-    { name: 'Orbit', category: 'パズル', description: '重力を利用したアクションパズル。', color: '#4c51bf' },
-    { name: 'Trash World', category: 'シミュレーション', description: 'ゴミを拾ってリサイクル。環境を改善しよう。', color: '#718096' },
-    { name: '人狼', category: 'パーティゲーム', description: '嘘と信頼の心理戦。市民に紛れた狼を見つけ出そう。', color: '#742a2a' },
-    { name: 'マルバツ', category: 'ボードゲーム', description: 'シンプルながら奥深い〇✕ゲーム。Tic-Tac-Toe。', color: '#e53e3e' },
+    { name: 'Stock Simulator', category: 'Simulation & Strategy', description: '本格株取引シミュ', color: '#38a169' },
+    { name: 'Civilization Builder', category: 'Simulation & Strategy', description: '資源管理＆文明発展', color: '#d69e2e' },
+    { name: 'Divine Duel', category: 'Simulation & Strategy', description: '戦略カードバトル', color: '#805ad5' },
+    { name: 'Quiz Battle', category: 'Simulation & Strategy', description: '早押しクイズ', color: '#e53e3e' },
+    { name: 'Trash Factory', category: 'Simulation & Strategy', description: 'ゴミ圧縮シミュ', color: '#718096' },
+    { name: 'Block Territory', category: 'Puzzle & Brain', description: '陣取りパズル', color: '#d53f8c' },
+    { name: 'Minesweeper', category: 'Puzzle & Brain', description: '爆弾処理', color: '#e53e3e' },
+    { name: '数独', category: 'Puzzle & Brain', description: '論理パズル', color: '#3b82f6' },
+    { name: 'Hit & Blow', category: 'Puzzle & Brain', description: '推理ゲーム', color: '#4299e1' },
+    { name: 'Dots & Boxes', category: 'Puzzle & Brain', description: '陣取り', color: '#ed64a6' },
+    { name: 'Yacht', category: 'Puzzle & Brain', description: 'ダイスポーカー', color: '#ed8936' },
+    { name: '将棋', category: 'Classic Board', description: '定番ボードゲーム', color: '#2c5282' },
+    { name: 'チェス', category: 'Classic Board', description: '世界標準の戦略', color: '#2b6cb0' },
+    { name: '麻雀', category: 'Classic Board', description: '本格テーブルゲーム', color: '#e53e3e' },
+    { name: 'リバーシ', category: 'Classic Board', description: 'シンプル陣取り', color: '#1a202c' },
+    { name: '五目並べ', category: 'Classic Board', description: '5つ揃えて勝利', color: '#c53030' },
+    { name: 'Connect 4', category: 'Classic Board', description: '重力付4目並べ', color: '#2f855a' },
+    { name: 'ファンタジー将棋', category: 'Classic Board', description: '簡易ルール将棋', color: '#4a5568' },
+    { name: '蜂の陣', category: 'Classic Board', description: 'Honeycomb', color: '#d69e2e' },
+    { name: 'チェッカー', category: 'Classic Board', description: '王道飛び越え', color: '#e53e3e' },
+    { name: 'マンカラ', category: 'Classic Board', description: '種まき頭脳戦', color: '#744210' },
+    { name: 'バックギャモン', category: 'Classic Board', description: '最古のすごろく', color: '#dd6b20' },
+    { name: '囲碁', category: 'Classic Board', description: '白黒争奪戦', color: '#1a202c' },
+    { name: 'マルバツ', category: 'Classic Board', description: 'Tic-Tac-Toe', color: '#e53e3e' },
+    { name: 'お絵かきクイズ', category: 'Variety & Party', description: 'みんなで描こう', color: '#d53f8c' },
+    { name: '絵しりとり', category: 'Variety & Party', description: '絵で繋ぐしりとり', color: '#f59e0b' },
+    { name: 'Orbit Star', category: 'Variety & Party', description: '惑星パズル', color: '#4c51bf' },
+    { name: 'ビリヤード', category: 'Variety & Party', description: '8-Ball Pool', color: '#276749' },
+    { name: 'Virtual Piano', category: 'Variety & Party', description: 'ブラウザ楽器演奏', color: '#000000' },
+    { name: '人狼ゲーム', category: 'Variety & Party', description: '役職チャット', color: '#742a2a' },
+    { name: '大富豪', category: 'Variety & Party', description: 'トランプゲーム', color: '#c53030' },
+    { name: 'Rainbow', category: 'Variety & Party', description: '色と数字のカード', color: '#8b5cf6' },
+    { name: 'Typing Battle', category: 'Variety & Party', description: 'タイピング', color: '#06b6d4' },
 ];
 
 type LandingPageProps = {
@@ -464,64 +470,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </motion.div>
             </section>
 
-            {/* Popular Games Carousel Effect */}
-            <section style={{ padding: '2rem 0 6rem', overflow: 'hidden', position: 'relative', zIndex: 10 }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
-                    <h3 style={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, color: '#4a5568', marginBottom: '2rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Popular Games</h3>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ margin: "-50px" }} // Allows fade out
-                        transition={{ duration: 0.6 }}
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                            gap: '2rem',
-                        }}
-                    >
-                        {[
-                            { icon: <IconShogi size={48} color="#2c5282" />, name: '将棋', desc: 'オンライン対戦対応', color: '#ebf8ff', accent: '#3182ce' },
-                            { icon: <IconChess size={48} color="#2b6cb0" />, name: 'チェス', desc: '世界中のプレイヤーと', color: '#ebf8ff', accent: '#2b6cb0' },
-                            { icon: <IconReversi size={48} color="#1a202c" />, name: 'リバーシ', desc: 'サクサク遊べる', color: '#f7fafc', accent: '#4a5568' },
-                            { icon: <IconStockLocal size={48} />, name: '株シミュ', desc: '架空の市場で投資', color: '#f0fff4', accent: '#38a169' },
-                            { icon: <IconPalette size={48} color="#d53f8c" />, name: 'お絵かきクイズ', desc: 'みんなでワイワイ', color: '#fff5f7', accent: '#d53f8c' },
-                            { icon: <IconCoin size={48} color="#d69e2e" />, name: 'Game of Life', desc: '人生シミュレーション', color: '#fffaf0', accent: '#d69e2e' },
-                        ].map((item, i) => (
-                            <motion.div
-                                key={i}
-                                whileHover={{ y: -8, scale: 1.02, boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
-                                style={{
-                                    background: 'rgba(255, 255, 255, 0.7)',
-                                    backdropFilter: 'blur(10px)',
-                                    borderRadius: '32px',
-                                    padding: '2rem',
-                                    textAlign: 'center',
-                                    border: '1px solid rgba(255,255,255,0.8)',
-                                    boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
-                                    cursor: 'default',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: '100%'
-                                }}
-                            >
-                                <div style={{
-                                    background: 'white',
-                                    width: '90px', height: '90px', borderRadius: '28px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    marginBottom: '1.25rem',
-                                    boxShadow: `0 8px 16px ${item.accent}15`
-                                }}>
-                                    {item.icon}
-                                </div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2d3748', marginBottom: '0.5rem' }}>{item.name}</h3>
-                                <p style={{ fontSize: '0.95rem', color: '#718096', fontWeight: 500 }}>{item.desc}</p>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
+            <LandingLibrary onLogin={onLogin} />
 
             {/* Features Detail Section */}
             <section style={{ background: '#ffffff', padding: '6rem 1.5rem', position: 'relative', overflow: 'hidden' }}>

@@ -11,13 +11,23 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#3b82f6",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  manifest: "/manifest.webmanifest",
   title: {
     default: "Asobi Lounge - 無料オンラインボードゲーム",
     template: "%s | Asobi Lounge",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Asobi Lounge",
+  },
+  formatDetection: {
+    telephone: false,
   },
   description: "将棋、チェス、リバーシ、麻雀、五目並べなど20種類以上のボードゲーム・カードゲームを完全無料で遊べるオンラインゲームサイト。AI対戦や友達とのオンライン対戦に対応。登録不要、ブラウザだけで今すぐプレイ！",
   keywords: [
