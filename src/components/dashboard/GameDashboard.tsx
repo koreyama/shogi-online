@@ -11,6 +11,7 @@ import {
 import { FloatingShapes } from '@/components/landing/FloatingShapes';
 import Image from 'next/image';
 import styles from './GameDashboard.module.css';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 import { RELEASES } from '@/lib/releases';
 
@@ -190,6 +191,8 @@ type GameDashboardProps = {
 };
 
 export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, signOut }) => {
+    const isOnline = useOnlineStatus();
+
     const containerVariants: any = {
         hidden: { opacity: 0 },
         visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
@@ -261,7 +264,26 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.25rem', color: '#2d3748' }}>
                             ようこそ、<span style={{ color: '#3182ce' }}>{playerName}</span> さん
                         </h1>
-                        <p style={{ color: '#718096', fontSize: '0.95rem' }}>今日はどのゲームで遊びますか？</p>
+                        <p style={{ color: '#718096', fontSize: '0.95rem' }}>{isOnline ? '今日はどのゲームで遊びますか？' : '📴 オフラインモード：一人で遊べるゲームのみ表示中'}</p>
+
+                        {!isOnline && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '0.75rem 1rem',
+                                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                                borderRadius: '12px',
+                                border: '1px solid #f59e0b',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                fontSize: '0.85rem',
+                                color: '#92400e',
+                                fontWeight: 600
+                            }}>
+                                <span style={{ fontSize: '1.2rem' }}>📡</span>
+                                <span>インターネット未接続のため、AI対戦やソロプレイ対応のゲームのみ表示しています。</span>
+                            </div>
+                        )}
 
                         <Link href="/releases" style={{ textDecoration: 'none' }}>
                             <motion.div
@@ -307,8 +329,8 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         >
                             <GameCard href="/stock" title="Stock Simulator" desc="本格株取引シミュ" icon={<IconStockLocal size={32} color="#38a169" />} color="#38a169" />
                             <GameCard href="/clicker" title="Civilization Builder" desc="資源管理＆文明発展" icon={<IconCoin size={32} color="#d69e2e" />} color="#d69e2e" />
-                            <GameCard href="/card-game/lobby" title="Divine Duel" desc="戦略カードバトル" icon={<IconCards size={32} color="#805ad5" />} color="#805ad5" />
-                            <GameCard href="/quiz" title="Quiz Battle" desc="早押しクイズ" icon={<IconRocket size={32} color="#e53e3e" />} color="#e53e3e" />
+                            {isOnline && <GameCard href="/card-game/lobby" title="Divine Duel" desc="戦略カードバトル" icon={<IconCards size={32} color="#805ad5" />} color="#805ad5" />}
+                            {isOnline && <GameCard href="/quiz" title="Quiz Battle" desc="早押しクイズ" icon={<IconRocket size={32} color="#e53e3e" />} color="#e53e3e" />}
                             <div className={styles.desktopOnly}>
                                 <GameCard href="/trash" title="Trash Factory" desc="ゴミ圧縮シミュ" icon={<IconFactoryLocal size={32} color="#718096" />} color="#718096" />
                             </div>
@@ -353,20 +375,19 @@ export const GameDashboard: React.FC<GameDashboardProps> = ({ user, playerName, 
                         <GameSection
                             title="バラエティ"
                             color="#ed8936"
-                            icon={<IconPalette size={20} color="#ed8936" />} // Replaced emoji
+                            icon={<IconPalette size={20} color="#ed8936" />}
                         >
-                            <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />
-                            <GameCard href="/eshiritori" title="絵しりとり" desc="絵で繋ぐしりとり" icon={<IconPalette size={32} color="#f59e0b" />} color="#f59e0b" />
+                            {isOnline && <GameCard href="/drawing" title="お絵かきクイズ" desc="みんなで描こう" icon={<IconPalette size={32} color="#d53f8c" />} color="#d53f8c" />}
+                            {isOnline && <GameCard href="/eshiritori" title="絵しりとり" desc="絵で繋ぐしりとり" icon={<IconPalette size={32} color="#f59e0b" />} color="#f59e0b" />}
                             <GameCard href="/orbit" title="Orbit Star" desc="360°惑星パズル" icon={<IconStar size={32} color="#e53e3e" />} color="#e53e3e" />
-
-                            <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />
+                            {isOnline && <GameCard href="/billiards" title="ビリヤード" desc="8-Ball Pool" icon={<IconBilliardsLocal size={32} color="#10b981" />} color="#10b981" />}
                             <GameCard href="/piano" title="Virtual Piano" desc="楽器演奏" icon={<IconPianoLocal size={32} color="#4a5568" />} color="#4a5568" />
-                            <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
-                            <GameCard href="/trump" title="大富豪" desc="トランプゲーム" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />
-                            <GameCard href="/rainbow" title="Rainbow" desc="色と数字のカード" icon={<IconRainbowLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />
-                            <div className={styles.desktopOnly}>
+                            {isOnline && <GameCard href="/werewolf" title="人狼ゲーム" desc="役職チャットバトル" icon={<IconWolfLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />}
+                            {isOnline && <GameCard href="/trump" title="大富豪" desc="トランプゲーム" icon={<IconCards size={32} color="#c53030" />} color="#c53030" />}
+                            {isOnline && <GameCard href="/rainbow" title="Rainbow" desc="色と数字のカード" icon={<IconRainbowLocal size={32} color="#8b5cf6" />} color="#8b5cf6" />}
+                            {isOnline && <div className={styles.desktopOnly}>
                                 <GameCard href="/typing" title="Typing Battle" desc="押し合いタイピング" icon={<IconKeyboardLocal size={32} color="#06b6d4" />} color="#06b6d4" />
-                            </div>
+                            </div>}
                         </GameSection>
 
                     </div>
