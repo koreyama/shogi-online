@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import { ChatVisibilityProvider } from "@/contexts/ChatVisibilityContext";
+import UnregisterSW from "@/components/UnregisterSW";
 
 const siteUrl = "https://asobi-lounge.com";
 
@@ -119,6 +120,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <UnregisterSW />
       </body >
     </html >
   );
