@@ -17,8 +17,9 @@ const serwist = new Serwist({
     precacheEntries: self.__SW_MANIFEST,
     skipWaiting: true,
     clientsClaim: true,
-    navigationPreload: true,
+    navigationPreload: false, // オフライン時にネットワークへ先行アクセスさせない
     runtimeCaching: defaultCache,
 });
 
 serwist.addEventListeners();
+
