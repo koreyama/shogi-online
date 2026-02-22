@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import DotsAndBoxesGame from './DotsAndBoxesGame';
 import ColyseusDotsAndBoxesGame from './ColyseusDotsAndBoxesGame';
 import navStyles from '@/styles/GameMenu.module.css';

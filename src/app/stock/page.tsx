@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { Stock, Portfolio, LeaderboardEntry, INITIAL_CASH, FEATURED_STOCKS, USD_JPY_RATE } from '@/lib/stock/types';

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import Link from 'next/link';
 import { pianoEngine, InstrumentType } from '@/lib/piano/AudioEngine';
 import { SONGS, Song, NoteData } from '@/lib/piano/songs';

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useAuth } from '@/hooks/useAuth';

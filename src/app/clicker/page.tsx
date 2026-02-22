@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import styles from './page.module.css';
 import { useClickerEngine } from '@/lib/clicker/engine';
 import { IconFood, IconWood, IconStone, IconKnowledge, IconGold, IconPopulation, IconSettings, IconHammer, IconBook, IconLock, IconCheck, IconApple, IconPickaxe, IconUsers, IconIron, IconCoal, IconOil, IconSilicon } from '@/components/Icons';

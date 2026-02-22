@@ -1,3 +1,4 @@
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 

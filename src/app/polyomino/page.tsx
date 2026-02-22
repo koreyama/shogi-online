@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/GameMenu.module.css';
 import gameStyles from './Polyomino.module.css';

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { FloatingShapes } from '@/components/landing/FloatingShapes';

@@ -1,3 +1,4 @@
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 'use client';
 
 import dynamic from 'next/dynamic';

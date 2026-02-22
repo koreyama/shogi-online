@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import Link from 'next/link';
 import { IconBack } from '@/components/Icons';
 

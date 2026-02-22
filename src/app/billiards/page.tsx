@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useRouter } from 'next/navigation';
 import { IconBack, IconDice, IconKey, IconUser } from '@/components/Icons';
 import ColyseusBilliardsGame from './ColyseusBilliardsGame';

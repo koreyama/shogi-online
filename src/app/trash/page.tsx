@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import React from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import Link from 'next/link';
 
 // Dynamically import the game component with ssr: false because Phaser needs window

@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Asobi Lounge",
   },
+  icons: {
+    apple: "/icon.png",
+  },
   formatDetection: {
     telephone: false,
   },

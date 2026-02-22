@@ -21,7 +21,7 @@ import { audioManager } from '@/lib/mahjong/audio';
 import { YakuListModal } from './YakuListModal';
 import { useAuth } from '@/hooks/useAuth';
 import HideChatBot from '@/components/HideChatBot';
-
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 type GameMode = 'select' | 'ai' | 'online-random' | 'online-room';
 
@@ -104,7 +104,7 @@ function PlayerPanel({
         </div>
     );
 }
-
+// ...（中略）...
 // ... (imports remain)
 
 type ViewState = 'top' | 'random_select' | 'room_select' | 'ai_select';
@@ -120,10 +120,19 @@ const MAHJONG_THEME = {
 export default function MahjongPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const isOnline = useOnlineStatus();
     const [view, setView] = useState<ViewState>('top');
     const [gameMode, setGameMode] = useState<GameMode | null>(null);
     const [roomId, setRoomId] = useState('');
     const [options, setOptions] = useState<any>({});
+
+    const handleOnlineAction = (action: () => void) => {
+        if (!isOnline) {
+            alert('オフライン時はオンライン対戦機能を利用できません。インターネット接続を確認してください。');
+            return;
+        }
+        action();
+    };
 
     // Auth Guard
     useEffect(() => {
@@ -173,7 +182,7 @@ export default function MahjongPage() {
                     <>
                         <div className={menuStyles.modeSelection}>
                             {/* 左: オンライン（ランダム） */}
-                            <button className={menuStyles.modeBtn} onClick={() => setView('random_select')}>
+                            <button className={menuStyles.modeBtn} onClick={() => handleOnlineAction(() => setView('random_select'))}>
                                 <div className={menuStyles.modeBtnIcon}>
                                     <IconDice size={48} />
                                 </div>
@@ -182,7 +191,7 @@ export default function MahjongPage() {
                             </button>
 
                             {/* 中: ルーム対戦 */}
-                            <button className={menuStyles.modeBtn} onClick={() => setView('room_select')}>
+                            <button className={menuStyles.modeBtn} onClick={() => handleOnlineAction(() => setView('room_select'))}>
                                 <div className={menuStyles.modeBtnIcon}>
                                     <IconKey size={48} />
                                 </div>

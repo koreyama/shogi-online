@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GameBoard } from '@/components/card-game/GameBoard';
 import { STARTER_DECKS } from '@/lib/card-game/data/decks';

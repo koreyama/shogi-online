@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { useSearchParams } from 'next/navigation';
 import styles from './profile.module.css';
 import Link from 'next/link';

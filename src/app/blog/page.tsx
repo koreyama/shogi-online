@@ -1,4 +1,6 @@
 import React from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import Link from 'next/link';
 
 export default function BlogPage() {

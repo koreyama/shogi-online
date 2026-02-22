@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import Link from 'next/link';
 import styles from './about.module.css';
 import { IconShogi, IconChess, IconSwords } from '@/components/Icons';

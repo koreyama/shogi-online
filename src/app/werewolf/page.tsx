@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import * as Colyseus from 'colyseus.js';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
